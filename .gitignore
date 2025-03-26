@@ -1,0 +1,15 @@
+# IntelliJ project files
+.idea
+.gradle
+*.iml
+.DS_STORE
+target/
+#忽略根目录下所有target文件夹
+*/target/
+.settings
+.classpath
+.project
+*.class
+
+# Log file
+*.log
