@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class OkHttp<T> extends NullKernelAbstract<T> implements NullHttp, OkHttpChain {
-    public static final String DEFAULT_THREAD_FACTORY_NAME = "$$$--NULL_DEFAULT_OKHTTP--$$$";
+    public static final String DEFAULT_THREAD_FACTORY_NAME = "$$$--NULL_DEFAULT_OKHTTP_SYNC--$$$";
 
 
     //创建一个空的OkHttpUtil

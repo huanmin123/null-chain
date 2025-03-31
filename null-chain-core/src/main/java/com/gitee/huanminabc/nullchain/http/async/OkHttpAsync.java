@@ -23,7 +23,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 public class OkHttpAsync<T> extends NullKernelAsyncAbstract<T> implements NullHttp,OkHttpAsyncChain{
-    public static final String DEFAULT_THREAD_FACTORY_NAME = "$$$--NULL_DEFAULT_OKHTTP_ASYNC-$$$";
+    public static final String DEFAULT_THREAD_FACTORY_NAME = "$$$--NULL_DEFAULT_OKHTTP_ASYNC--$$$";
 
     //创建一个空的OkHttpUtil
     public  static <T> OkHttpAsyncChain empty( StringBuilder linkLog, NullCollect collect) {

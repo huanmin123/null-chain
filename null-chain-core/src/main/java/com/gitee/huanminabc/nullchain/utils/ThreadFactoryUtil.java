@@ -4,6 +4,7 @@ package com.gitee.huanminabc.nullchain.utils;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.enums.ThreadMotiveEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 import java.util.concurrent.*;
 
@@ -16,7 +17,7 @@ import java.util.concurrent.*;
 @Slf4j
 public class ThreadFactoryUtil {
     private static final ConcurrentHashMap<String, ThreadPoolExecutor> executorMap= new ConcurrentHashMap<>();  ;
-    public static final String DEFAULT_THREAD_FACTORY_NAME = "$$$--DEFAULT_THREAD_FACTORY--$$$";
+    public static final String DEFAULT_THREAD_FACTORY_NAME = "$$$--NULL_DEFAULT_THREAD_POOL--$$$";
 
     //获取cpu核心数
 //    对于CPU密集型任务，CORE_POOL_SIZE可以设置为CPU核心数的两倍左右。这是因为CPU密集型任务主要依赖CPU的计算能力，设置过多的线程反而会因为线程切换和调度开销而降低效率。
@@ -77,10 +78,9 @@ public class ThreadFactoryUtil {
     // threadPoolName: 线程池名称
     // 任务数量,建议任务数量要比实际统计的任务数量大一些,因为会作为队列的容量
     private static ThreadPoolExecutor create(String threadNamePrefix, int maxPoolSize, int taskNum, ThreadMotiveEnum type) {
-
-        ThreadFactory namedThreadFactory = new ThreadFactoryBuilder()
-                .setNameFormat(threadNamePrefix + "-%d").build();
-
+        BasicThreadFactory namedThreadFactory = new BasicThreadFactory.Builder()
+                .namingPattern(threadNamePrefix + "-%d")
+                .build();
         //如果是io密集型,那么核心线程数就是最大线程数,这样可以避免线程的创建和销毁,提高性能
         //如果是cpu密集型,那么核心线程数就是cpu核心数的两倍,这样可以提高cpu的利用率
         int corePoolSize = CORE_POOL_SIZE;
@@ -122,8 +122,9 @@ public class ThreadFactoryUtil {
 
         public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
             if (!e.isShutdown()) {
-                ThreadFactory namedThreadFactory = new ThreadFactoryBuilder()
-                        .setNameFormat(threadNamePrefix + "-full" + "-%d").build();
+                BasicThreadFactory namedThreadFactory = new BasicThreadFactory.Builder()
+                        .namingPattern(threadNamePrefix + "-full" + "-%d")
+                        .build();
                 Thread thread = namedThreadFactory.newThread(r);
                 thread.start();
                 synchronized (this) {
