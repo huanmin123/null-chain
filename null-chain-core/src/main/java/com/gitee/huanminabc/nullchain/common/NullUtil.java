@@ -28,7 +28,7 @@ public class NullUtil {
         //把8大基本类型和字符串排在前面判断,因为这些类型是最常用的
 
         //如果是8大基本类型或者包装类型,那么直接返回不是空 ,因为只有null和有值两种情况
-        if ( ClassUtils.isPrimitiveOrWrapper(o.getClass())) {
+        if (ClassUtils.isPrimitiveOrWrapper(o.getClass())) {
             return false;
         }
 
@@ -70,6 +70,7 @@ public class NullUtil {
         }
         return false;
     }
+
     //判断全部是空返回true,只要有一个不为空就返回false
     public static boolean isAll(Object... o) {
         for (Object o1 : o) {
@@ -103,11 +104,28 @@ public class NullUtil {
 
     //判断对象是否为空,如果为空返回默认值
     public static <T> T orElse(T obj, T defaultValue) {
-        return is(obj) ? defaultValue : obj;
+        if (is(obj)) {
+            //如果默认值也是空那么就返回异常
+            if (is(defaultValue)) {
+                throw new NullChainException("默认值不能是空");
+            }
+            return defaultValue;
+        }
+        return obj;
     }
 
     public static <T> T orElse(T obj, Supplier<T> defaultValue) {
-        return is(obj) ? defaultValue.get() : obj;
+        if (is(obj)) {
+            if (defaultValue == null) {
+                throw new NullChainException("默认值参数不能为空");
+            }
+            T t = defaultValue.get();
+            if (is(t)) {
+                throw new NullChainException("默认值不能是空");
+            }
+            return t;
+        }
+        return obj;
     }
 
     //如果值为空那么就创建一个空的对象
