@@ -21,13 +21,13 @@ import com.gitee.huanminabc.nullchain.task.NullTask;
 import com.gitee.huanminabc.nullchain.task.NullTaskFactory;
 import com.gitee.huanminabc.nullchain.utils.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.vessel.NullMap;
-import com.google.common.collect.Lists;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -69,7 +69,7 @@ public class RunSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                     }
                 }
                 //截取Run语句的标记序列 不包含Run和LINE_END
-                List<Token> newToken = Lists.newArrayList(tokens.subList(i + 1, endIndex));
+                List<Token> newToken = new ArrayList(tokens.subList(i + 1, endIndex));
                 //删除已经解析的标记
                 tokens.subList(i, endIndex).clear();
 
@@ -82,7 +82,7 @@ public class RunSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                     if (t.type == TokenType.ARROW_ASSIGN) {
 
                         //截取->后面的标记序列
-                        List<Token> newToken2 = Lists.newArrayList(newToken.subList(j + 1, newToken.size()));
+                        List<Token> newToken2 = new ArrayList(newToken.subList(j + 1, newToken.size()));
                         //判断长度是否为3
                         if (newToken2.size() != 3) {
                             throw new NfException("Line:{}, run语句错误,箭头后面的变量声明错误,tokens: {}", token.line, TokenUtil.mergeToken(newToken).toString());
@@ -99,8 +99,7 @@ public class RunSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
 
                         //判断类型是否是合法的
 
-
-                        newToken2 = Lists.newArrayList(type, name);
+                        newToken2 = new ArrayList<>(Arrays.asList(type, name));
                         declareSyntaxNode.setValue(newToken2);
                         //设置行号
                         declareSyntaxNode.setLine(t.getLine());
@@ -171,7 +170,7 @@ public class RunSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                 //跳过(
                 i++;
                 //参数
-                List<Object> params = Lists.newArrayList();
+                List<Object> params = new ArrayList();
                 for (int j = i; j < value.size(); j++) {
                     Token token1 = value.get(j);
                     //如果是逗号就跳过

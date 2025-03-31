@@ -1,10 +1,9 @@
 package com.gitee.huanminabc.nullchain.language.syntaxNode;
 
-import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.token.Token;
-import com.google.common.collect.Lists;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,7 +31,7 @@ public  abstract class SyntaxNodeAbs {
 
     public void  addChild(SyntaxNode syntaxNode){
         if (childSyntaxNodeList == null) {
-            childSyntaxNodeList = Lists.newArrayList();
+            childSyntaxNodeList = new ArrayList<>();
         }
         childSyntaxNodeList.add(syntaxNode);
     }

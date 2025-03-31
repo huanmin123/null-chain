@@ -12,13 +12,13 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
-import com.google.common.collect.Lists;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -55,7 +55,7 @@ public class EchoSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                     }
                 }
                 //截取ECHO语句的标记序列 不包含ECHO
-                List<Token> newToken = Lists.newArrayList(tokens.subList(i + 1, endIndex));
+                List<Token> newToken = new ArrayList(tokens.subList(i + 1, endIndex));
                 //去掉注释
                 newToken.removeIf(t -> t.type == TokenType.COMMENT);
                 EchoSyntaxNode exportExpNode = new EchoSyntaxNode(SyntaxNodeType.ECHO_EXP);

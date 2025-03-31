@@ -10,12 +10,12 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeStructType;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
-import com.google.common.collect.Lists;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -53,7 +53,7 @@ public class ExportSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                     }
                 }
                 //截取Export语句的标记序列 不包含Export和LINE_END
-                List<Token> newToken = Lists.newArrayList(tokens.subList(i + 1, endIndex));
+                List<Token> newToken = new ArrayList(tokens.subList(i + 1, endIndex));
                 //去掉注释
                 newToken.removeIf(t -> t.type == TokenType.COMMENT);
 

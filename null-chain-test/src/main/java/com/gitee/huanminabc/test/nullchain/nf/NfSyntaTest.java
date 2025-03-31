@@ -7,16 +7,16 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeFactory;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.test.nullchain.utils.TestUtil;
-import com.google.common.collect.Lists;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class NfSyntaTest {
     static List<Token> tokens;
-    static List<SyntaxNode> syntaxNodeList= Lists.newArrayList();
+    static List<SyntaxNode> syntaxNodeList= new ArrayList<>();
 
     @BeforeClass
     public static void before() {

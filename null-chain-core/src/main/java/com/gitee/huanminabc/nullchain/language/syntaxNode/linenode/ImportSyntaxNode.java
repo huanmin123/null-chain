@@ -9,12 +9,12 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
-import com.google.common.collect.Lists;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -51,7 +51,7 @@ public  class ImportSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                     }
                 }
                 //截取import语句的标记序列 不包含import和LINE_END
-                List<Token> newToken = Lists.newArrayList(tokens.subList(i + 1, endIndex));
+                List<Token> newToken = new ArrayList(tokens.subList(i + 1, endIndex));
                 //删除已经解析的标记
                 tokens.subList(i, endIndex).clear();
 

@@ -11,12 +11,12 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
 import com.gitee.huanminabc.nullchain.language.utils.KeywordUtil;
-import com.google.common.collect.Lists;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -45,7 +45,7 @@ public class DeclareSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
             //IDENTIFIER +IDENTIFIER +LINE_END
             if (token.type == TokenType.IDENTIFIER && tokens.get(i + 1).type == TokenType.IDENTIFIER && tokens.get(i + 2).type == TokenType.LINE_END) {
                 //截取声明语句的标记序列,不包含LINE_END
-                List<Token> newToken = Lists.newArrayList(tokens.subList(i, i + 2));
+                List<Token> newToken = new ArrayList(tokens.subList(i, i + 2));
                 //删除已经解析的标记
                 tokens.subList(i, i + 2).clear();
                 //拿到第1个变量名称

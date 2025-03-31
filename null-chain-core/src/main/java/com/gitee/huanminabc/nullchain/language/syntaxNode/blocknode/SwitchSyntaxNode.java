@@ -11,12 +11,12 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.*;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
 import com.gitee.huanminabc.nullchain.language.utils.DataType;
-import com.google.common.collect.Lists;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -52,7 +52,7 @@ public class SwitchSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                 //记录结束下标, 用于截取和删除
                 int endIndex = skipSwitchEnd(tokens, i);
                 //截取switch表达式的标记序列
-                List<Token> switchTokens = Lists.newArrayList(tokens.subList(i, endIndex));
+                List<Token> switchTokens = new ArrayList(tokens.subList(i, endIndex));
 
                 //删除
                 tokens.subList(i, endIndex).clear();
@@ -171,7 +171,7 @@ public class SwitchSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
     private List<Token> splitSwitchValue(List<Token> tokens){
         //去掉开头的switch
         tokens.remove(0);
-        List<Token> value = Lists.newArrayList();
+        List<Token> value = new ArrayList();
         value.add(tokens.get(0));
         //去掉值
         tokens.remove(0);
@@ -197,12 +197,12 @@ public class SwitchSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         tokens.remove(0);
         int endIndex = skipCase1Block(tokens);
         //截取case表达式 , 因为需要包括换行所以需要+1
-        List<Token> caseTokens = Lists.newArrayList(tokens.subList(0, endIndex+1));
+        List<Token> caseTokens = new ArrayList(tokens.subList(0, endIndex+1));
         //删除
         tokens.subList(0, endIndex+1).clear();
 
         //提取case的条件
-        List<Token> caseValue = Lists.newArrayList();
+        List<Token> caseValue = new ArrayList();
         int endIndex2=0;
         //截取到换行
         for (int i = 0; i < caseTokens.size(); i++) {
@@ -214,7 +214,7 @@ public class SwitchSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         }
         caseStatement.setValue(caseValue);
         //截取case体
-        List<Token> caseBody = Lists.newArrayList(caseTokens.subList(endIndex2, caseTokens.size()));
+        List<Token> caseBody = new ArrayList(caseTokens.subList(endIndex2, caseTokens.size()));
         //构建子节点
         List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(caseBody);
         caseStatement.setChildSyntaxNodeList(syntaxNodes);
@@ -237,7 +237,7 @@ public class SwitchSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         //剩下的就是default的表达式
         int endIndex = tokens.size();
         //截取default表达式 , 因为需要包括换行所以需要+1
-        List<Token> defaultTokens = Lists.newArrayList(tokens.subList(0, endIndex));
+        List<Token> defaultTokens = new ArrayList(tokens.subList(0, endIndex));
         //删除
         tokens.subList(0, endIndex).clear();
 

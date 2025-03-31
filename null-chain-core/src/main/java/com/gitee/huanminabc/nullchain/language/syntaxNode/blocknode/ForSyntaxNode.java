@@ -9,12 +9,12 @@ import com.gitee.huanminabc.nullchain.language.internal.NfVariableInfo;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.*;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
-import com.google.common.collect.Lists;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -43,7 +43,7 @@ public class ForSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                 //记录结束下标, 用于截取和删除
                 int endIndex =skipForEnd(tokens, i);
                 //截取While表达式的标记序列
-                List<Token> ifTokens = Lists.newArrayList(tokens.subList(i, endIndex));
+                List<Token> ifTokens = new ArrayList<>(tokens.subList(i, endIndex));
                 //删除
                 tokens.subList(i, endIndex).clear();
 
@@ -78,7 +78,7 @@ public class ForSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
             }
         }
         //截取for表达式条件
-        List<Token> forTokens = Lists.newArrayList(tokenList.subList(0, endIndex));
+        List<Token> forTokens = new ArrayList(tokenList.subList(0, endIndex));
 
         //必须存在In
         if (forTokens.stream().noneMatch(t -> t.type == TokenType.IN)) {

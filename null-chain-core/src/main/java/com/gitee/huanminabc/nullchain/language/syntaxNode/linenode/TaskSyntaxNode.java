@@ -11,12 +11,12 @@ import com.gitee.huanminabc.nullchain.language.token.TokenType;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
 import com.gitee.huanminabc.nullchain.task.NullTask;
 import com.gitee.huanminabc.nullchain.task.NullTaskFactory;
-import com.google.common.collect.Lists;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -54,7 +54,7 @@ public class TaskSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                     }
                 }
                 //截取task语句的标记序列 不包含task和LINE_END
-                List<Token> newToken = Lists.newArrayList(tokens.subList(i + 1, endIndex));
+                List<Token> newToken = new ArrayList(tokens.subList(i + 1, endIndex));
                 //删除已经解析的标记
                 tokens.subList(i, endIndex).clear();
                 //去掉注释
@@ -81,7 +81,7 @@ public class TaskSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                     throw new NfException("Line:{} ,task 语句错误,as关键字后面必须是标识符 , syntax: task {}", token.getLine(), TokenUtil.mergeToken(newToken).toString());
                 }
 
-                List<Token> taskToken = Lists.newArrayList(newToken.subList(0, asIndex));
+                List<Token> taskToken = new ArrayList(newToken.subList(0, asIndex));
 
                 //校验import语句是否合法
                 String imp = TokenUtil.mergeToken(taskToken).toString();
@@ -125,7 +125,7 @@ public class TaskSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
             }
         }
         //截取到as的位置
-        List<Token> taskToken = Lists.newArrayList(value.subList(0, asIndex));
+        List<Token> taskToken = new ArrayList(value.subList(0, asIndex));
         StringBuilder sb = new StringBuilder();
         for (Token token : taskToken) {
             sb.append(token.value);

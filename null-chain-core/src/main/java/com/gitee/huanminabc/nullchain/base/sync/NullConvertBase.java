@@ -7,7 +7,6 @@ import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.base.sync.stream.NullStream;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
 import com.gitee.huanminabc.nullchain.utils.ThreadFactoryUtil;
-import com.google.common.reflect.TypeToken;
 
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;

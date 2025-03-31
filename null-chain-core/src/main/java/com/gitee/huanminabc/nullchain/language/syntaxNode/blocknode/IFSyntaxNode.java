@@ -10,12 +10,12 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.*;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
-import com.google.common.collect.Lists;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -57,7 +57,7 @@ public class IFSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                 //获取语句结束下标, 用于截取和删除
                 int endIndex = skipIfEnd(tokens, i);
                 //截取if表达式的标记序列
-                List<Token> ifTokens = Lists.newArrayList(tokens.subList(i, endIndex));
+                List<Token> ifTokens = new ArrayList<>(tokens.subList(i, endIndex));
                 //如果是0那么就是语法有问题
                 if (ifTokens.isEmpty()) {
                     throw new NfException("Line:{}  if表达式语法错误", token.getLine());
@@ -235,7 +235,7 @@ public class IFSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         //记录结束下标, 用于截取和删除
         int endIndex = skipIf1Block(tokens);
         //截取if表达式的标记序列
-        List<Token> ifTokens = Lists.newArrayList(tokens.subList(0, endIndex));
+        List<Token> ifTokens = new ArrayList(tokens.subList(0, endIndex));
         //删除
         tokens.subList(0, endIndex).clear();
         //删除}
@@ -251,7 +251,7 @@ public class IFSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
             }
         }
         //截取if表达式的条件
-        List<Token> conditionTokens = Lists.newArrayList(ifTokens.subList(0, endIndex2));
+        List<Token> conditionTokens = new ArrayList(ifTokens.subList(0, endIndex2));
         //删除条件
         ifTokens.subList(0, endIndex2).clear();
         //去掉{

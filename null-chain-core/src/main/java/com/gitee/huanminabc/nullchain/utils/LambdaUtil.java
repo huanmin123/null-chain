@@ -1,13 +1,12 @@
 package com.gitee.huanminabc.nullchain.utils;
 
 import com.gitee.huanminabc.nullchain.common.NullChainException;
-import com.google.common.collect.Maps;
-
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
@@ -60,7 +59,7 @@ public class LambdaUtil {
      * @throws Exception
      */
     public static<T,U> Map<String,Object> lambdaInvocation(Function<T, U> myFun) {
-        Map<String,Object> map = Maps.newHashMap();
+        Map<String,Object> map = new HashMap<>();
         map.put("methodName","");
         map.put("fieldName","");
         map.put("clazz",null);
@@ -88,7 +87,7 @@ public class LambdaUtil {
             writeReplace.setAccessible(true);
             Object sl = writeReplace.invoke(myFun);
             SerializedLambda serializedLambda = (SerializedLambda) sl;
-            map = Maps.newHashMap();
+            map = new HashMap<>();
             map.put("methodName",serializedLambda.getImplMethodName());
             map.put("fieldName", methodToProperty(serializedLambda.getImplMethodName()));
             map.put("clazz",Class.forName(serializedLambda.getImplClass().replace("/", ".")));

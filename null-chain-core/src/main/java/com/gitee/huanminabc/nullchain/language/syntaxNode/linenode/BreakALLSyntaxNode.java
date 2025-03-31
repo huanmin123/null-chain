@@ -9,12 +9,14 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeStructType;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
-import com.google.common.collect.Lists;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
@@ -34,7 +36,7 @@ public class BreakALLSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
     @Override
     public boolean buildStatement(List<Token> tokens, List<SyntaxNode> syntaxNodeList) {
         Token token = tokens.get(0);
-        List<Token> newToken = Lists.newArrayList(token);
+        List<Token> newToken = new ArrayList<>(Collections.singletonList(token));
         //为了防止在break后面还有注释,那么一直删除到不是注释为止
         do {
             tokens.remove(0);

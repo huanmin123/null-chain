@@ -3,7 +3,6 @@ package com.gitee.huanminabc.nullchain.utils;
 
 import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.enums.ThreadMotiveEnum;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.*;
@@ -147,11 +146,7 @@ public class ThreadFactoryUtil {
     }
 
     public static StackTraceElement currentStackTrace(int num) {
-        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-        if (stackTrace.length >= num+ 1) {
-            return stackTrace[num];
-        }
-        return new StackTraceElement("null", "null", "null", 0);
+        return StackTraceUtil.currentStackTrace(num);
     }
 
 

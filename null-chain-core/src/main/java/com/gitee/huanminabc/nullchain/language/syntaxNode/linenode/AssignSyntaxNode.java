@@ -13,13 +13,13 @@ import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
 import com.gitee.huanminabc.nullchain.language.utils.KeywordUtil;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
-import com.google.common.collect.Lists;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -67,7 +67,7 @@ public class AssignSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                     }
                 }
                 //截取赋值语句的标记序列,不包含LINE_END
-                List<Token> newToken = Lists.newArrayList(tokens.subList(i, endIndex));
+                List<Token> newToken = new ArrayList<>(tokens.subList(i, endIndex));
                 //删除已经解析的标记
                 tokens.subList(i, endIndex).clear();
 
