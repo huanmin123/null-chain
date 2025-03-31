@@ -42,6 +42,11 @@ public class ThreadFactoryUtil {
         ThreadFactoryUtil.addExecutor(ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME,ALL_DEFAULT_MAX_POOL_SIZE,ALL_DEFAULT_TASK_NUM,ThreadMotiveEnum.CPU); //初始化线程池
     }
 
+    //获取默认线程池
+    public static ThreadPoolExecutor getDefaultExecutor() {
+        return executorMap.get(DEFAULT_THREAD_FACTORY_NAME);
+    }
+
 
     //添加指定key的线程池
     public static void addExecutor(String threadFactoryName, int maxPoolSize, int taskNum, ThreadMotiveEnum type) {
