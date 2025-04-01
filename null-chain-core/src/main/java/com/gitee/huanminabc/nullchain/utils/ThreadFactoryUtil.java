@@ -26,21 +26,26 @@ public class ThreadFactoryUtil {
     //现在栈大小都是1M, 那么假设你空闲内存有10G,那么最大线程数就是10G/1M=10000 ,但是一般来说5000就够了,其他程序也需要内存, 到了这个峰值那么就需要考虑
     //是否是逻辑问题,如果是逻辑问题,那么就需要考虑是否需要优化,如果不是逻辑问题,那么就需要考虑是否需要增加机器了, 官方建议jvm最大内存使用30G左右是极限了在多也没用,只会越来越慢
     // 而这30G除非就你一个程序,理论上线程池的最大线程数就是30G/1M=30000,但是不现实, 因为还有操作系统本身的各种线程和应用
-    // 一般来说单台机器5000那么就是极限了, 这里说的是顶配机器, 如果是普通机器,那么就更少了, 一般来说1000就够了
-    //如果单业务超出队列后还创建了1000次线程,那么就会报错,代码肯定有问题,要不就是该加服务器了,所以这里限制一下
-    private final static int LIMIT_MAXIMUM_POOL_SIZE = 1000;
+    // 一般来说单台机器5000那么就是极限了, 这里说的是顶配机器, 如果是普通机器,那么就更少了, 一般来说1024就够了
+    //如果单业务超出队列后还创建了1024次线程,那么就会报错,代码肯定有问题,要不就是该加服务器了,所以这里限制一下
+    private final static int LIMIT_MAXIMUM_POOL_SIZE = 1024;
 
     //单个业务默认线程池大小
-    private final static int DEFAULT_MAX_POOL_SIZE = 100;
+    private final static int DEFAULT_MAX_POOL_SIZE = 128;
     //单个业务线程池默认任务数量
-    private final static int DEFAULT_TASK_NUM = 1000;
+    private final static int DEFAULT_TASK_NUM = 1024;
     //全局默认的线程池大小
-    private final static int ALL_DEFAULT_MAX_POOL_SIZE = 1000;
+    private final static int ALL_DEFAULT_MAX_POOL_SIZE = 1024;
     //全局默认的线程池任务数量
     private final static int ALL_DEFAULT_TASK_NUM = 10000;
 
     static {
         ThreadFactoryUtil.addExecutor(ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME,ALL_DEFAULT_MAX_POOL_SIZE,ALL_DEFAULT_TASK_NUM,ThreadMotiveEnum.CPU); //初始化线程池
+    }
+
+    //获取默认线程池
+    public static ThreadPoolExecutor getDefaultExecutor() {
+        return executorMap.get(DEFAULT_THREAD_FACTORY_NAME);
     }
 
 

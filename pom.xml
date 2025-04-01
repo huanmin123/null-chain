@@ -67,6 +67,13 @@
 
     </dependencies>
 
+    <distributionManagement>
+        <repository>
+            <id>null-chain</id>
+            <url>https://packages.aliyun.com/60df3fde4690c27532d3dd6c/maven/null-chain</url>
+        </repository>
+    </distributionManagement>
+
     <build>
         <plugins>
             <!--普通打包,没有主入口和依赖第三方包-->
