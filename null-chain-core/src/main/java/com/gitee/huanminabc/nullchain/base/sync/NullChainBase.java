@@ -61,7 +61,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
     }
 
     @Override
-    public  NullChain<T> ifGo(NullFun<? super T, Boolean> function) {
+    public NullChain<T> ifGo(NullFun<? super T, Boolean> function) {
         if (isNull) {
             return NullBuild.empty(linkLog, collect);
         }
@@ -79,6 +79,25 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
             linkLog.append("ifGo? ");
             throw ReflectionKit.addRunErrorMessage(e, linkLog);
         }
+    }
+
+    @Override
+    public <X extends Throwable> NullChain<T> check(Supplier<? extends X> exceptionSupplier) throws X {
+        if (isNull) {
+            if (exceptionSupplier == null) {
+                linkLog.append("check? 异常处理器不能为空");
+                throw new NullChainException(linkLog.toString());
+            }
+            X x;
+            try {
+                x = exceptionSupplier.get();
+            } catch (Exception e) {
+                linkLog.append("check? ");
+                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+            throw ReflectionKit.orThrow(x, linkLog);
+        }
+        return NullBuild.noEmpty(value, linkLog, collect);
     }
 
     @Override
@@ -168,7 +187,6 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
     }
 
 
-
     @Override
     public <U> NullChain<U> map(NullFun<? super T, ? extends U> function) {
         if (isNull) {
@@ -180,7 +198,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
         try {
             U apply = function.apply(value);
             if (Null.is(apply)) {
-                return NullBuild.empty( linkLog.append("map?"), collect);
+                return NullBuild.empty(linkLog.append("map?"), collect);
             }
             linkLog.append("map->");
             return NullBuild.noEmpty(apply, linkLog, collect);
@@ -411,7 +429,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
                     }
                     nullChainMap.put(nullTaskInfo.getKey(), run);
                 } catch (Exception e) {
-                    nullChainException.setMessage(stackTrace,linkLog.toString());
+                    nullChainException.setMessage(stackTrace, linkLog.toString());
                     e.addSuppressed(nullChainException);
                     log.error("{}task? {}多任务脚本并发执行失败", linkLog, nullTaskInfo.getKey(), e);
                 }
@@ -461,11 +479,11 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
                     }
                     nullChainMap.put(taskName, run);
                 } catch (NullChainCheckException e) {
-                    nullChainException.setMessage(stackTrace,linkLog.toString());
+                    nullChainException.setMessage(stackTrace, linkLog.toString());
                     e.addSuppressed(nullChainException);
                     log.error("", e);
                 } catch (Exception e) {
-                    nullChainException.setMessage(stackTrace,linkLog.toString());
+                    nullChainException.setMessage(stackTrace, linkLog.toString());
                     e.addSuppressed(nullChainException);
                     log.error("{}task? {}多任务并发执行失败", linkLog, taskName, e);
                 }

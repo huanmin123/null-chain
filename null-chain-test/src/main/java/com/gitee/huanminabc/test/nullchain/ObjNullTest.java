@@ -60,8 +60,6 @@ public class ObjNullTest {
     @Test
     public void of_okserialize() {
 
-        Null.of(userEntity).map(UserEntity::getRoleData).ifPresent(System.out::println);
-
         NullChain<RoleEntity> map = Null.of(userEntity).map(UserEntity::getRoleData);
 //        System.out.println(map);
 //        byte[] serialize = SerializeUtil.serialize(map);
@@ -389,6 +387,10 @@ public class ObjNullTest {
     public void ifGo() {
         // 等价于  userEntity!=null && userEntity.getAge() != null && userEntity.getId() != null&&false
         Null.of(userEntity).ofAny(UserEntity::getAge, UserEntity::getId).ifGo((data) -> false).ifPresent(System.out::println);
+
+        userEntity.setAge(null);
+        Null.of(userEntity).ofAny(UserEntity::getAge, UserEntity::getId).check(RuntimeException::new).
+                ifPresent(System.out::println);
     }
 
     @Test

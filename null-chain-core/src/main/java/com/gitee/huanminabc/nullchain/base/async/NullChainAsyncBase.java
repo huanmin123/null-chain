@@ -107,6 +107,58 @@ public class NullChainAsyncBase<T> extends NullConvertAsyncBase<T> implements Nu
     }
 
     @Override
+    public NullChainAsync<T> ifGo(NullFun<? super T, Boolean> function) {
+        if (isNull) {
+            return NullBuild.emptyAsync(linkLog, collect);
+        }
+        CompletableFuture<T> uCompletableFuture = completableFuture.thenApplyAsync((value) -> {
+            if (Null.is(value)) {
+                return null;
+            }
+            if (function == null) {
+                throw new NullChainException(linkLog.append("ifGo? 传参不能为空").toString());
+            }
+            try {
+                Boolean apply = function.apply(value);
+                if (!apply) {
+                   return null;
+                }
+                linkLog.append("ifGo->");
+                return value;
+            } catch (Exception e) {
+                linkLog.append("ifGo? ");
+                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+        }, getCT());
+        return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
+    }
+
+    @Override
+    public <X extends RuntimeException> NullChainAsync<T> check(Supplier<? extends X> exceptionSupplier) throws X {
+        if (isNull) {
+            return NullBuild.emptyAsync(linkLog, collect);
+        }
+        CompletableFuture<T> uCompletableFuture = completableFuture.thenApplyAsync((t) -> {
+            if (Null.is(t)) {
+                if (exceptionSupplier == null) {
+                    throw new NullChainException(linkLog.append("check? 方法参数不能是空").toString());
+                }
+                RuntimeException x;
+                try {
+                    x = exceptionSupplier.get();
+                } catch (Exception e) {
+                    linkLog.append("check? ");
+                    throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                }
+                throw ReflectionKit.orThrow(x, linkLog);
+            }
+            linkLog.append("check->");
+            return t;
+        }, getCT());
+        return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
+    }
+
+    @Override
     public NullChainAsync<T> then(Runnable function) {
         if (isNull) {
             return NullBuild.emptyAsync(linkLog, collect);

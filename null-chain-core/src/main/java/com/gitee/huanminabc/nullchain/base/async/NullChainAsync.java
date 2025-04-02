@@ -33,6 +33,20 @@ public interface NullChainAsync<T> extends NullConvertAsync<T> {
 
 
     /**
+     * 用于决定是否还需要继续执行,或者改变终结节点的结果,   返回true那么就继续执行, 返回false那么就返回空链
+     */
+    NullChainAsync<T> ifGo(NullFun<? super T, Boolean> function);
+
+    /**
+     * 如果前一个节点是空,那么打断执行,抛出异常, 这样可以定制节点的异常,而不是等待到结束统一处理
+     * @param exceptionSupplier
+     * @return
+     * @param <X>
+     */
+    <X extends RuntimeException> NullChainAsync<T> check(Supplier<? extends X> exceptionSupplier) throws X;
+
+
+    /**
      * 在上一个任务不是空的情况下执行,不改变对象类型不改变对象内容, 就是一个空白节点无状态的不影响链路的数据
      *
      * @param function
