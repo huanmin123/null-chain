@@ -55,7 +55,6 @@ public class NullResult<T> implements Serializable {
      */
     private T data;
 
-
     /**
      * 如果是正常的返回,否则抛出异常
      */
