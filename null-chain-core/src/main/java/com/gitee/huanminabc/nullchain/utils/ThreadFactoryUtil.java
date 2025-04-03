@@ -17,7 +17,7 @@ import java.util.concurrent.*;
 @Slf4j
 public class ThreadFactoryUtil {
     private static final ConcurrentHashMap<String, ThreadPoolExecutor> executorMap= new ConcurrentHashMap<>();  ;
-    public static final String DEFAULT_THREAD_FACTORY_NAME = "$$$--NULL_DEFAULT_THREAD_POOL--$$$";
+    public static final String DEFAULT_THREAD_FACTORY_NAME = "$$$--DEFAULT_THREAD_POOL--$$$";
 
     //获取cpu核心数
 //    对于CPU密集型任务，CORE_POOL_SIZE可以设置为CPU核心数的两倍左右。这是因为CPU密集型任务主要依赖CPU的计算能力，设置过多的线程反而会因为线程切换和调度开销而降低效率。
