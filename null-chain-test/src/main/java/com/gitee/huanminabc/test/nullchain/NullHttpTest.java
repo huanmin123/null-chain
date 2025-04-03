@@ -43,7 +43,13 @@ public class NullHttpTest {
 
 
     @Test
+    public void http_get1(){
+        Null.of(Void.TYPE).http("http://www.baidu.com").get().toStr().ifPresent(System.out::println);
+    }
+
     public void http_get(){
+
+
         Map<String,String> from=new HashMap<>();
         from.put("username","admin");
         from.put("password","123456");

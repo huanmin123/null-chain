@@ -162,7 +162,7 @@ public class OkHttpBuild {
         switch (type) {
             case JSON:
                 String json = JSON.toJSONString(value__);
-                requestBody = RequestBody.create(json, MediaType.parse("application/json; charset=utf-8"));
+                requestBody = RequestBody.create( MediaType.parse("application/json; charset=utf-8"),json);
                 break;
             case FORM:
                 //默认是application/x-www-form-urlencoded协议
@@ -194,7 +194,7 @@ public class OkHttpBuild {
                         if (!file.exists()) {
                             throw new NullChainException("文件路径不存在:" + file.getAbsolutePath());
                         }
-                        builder.addFormDataPart(key, file.getName(), RequestBody.create(file, MediaType.parse("application/octet-stream")));
+                        builder.addFormDataPart(key, file.getName(), RequestBody.create( MediaType.parse("application/octet-stream"),file));
                     }
 
                     if (value instanceof File[]) {  //判断是 File[]
@@ -203,7 +203,7 @@ public class OkHttpBuild {
                             if (!file.exists()) {
                                 throw new NullChainException("文件路径不存在:" + file.getAbsolutePath());
                             }
-                            builder.addFormDataPart(key, file.getName(), RequestBody.create(file, MediaType.parse("application/octet-stream")));
+                            builder.addFormDataPart(key, file.getName(), RequestBody.create( MediaType.parse("application/octet-stream"),file));
                         }
                     }
                     if (value instanceof Collection) {
@@ -216,14 +216,14 @@ public class OkHttpBuild {
                                 if (!file.exists()) {
                                     throw new NullChainException("文件路径不存在:" + file.getAbsolutePath());
                                 }
-                                builder.addFormDataPart(key, file.getName(), RequestBody.create(file, MediaType.parse("application/octet-stream")));
+                                builder.addFormDataPart(key, file.getName(), RequestBody.create( MediaType.parse("application/octet-stream"),file));
                             }
                             continue;
                         }
                         if (o instanceof byte[]) {
                             for (Object o1 : (Collection) value) {
                                 byte[] bytes = (byte[]) o1;
-                                builder.addFormDataPart(key, (String) fileName, RequestBody.create(bytes, MediaType.parse("application/octet-stream")));
+                                builder.addFormDataPart(key, (String) fileName, RequestBody.create( MediaType.parse("application/octet-stream"),bytes));
                             }
                             continue;
                         }
@@ -234,7 +234,7 @@ public class OkHttpBuild {
                             throw new NullChainException("参数错误,你使用的是字节上传,需要添加fileName参数,指定文件名");
                         }
                         byte[] fileByte = (byte[]) field.getValue();
-                        builder.addFormDataPart(key, (String) fileName, RequestBody.create(fileByte, MediaType.parse("application/octet-stream")));
+                        builder.addFormDataPart(key, (String) fileName, RequestBody.create(MediaType.parse("application/octet-stream"),fileByte));
                         continue;
                     }
 
@@ -244,7 +244,7 @@ public class OkHttpBuild {
                         }
                         byte[][] fileByte = (byte[][]) field.getValue();
                         for (byte[] bytes : fileByte) {
-                            builder.addFormDataPart(key, (String) fileName, RequestBody.create(bytes, MediaType.parse("application/octet-stream")));
+                            builder.addFormDataPart(key, (String) fileName, RequestBody.create( MediaType.parse("application/octet-stream"),bytes));
                         }
                         continue;
                     }
