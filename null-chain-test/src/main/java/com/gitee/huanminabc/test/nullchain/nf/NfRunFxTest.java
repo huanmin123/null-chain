@@ -1,5 +1,6 @@
 package com.gitee.huanminabc.test.nullchain.nf;
 
+import com.gitee.huanminabc.common.test.CodeTimeUtil;
 import com.gitee.huanminabc.nullchain.language.NfRun;
 import com.gitee.huanminabc.nullchain.language.NfSynta;
 import com.gitee.huanminabc.nullchain.language.NfToken;
@@ -7,7 +8,6 @@ import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.test.nullchain.utils.TestUtil;
-import com.gitee.huanminabc.utils_common.test.CodeTimeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.BeforeClass;
 import org.junit.Test;

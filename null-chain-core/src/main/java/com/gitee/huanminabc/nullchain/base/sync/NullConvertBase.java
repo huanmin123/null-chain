@@ -1,12 +1,12 @@
 package com.gitee.huanminabc.nullchain.base.sync;
 
 
+import com.gitee.huanminabc.common.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.base.async.NullChainAsync;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.base.sync.stream.NullStream;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
-import com.gitee.huanminabc.nullchain.utils.ThreadFactoryUtil;
 
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;

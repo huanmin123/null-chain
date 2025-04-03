@@ -1,18 +1,16 @@
 package com.gitee.huanminabc.nullchain.base.async;
 
 
+import com.gitee.huanminabc.common.exception.StackTraceUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.NullChainCheckException;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
 import com.gitee.huanminabc.nullchain.common.NullKernelAsyncAbstract;
-import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
-import com.gitee.huanminabc.nullchain.utils.ReflectionKit;
-import com.gitee.huanminabc.nullchain.utils.StackTraceUtil;
+import com.gitee.huanminabc.nullchain.common.NullReflectionKit;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -72,7 +70,7 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
             }
         } catch (Exception e) {
             linkLog.append("...is? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
         return false;
     }
@@ -100,7 +98,7 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
             }
         } catch (Exception e) {
             linkLog.append("...is? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
         return true;
     }
@@ -143,7 +141,7 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
             }
         } catch (Exception e) {
             linkLog.append("...non? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
         return true;
     }
@@ -219,9 +217,9 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
                 x = exceptionSupplier.get();
             } catch (Throwable e) {
                 linkLog.append("...get? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            throw ReflectionKit.orThrow(x, linkLog);
+            throw NullReflectionKit.orThrow(x, linkLog);
         }
 
         T join;
@@ -240,9 +238,9 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
                 x = exceptionSupplier.get();
             } catch (Throwable e) {
                 linkLog.append("...get? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            throw ReflectionKit.orThrow(x, linkLog);
+            throw NullReflectionKit.orThrow(x, linkLog);
         }
         return join;
     }
@@ -292,9 +290,9 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
                 x = exceptionSupplier.get();
             } catch (Throwable e) {
                 linkLog.append("...collectSafe? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            throw ReflectionKit.orThrow(x, linkLog);
+            throw NullReflectionKit.orThrow(x, linkLog);
         }
         try {
             completableFuture.join();//阻塞当前线程等待结果
@@ -489,7 +487,7 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
         } catch (Exception e) {
             throw new NullChainException(linkLog.toString());
         }
-        return ReflectionKit.getSize(join);
+        return NullReflectionKit.getSize(join);
     }
 
     @Override
@@ -529,7 +527,7 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
                 t = defaultValue.get();
             } catch (Exception e) {
                 linkLog.append("...orElse? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
             if (Null.is(t)) {
                 linkLog.append("...orElse? 默认值不能为空");
@@ -553,7 +551,7 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
                 t = defaultValue.get();
             } catch (Exception e) {
                 linkLog.append("...orElse? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
             if (Null.is(t)) {
                 linkLog.append("...orElse? 默认值不能为空");
@@ -580,12 +578,12 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
                     action.accept(t);
                 } catch (Exception e) {
                     linkLog.append("...ifPresent? ");
-                    throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                    throw NullReflectionKit.addRunErrorMessage(e, linkLog);
                 }
             }
             return null;
         }, getCT());
-        StackTraceElement stackTraceElement = StackTraceUtil.currentStackTrace(4);
+        StackTraceElement stackTraceElement = StackTraceUtil.stackTraceLevel(4);
         objectCompletableFuture.exceptionally((e) -> {
             e.addSuppressed(new NullChainException(stackTraceElement.toString()));
             log.error("", e);
@@ -610,7 +608,7 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
                     emptyAction.run();
                 } catch (Exception e) {
                     linkLog.append("...ifPresentOrElse-emptyAction? ");
-                    throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                    throw NullReflectionKit.addRunErrorMessage(e, linkLog);
                 }
             } else {
                 if (action == null) {
@@ -621,12 +619,12 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
                     action.accept(t);
                 } catch (Exception e) {
                     linkLog.append("...ifPresentOrElse-action? ");
-                    throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                    throw NullReflectionKit.addRunErrorMessage(e, linkLog);
                 }
             }
             return null;
         }, getCT());
-        StackTraceElement stackTraceElement = StackTraceUtil.currentStackTrace(4);
+        StackTraceElement stackTraceElement = StackTraceUtil.stackTraceLevel(4);
         objectCompletableFuture.exceptionally((e) -> {
             e.addSuppressed(new NullChainException(stackTraceElement.toString()));
             log.error("", e);
@@ -649,7 +647,7 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
             }
             return null;
         }, getCT());
-        StackTraceElement stackTraceElement = StackTraceUtil.currentStackTrace(4);
+        StackTraceElement stackTraceElement = StackTraceUtil.stackTraceLevel(4);
         objectCompletableFuture.exceptionally((e) -> {
             e.addSuppressed(new NullChainException(stackTraceElement.toString()));
             consumer.accept(e);

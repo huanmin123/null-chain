@@ -2,7 +2,6 @@ package com.gitee.huanminabc.nullchain.common;
 
 
 import com.gitee.huanminabc.nullchain.NullCheck;
-import com.gitee.huanminabc.nullchain.utils.ByteBuddyUtil;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -166,6 +165,6 @@ public class NullUtil {
 
     //创建一个空的对象, 好处就是可以放心使用空链的方法不会空指针, 如果返回null那么不能使用空链的方法了
     public static <T extends NullCheck> T createEmpty(Class<? extends T> clazz) {
-        return ByteBuddyUtil.createAgencyAddEmptyMember(clazz);
+        return NullByteBuddy.createAgencyAddEmptyMember(clazz);
     }
 }

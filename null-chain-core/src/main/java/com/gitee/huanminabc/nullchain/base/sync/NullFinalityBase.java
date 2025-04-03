@@ -3,11 +3,8 @@ package com.gitee.huanminabc.nullchain.base.sync;
 
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.*;
-import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
-import com.gitee.huanminabc.nullchain.utils.ReflectionKit;
-import lombok.Getter;
-import lombok.Setter;
+import com.gitee.huanminabc.nullchain.common.NullReflectionKit;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -42,7 +39,7 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
             }
         } catch (Exception e) {
             linkLog.append("...is? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
         return isNull;
     }
@@ -61,7 +58,7 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
             }
         } catch (Exception e) {
             linkLog.append("...isAll? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
         return true;
     }
@@ -91,7 +88,7 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
             }
         } catch (Exception e) {
             linkLog.append("...non? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
         return true;
     }
@@ -119,7 +116,7 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
             return obj.apply(value);
         } catch (Exception e) {
             linkLog.append("...notEq? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
     }
 
@@ -223,7 +220,7 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
                 action.accept(value);
             } catch (Exception e) {
                 linkLog.append("...ifPresent? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }
     }
@@ -240,7 +237,7 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
                 action.accept(value);
             } catch (Exception e) {
                 linkLog.append("...ifPresentOrElse-action? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         } else {
             if (emptyAction == null) {
@@ -251,7 +248,7 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
                 emptyAction.run();
             } catch (Exception e) {
                 linkLog.append("...ifPresentOrElse-emptyAction? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }
     }
@@ -261,7 +258,7 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
         if (isNull) {
             return 0;
         }
-        return ReflectionKit.getSize(value);
+        return NullReflectionKit.getSize(value);
     }
 
     @Override
@@ -295,9 +292,9 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
                 x = exceptionSupplier.get();
             } catch (Exception e) {
                 linkLog.append("...getSafe? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            throw ReflectionKit.orThrow(x, linkLog);
+            throw NullReflectionKit.orThrow(x, linkLog);
         }
     }
 
@@ -351,9 +348,9 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
                 x = exceptionSupplier.get();
             } catch (Exception e) {
                 linkLog.append("...collectSafe? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            throw ReflectionKit.orThrow(x, linkLog);
+            throw NullReflectionKit.orThrow(x, linkLog);
         }
         return collect;
     }
@@ -386,7 +383,7 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
             t = defaultValue.get();
         } catch (Exception e) {
             linkLog.append("...orElse? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
         if (Null.is(t)) {
             linkLog.append("orElse? 默认值不能是空的");

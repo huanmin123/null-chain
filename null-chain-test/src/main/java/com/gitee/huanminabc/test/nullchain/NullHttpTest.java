@@ -2,12 +2,12 @@ package com.gitee.huanminabc.test.nullchain;
 
 import cn.hutool.core.thread.ThreadUtil;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.gitee.huanminabc.common.file.ReadFileBytesUtil;
+import com.gitee.huanminabc.common.test.ExecutorTestUtil;
+import com.gitee.huanminabc.common.test.PathUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.base.async.NullChainAsync;
 import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
-import com.gitee.huanminabc.utils_common.file.PathUtil;
-import com.gitee.huanminabc.utils_common.file.ReadFileBytesUtil;
-import com.gitee.huanminabc.utils_common.multithreading.executor.ExecutorTestUtil;
 import lombok.Data;
 import org.junit.Before;
 import org.junit.Test;

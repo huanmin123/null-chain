@@ -1,12 +1,11 @@
 package com.gitee.huanminabc.nullchain.common;
 
+import com.gitee.huanminabc.common.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.NullCheck;
-import com.gitee.huanminabc.nullchain.utils.ThreadFactoryUtil;
 import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**

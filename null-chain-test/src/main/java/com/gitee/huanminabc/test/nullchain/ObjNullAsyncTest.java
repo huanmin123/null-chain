@@ -1,6 +1,10 @@
 package com.gitee.huanminabc.test.nullchain;
 
 
+import com.gitee.huanminabc.common.executor.SleepTools;
+import com.gitee.huanminabc.common.executor.ThreadFactoryUtil;
+import com.gitee.huanminabc.common.test.CodeTimeUtil;
+import com.gitee.huanminabc.common.exception.BizException;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.base.async.NullChainAsync;
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
@@ -8,10 +12,6 @@ import com.gitee.huanminabc.nullchain.common.NullChainCheckException;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
 import com.gitee.huanminabc.test.nullchain.entity.RoleEntity;
 import com.gitee.huanminabc.test.nullchain.entity.UserEntity;
-import com.gitee.huanminabc.utils_common.test.CodeTimeUtil;
-import com.gitee.huanminabc.utils_common.exception.BizException;
-import com.gitee.huanminabc.utils_common.multithreading.SleepTools;
-import com.gitee.huanminabc.utils_common.multithreading.executor.ThreadFactoryUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,7 +51,6 @@ public class ObjNullAsyncTest {
         }).except(e->{
            log.error("",e);
          });
-        SleepTools.second(3);
     }
     @Test
     public void test11() {

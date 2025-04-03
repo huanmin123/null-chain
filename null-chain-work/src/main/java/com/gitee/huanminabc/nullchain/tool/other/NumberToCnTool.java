@@ -1,8 +1,8 @@
 package com.gitee.huanminabc.nullchain.tool.other;
 
+import com.gitee.huanminabc.common.base.NumberToCn;
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
-import com.gitee.huanminabc.nullchain.utils.NumberToCn;
 import com.gitee.huanminabc.nullchain.vessel.NullMap;
 
 /**

@@ -1,6 +1,8 @@
 package com.gitee.huanminabc.nullchain.base.async;
 
 import com.alibaba.fastjson.JSON;
+import com.gitee.huanminabc.common.base.BeanCopyUtil;
+import com.gitee.huanminabc.common.reflect.LambdaUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.*;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
@@ -11,9 +13,7 @@ import com.gitee.huanminabc.nullchain.http.async.OkHttpAsync;
 import com.gitee.huanminabc.nullchain.http.async.OkHttpAsyncChain;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
 import com.gitee.huanminabc.nullchain.tool.NullToolFactory;
-import com.gitee.huanminabc.nullchain.utils.BeanCopyUtil;
-import com.gitee.huanminabc.nullchain.utils.LambdaUtil;
-import com.gitee.huanminabc.nullchain.utils.ReflectionKit;
+import com.gitee.huanminabc.nullchain.common.NullReflectionKit;
 import com.gitee.huanminabc.nullchain.vessel.NullMap;
 
 import java.util.concurrent.CompletableFuture;
@@ -47,7 +47,7 @@ public class NullToolsAsyncBase<T> extends NullFinalityAsyncBase<T> implements N
                 string = NullDateFormat.toString(value, dateFormatEnum);
             } catch (Exception e) {
                 linkLog.append("dateFormat? ").append(value).append(" to ").append(dateFormatEnum.getValue()).append(" 失败:");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
             if (string == null) {
                 linkLog.append("dateFormat? 转换时间格式失败数据格式不正确");
@@ -79,7 +79,7 @@ public class NullToolsAsyncBase<T> extends NullFinalityAsyncBase<T> implements N
                 string = NullDateFormat.dateOffset(value, offsetEnum, num, timeEnum);
             } catch (Exception e) {
                 linkLog.append("dateOffset? ").append(value).append(" 偏移时间失败:").append(e.getMessage());
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
             if (string == null) {
                 linkLog.append("dateOffset? 偏移时间失败数据格式不正确");
@@ -114,7 +114,7 @@ public class NullToolsAsyncBase<T> extends NullFinalityAsyncBase<T> implements N
 
             } catch (Exception e) {
                 linkLog.append("dateCompare? ").append(value).append(" 比较时间失败:").append(e.getMessage());
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
             if (compare == null) {
                 linkLog.append("dateCompare? 比较时间失败数据格式不正确");
@@ -156,7 +156,7 @@ public class NullToolsAsyncBase<T> extends NullFinalityAsyncBase<T> implements N
                 return json;
             } catch (Exception e) {
                 linkLog.append("json? 失败:");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
@@ -182,7 +182,7 @@ public class NullToolsAsyncBase<T> extends NullFinalityAsyncBase<T> implements N
                 return u;
             } catch (Exception e) {
                 linkLog.append("json? 失败:");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
@@ -214,7 +214,7 @@ public class NullToolsAsyncBase<T> extends NullFinalityAsyncBase<T> implements N
                 return BeanCopyUtil.copy(t);
             } catch (Exception e) {
                 linkLog.append("copy? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
@@ -234,7 +234,7 @@ public class NullToolsAsyncBase<T> extends NullFinalityAsyncBase<T> implements N
                 return BeanCopyUtil.deepCopy(t);
             } catch (Exception e) {
                 linkLog.append("deepCopy? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
 
         }, getCT());
@@ -260,7 +260,7 @@ public class NullToolsAsyncBase<T> extends NullFinalityAsyncBase<T> implements N
                 for (NullFun<? super T, ? extends U> nullFun : mapper) {
                     U apply = nullFun.apply(value);
                     if (Null.non(apply)) {
-                        String field = LambdaUtil.fieldInvocation(nullFun);
+                        String field = LambdaUtil.getFieldName(nullFun);
                         //添加set方法
                         String firstLetter = field.substring(0, 1).toUpperCase();    //将属性的首字母转换为大写
                         String setMethodName = "set" + firstLetter + field.substring(1);
@@ -272,7 +272,7 @@ public class NullToolsAsyncBase<T> extends NullFinalityAsyncBase<T> implements N
                 return object;
             } catch (Exception e) {
                 linkLog.append("pick? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
@@ -349,7 +349,7 @@ public class NullToolsAsyncBase<T> extends NullFinalityAsyncBase<T> implements N
                 throw new NullChainException(e);
             } catch (Exception e) {
                 linkLog.append("tool? ").append(tool1.getClass().getName()).append("失败: ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);

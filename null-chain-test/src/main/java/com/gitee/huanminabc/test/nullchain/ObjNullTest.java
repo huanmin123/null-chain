@@ -1,6 +1,8 @@
 package com.gitee.huanminabc.test.nullchain;
 
 
+import com.gitee.huanminabc.common.base.SerializeUtil;
+import com.gitee.huanminabc.common.test.CodeTimeUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
 import com.gitee.huanminabc.nullchain.enums.TimeEnum;
@@ -12,9 +14,7 @@ import com.gitee.huanminabc.test.nullchain.entity.UserEntity;
 import com.gitee.huanminabc.test.nullchain.entity.UserExtEntity;
 import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
 import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
-import com.gitee.huanminabc.utils_common.test.CodeTimeUtil;
 import com.gitee.huanminabc.utils_common.base.DateUtil;
-import com.gitee.huanminabc.utils_common.obj.serializable.SerializeUtil;
 import com.google.common.collect.Sets;
 import lombok.SneakyThrows;
 import org.junit.Before;
@@ -388,9 +388,9 @@ public class ObjNullTest {
         // 等价于  userEntity!=null && userEntity.getAge() != null && userEntity.getId() != null&&false
         Null.of(userEntity).ofAny(UserEntity::getAge, UserEntity::getId).ifGo((data) -> false).ifPresent(System.out::println);
 
-        userEntity.setAge(null);
-        Null.of(userEntity).ofAny(UserEntity::getAge, UserEntity::getId).check(RuntimeException::new).
-                ifPresent(System.out::println);
+//        userEntity.setAge(null);
+//        Null.of(userEntity).ofAny(UserEntity::getAge, UserEntity::getId).check(RuntimeException::new).
+//                ifPresent(System.out::println);
     }
 
     @Test

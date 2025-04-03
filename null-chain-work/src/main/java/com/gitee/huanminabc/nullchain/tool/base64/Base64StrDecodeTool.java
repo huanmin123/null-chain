@@ -1,10 +1,9 @@
 package com.gitee.huanminabc.nullchain.tool.base64;
 
 
+import com.gitee.huanminabc.common.base.Base64Util;
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
-import com.gitee.huanminabc.nullchain.common.NullType;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
-import com.gitee.huanminabc.nullchain.utils.Base64Util;
 import com.gitee.huanminabc.nullchain.vessel.NullMap;
 
 /**

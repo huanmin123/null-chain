@@ -1,18 +1,16 @@
 package com.gitee.huanminabc.test.nullchain;
 
+import com.gitee.huanminabc.common.file.ReadFileBytesUtil;
+import com.gitee.huanminabc.common.test.PathUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.NullGroupNfTask;
 import com.gitee.huanminabc.nullchain.common.NullGroupTask;
-import com.gitee.huanminabc.test.nullchain.task.Test1Task;
-import com.gitee.huanminabc.nullchain.tool.file.ZipToBytesByteTool;
-import com.gitee.huanminabc.test.nullchain.entity.UserEntity;
 import com.gitee.huanminabc.nullchain.task.NullTaskFactory;
-import com.gitee.huanminabc.test.nullchain.task.Test2Task;
 import com.gitee.huanminabc.nullchain.task.TestTask;
 import com.gitee.huanminabc.nullchain.tool.file.BytesToWriteFileTool;
-import com.gitee.huanminabc.nullchain.tool.file.StrToWriteFileTool;
-import com.gitee.huanminabc.utils_common.file.PathUtil;
-import com.gitee.huanminabc.utils_common.file.ReadFileBytesUtil;
+import com.gitee.huanminabc.nullchain.tool.file.ZipToBytesByteTool;
+import com.gitee.huanminabc.test.nullchain.task.Test1Task;
+import com.gitee.huanminabc.test.nullchain.task.Test2Task;
 import org.junit.Test;
 
 import java.io.File;

@@ -1,5 +1,6 @@
 package com.gitee.huanminabc.nullchain.language.syntaxNode.linenode;
 
+import com.gitee.huanminabc.common.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
@@ -19,7 +20,6 @@ import com.gitee.huanminabc.nullchain.language.token.TokenType;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
 import com.gitee.huanminabc.nullchain.task.NullTask;
 import com.gitee.huanminabc.nullchain.task.NullTaskFactory;
-import com.gitee.huanminabc.nullchain.utils.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.vessel.NullMap;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

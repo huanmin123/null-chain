@@ -6,9 +6,8 @@ import com.gitee.huanminabc.nullchain.base.sync.NullFinality;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullChainCheckException;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
-import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
-import com.gitee.huanminabc.nullchain.utils.ByteBuddyUtil;
+import com.gitee.huanminabc.nullchain.common.NullByteBuddy;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -187,7 +186,7 @@ public interface NullFinalityExt<T> extends NullFinality<T>, NullCheck {
      */
     @Deprecated
     default boolean isEmpty() {
-        return ByteBuddyUtil.getEmptyMember(this);
+        return NullByteBuddy.getEmptyMember(this);
     }
 
 

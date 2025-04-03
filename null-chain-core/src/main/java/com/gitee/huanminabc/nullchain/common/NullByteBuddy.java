@@ -1,4 +1,4 @@
-package com.gitee.huanminabc.nullchain.utils;
+package com.gitee.huanminabc.nullchain.common;
 
 import com.gitee.huanminabc.nullchain.NullCheck;
 import com.gitee.huanminabc.nullchain.NullExt;
@@ -6,7 +6,6 @@ import com.gitee.huanminabc.nullchain.base.sync.ext.NullChainExt;
 import com.gitee.huanminabc.nullchain.base.sync.ext.NullConvertExt;
 import com.gitee.huanminabc.nullchain.base.sync.ext.NullFinalityExt;
 import com.gitee.huanminabc.nullchain.base.sync.ext.NullToolsExt;
-import com.gitee.huanminabc.nullchain.common.NullChainException;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.description.DeclaredByType;
 import net.bytebuddy.description.type.TypeDefinition;
@@ -22,7 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ByteBuddyUtil {
+public class NullByteBuddy {
     public static final String EMPTY_MEMBER_NAME = "$NULL_MEMBER_EMPTY$"; //空成员变量名
     //用于缓存空对象
     private static final Map<Class<?>, Object> emptyMemberMap = new ConcurrentHashMap<>();

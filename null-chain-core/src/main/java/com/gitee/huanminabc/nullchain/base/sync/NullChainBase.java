@@ -1,5 +1,6 @@
 package com.gitee.huanminabc.nullchain.base.sync;
 
+import com.gitee.huanminabc.common.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.*;
 import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
@@ -8,13 +9,11 @@ import com.gitee.huanminabc.nullchain.common.function.NullFun2;
 import com.gitee.huanminabc.nullchain.language.NfMain;
 import com.gitee.huanminabc.nullchain.task.NullTask;
 import com.gitee.huanminabc.nullchain.task.NullTaskFactory;
-import com.gitee.huanminabc.nullchain.utils.ReflectionKit;
-import com.gitee.huanminabc.nullchain.utils.ThreadFactoryUtil;
+import com.gitee.huanminabc.nullchain.common.NullReflectionKit;
 import com.gitee.huanminabc.nullchain.vessel.NullMap;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 
-import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -56,7 +55,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
             return NullBuild.noEmpty(value, linkLog, collect);
         } catch (Exception e) {
             linkLog.append("of? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
     }
 
@@ -77,7 +76,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
             return NullBuild.noEmpty(value, linkLog, collect);
         } catch (Exception e) {
             linkLog.append("ifGo? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
     }
 
@@ -93,9 +92,9 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
                 x = exceptionSupplier.get();
             } catch (Exception e) {
                 linkLog.append("check? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            throw ReflectionKit.orThrow(x, linkLog);
+            throw NullReflectionKit.orThrow(x, linkLog);
         }
         return NullBuild.noEmpty(value, linkLog, collect);
     }
@@ -118,7 +117,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
             return NullBuild.noEmpty(value, linkLog, collect);
         } catch (Exception e) {
             linkLog.append("isNull? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
     }
 
@@ -142,7 +141,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
             }
         } catch (Exception e) {
             linkLog.append("of? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
         linkLog.append("of->");
         return NullBuild.noEmpty(value, linkLog, collect);
@@ -164,7 +163,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
             return NullBuild.noEmpty(value, linkLog, collect);
         } catch (Exception e) {
             linkLog.append("then? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
     }
 
@@ -182,7 +181,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
             return NullBuild.noEmpty(value, linkLog, collect);
         } catch (Exception e) {
             linkLog.append("then2? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
     }
 
@@ -204,7 +203,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
             return NullBuild.noEmpty(apply, linkLog, collect);
         } catch (Exception e) {
             linkLog.append("map? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
 
     }
@@ -226,7 +225,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
             return NullBuild.noEmpty(apply, linkLog, collect);
         } catch (Exception e) {
             linkLog.append("map2? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
     }
 
@@ -249,7 +248,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
             return NullBuild.noEmpty(apply.get(), linkLog, collect);
         } catch (Exception e) {
             linkLog.append("unchain? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
     }
 
@@ -271,7 +270,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
             return NullBuild.noEmpty(apply.get(), linkLog, collect);
         } catch (Exception e) {
             linkLog.append("unOptional? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
     }
 
@@ -292,7 +291,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
                 return NullBuild.noEmpty(t, linkLog, collect);
             } catch (Exception e) {
                 linkLog.append("or? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }
         linkLog.append("or->");
@@ -394,7 +393,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
             return NullBuild.noEmpty(o, linkLog, collect);
         } catch (Exception e) {
             linkLog.append("nfTask? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
     }
 
@@ -517,7 +516,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
             throw new NullChainException(e);
         } catch (Exception e) {
             linkLog.append("task? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
     }
 

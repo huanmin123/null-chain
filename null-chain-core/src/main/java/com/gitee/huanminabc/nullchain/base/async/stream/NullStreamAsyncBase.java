@@ -11,7 +11,7 @@ import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.common.function.NullFun2;
 import com.gitee.huanminabc.nullchain.common.function.NullPredicate;
-import com.gitee.huanminabc.nullchain.utils.ReflectionKit;
+import com.gitee.huanminabc.nullchain.common.NullReflectionKit;
 
 import java.util.Comparator;
 import java.util.Optional;
@@ -51,7 +51,7 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 return r;
             } catch (Exception e) {
                 linkLog.append("map? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
@@ -75,7 +75,7 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 return stream;
             } catch (Exception e) {
                 linkLog.append("map? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
@@ -99,7 +99,7 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 return t;
             } catch (Exception e) {
                 linkLog.append("filter? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
@@ -120,7 +120,7 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 return sorted;
             } catch (Exception e) {
                 linkLog.append("sorted? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
@@ -144,7 +144,7 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 return sorted;
             } catch (Exception e) {
                 linkLog.append("sorted? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
@@ -165,7 +165,7 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 return distinct;
             } catch (Exception e) {
                 linkLog.append("distinct? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
@@ -189,7 +189,7 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 return limit;
             } catch (Exception e) {
                 linkLog.append("limit? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
@@ -214,7 +214,7 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 return skip;
             } catch (Exception e) {
                 linkLog.append("skip? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
@@ -239,7 +239,7 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 return stream;
             } catch (Exception e) {
                 linkLog.append("then? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
@@ -263,7 +263,7 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 return stream;
             } catch (Exception e) {
                 linkLog.append("then? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
@@ -288,7 +288,7 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 return collect1;
             } catch (Exception e) {
                 linkLog.append("collect? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, collect);
@@ -315,7 +315,7 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 return (T)max.get();
             } catch (Exception e) {
                 linkLog.append("max? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }
         , getCT());
@@ -340,7 +340,7 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 return (T)first.get();
             } catch (Exception e) {
                 linkLog.append("findFirst? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, collect);
@@ -364,7 +364,7 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                     return (T)any.get();
                 } catch (Exception e) {
                     linkLog.append("findAny? ");
-                    throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                    throw NullReflectionKit.addRunErrorMessage(e, linkLog);
                 }
             }, getCT());
             return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, collect);
@@ -388,7 +388,7 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 return reduce;
             } catch (Exception e) {
                 linkLog.append("reduce? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, collect);
@@ -409,7 +409,7 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 return count;
             } catch (Exception e) {
                 linkLog.append("count? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, collect);
@@ -436,7 +436,7 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 return (T)min;
             } catch (Exception e) {
                 linkLog.append("min? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, collect);
@@ -460,7 +460,7 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 return allMatch;
             } catch (Exception e) {
                 linkLog.append("allMatch? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, collect);
@@ -484,7 +484,7 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 return anyMatch;
             } catch (Exception e) {
                 linkLog.append("anyMatch? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, collect);
@@ -508,7 +508,7 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 return noneMatch;
             } catch (Exception e) {
                 linkLog.append("noneMatch? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, collect);
@@ -531,7 +531,7 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 linkLog.append("forEach->");
             } catch (Exception e) {
                 linkLog.append("forEach? ");
-                throw ReflectionKit.addRunErrorMessage(e, linkLog);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());
     }

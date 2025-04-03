@@ -1,5 +1,7 @@
 package com.gitee.huanminabc.nullchain.language;
 
+import com.gitee.huanminabc.common.base.BeanCopyUtil;
+import com.gitee.huanminabc.common.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScopeType;
@@ -7,8 +9,6 @@ import com.gitee.huanminabc.nullchain.language.internal.NfVariableInfo;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeFactory;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.linenode.ExportSyntaxNode;
-import com.gitee.huanminabc.nullchain.utils.BeanCopyUtil;
-import com.gitee.huanminabc.nullchain.utils.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.vessel.NullMap;
 import org.slf4j.Logger;
 

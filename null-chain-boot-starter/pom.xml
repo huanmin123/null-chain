@@ -20,7 +20,6 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
-            <version>5.3.13</version>
         </dependency>
         <dependency>
             <groupId>com.gitee.huanminabc</groupId>

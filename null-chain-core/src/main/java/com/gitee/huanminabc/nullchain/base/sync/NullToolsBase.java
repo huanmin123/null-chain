@@ -1,6 +1,8 @@
 package com.gitee.huanminabc.nullchain.base.sync;
 
 import com.alibaba.fastjson.JSON;
+import com.gitee.huanminabc.common.base.BeanCopyUtil;
+import com.gitee.huanminabc.common.reflect.LambdaUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.*;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
@@ -11,9 +13,7 @@ import com.gitee.huanminabc.nullchain.http.sync.OkHttp;
 import com.gitee.huanminabc.nullchain.http.sync.OkHttpChain;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
 import com.gitee.huanminabc.nullchain.tool.NullToolFactory;
-import com.gitee.huanminabc.nullchain.utils.BeanCopyUtil;
-import com.gitee.huanminabc.nullchain.utils.LambdaUtil;
-import com.gitee.huanminabc.nullchain.utils.ReflectionKit;
+import com.gitee.huanminabc.nullchain.common.NullReflectionKit;
 
 public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T> {
 
@@ -37,7 +37,7 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
             string = NullDateFormat.toString(value, dateFormatEnum);
         } catch (Exception e) {
             linkLog.append("dateFormat? ").append(value).append(" to ").append(dateFormatEnum.getValue()).append(" 失败:").append(e.getMessage());
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
         if (string == null) {
             linkLog.append("dateFormat? 转换时间格式失败数据格式不正确");
@@ -57,7 +57,7 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
             t = NullDateFormat.dateOffset(value, offsetEnum, num, timeEnum);
         } catch (Exception e) {
             linkLog.append("dateOffset? ").append(value).append(" 偏移时间失败:").append(e.getMessage());
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
         if (t == null) {
             linkLog.append("dateOffset? 偏移时间失败数据格式不正确");
@@ -83,7 +83,7 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
             compare = NullDateFormat.dateCompare(value, date);
         } catch (Exception e) {
             linkLog.append("dateCompare? ").append(value).append(" 比较时间失败:").append(e.getMessage());
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
         if (compare == null) {
             linkLog.append("dateCompare? 比较时间失败数据格式不正确");
@@ -119,7 +119,7 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
             return NullBuild.noEmpty(json, linkLog, collect);
         } catch (Exception e) {
             linkLog.append("json? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
     }
 
@@ -142,7 +142,7 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
             return NullBuild.noEmpty(u, linkLog, collect);
         } catch (Exception e) {
             linkLog.append("json? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
     }
 
@@ -164,7 +164,7 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
             return NullBuild.noEmpty(BeanCopyUtil.copy(value), linkLog, collect);
         } catch (Exception e) {
             linkLog.append("copy? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
     }
 
@@ -178,7 +178,7 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
             return NullBuild.noEmpty(BeanCopyUtil.deepCopy(value), linkLog, collect);
         } catch (Exception e) {
             linkLog.append("deepCopy? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
     }
 
@@ -197,7 +197,7 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
                 U apply = nullFun.apply(value);
                 //跳过空值
                 if (Null.non(apply)) {
-                    String field = LambdaUtil.fieldInvocation(nullFun);
+                    String field = LambdaUtil.getFieldName(nullFun);
                     //添加set方法
                     String firstLetter = field.substring(0, 1).toUpperCase();    //将属性的首字母转换为大写
                     String setMethodName = "set" + firstLetter + field.substring(1);
@@ -209,7 +209,7 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
             return NullBuild.noEmpty(object, linkLog, collect);
         } catch (Exception e) {
             linkLog.append("pick? ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
     }
 
@@ -273,7 +273,7 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
             throw new NullChainException(e);
         } catch (Exception e) {
             linkLog.append("tool? ").append(tool1.getClass().getName()).append(" 失败: ");
-            throw ReflectionKit.addRunErrorMessage(e, linkLog);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
     }
 
