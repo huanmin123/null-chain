@@ -9,6 +9,7 @@ import com.gitee.huanminabc.nullchain.base.sync.ext.NullToolsExt;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.description.DeclaredByType;
 import net.bytebuddy.description.type.TypeDefinition;
+import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.implementation.ExceptionMethod;
 import net.bytebuddy.jar.asm.Opcodes;
@@ -29,23 +30,22 @@ public class NullByteBuddy {
     //创建一个代理对象,并添加一个空成员变量
     public static <T> T createAgencyAddEmptyMember(Class<? extends NullCheck> clazz) {
         return (T) emptyMemberMap.computeIfAbsent(clazz, aClass -> {
-
             // 创建一个动态类，并添加一个成员变量
-            Class<?> dynamicType = new ByteBuddy()
+            try ( DynamicType.Unloaded  make = new ByteBuddy()
                     // 从 ServiceClass 子类化
                     .subclass(clazz)
                     // 添加一个成员变量
                     .defineField(EMPTY_MEMBER_NAME, boolean.class, Opcodes.ACC_PRIVATE)
                     //1.不匹配NULLExt接口的方法
                     //2.只拦截public方法
-                    .method( new NotNULLExtMatcher().and(ElementMatchers.isPublic()))
+                    .method(new NotNULLExtMatcher().and(ElementMatchers.isPublic()))
                     //除了NULLExt接口的方法其他的都抛出异常
-                    .intercept(ExceptionMethod.throwing(NullChainException.class,"不能调用空对象的方法"))
-                    .make()
-                    //将创建的代理类放入到类的原始加载器中,而不是自己在创建一个类加载器
-                    .load(clazz.getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
-                    .getLoaded();
-            try {
+                    .intercept(ExceptionMethod.throwing(NullChainException.class, "不能调用空对象的方法"))
+                    .make()){
+                Class<?> dynamicType =  make
+                        //将创建的代理类放入到类的原始加载器中,而不是自己在创建一个类加载器
+                        .load(clazz.getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
+                        .getLoaded();
                 // 创建一个实例
                 Object instance = dynamicType.newInstance();
                 // 设置成员变量的值

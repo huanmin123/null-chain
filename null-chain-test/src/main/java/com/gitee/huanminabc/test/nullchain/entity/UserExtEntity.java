@@ -25,5 +25,12 @@ public class UserExtEntity  implements Serializable, NullExt<UserExtEntity> {
     private Date date; //日期
     private RoleEntity roleData;
 
+    public void sayHello(String name) {
+        System.out.println("Hello, " + name);
+    }
+
+    public void sayGoodbye(String name) {
+        System.out.println("Goodbye, " + name);
+    }
 }
 

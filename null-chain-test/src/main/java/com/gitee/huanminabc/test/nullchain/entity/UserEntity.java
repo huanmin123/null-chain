@@ -31,5 +31,7 @@ public class UserEntity implements Serializable {
     private int anInt;
     @ToString.Exclude
     private List<UserEntity> list=new ArrayList<>();
+
+
 }
 

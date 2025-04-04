@@ -20,6 +20,7 @@ import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -313,7 +314,6 @@ public class ObjNullTest {
         System.out.println(empty2.getId()); //true
 
     }
-
 
     @Test
     public void collect() {
