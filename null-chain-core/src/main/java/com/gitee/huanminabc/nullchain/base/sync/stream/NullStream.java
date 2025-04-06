@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.Comparator;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
@@ -45,6 +46,7 @@ public interface NullStream<T>  {
 
     NullStream<T> then(NullConsumer2<NullChain<T>, ? super T> function);
 
+    <R> NullStream<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper);
 
     //Collectors.xxx 一些常用的收集器
     <R, A> NullChain<R> collect(Collector<? super T, A, R> collector);
@@ -68,6 +70,8 @@ public interface NullStream<T>  {
     NullChain<Boolean> noneMatch(Predicate<? super T> predicate);
 
     void forEach(Consumer<? super T> action);
+
+
 
 
 
