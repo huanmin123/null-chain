@@ -17,6 +17,7 @@ import java.util.Comparator;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
@@ -50,7 +51,7 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     }
 
     @Override
-    public <R> NullStream<R> map(NullFun2<NullChain<T>, ? super T, ? extends R> function) {
+    public <R> NullStream<R> map2(NullFun2<NullChain<T>, ? super T, ? extends R> function) {
         if (isNull) {
             return NullBuild.emptyStream(linkLog, collect);
         }
@@ -154,6 +155,19 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
         }
         linkLog.append("then->");
         T stream = (T) ((Stream) value).peek((data)->{function.accept((NullChain)Null.of(data), (T)data);});
+        return NullBuild.noEmptyStream(stream, linkLog, collect);
+    }
+
+    @Override
+    public <R> NullStream<R> flatStream(Function<? super T, ? extends NullStream<? extends R>> mapper) {
+        if (isNull) {
+            return NullBuild.emptyStream(linkLog, collect);
+        }
+        if (mapper == null) {
+            throw new NullChainException(linkLog.append("flatMap? ").append("mapper must not be null").toString());
+        }
+        linkLog.append("flatMap->");
+        R stream = (R) ((Stream) value).flatMap(mapper);
         return NullBuild.noEmptyStream(stream, linkLog, collect);
     }
 

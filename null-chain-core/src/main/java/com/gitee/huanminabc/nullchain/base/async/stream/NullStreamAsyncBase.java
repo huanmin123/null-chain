@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
@@ -58,7 +59,7 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
     }
 
     @Override
-    public <R> NullStreamAsync<R> map(NullFun2<NullChain<T>, ? super T, ? extends R> function) {
+    public <R> NullStreamAsync<R> map2(NullFun2<NullChain<T>, ? super T, ? extends R> function) {
         if (isNull) {
             return NullBuild.emptyStreamAsync(linkLog,collect);
         }
@@ -263,6 +264,30 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 return stream;
             } catch (Exception e) {
                 linkLog.append("then? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+        }, getCT());
+        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
+    }
+
+    @Override
+    public <R> NullStreamAsync<R> flatStream(Function<? super T, ? extends NullStreamAsync<? extends R>> mapper) {
+        if (isNull ) {
+            return NullBuild.emptyStreamAsync(linkLog,collect);
+        }
+        CompletableFuture<R> uCompletableFuture = completableFuture.thenApplyAsync((value) -> {
+            if (Null.is(value)) {
+                return null;
+            }
+            if (mapper == null) {
+                throw new NullChainException(linkLog.append("flatStream? ").append("mapper must not be null").toString());
+            }
+            try {
+                R stream = (R) ((Stream) value).flatMap(mapper);
+                linkLog.append("flatStream->");
+                return stream;
+            } catch (Exception e) {
+                linkLog.append("flatStream? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT());

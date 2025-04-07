@@ -11,6 +11,7 @@ import com.gitee.huanminabc.nullchain.common.function.NullPredicate;
 import java.util.Comparator;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
@@ -21,11 +22,11 @@ import java.util.stream.Stream;
  * @author: huanmin
  * @create: 2025-02-21 17:48
  **/
-public interface NullStreamAsync<T>  {
+public interface NullStreamAsync<T>   {
 
     //映射
     <R> NullStreamAsync<R> map(NullFun<? super T, ? extends R> mapper);
-    <R> NullStreamAsync<R> map(NullFun2<NullChain<T>, ? super T, ? extends R> function);
+    <R> NullStreamAsync<R> map2(NullFun2<NullChain<T>, ? super T, ? extends R> function);
 
     //过滤
     NullStreamAsync<T> filter(NullPredicate<? super T> predicate);
@@ -43,6 +44,8 @@ public interface NullStreamAsync<T>  {
     NullStreamAsync<T> then(Consumer<? super T> action);
     NullStreamAsync<T> then(NullConsumer2<NullChain<T>, ? super T> function);
 
+    //流合并
+    <R> NullStreamAsync<R> flatStream(Function<? super T, ? extends NullStreamAsync<? extends R>> mapper);
 
     //Collectors.xxx 一些常用的收集器
     <R, A> NullChainAsync<R> collect(Collector<? super T, A, R> collector);

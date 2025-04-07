@@ -76,8 +76,8 @@ public interface NullChainAsync<T> extends NullConvertAsync<T> {
      * @param <U>
      * @return
      */
-    <U> NullChainAsync<U> unChain(NullFun<? super T, ? extends NullChain<U>> function);
-    <U> NullChainAsync<U> unOptional(NullFun<? super T, ? extends Optional<U>> function);
+    <U> NullChainAsync<U> flatChain(NullFun<? super T, ? extends NullChain<U>> function);
+    <U> NullChainAsync<U> flatOptional(NullFun<? super T, ? extends Optional<U>> function);
 
 
     /**

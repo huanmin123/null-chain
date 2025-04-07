@@ -20,7 +20,6 @@ import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -363,7 +362,7 @@ public class ObjNullTest {
                 .map(UserEntity::getList)
                 .toStream(UserEntity.class)
                 .filter(Null::non)
-                .map(UserEntity::getRoleData)
+                .map(userEntity::getRoleData)
                 .sorted(Comparator.comparing(RoleEntity::getRoleName))
                 .collect(Collectors.toList()).get();
         System.out.println(roleEntities);
@@ -428,7 +427,7 @@ public class ObjNullTest {
         //脱壳后
         Null.of(userEntity)
                 .map(UserEntity::getId)
-                .unChain(this::testChain)//返回RoleEntity
+                .flatChain(this::testChain)//返回RoleEntity
                 .map(RoleEntity::getRoleName)
                 .ifPresent(System.out::println);
     }
@@ -442,7 +441,7 @@ public class ObjNullTest {
     public  void unOptional(){
         Null.of(userEntity)
                 .map(UserEntity::getId)
-                .unOptional(this::testOptional)
+                .flatOptional(this::testOptional)
                 .map(RoleEntity::getRoleName)
                 .ifPresent(System.out::println);
     }

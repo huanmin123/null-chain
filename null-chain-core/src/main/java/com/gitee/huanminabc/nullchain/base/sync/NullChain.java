@@ -74,8 +74,8 @@ public interface NullChain<T> extends NullConvert<T> {
     /**
      * 上一个任务的内容返回的是NullChain<?>  那么就返回 ?  这样就可以继续操作了 , 通俗来说就是解包
      */
-    <U> NullChain<U> unChain(NullFun<? super T, ? extends NullChain<U>> function);
-    <U> NullChain<U> unOptional(NullFun<? super T, ? extends Optional<U>> function);
+    <U> NullChain<U> flatChain(NullFun<? super T, ? extends NullChain<U>> function);
+    <U> NullChain<U> flatOptional(NullFun<? super T, ? extends Optional<U>> function);
 
 
     /**

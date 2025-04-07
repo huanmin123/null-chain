@@ -231,7 +231,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
 
 
     @Override
-    public <U> NullChain<U> unChain(NullFun<? super T, ? extends NullChain<U>> function) {
+    public <U> NullChain<U> flatChain(NullFun<? super T, ? extends NullChain<U>> function) {
         if (isNull) {
             return NullBuild.empty(linkLog, collect);
         }
@@ -253,7 +253,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
     }
 
     @Override
-    public <U> NullChain<U> unOptional(NullFun<? super T, ? extends Optional<U>> function) {
+    public <U> NullChain<U> flatOptional(NullFun<? super T, ? extends Optional<U>> function) {
         if (isNull) {
             return NullBuild.empty(linkLog, collect);
         }

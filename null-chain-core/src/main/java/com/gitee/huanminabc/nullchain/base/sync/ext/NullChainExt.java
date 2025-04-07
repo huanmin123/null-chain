@@ -72,15 +72,15 @@ public interface NullChainExt<T> extends NullChain<T>, NullConvertExt<T> {
 
 
     @Override
-    default <U> NullChain<U> unChain(NullFun<? super T, ? extends NullChain<U>> function){
+    default <U> NullChain<U> flatChain(NullFun<? super T, ? extends NullChain<U>> function){
         NullChain<T> tNullChain = toNULL();
-        return tNullChain.unChain(function);
+        return tNullChain.flatChain(function);
     }
 
     @Override
-    default <U> NullChain<U> unOptional(NullFun<? super T, ? extends Optional<U>> function){
+    default <U> NullChain<U> flatOptional(NullFun<? super T, ? extends Optional<U>> function){
         NullChain<T> tNullChain = toNULL();
-        return tNullChain.unOptional(function);
+        return tNullChain.flatOptional(function);
     }
 
     @Override

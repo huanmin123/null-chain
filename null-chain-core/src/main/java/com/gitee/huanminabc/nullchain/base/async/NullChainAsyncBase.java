@@ -290,7 +290,7 @@ public class NullChainAsyncBase<T> extends NullConvertAsyncBase<T> implements Nu
 
 
     @Override
-    public <U> NullChainAsync<U> unChain(NullFun<? super T, ? extends NullChain<U>> function) {
+    public <U> NullChainAsync<U> flatChain(NullFun<? super T, ? extends NullChain<U>> function) {
         if (isNull) {
             return NullBuild.emptyAsync(linkLog, collect);
         }
@@ -319,7 +319,7 @@ public class NullChainAsyncBase<T> extends NullConvertAsyncBase<T> implements Nu
     }
 
     @Override
-    public <U> NullChainAsync<U> unOptional(NullFun<? super T, ? extends Optional<U>> function) {
+    public <U> NullChainAsync<U> flatOptional(NullFun<? super T, ? extends Optional<U>> function) {
         if (isNull) {
             return NullBuild.emptyAsync(linkLog, collect);
         }
