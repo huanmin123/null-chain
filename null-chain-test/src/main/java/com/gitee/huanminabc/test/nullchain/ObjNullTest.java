@@ -362,7 +362,7 @@ public class ObjNullTest {
                 .map(UserEntity::getList)
                 .toStream(UserEntity.class)
                 .filter(Null::non)
-                .map(userEntity::getRoleData)
+                .map(UserEntity::getRoleData)
                 .sorted(Comparator.comparing(RoleEntity::getRoleName))
                 .collect(Collectors.toList()).get();
         System.out.println(roleEntities);
@@ -370,7 +370,7 @@ public class ObjNullTest {
 
         List<UserEntity> userEntityList = new ArrayList<>();
         userEntityList.add(userEntity);
-        Null.toStream(userEntityList).map((nullChain, userEntity) -> {
+        Null.toStream(userEntityList).map2((nullChain, userEntity) -> {
             System.out.println(userEntity);
             return nullChain;
         }).forEach(System.out::println);
