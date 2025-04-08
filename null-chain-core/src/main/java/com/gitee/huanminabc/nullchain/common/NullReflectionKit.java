@@ -6,11 +6,14 @@ package com.gitee.huanminabc.nullchain.common;
  * @Date 2024/4/28 下午5:17
  */
 
+import com.gitee.huanminabc.common.reflect.ClassIdentifyUtil;
+import com.gitee.huanminabc.common.reflect.FieldUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.reflect.FieldUtils;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * <p>
@@ -49,7 +52,7 @@ public class NullReflectionKit {
             return 0;
         }
         //如果是8大数据类型那么勇toString 返回的就是本身的长度
-        boolean primitiveOrWrapper = ClassUtils.isPrimitiveOrWrapper(object.getClass());
+        boolean primitiveOrWrapper = ClassIdentifyUtil.isPrimitiveOrWrapper(object.getClass());
         if (primitiveOrWrapper){
             return object.toString().length();
         }
@@ -87,7 +90,7 @@ public class NullReflectionKit {
 
 
     private static <X extends Throwable> void updateDetailMessage(X exception, StringBuilder linkLog, Class<? extends Throwable> aClass) {
-        Field detailMessage = FieldUtils.getField(aClass, "detailMessage",true);
+        Field detailMessage = FieldUtil.getField(aClass,"detailMessage");
         if (detailMessage != null) {
             detailMessage.setAccessible(true);
             try {

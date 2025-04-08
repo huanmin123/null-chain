@@ -2,6 +2,8 @@ package com.gitee.huanminabc.nullchain.http;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.gitee.huanminabc.common.reflect.AnnotationUtil;
+import com.gitee.huanminabc.common.reflect.FieldUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
@@ -9,7 +11,6 @@ import com.gitee.huanminabc.nullchain.http.async.OkHttpAsync;
 import com.gitee.huanminabc.nullchain.http.sync.OkHttp;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
-import org.apache.commons.lang3.reflect.FieldUtils;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -324,12 +325,12 @@ public class OkHttpBuild {
         Class<?> aClass = v.getClass();
         for (String field : strings) {
             //去类中找对应的属性把值取出来
-            Field field1 = FieldUtils.getField(aClass, field, true);
+            Field field1 = FieldUtil.getField(aClass, field);
             //如果是空的,那么就看看这个字段上是否有@JSONField(name="file")这个注解 ,如果name和field一样,那么就是这个字段
             if (Null.is(field1)) {
-                Field[] fieldsWithAnnotation = FieldUtils.getFieldsWithAnnotation(aClass, JSONField.class);
+                Field[] fields = AnnotationUtil.getAnnotationsFields(aClass, JSONField.class).toArray(new Field[0]);
                 //找到符合的
-                for (Field field2 : fieldsWithAnnotation) {
+                for (Field field2 : fields) {
                     JSONField annotation = field2.getAnnotation(JSONField.class);
                     if (annotation.name().equals(field)) {
                         field2.setAccessible(true);

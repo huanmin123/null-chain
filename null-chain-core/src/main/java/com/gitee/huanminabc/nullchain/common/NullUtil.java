@@ -1,9 +1,9 @@
 package com.gitee.huanminabc.nullchain.common;
 
 
+import com.gitee.huanminabc.common.reflect.ClassIdentifyUtil;
+import com.gitee.huanminabc.common.str.StringUtil;
 import com.gitee.huanminabc.nullchain.NullCheck;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
 import java.util.Map;
@@ -27,14 +27,14 @@ public class NullUtil {
         //把8大基本类型和字符串排在前面判断,因为这些类型是最常用的
 
         //如果是8大基本类型或者包装类型,那么直接返回不是空 ,因为只有null和有值两种情况
-        if (ClassUtils.isPrimitiveOrWrapper(o.getClass())) {
+        if (ClassIdentifyUtil.isPrimitiveOrWrapper(o.getClass())) {
             return false;
         }
 
         //字符串相关的验证空情况
         if (o instanceof CharSequence) {
             CharSequence str = (CharSequence) o;
-            boolean blank = StringUtils.isBlank(str);
+            boolean blank = StringUtil.isEmpty(str);
             //如果不是空那么判断不能是null字符串,在有些情况下比如String.valueOf(null)返回的是null字符串，这会导致计算和显示的时候误解
             if (!blank && str instanceof String && str.length() == 4) {
                 //截取前4个字符,如果是null字符串那么就返回true

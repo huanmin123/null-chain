@@ -1,8 +1,7 @@
 package com.gitee.huanminabc.nullchain.common;
 
+import com.gitee.huanminabc.common.reflect.FieldUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.reflect.FieldUtils;
-
 import java.lang.reflect.Field;
 
 /**
@@ -42,7 +41,7 @@ public class NullChainException extends RuntimeException {
         Class<? extends NullChainException> aClass = this.getClass();
         //添加detailMessage
         try {
-            Field detailMessage = FieldUtils.getField(aClass, "detailMessage", true);
+            Field detailMessage = FieldUtil.getField(aClass, "detailMessage");
             detailMessage.setAccessible(true);
             detailMessage.set(this, format);
         } catch (IllegalAccessException  ignored) {}
