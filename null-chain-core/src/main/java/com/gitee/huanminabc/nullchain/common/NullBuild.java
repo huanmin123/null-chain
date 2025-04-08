@@ -29,7 +29,7 @@ public class NullBuild {
             Class.forName("com.gitee.huanminabc.nullchain.register.RegisterTool");
             Class.forName("com.gitee.huanminabc.nullchain.register.RegisterTask");
         } catch (ClassNotFoundException e) {
-            log.debug("NullBuild 注册任务和工具失败: ", e);
+            log.debug("空链 NullBuild 注册任务和工具失败, 应该是没有导入相关的依赖,如果不需要可以忽略");
         }
     }
 
