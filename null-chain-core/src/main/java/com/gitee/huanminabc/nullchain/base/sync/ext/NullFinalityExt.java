@@ -1,5 +1,7 @@
 package com.gitee.huanminabc.nullchain.base.sync.ext;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.gitee.huanminabc.nullchain.NullCheck;
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
 import com.gitee.huanminabc.nullchain.base.sync.NullFinality;
@@ -47,7 +49,8 @@ public interface NullFinalityExt<T> extends NullFinality<T>, NullCheck {
         return tNullChain.nonAll(function);
     }
 
-
+    @JSONField(serialize = false)
+    @JsonIgnore
     @Override
     default T getSafe() throws NullChainCheckException {
         NullChain<T> tNullChain = toNULL();
