@@ -99,6 +99,14 @@ public class NullConvertBase<T> extends NullToolsBase<T> implements NullConvert<
             Object[] array = (Object[]) value;
             return NullBuild.noEmptyStream((V) Stream.of(array), linkLog, collect);
         }
+        //map
+        if (value instanceof java.util.Map) {
+            linkLog.append("toStream->");
+            java.util.Map map = (java.util.Map) value;
+            return NullBuild.noEmptyStream((V) map.entrySet().stream(), linkLog, collect);
+        }
+
+
         throw new NullChainException(linkLog.append("toStream? ").append(value.getClass()).append("类型不支持转换为Stream").toString());
     }
 
@@ -128,6 +136,12 @@ public class NullConvertBase<T> extends NullToolsBase<T> implements NullConvert<
             linkLog.append("toParallelStream->");
             Object[] array = (Object[]) value;
             return NullBuild.noEmptyStream((V) Stream.of(array).parallel(), linkLog, collect);
+        }
+        //map
+        if (value instanceof java.util.Map) {
+            linkLog.append("toParallelStream->");
+            java.util.Map map = (java.util.Map) value;
+            return NullBuild.noEmptyStream((V) map.entrySet().stream().parallel(), linkLog, collect);
         }
         throw new NullChainException(linkLog.append("toParallelStream? ").append(value.getClass()).append("类型不支持转换为Stream").toString());
     }

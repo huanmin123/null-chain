@@ -26,9 +26,8 @@ public interface NullConvert<T> extends NullTools<T> {
 
     <U> NullChain<U> type(U uClass);
 
-    //转换为stream，只能处理Collection的子类和数组
+    //转换为stream，只能处理Collection的子类和数组 ,如果是map返回的是Map.Entry<K, V> , 那么需要<Map.Entry<String,Integer>>toStream()来指定类型
     <V> NullStream<V> toStream(Class<V> type);
-    //xxx.<AgentFeeRatio>toStream()
     <V> NullStream<V> toStream();
     <V> NullStream<V> toParallelStream(Class<V> type);
     <V> NullStream<V> toParallelStream();

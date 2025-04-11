@@ -449,9 +449,14 @@ public class ObjNullTest {
     }
 
     @Test
-    public  void ifPresent(){
-        String jsonString = JSON.toJSONString("[]");
-        System.out.println(jsonString);
+    public  void toStream1231(){
+        Map<String, Object> map = new HashMap<>();
+        map.put("1", 1);
+        map.put("2", 2);
+        Null.of(map).<Map.Entry<String,Integer>>toStream().forEach((entry) -> {
+            System.out.println(entry.getKey());
+            System.out.println(entry.getValue());
+        });
     }
 
 }

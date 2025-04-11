@@ -119,6 +119,12 @@ public class NullConvertAsyncBase<T> extends NullToolsAsyncBase<T> implements Nu
                 Object[] array = (Object[]) value;
                 return (V) Stream.of(array);
             }
+            //map
+            if (value instanceof java.util.Map) {
+                linkLog.append("toStream->");
+                java.util.Map map = (java.util.Map) value;
+                return (V) map.entrySet().stream();
+            }
             throw new NullChainException(linkLog.append("toStream? ").append(value.getClass()).append("类型不支持转换为Stream").toString());
         }, getCT());
         return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
@@ -133,7 +139,6 @@ public class NullConvertAsyncBase<T> extends NullToolsAsyncBase<T> implements Nu
             if (Null.is(value)) {
                 return null;
             }
-            linkLog.append("toStream->");
             return (V)toStream((Class) value.getClass());
         }, getCT());
         return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
@@ -162,6 +167,12 @@ public class NullConvertAsyncBase<T> extends NullToolsAsyncBase<T> implements Nu
                 Object[] array = (Object[]) value;
                 return (V) Stream.of(array).parallel();
             }
+            //map
+            if ( value instanceof java.util.Map) {
+                linkLog.append("toParallelStream->");
+                java.util.Map map = (java.util.Map) value;
+                return (V) map.entrySet().stream().parallel();
+            }
             throw new NullChainException(linkLog.append("toParallelStream? ").append(value.getClass()).append("类型不支持转换为Stream").toString());
         }, getCT());
         return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
@@ -176,7 +187,6 @@ public class NullConvertAsyncBase<T> extends NullToolsAsyncBase<T> implements Nu
             if (Null.is(value)) {
                 return null;
             }
-            linkLog.append("toParallelStream->");
             return (V)toParallelStream((Class) value.getClass());
         }, getCT());
         return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
