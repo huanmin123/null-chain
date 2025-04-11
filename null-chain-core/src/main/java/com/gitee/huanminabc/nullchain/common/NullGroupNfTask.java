@@ -1,6 +1,6 @@
 package com.gitee.huanminabc.nullchain.common;
 
-import com.gitee.huanminabc.common.base.HashUtil;
+import com.gitee.huanminabc.common.encryption.HashUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import lombok.Data;
 import org.slf4j.Logger;

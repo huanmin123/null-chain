@@ -1,6 +1,6 @@
 package com.gitee.huanminabc.nullchain.base.async;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.gitee.huanminabc.common.base.BeanCopyUtil;
 import com.gitee.huanminabc.common.reflect.LambdaUtil;
 import com.gitee.huanminabc.nullchain.Null;

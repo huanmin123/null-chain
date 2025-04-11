@@ -1,11 +1,10 @@
 package com.gitee.huanminabc.test.nullchain;
 
 import com.gitee.huanminabc.nullchain.vessel.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.stream.Collectors;
 
 public class NullVesselTest {
 

@@ -11,8 +11,9 @@ import com.gitee.huanminabc.nullchain.tool.base64.Base64StrDecodeTool;
 import com.gitee.huanminabc.nullchain.tool.hash.MD5Tool;
 import com.gitee.huanminabc.test.nullchain.entity.RoleEntity;
 import com.gitee.huanminabc.test.nullchain.entity.UserEntity;
-import org.junit.Before;
-import org.junit.Test;
+import org.aspectj.lang.annotation.Before;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -23,7 +24,7 @@ public class NullTooltTest {
     UserEntity userEntity = new UserEntity();
     List<UserEntity> userEntityList = Arrays.asList(userEntity);
 
-    @Before
+    @BeforeEach
     public void before() {
         userEntity.setId(1);
         userEntity.setName("huanmin");

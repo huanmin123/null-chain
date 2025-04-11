@@ -7,9 +7,9 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeFactory;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.test.nullchain.utils.TestUtil;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,13 +18,13 @@ public class NfSyntaTest {
     static List<Token> tokens;
     static List<SyntaxNode> syntaxNodeList= new ArrayList<>();
 
-    @BeforeClass
-    public static void before() {
+    @BeforeEach
+    public  void before() {
         String file = TestUtil.readFile("test1.nf");
         tokens = NfToken.tokens(file);
     }
-    @AfterClass
-    public static void after() {
+    @AfterEach
+    public  void after() {
         for (SyntaxNode syntaxNode : syntaxNodeList) {
             System.out.println(syntaxNode);
         }

@@ -11,7 +11,7 @@ import com.gitee.huanminabc.nullchain.tool.file.BytesToWriteFileTool;
 import com.gitee.huanminabc.nullchain.tool.file.ZipToBytesByteTool;
 import com.gitee.huanminabc.test.nullchain.task.Test1Task;
 import com.gitee.huanminabc.test.nullchain.task.Test2Task;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.util.Arrays;

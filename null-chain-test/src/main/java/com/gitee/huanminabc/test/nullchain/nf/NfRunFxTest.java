@@ -9,8 +9,8 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.test.nullchain.utils.TestUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 @Slf4j
@@ -18,8 +18,8 @@ public class NfRunFxTest {
     static List<Token> tokens;
 
 
-    @BeforeClass
-    public static void before() {
+    @BeforeEach
+    public  void before() {
         String file = TestUtil.readFile("test1.nf");
         tokens = NfToken.tokens(file);
     }

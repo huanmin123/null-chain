@@ -1,6 +1,6 @@
 package com.gitee.huanminabc.nullchain.common;
 
-import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson2.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.gitee.huanminabc.nullchain.Null;

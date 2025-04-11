@@ -1,6 +1,7 @@
 package com.gitee.huanminabc.test.nullchain;
 
 
+import com.alibaba.fastjson2.JSON;
 import com.gitee.huanminabc.common.base.SerializeUtil;
 import com.gitee.huanminabc.common.test.CodeTimeUtil;
 import com.gitee.huanminabc.nullchain.Null;
@@ -17,8 +18,9 @@ import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
 import com.gitee.huanminabc.utils_common.base.DateUtil;
 import com.google.common.collect.Sets;
 import lombok.SneakyThrows;
-import org.junit.Before;
-import org.junit.Test;
+import org.aspectj.lang.annotation.Before;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -34,7 +36,7 @@ public class ObjNullTest {
     UserEntity userEntity = new UserEntity();
 
 
-    @Before
+    @BeforeEach
     public void before() {
         userEntity.setId(1);
         userEntity.setName("huanmin");
@@ -444,6 +446,12 @@ public class ObjNullTest {
                 .flatOptional(this::testOptional)
                 .map(RoleEntity::getRoleName)
                 .ifPresent(System.out::println);
+    }
+
+    @Test
+    public  void ifPresent(){
+        String jsonString = JSON.toJSONString("[]");
+        System.out.println(jsonString);
     }
 
 }

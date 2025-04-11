@@ -5,8 +5,9 @@ import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.NullChainCheckException;
 import com.gitee.huanminabc.test.nullchain.entity.RoleEntity;
 import com.gitee.huanminabc.test.nullchain.entity.UserEntity;
-import org.junit.Before;
-import org.junit.Test;
+import org.aspectj.lang.annotation.Before;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Date;
 
@@ -17,7 +18,7 @@ import java.util.Date;
 public class ObjNullErrorTest {
     UserEntity userEntity = new UserEntity();
     UserEntity[] userEntitys= new UserEntity[10];
-    @Before
+    @BeforeEach
     public void before() {
         userEntity.setId(1);
         userEntity.setName("huanmin");

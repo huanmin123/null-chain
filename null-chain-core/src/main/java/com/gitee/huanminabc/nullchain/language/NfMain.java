@@ -1,6 +1,6 @@
 package com.gitee.huanminabc.nullchain.language;
 
-import com.gitee.huanminabc.common.base.HashUtil;
+import com.gitee.huanminabc.common.encryption.HashUtil;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.token.Token;
