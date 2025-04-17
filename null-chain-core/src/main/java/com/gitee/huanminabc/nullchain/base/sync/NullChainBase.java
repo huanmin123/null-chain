@@ -121,6 +121,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
         }
     }
 
+
     @SafeVarargs
     @Override
     public final <U> NullChain<T> ofAny(NullFun<? super T, ? extends U>... function) {
@@ -148,6 +149,23 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
 
     }
 
+    @Override
+    public NullChain<T> then(Runnable function) {
+        if (isNull) {
+            return NullBuild.empty(linkLog, collect);
+        }
+        if (function == null) {
+            throw new NullChainException(linkLog.append("then? 传参不能为空").toString());
+        }
+        try {
+            function.run();
+            linkLog.append("then->");
+            return NullBuild.noEmpty(value, linkLog, collect);
+        } catch (Exception e) {
+            linkLog.append("then? ");
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+        }
+    }
 
     @Override
     public NullChain<T> then(Consumer<? super T> function) {

@@ -59,6 +59,8 @@ public interface NullChain<T> extends NullConvert<T> {
      * 在上一个任务不是空的情况下执行,不改变对象类型不改变对象内容, 就是一个空白节点无状态的不影响链路的数据
      */
 
+    NullChain<T> then(Runnable function);
+
     NullChain<T> then(Consumer<? super T> function);
 
     NullChain<T> then2(NullConsumer2<NullChain<T>, ? super T> function);

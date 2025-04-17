@@ -39,7 +39,11 @@ public class ObjNullErrorTest {
             throw new RuntimeException("测试主动异常");
 //            return data;
         }).ifPresent(System.out::println);
-
+        Null.of(userEntity).map(UserEntity::getRoleData).then((data) -> {
+            data.setRoleName("default");
+            throw new RuntimeException("测试主动异常");
+//            return data;
+        }).ifPresent(System.out::println);
 //        userEntity=null;
 //        String roleName = Null.of(userEntity).map(UserEntity::getRoleData).map(RoleEntity::getRoleName).orElse("default");
     }
