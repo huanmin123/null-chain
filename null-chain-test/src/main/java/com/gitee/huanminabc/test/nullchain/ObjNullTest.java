@@ -61,7 +61,7 @@ public class ObjNullTest {
     @SneakyThrows
     @Test
     public void of_okserialize() {
-        userEntity=null;
+//        userEntity=null;
         NullChain<RoleEntity> map = Null.of(userEntity).check(RuntimeException::new).map(UserEntity::getRoleData);
 //        System.out.println(map);
 //        byte[] serialize = SerializeUtil.serialize(map);
