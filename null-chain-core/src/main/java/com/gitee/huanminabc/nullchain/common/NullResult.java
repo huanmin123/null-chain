@@ -1,6 +1,8 @@
 package com.gitee.huanminabc.nullchain.common;
 
+import com.alibaba.fastjson2.JSONWriter;
 import com.alibaba.fastjson2.annotation.JSONField;
+import com.alibaba.fastjson2.annotation.JSONType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.gitee.huanminabc.nullchain.Null;
@@ -23,6 +25,7 @@ import java.util.function.Supplier;
 @Slf4j
 @Data
 @JsonInclude(JsonInclude.Include.ALWAYS)
+@JSONType(serializeFeatures = JSONWriter.Feature.WriteNulls)
 public class NullResult<T> implements Serializable {
 
     private static final long serialVersionUID = 1L;
