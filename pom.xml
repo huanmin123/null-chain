@@ -39,12 +39,6 @@
 
     </dependencies>
 
-    <distributionManagement>
-        <repository>
-            <id>java-huanmin-utils</id>
-            <url>https://packages.aliyun.com/60df3fde4690c27532d3dd6c/maven/java-huanmin-utils</url>
-        </repository>
-    </distributionManagement>
 
     <build>
         <plugins>
