@@ -9,7 +9,7 @@ import java.io.File;
 public  class TestUtil {
     public static String readFile(String fileName) {
         String file = PathUtil.getCurrentProjectTestResourcesAbsoluteFile("nf/" + fileName);
-        return  FileReadUtil.allStr(new File(file));
+        return  FileReadUtil.readAllStr(new File(file));
     }
 }
 
