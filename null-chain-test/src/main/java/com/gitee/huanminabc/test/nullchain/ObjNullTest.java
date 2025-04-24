@@ -275,6 +275,9 @@ public class ObjNullTest {
         System.out.println(time222);
 
 
+
+
+
     }
 
     @SneakyThrows
@@ -298,6 +301,11 @@ public class ObjNullTest {
         LocalDateTime date6 = LocalDateTime.now();
         Integer compare3 = Null.of(date5).dateCompare(date6).getSafe();
         System.out.println(compare3);
+
+        Null.of("2024-11").dateCompare("2024-12").ifPresent(System.out::println);
+        Null.of("2024-12").dateCompare("2024-12").ifPresent(System.out::println);
+        Null.of("2024-12").dateCompare("2024-11").ifPresent(System.out::println);
+
 
     }
 
