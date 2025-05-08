@@ -1,6 +1,6 @@
 package com.gitee.huanminabc.nullchain.common;
 
-import com.gitee.huanminabc.common.executor.ThreadFactoryUtil;
+import com.gitee.huanminabc.common.multithreading.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.NullCheck;
 import lombok.Setter;
 

@@ -1,7 +1,7 @@
 package com.gitee.huanminabc.nullchain.base.sync;
 
 
-import com.gitee.huanminabc.common.executor.ThreadFactoryUtil;
+import com.gitee.huanminabc.common.multithreading.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.base.async.NullChainAsync;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullChainException;

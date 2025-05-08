@@ -1,8 +1,8 @@
 package com.gitee.huanminabc.test.nullchain;
 
 
-import com.gitee.huanminabc.common.executor.SleepTools;
-import com.gitee.huanminabc.common.executor.ThreadFactoryUtil;
+import com.gitee.huanminabc.common.multithreading.executor.SleepTools;
+import com.gitee.huanminabc.common.multithreading.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.common.test.CodeTimeUtil;
 import com.gitee.huanminabc.common.exception.BizException;
 import com.gitee.huanminabc.nullchain.Null;
