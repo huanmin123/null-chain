@@ -457,6 +457,11 @@ public class ObjNullTest {
     }
 
     @Test
+    public  void orEmpty(){
+        UserExtEntity userExtEntity = Null.orEmpty(null, UserExtEntity.class);
+        System.out.println(userExtEntity.is());
+
+    }
     public  void toStream1231(){
         Map<String, Object> map = new HashMap<>();
         map.put("1", 1);

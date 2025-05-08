@@ -31,18 +31,19 @@ public class NullByteBuddy {
     public static <T> T createAgencyAddEmptyMember(Class<? extends NullCheck> clazz) {
         return (T) emptyMemberMap.computeIfAbsent(clazz, aClass -> {
             // 创建一个动态类，并添加一个成员变量
-            try ( DynamicType.Unloaded  make = new ByteBuddy()
-                    // 从 ServiceClass 子类化
-                    .subclass(clazz)
-                    // 添加一个成员变量
-                    .defineField(EMPTY_MEMBER_NAME, boolean.class, Opcodes.ACC_PRIVATE)
-                    //1.不匹配NULLExt接口的方法
-                    //2.只拦截public方法
-                    .method(new NotNULLExtMatcher().and(ElementMatchers.isPublic()))
-                    //除了NULLExt接口的方法其他的都抛出异常
-                    .intercept(ExceptionMethod.throwing(NullChainException.class, "不能调用空对象的方法"))
-                    .make()){
-                Class<?> dynamicType =  make
+            try {
+                DynamicType.Unloaded make = new ByteBuddy()
+                        // 从 ServiceClass 子类化
+                        .subclass(clazz)
+                        // 添加一个成员变量
+                        .defineField(EMPTY_MEMBER_NAME, boolean.class, Opcodes.ACC_PRIVATE)
+                        //1.不匹配NULLExt接口的方法
+                        //2.只拦截public方法
+                        .method(new NotNULLExtMatcher().and(ElementMatchers.isPublic()))
+                        //除了NULLExt接口的方法其他的都抛出异常
+                        .intercept(ExceptionMethod.throwing(NullChainException.class, "不能调用空对象的方法"))
+                        .make();
+                Class<?> dynamicType = make
                         //将创建的代理类放入到类的原始加载器中,而不是自己在创建一个类加载器
                         .load(clazz.getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
                         .getLoaded();
@@ -70,8 +71,9 @@ public class NullByteBuddy {
         }
     }
 
-    private static class NotNULLExtMatcher <T extends DeclaredByType> extends ElementMatcher.Junction.AbstractBase<T> {
-        private final static Set<String> matchers=new HashSet<>();
+    private static class NotNULLExtMatcher<T extends DeclaredByType> extends ElementMatcher.Junction.AbstractBase<T> {
+        private final static Set<String> matchers = new HashSet<>();
+
         static {
             //Object类和NULLExt接口的方法不拦截
             //Object类的方法是所有类都有的方法,这种方法一般不会涉及到内容的操作都是一些控制操作
