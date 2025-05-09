@@ -96,19 +96,16 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
 
     @Override
     public <U extends T> boolean eq(U obj) {
-        return !isNull && value.equals(obj);
+        return Null.eq(obj, value);
     }
 
     @Override
     public <U extends T> boolean notEq(U obj) {
-        //如果是空那么就返回true
-        if (isNull || Null.is(obj)) {
-            return true;
-        }
-        return !value.equals(obj);
+        return !Null.eq(obj, value);
     }
+
     @Override
-    public  boolean logic(Function<T,Boolean> obj) {
+    public boolean logic(Function<T, Boolean> obj) {
         if (isNull || obj == null) {
             return false;
         }
@@ -133,9 +130,6 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
         }
         return false;
     }
-
-
-
 
 
     @SafeVarargs
@@ -215,7 +209,7 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
             linkLog.append("...ifPresent? ");
             throw new NullChainException(linkLog.toString());
         }
-        if (!isNull ) {
+        if (!isNull) {
             try {
                 action.accept(value);
             } catch (Exception e) {

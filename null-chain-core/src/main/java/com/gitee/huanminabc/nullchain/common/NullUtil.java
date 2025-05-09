@@ -98,8 +98,12 @@ public class NullUtil {
     }
 
 
+    //如果有空那么必然返回false
     public static boolean eq(Object a, Object b) {
-        return Objects.equals(a, b);
+        if (isAny(a, b)) {
+            return false;
+        }
+        return a == b || a.equals(b);
     }
 
     //如果是空那么返回null ,请type和obj的类型一致否则返回的是null

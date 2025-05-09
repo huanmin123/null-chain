@@ -304,7 +304,7 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
 
     @Override
     public <U extends T> boolean eq(U obj) {
-        if (isNull) {
+        if (isNull || obj == null) {
             return false;
         }
         T join;
@@ -313,10 +313,22 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
         } catch (Exception e) {
             throw new NullChainException(linkLog.toString());
         }
-        if (Null.is(join)) {
-            return false;
+        return Null.eq(obj, join);
+    }
+
+    @Override
+    public <U extends T> boolean notEq(U obj) {
+        //如果是空那么就返回true
+        if (isNull || obj == null) {
+            return true;
         }
-        return join.equals(obj);
+        T join;
+        try {
+            join = completableFuture.join();
+        } catch (Exception e) {
+            throw new NullChainException(linkLog.toString());
+        }
+        return !Null.eq(obj, join);
     }
 
     @SafeVarargs
@@ -340,25 +352,6 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
             }
         }
         return false;
-    }
-
-
-    @Override
-    public <U extends T> boolean notEq(U obj) {
-        //如果是空那么就返回true
-        if (isNull || obj == null) {
-            return true;
-        }
-        T join;
-        try {
-            join = completableFuture.join();
-        } catch (Exception e) {
-            throw new NullChainException(linkLog.toString());
-        }
-        if (Null.is(join)) {
-            return true;
-        }
-        return !join.equals(obj);
     }
 
 
@@ -592,7 +585,6 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
     }
 
 
-
     @Override
     public void ifPresentOrElse(Consumer<? super T> action, Runnable emptyAction) {
         if (isNull) {
@@ -635,7 +627,7 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
     @Override
     public void except(Consumer<Throwable> consumer) {
         if (consumer == null) {
-            throw  new NullChainException( linkLog.append("...capture? 参数不能为空").toString());
+            throw new NullChainException(linkLog.append("...capture? 参数不能为空").toString());
         }
         if (isNull) {
             consumer.accept(new NullChainException(linkLog.toString()));
@@ -643,7 +635,7 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
         }
         CompletableFuture<Object> objectCompletableFuture = completableFuture.thenApplyAsync((t) -> {
             if (Null.is(t)) {
-               throw new NullChainException(linkLog.toString());
+                throw new NullChainException(linkLog.toString());
             }
             return null;
         }, getCT());
