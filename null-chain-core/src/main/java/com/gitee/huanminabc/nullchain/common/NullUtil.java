@@ -101,7 +101,15 @@ public class NullUtil {
         return Objects.equals(a, b);
     }
 
-    //判断对象是否为空,如果为空返回默认值
+    //如果是空那么返回null
+    public static <T> T orElseNull(T obj) {
+        if (is(obj)) {
+            return null;
+        }
+        return obj;
+    }
+
+    //判断对象是否为空,如果为空返回默认值 , 默认值不允许为空
     public static <T> T orElse(T obj, T defaultValue) {
         if (is(obj)) {
             //如果默认值也是空那么就返回异常
