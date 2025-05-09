@@ -6,6 +6,7 @@ import com.gitee.huanminabc.common.str.StringUtil;
 import com.gitee.huanminabc.nullchain.NullCheck;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -144,7 +145,7 @@ public class NullUtil {
         return obj;
     }
 
-    //如果值为空那么就创建一个空的对象
+    //如果值为空那么就创建一个空的对象, 请不要使用不能被newInstance的类,否则会报错, 可以理解为必须有一个公开的无参构造函数
     public static <T extends NullCheck> T orEmpty(T obj, Class<? extends T> clazz) {
         return is(obj) ? createEmpty(clazz) : obj;
     }
