@@ -70,6 +70,8 @@ public interface NullFinality<T>  extends Serializable {
     T get(String exceptionMessage, Object... args) ;
 
 
+    //如果上一个任务是空那么就返回null
+    T orElseNull() ;
 
     /**
      * @param defaultValue 如果上一个任务是null那么给一个默认值

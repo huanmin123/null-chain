@@ -245,6 +245,23 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
         return join;
     }
 
+    @Override
+    public T orElseNull() {
+        if (isNull) {
+            return null;
+        }
+        T join;
+        try {
+            join = completableFuture.join();
+        } catch (Exception e) {
+            throw new NullChainException(linkLog.toString());
+        }
+        if (Null.is(join)) {
+            return null;
+        }
+        return join;
+    }
+
 
     @Override
     public NullCollect collect() {

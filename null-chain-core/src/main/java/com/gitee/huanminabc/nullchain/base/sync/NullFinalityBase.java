@@ -307,6 +307,14 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
         }
     }
 
+    @Override
+    public T orElseNull() {
+        if (!isNull) {
+            return value;
+        }
+        return null;
+    }
+
 
     @Override
     public NullCollect collect() {

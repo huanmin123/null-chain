@@ -85,6 +85,7 @@ public interface NullFinalityAsync<T> extends Serializable {
     <X extends Throwable> T get(Supplier<? extends X> exceptionSupplier) throws X;
 
 
+    T orElseNull() ;
     /**
      * @param defaultValue 如果上一个任务是null那么给一个默认值
      * @return T

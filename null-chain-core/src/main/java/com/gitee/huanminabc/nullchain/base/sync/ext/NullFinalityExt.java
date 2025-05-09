@@ -165,7 +165,11 @@ public interface NullFinalityExt<T> extends NullFinality<T>, NullCheck {
         NullChain<T> tNullChain = toNULL();
         tNullChain.ifPresentOrElse(action, emptyAction);
     }
-
+    @Override
+    default T orElseNull(){
+        NullChain<T> tNullChain = toNULL();
+        return tNullChain.orElseNull();
+    }
     @Override
     default T orElse(T defaultValue) {
         NullChain<T> tNullChain = toNULL();
