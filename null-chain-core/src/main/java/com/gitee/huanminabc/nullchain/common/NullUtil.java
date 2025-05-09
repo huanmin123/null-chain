@@ -101,7 +101,16 @@ public class NullUtil {
         return Objects.equals(a, b);
     }
 
-    //如果是空那么返回null
+    //如果是空那么返回null ,请type和obj的类型一致否则返回的是null
+    public static <T> T orElseNull(Object obj, Class<T> type) {
+        if (is(obj)) {
+            return null;
+        }
+        if (type.isInstance(obj)) {
+            return type.cast(obj);
+        }
+        return null;
+    }
     public static <T> T orElseNull(T obj) {
         if (is(obj)) {
             return null;
