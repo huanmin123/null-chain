@@ -79,11 +79,10 @@ public class NfMain {
         //从缓存中获取语法节点
         List<SyntaxNode> getSyntaxNodes = syntaxCache.computeIfAbsent(md5, (key) -> {
             List<Token> tokens = NfToken.tokens(context);
-            List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
-            //记录访问时间
-            timeCheckClearMap.put(md5, System.currentTimeMillis());
-            return syntaxNodes;
+            return NfSynta.buildMainStatement(tokens);
         });
+        //记录访问时间
+        timeCheckClearMap.put(md5, System.currentTimeMillis());
         return NfRun.run(getSyntaxNodes, logger, mainSystemContext);
     }
 
