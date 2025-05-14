@@ -1,6 +1,8 @@
 package com.gitee.huanminabc.nullchain.language;
 
 import com.gitee.huanminabc.common.encryption.HashUtil;
+import com.gitee.huanminabc.common.file.FileReadUtil;
+import com.gitee.huanminabc.common.file.FileUtil;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.token.Token;
@@ -65,7 +67,7 @@ public class NfMain {
         if (!file.exists()) {
             throw new NfException(filePath + "文件不存在");
         }
-        String context = readFileStrAll(file);
+        String context = FileReadUtil.readAllStr(file);
         return run(context, logger,mainSystemContext);
     }
 
@@ -84,25 +86,6 @@ public class NfMain {
         //记录访问时间
         timeCheckClearMap.put(md5, System.currentTimeMillis());
         return NfRun.run(getSyntaxNodes, logger, mainSystemContext);
-    }
-
-
-
-    //字符流 读取文件全部内容
-    private static String readFileStrAll(File file) {
-        StringBuilder sb = new StringBuilder();
-        try (BufferedReader br =
-                     new BufferedReader(new InputStreamReader(Files.newInputStream(file.toPath())));) {
-            String lin = null;
-            while ((lin = br.readLine()) != null) {
-                // 每次处理一行
-                sb.append(lin).append("\n");
-            }
-        } catch (Exception e) {
-            throw new NullChainException(e);
-        }
-        return sb.toString();
-
     }
 
 }
