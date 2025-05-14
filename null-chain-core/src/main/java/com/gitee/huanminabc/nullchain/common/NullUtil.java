@@ -6,6 +6,7 @@ import com.gitee.huanminabc.common.str.StringUtil;
 import com.gitee.huanminabc.nullchain.NullCheck;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -97,11 +98,32 @@ public class NullUtil {
     }
 
 
+    //如果有空那么必然返回false
     public static boolean eq(Object a, Object b) {
-        return Objects.equals(a, b);
+        if (isAny(a, b)) {
+            return false;
+        }
+        return a == b || a.equals(b);
     }
 
-    //判断对象是否为空,如果为空返回默认值
+    //如果是空那么返回null ,请type和obj的类型一致否则返回的是null
+    public static <T> T orElseNull(Object obj, Class<T> type) {
+        if (is(obj)) {
+            return null;
+        }
+        if (type.isInstance(obj)) {
+            return type.cast(obj);
+        }
+        return null;
+    }
+    public static <T> T orElseNull(T obj) {
+        if (is(obj)) {
+            return null;
+        }
+        return obj;
+    }
+
+    //判断对象是否为空,如果为空返回默认值 , 默认值不允许为空
     public static <T> T orElse(T obj, T defaultValue) {
         if (is(obj)) {
             //如果默认值也是空那么就返回异常
@@ -127,7 +149,7 @@ public class NullUtil {
         return obj;
     }
 
-    //如果值为空那么就创建一个空的对象
+    //如果值为空那么就创建一个空的对象, 请不要使用不能被newInstance的类,否则会报错, 可以理解为必须有一个公开的无参构造函数
     public static <T extends NullCheck> T orEmpty(T obj, Class<? extends T> clazz) {
         return is(obj) ? createEmpty(clazz) : obj;
     }
