@@ -36,6 +36,7 @@ public interface NullFinalityExt<T> extends NullFinality<T>, NullCheck {
         return tNullChain.isAll(function);
     }
 
+
     @Override
     default boolean non() {
         NullChain<T> tNullChain = toNULL();
@@ -103,9 +104,21 @@ public interface NullFinalityExt<T> extends NullFinality<T>, NullCheck {
     }
 
     @Override
+    default <U extends T> boolean eqAny(U... b){
+        NullChain<T> tNullChain = toNULL();
+        return tNullChain.eqAny(b);
+    }
+
+    @Override
     default <U extends T> boolean notEq(U obj){
         NullChain<T> tNullChain = toNULL();
         return tNullChain.notEq(obj);
+    }
+
+    @Override
+    default <U extends T> boolean notEqAll(U... b){
+        NullChain<T> tNullChain = toNULL();
+        return tNullChain.notEqAll(b);
     }
 
     @Override

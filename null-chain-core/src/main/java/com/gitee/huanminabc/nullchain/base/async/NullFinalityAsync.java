@@ -120,12 +120,16 @@ public interface NullFinalityAsync<T> extends Serializable {
      */
     <U extends T> boolean eq(U obj);
 
+    <U extends T> boolean eqAny(U... b);
+
     /**
      * 判断是否不相等 如果不相等返回true
      * 注意: 如果上一个任务返回的是null那么就返回false
      * (示例: a!=b)
      */
     <U extends T> boolean notEq(U obj);
+
+    <U extends T> boolean notEqAll(U... b);
 
     /**
      * 上个任务的值和多个值比较,只要有一个相等就返回true

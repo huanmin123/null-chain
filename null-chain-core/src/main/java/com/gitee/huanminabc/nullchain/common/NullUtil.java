@@ -105,6 +105,37 @@ public class NullUtil {
         }
         return a == b || a.equals(b);
     }
+    public static boolean eqAny(Object a, Object... b) {
+        if (isAny(a, b)) {
+            return false;
+        }
+        for (Object o : b) {
+            if (a == o || a.equals(o)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    //如果不相等那么返回true
+    public  static  boolean notEq(Object a, Object b) {
+        if (isAny(a, b)) {
+            return false;
+        }
+        return !eq(a, b);
+    }
+    //全部不相等返回true,只要有一个相等就返回false
+    public  static  boolean notEqAll(Object a, Object... b) {
+        if (isAny(a, b)) {
+            return false;
+        }
+        for (Object o : b) {
+            if (a == o || a.equals(o)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     //如果是空那么返回null ,请type和obj的类型一致否则返回的是null
     public static <T> T orElseNull(Object obj, Class<T> type) {

@@ -334,6 +334,20 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
     }
 
     @Override
+    public <U extends T> boolean eqAny(U... b) {
+        if (isNull || Null.is(b)) {
+            return false;
+        }
+        T join;
+        try {
+            join = completableFuture.join();
+        } catch (Exception e) {
+            throw new NullChainException(linkLog.toString());
+        }
+        return Null.eqAny(join, b);
+    }
+
+    @Override
     public <U extends T> boolean notEq(U obj) {
         //如果是空那么就返回true
         if (isNull || obj == null) {
@@ -346,6 +360,20 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
             throw new NullChainException(linkLog.toString());
         }
         return !Null.eq(obj, join);
+    }
+
+    @Override
+    public <U extends T> boolean notEqAll(U... b) {
+        if (isNull || Null.is(b)) {
+            return true;
+        }
+        T join;
+        try {
+            join = completableFuture.join();
+        } catch (Exception e) {
+            throw new NullChainException(linkLog.toString());
+        }
+        return Null.notEqAll(join, b);
     }
 
     @SafeVarargs

@@ -100,8 +100,24 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
     }
 
     @Override
+    public <U extends T> boolean eqAny(U... b) {
+        if (isNull || Null.is(b)) {
+            return false;
+        }
+        return Null.eqAny(value, b);
+    }
+
+    @Override
     public <U extends T> boolean notEq(U obj) {
         return !Null.eq(obj, value);
+    }
+
+    @Override
+    public <U extends T> boolean notEqAll(U... b) {
+        if (isNull || Null.is(b)) {
+            return true;
+        }
+        return Null.notEqAll(value, b);
     }
 
     @Override
