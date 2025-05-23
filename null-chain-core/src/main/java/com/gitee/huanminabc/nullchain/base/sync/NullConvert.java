@@ -2,8 +2,10 @@ package com.gitee.huanminabc.nullchain.base.sync;
 
 
 import com.gitee.huanminabc.nullchain.base.async.NullChainAsync;
+import com.gitee.huanminabc.nullchain.base.sync.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.base.sync.stream.NullStream;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -31,5 +33,8 @@ public interface NullConvert<T> extends NullTools<T> {
     <V> NullStream<V> toStream();
     <V> NullStream<V> toParallelStream(Class<V> type);
     <V> NullStream<V> toParallelStream();
+
+    //转计算
+    NullCalculate<BigDecimal> toCalc();
 
 }

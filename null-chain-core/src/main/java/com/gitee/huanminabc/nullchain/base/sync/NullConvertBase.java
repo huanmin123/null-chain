@@ -3,11 +3,13 @@ package com.gitee.huanminabc.nullchain.base.sync;
 
 import com.gitee.huanminabc.common.multithreading.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.base.async.NullChainAsync;
+import com.gitee.huanminabc.nullchain.base.sync.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.base.sync.stream.NullStream;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
@@ -30,32 +32,32 @@ public class NullConvertBase<T> extends NullToolsBase<T> implements NullConvert<
     @Override
     public NullChainAsync<T> async() {
         if (isNull) {
-            return NullBuild.emptyAsync(linkLog,collect);
+            return NullBuild.emptyAsync(linkLog, collect);
         }
         linkLog.append("async->");
         //开启异步
         CompletableFuture<T> completableFuture = new CompletableFuture<>();
         completableFuture.complete(value);
-        return NullBuild.noEmptyAsync(completableFuture, linkLog,collect);
+        return NullBuild.noEmptyAsync(completableFuture, linkLog, collect);
     }
 
     @Override
     public NullChainAsync<T> async(String threadFactoryName) throws NullChainException {
         if (isNull) {
-            return NullBuild.emptyAsync(linkLog,collect);
+            return NullBuild.emptyAsync(linkLog, collect);
         }
         ThreadFactoryUtil.addExecutor(threadFactoryName);
         linkLog.append("async->");
         //开启异步
         CompletableFuture<T> completableFuture = new CompletableFuture<>();
         completableFuture.complete(value);
-        return  NullBuild.noEmptyAsync(completableFuture, linkLog, threadFactoryName,collect);
+        return NullBuild.noEmptyAsync(completableFuture, linkLog, threadFactoryName, collect);
     }
 
     @Override
-    public <U> NullChain<U> type(Class<U> uClass)  {
+    public <U> NullChain<U> type(Class<U> uClass) {
         if (isNull) {
-            return NullBuild.empty(linkLog,collect);
+            return NullBuild.empty(linkLog, collect);
         }
         if (uClass == null) {
             throw new NullChainException(linkLog.append("type? ").append("转换类型不能为空").toString());
@@ -65,19 +67,19 @@ public class NullConvertBase<T> extends NullToolsBase<T> implements NullConvert<
             return NullBuild.noEmpty(uClass.cast(value), linkLog, collect);
         } else {
             linkLog.append("type? ").append("类型不匹配 ").append(value.getClass().getName()).append(" vs ").append(uClass.getName());
-            return NullBuild.empty(linkLog,collect);
+            return NullBuild.empty(linkLog, collect);
         }
     }
 
     @Override
     public <U> NullChain<U> type(U uClass) {
         if (isNull) {
-            return NullBuild.empty(linkLog,collect);
+            return NullBuild.empty(linkLog, collect);
         }
-        if (uClass==null){
+        if (uClass == null) {
             throw new NullChainException(linkLog.append("type? ").append("转换类型不能为空").toString());
         }
-       return type((Class<U>) uClass.getClass());
+        return type((Class<U>) uClass.getClass());
     }
 
     @Override
@@ -115,7 +117,7 @@ public class NullConvertBase<T> extends NullToolsBase<T> implements NullConvert<
         if (isNull) {
             return NullBuild.emptyStream(linkLog, collect);
         }
-        return toStream ((Class) value.getClass());
+        return toStream((Class) value.getClass());
     }
 
     @Override
@@ -151,7 +153,19 @@ public class NullConvertBase<T> extends NullToolsBase<T> implements NullConvert<
         if (isNull) {
             return NullBuild.emptyStream(linkLog, collect);
         }
-        return toParallelStream ((Class) value.getClass());
+        return toParallelStream((Class) value.getClass());
+    }
+
+    @Override
+    public NullCalculate<BigDecimal> toCalc() {
+        if (isNull) {
+            return NullBuild.emptyCalc(linkLog, collect);
+        }
+        if (value instanceof Number) {
+            linkLog.append("toCalc->");
+            return NullBuild.noEmptyCalc(BigDecimal.valueOf(((Number) value).doubleValue()), linkLog, collect);
+        }
+        throw new NullChainException(linkLog.append("toCalc? ").append(value.getClass()).append("类型不兼容Number").toString());
     }
 
 

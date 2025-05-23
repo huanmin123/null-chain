@@ -8,6 +8,8 @@ import com.gitee.huanminabc.nullchain.base.async.stream.NullStreamAsync;
 import com.gitee.huanminabc.nullchain.base.async.stream.NullStreamAsyncBase;
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
 import com.gitee.huanminabc.nullchain.base.sync.NullChainBase;
+import com.gitee.huanminabc.nullchain.base.sync.calculate.NullCalculate;
+import com.gitee.huanminabc.nullchain.base.sync.calculate.NullCalculateBase;
 import com.gitee.huanminabc.nullchain.base.sync.stream.NullStream;
 import com.gitee.huanminabc.nullchain.base.sync.stream.NullStreamBase;
 import com.gitee.huanminabc.nullchain.task.NullTask;
@@ -15,6 +17,7 @@ import com.gitee.huanminabc.nullchain.tool.NullTool;
 import com.gitee.huanminabc.nullchain.vessel.NullMap;
 import lombok.extern.slf4j.Slf4j;
 
+import java.math.BigDecimal;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -81,6 +84,17 @@ public class NullBuild {
     public static <T> NullChainAsyncBase<T> noEmptyAsync(CompletableFuture<T> completableFuture, StringBuilder linkLog, NullCollect collect) {
         return noEmptyAsync(completableFuture, linkLog, ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME, collect);
     }
+
+
+    public static <V extends Number> NullCalculate<V> emptyCalc(StringBuilder linkLog, NullCollect collect) {
+        return new NullCalculateBase(linkLog,true, collect);
+    }
+    public static <V extends Number> NullCalculate<V> noEmptyCalc(BigDecimal value, StringBuilder linkLog, NullCollect collect) {
+        return new NullCalculateBase( value, linkLog, collect);
+    }
+
+
+
 
     //因为NULLExt==NullChain 但是 因为NULLExt!=NullChainBase, 在NULLExt转化为NullChainBase的时候会识别导致获取内部的值失败
     //这里兼容一下
@@ -160,5 +174,7 @@ public class NullBuild {
         }
 
     }
+
+
 
 }

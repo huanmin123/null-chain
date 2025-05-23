@@ -2,14 +2,15 @@ package com.gitee.huanminabc.nullchain;
 
 
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
+import com.gitee.huanminabc.nullchain.base.sync.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.base.sync.stream.NullStream;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
 import com.gitee.huanminabc.nullchain.common.NullUtil;
 import com.gitee.huanminabc.nullchain.vessel.*;
 
+import java.math.BigDecimal;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -191,8 +192,19 @@ public class Null extends NullUtil {
 
 
 
+    public static <S extends Number> NullCalculate<BigDecimal> ofCalc(S s) {
+        StringBuilder linkLog = new StringBuilder();
+        if (s == null) {
+            linkLog.append(" Null.ofCalc?");
+            return NullBuild.emptyCalc(linkLog, new NullCollect());
+        }
+        linkLog.append(" Null.ofCalc->");
+        return NullBuild.noEmptyCalc(BigDecimal.valueOf(s.doubleValue()), linkLog, new NullCollect());
+    }
+
+
     //将Collection转为NullStream
-    public static <S> NullStream<S> toStream(Collection<S> collection) {
+    public static <S> NullStream<S> ofStream(Collection<S> collection) {
         StringBuilder linkLog = new StringBuilder();
         if (collection == null) {
             linkLog.append(" Null.toStream?");
@@ -203,7 +215,7 @@ public class Null extends NullUtil {
         return NullBuild.noEmptyStream((S) collection.stream(), linkLog, collect);
     }
 
-    public static <S> NullStream<S> toStream(NullCollection<S> collection) {
+    public static <S> NullStream<S> ofStream(NullCollection<S> collection) {
         StringBuilder linkLog = new StringBuilder();
         if (collection == null) {
             linkLog.append(" Null.toStream?");
@@ -215,7 +227,7 @@ public class Null extends NullUtil {
     }
 
     //将数组转为NullStream
-    public static <S> NullStream<S> toStream(S[] array) {
+    public static <S> NullStream<S> ofStream(S[] array) {
         StringBuilder linkLog = new StringBuilder();
         if (array == null) {
             return NullBuild.emptyStream(linkLog, new NullCollect());

@@ -1,7 +1,6 @@
 package com.gitee.huanminabc.test.nullchain;
 
 
-import com.alibaba.fastjson2.JSON;
 import com.gitee.huanminabc.common.base.SerializeUtil;
 import com.gitee.huanminabc.common.test.CodeTimeUtil;
 import com.gitee.huanminabc.nullchain.Null;
@@ -18,10 +17,11 @@ import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
 import com.gitee.huanminabc.utils_common.base.DateUtil;
 import com.google.common.collect.Sets;
 import lombok.SneakyThrows;
-import org.aspectj.lang.annotation.Before;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -367,7 +367,7 @@ public class ObjNullTest {
     }
 
     @Test
-    public void toStream() {
+    public void ofStream() {
         List<RoleEntity> roleEntities = Null.of(userEntity)
                 .map(UserEntity::getList)
                 .toStream(UserEntity.class)
@@ -380,7 +380,7 @@ public class ObjNullTest {
 
         List<UserEntity> userEntityList = new ArrayList<>();
         userEntityList.add(userEntity);
-        Null.toStream(userEntityList).map2((nullChain, userEntity) -> {
+        Null.ofStream(userEntityList).map2((nullChain, userEntity) -> {
             System.out.println(userEntity);
             return nullChain;
         }).forEach(System.out::println);
@@ -462,7 +462,17 @@ public class ObjNullTest {
         System.out.println(userExtEntity.is());
 
     }
-    public  void toStream1231(){
+
+
+    @Test
+    public  void NullCalculate(){
+        Double i = Null.ofCalc(10).add(1).add(4L).divide(2).result(BigDecimal::doubleValue).get();//9
+        System.out.println(i);
+
+    }
+
+
+    public  void ofStream1231(){
         Map<String, Object> map = new HashMap<>();
         map.put("1", 1);
         map.put("2", 2);
