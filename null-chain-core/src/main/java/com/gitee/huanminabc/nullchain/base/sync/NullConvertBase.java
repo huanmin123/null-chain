@@ -82,8 +82,80 @@ public class NullConvertBase<T> extends NullToolsBase<T> implements NullConvert<
         return type((Class<U>) uClass.getClass());
     }
 
+
+
     @Override
-    public <V> NullStream<V> toStream(Class<V> type) {
+    public <C> NullStream<C> toStream() {
+        if (isNull) {
+            return NullBuild.emptyStream(linkLog, collect);
+        }
+        return toStream((Class) value.getClass());
+    }
+
+
+
+    @Override
+    public <V> NullStream<V> toParallelStream() {
+        if (isNull) {
+            return NullBuild.emptyStream(linkLog, collect);
+        }
+        return toParallelStream((Class) value.getClass());
+    }
+
+
+    @Override
+    public NullCalculate<BigDecimal> toCalc() {
+        if (isNull) {
+            return NullBuild.emptyCalc(linkLog, collect);
+        }
+        if (value instanceof Number) {
+            linkLog.append("toCalc->");
+            return NullBuild.noEmptyCalc(BigDecimal.valueOf(((Number) value).doubleValue()), linkLog, collect);
+        }
+        //如果是字符串,判断是否是数字
+        if (value instanceof String) {
+            try {
+                BigDecimal bigDecimal = new BigDecimal((String) value);
+                linkLog.append("toCalc->");
+                return NullBuild.noEmptyCalc(bigDecimal, linkLog, collect);
+            } catch (Exception e) {
+                linkLog.append("toCalc? ");
+                throw new NullChainException(linkLog.append("toCalc? ").append(value).append(" 不是数字").toString());
+            }
+        }
+        throw new NullChainException(linkLog.append("toCalc? ").append(value.getClass()).append("类型不兼容Number").toString());
+    }
+
+    @Override
+    public NullCalculate<BigDecimal> toCalc(Number defaultValue) {
+        Object newValue = value;
+        if (isNull) {
+            if (defaultValue == null) {
+                linkLog.append("toCalc? ");
+                return NullBuild.emptyCalc(linkLog, collect);
+            }
+            newValue= defaultValue;
+        }
+        if (newValue instanceof Number) {
+            linkLog.append("toCalc->");
+            return NullBuild.noEmptyCalc(BigDecimal.valueOf(((Number) newValue).doubleValue()), linkLog, collect);
+        }
+        //如果是字符串,判断是否是数字
+        if (value instanceof String) {
+            try {
+                BigDecimal newValueStr = new BigDecimal((String) newValue);
+                linkLog.append("toCalc->");
+                return NullBuild.noEmptyCalc(newValueStr, linkLog, collect);
+            } catch (Exception e) {
+                linkLog.append("toCalc? ");
+                throw new NullChainException(linkLog.append("toCalc? ").append(value).append(" 不是数字").toString());
+            }
+        }
+        throw new NullChainException(linkLog.append("toCalc? ").append(value.getClass()).append("类型不兼容Number").toString());
+    }
+
+
+    private  <V> NullStream<V> toStream(Class<V> type) {
         if (isNull) {
             return NullBuild.emptyStream(linkLog, collect);
         }
@@ -111,17 +183,7 @@ public class NullConvertBase<T> extends NullToolsBase<T> implements NullConvert<
 
         throw new NullChainException(linkLog.append("toStream? ").append(value.getClass()).append("类型不支持转换为Stream").toString());
     }
-
-    @Override
-    public <C> NullStream<C> toStream() {
-        if (isNull) {
-            return NullBuild.emptyStream(linkLog, collect);
-        }
-        return toStream((Class) value.getClass());
-    }
-
-    @Override
-    public <V> NullStream<V> toParallelStream(Class<V> type) {
+    private  <V> NullStream<V> toParallelStream(Class<V> type) {
         if (isNull) {
             return NullBuild.emptyStream(linkLog, collect);
         }
@@ -147,37 +209,4 @@ public class NullConvertBase<T> extends NullToolsBase<T> implements NullConvert<
         }
         throw new NullChainException(linkLog.append("toParallelStream? ").append(value.getClass()).append("类型不支持转换为Stream").toString());
     }
-
-    @Override
-    public <V> NullStream<V> toParallelStream() {
-        if (isNull) {
-            return NullBuild.emptyStream(linkLog, collect);
-        }
-        return toParallelStream((Class) value.getClass());
-    }
-
-    @Override
-    public NullCalculate<BigDecimal> toCalc() {
-        if (isNull) {
-            return NullBuild.emptyCalc(linkLog, collect);
-        }
-        if (value instanceof Number) {
-            linkLog.append("toCalc->");
-            return NullBuild.noEmptyCalc(BigDecimal.valueOf(((Number) value).doubleValue()), linkLog, collect);
-        }
-        //如果是字符串,判断是否是数字
-        if (value instanceof String) {
-            try {
-                BigDecimal bigDecimal = new BigDecimal((String) value);
-                linkLog.append("toCalc->");
-                return NullBuild.noEmptyCalc(bigDecimal, linkLog, collect);
-            } catch (Exception e) {
-                linkLog.append("toCalc? ");
-                throw new NullChainException(linkLog.append("toCalc? ").append(value).append(" 不是数字").toString());
-            }
-        }
-        throw new NullChainException(linkLog.append("toCalc? ").append(value.getClass()).append("类型不兼容Number").toString());
-    }
-
-
 }

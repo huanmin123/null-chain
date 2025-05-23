@@ -39,6 +39,23 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
     }
 
     @Override
+    public <V extends Number> NullCalculate<T> add(V t2, V defaultValue) {
+        if (isNull) {
+            return NullBuild.emptyCalc(linkLog, collect);
+        }
+        if (t2 == null) {
+            if (defaultValue == null) {
+                return NullBuild.emptyCalc(linkLog, collect);
+            }
+            t2 = defaultValue;
+        }
+        double v1 = t2.doubleValue();
+        BigDecimal add = value.add(BigDecimal.valueOf(v1));
+        linkLog.append("add->");
+        return NullBuild.noEmptyCalc(add, linkLog, collect);
+    }
+
+    @Override
     public <V extends Number> NullCalculate<T> subtract(V t2) {
         if (isNull || t2 == null) {
             return NullBuild.emptyCalc(linkLog, collect);
@@ -50,9 +67,43 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
     }
 
     @Override
+    public <V extends Number> NullCalculate<T> subtract(V t2, V defaultValue) {
+        if (isNull) {
+            return NullBuild.emptyCalc(linkLog, collect);
+        }
+        if (t2 == null) {
+            if (defaultValue == null) {
+                return NullBuild.emptyCalc(linkLog, collect);
+            }
+            t2 = defaultValue;
+        }
+        double v1 = t2.doubleValue();
+        BigDecimal subtract = value.subtract(BigDecimal.valueOf(v1));
+        linkLog.append("subtract->");
+        return NullBuild.noEmptyCalc(subtract, linkLog, collect);
+    }
+
+    @Override
     public <V extends Number> NullCalculate<T> multiply(V t2) {
         if (isNull || t2 == null) {
             return NullBuild.emptyCalc(linkLog, collect);
+        }
+        double v1 = t2.doubleValue();
+        BigDecimal multiply = value.multiply(BigDecimal.valueOf(v1));
+        linkLog.append("multiply->");
+        return NullBuild.noEmptyCalc(multiply, linkLog, collect);
+    }
+
+    @Override
+    public <V extends Number> NullCalculate<T> multiply(V t2, V defaultValue) {
+        if (isNull) {
+            return NullBuild.emptyCalc(linkLog, collect);
+        }
+        if (t2 == null) {
+            if (defaultValue == null) {
+                return NullBuild.emptyCalc(linkLog, collect);
+            }
+            t2 = defaultValue;
         }
         double v1 = t2.doubleValue();
         BigDecimal multiply = value.multiply(BigDecimal.valueOf(v1));
@@ -76,15 +127,26 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
     }
 
     @Override
-    public NullCalculate<T> remainder(T t2) {
-        if (isNull || t2 == null) {
+    public <V extends Number> NullCalculate<T> divide(V t2, V defaultValue) {
+        if (isNull) {
             return NullBuild.emptyCalc(linkLog, collect);
         }
+        if (t2 == null) {
+            if (defaultValue == null) {
+                return NullBuild.emptyCalc(linkLog, collect);
+            }
+            t2 = defaultValue;
+        }
         double v1 = t2.doubleValue();
-        BigDecimal remainder = value.remainder(BigDecimal.valueOf(v1));
-        linkLog.append("remainder->");
-        return NullBuild.noEmptyCalc(remainder, linkLog, collect);
+        if (v1 == 0) {
+            throw new NullChainException(linkLog.append("divide? ").append("除数不能为0").toString());
+        }
+        //在进行除法运算时，可能会出现除不尽的情况，从而导致无限循环小数。当有溢出的的时候会进行截取到16位然后四舍五入到15位
+        BigDecimal divide = value.divide(BigDecimal.valueOf(v1), 15, RoundingMode.HALF_UP);
+        linkLog.append("divide->");
+        return NullBuild.noEmptyCalc(divide, linkLog, collect);
     }
+
 
     @Override
     public NullCalculate<T> negate() {
@@ -108,8 +170,16 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
 
     @Override
     public NullCalculate<T> max(T t2) {
-        if (isNull || t2 == null) {
+        if (isNull && t2 == null) {
             return NullBuild.emptyCalc(linkLog, collect);
+        }
+        if (!isNull && t2 == null) {
+            linkLog.append("max->");
+            return NullBuild.noEmptyCalc(value, linkLog, collect);
+        }
+        if (isNull) {
+            linkLog.append("max->");
+            return NullBuild.noEmptyCalc(t2, linkLog, collect);
         }
         double v1 = t2.doubleValue();
         BigDecimal max = value.max(BigDecimal.valueOf(v1));
@@ -119,13 +189,31 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
 
     @Override
     public NullCalculate<T> min(T t2) {
-        if (isNull || t2 == null) {
+        if (isNull && t2 == null) {
             return NullBuild.emptyCalc(linkLog, collect);
+        }
+        if (!isNull && t2 == null) {
+            linkLog.append("min->");
+            return NullBuild.noEmptyCalc(value, linkLog, collect);
+        }
+        if (isNull) {
+            linkLog.append("min->");
+            return NullBuild.noEmptyCalc(t2, linkLog, collect);
         }
         double v1 = t2.doubleValue();
         BigDecimal min = value.min(BigDecimal.valueOf(v1));
         linkLog.append("min->");
         return NullBuild.noEmptyCalc(min, linkLog, collect);
+    }
+
+    @Override
+    public NullCalculate<T> pow(int n) {
+        if (isNull) {
+            return NullBuild.emptyCalc(linkLog, collect);
+        }
+        BigDecimal pow = value.pow(n);
+        linkLog.append("pow->");
+        return NullBuild.noEmptyCalc(pow, linkLog, collect);
     }
 
     @Override
@@ -147,7 +235,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
     }
 
     @Override
-    public <V extends Number> NullChain<V> result(NullFun<BigDecimal, V> pickValue) {
+    public <V extends Number> NullChain<V> map(NullFun<BigDecimal, V> pickValue) {
         if (isNull) {
             return NullBuild.empty(linkLog, collect);
         }

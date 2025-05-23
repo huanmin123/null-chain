@@ -17,18 +17,21 @@ public interface NullCalculate<T extends Number> {
 
     //加
     <V extends Number> NullCalculate<T> add(V t2);
+    <V extends Number> NullCalculate<T> add(V t2,V defaultValue);
 
     //减
     <V extends Number> NullCalculate<T> subtract(V t2);
+    <V extends Number> NullCalculate<T> subtract(V t2,V defaultValue);
 
     //乘
     <V extends Number> NullCalculate<T> multiply(V t2);
 
+    <V extends Number> NullCalculate<T> multiply(V t2,V defaultValue);
+
     //除
     <V extends Number> NullCalculate<T> divide(V t2);
+    <V extends Number> NullCalculate<T> divide(V t2,V defaultValue);
 
-    //取余  比如 5.0 % 2=1.0
-    NullCalculate<T> remainder(T t2);
 
     //取反 比如-1.0变成1.0  而1.0变成-1.0
     NullCalculate<T> negate();
@@ -43,12 +46,16 @@ public interface NullCalculate<T extends Number> {
     NullCalculate<T> min(T t2);
 
 
+    //取平方
+    NullCalculate<T> pow(int n);
+
+
     //舍入
     NullCalculate<T> round(int newScale, RoundingMode roundingMode);
 
     //默认保留2位 并且 四舍五入
     NullCalculate<T> round();
 
-    <V extends Number> NullChain<V> result(NullFun<BigDecimal, V> pickValue);
+    <V extends Number> NullChain<V> map(NullFun<BigDecimal, V> pickValue);
 
 }

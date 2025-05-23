@@ -28,13 +28,14 @@ public interface NullConvert<T> extends NullTools<T> {
 
     <U> NullChain<U> type(U uClass);
 
-    //转换为stream，只能处理Collection的子类和数组 ,如果是map返回的是Map.Entry<K, V> , 那么需要<Map.Entry<String,Integer>>toStream()来指定类型
-    <V> NullStream<V> toStream(Class<V> type);
+    // 转换为stream，只能处理Collection的子类和数组
+    // 使用的时候需要指定泛型的类型 xxx.<T>toStream()
+    // 如果是map返回的是Map.Entry<K, V> , 那么需要<Map.Entry<String,Integer>>toStream()来指定类型
     <V> NullStream<V> toStream();
-    <V> NullStream<V> toParallelStream(Class<V> type);
     <V> NullStream<V> toParallelStream();
 
-    //转计算
-    NullCalculate<BigDecimal> toCalc();
+    //转计算 , 支持Number 和 String(数字)
+     NullCalculate<BigDecimal> toCalc();
+     NullCalculate<BigDecimal> toCalc(Number defaultValue);
 
 }

@@ -5,6 +5,7 @@ import com.gitee.huanminabc.common.base.SerializeUtil;
 import com.gitee.huanminabc.common.test.CodeTimeUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
+import com.gitee.huanminabc.nullchain.base.sync.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.enums.TimeEnum;
 import com.gitee.huanminabc.nullchain.common.NullChainCheckException;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
@@ -21,7 +22,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -370,7 +370,7 @@ public class ObjNullTest {
     public void ofStream() {
         List<RoleEntity> roleEntities = Null.of(userEntity)
                 .map(UserEntity::getList)
-                .toStream(UserEntity.class)
+                .<UserEntity>toStream()
                 .filter(Null::non)
                 .map(UserEntity::getRoleData)
                 .sorted(Comparator.comparing(RoleEntity::getRoleName))
@@ -465,14 +465,15 @@ public class ObjNullTest {
 
 
     @Test
-    public  void NullCalculate(){
-        Double i = Null.ofCalc(10).add(1).add(4L).divide(2).result(BigDecimal::doubleValue).get();//9
-        System.out.println(i);
-        Double v = Null.of("1231").toCalc().add(new BigDecimal(111)).subtract(10).result(BigDecimal::doubleValue).get();
+    public  void nullCalculate(){
+        Double i = Null.ofCalc(10).add(1).add(4L,0).divide(2).map(BigDecimal::doubleValue).get();
+        System.out.println(i);//7.5
+        Double v = Null.of("1231").toCalc().add(new BigDecimal(111)).subtract(10).map(BigDecimal::doubleValue).get();
         System.out.println(v);//201.0
-
-        System.out.println( new BigDecimal("a123"));
-
+        Double v1 = Null.of("").toCalc(11).add(new BigDecimal(11)).subtract(10).map(BigDecimal::doubleValue).get();
+        System.out.println(v1);//12
+        Double v2 = Null.of(10.5).toCalc().pow(3).map(BigDecimal::doubleValue).get();
+        System.out.println(v2);//0.0
     }
 
 

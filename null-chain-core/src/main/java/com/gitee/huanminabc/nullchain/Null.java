@@ -170,7 +170,6 @@ public class Null extends NullUtil {
     }
 
 
-
     //将Optional转为NullChain
     @SuppressWarnings("all")
     public static <O> NullChain<O> of(Optional<O> optional) {
@@ -190,7 +189,19 @@ public class Null extends NullUtil {
     }
 
 
+    public static <S extends Number> NullCalculate<BigDecimal> ofCalc(S s, S defaultValue) {
+        StringBuilder linkLog = new StringBuilder();
+        if (s == null) {
+            if (defaultValue == null) {
+                linkLog.append(" Null.ofCalc?");
+                return NullBuild.emptyCalc(linkLog, new NullCollect());
+            }
+            s = defaultValue;
+        }
+        linkLog.append(" Null.ofCalc->");
+        return NullBuild.noEmptyCalc(BigDecimal.valueOf(s.doubleValue()), linkLog, new NullCollect());
 
+    }
 
     public static <S extends Number> NullCalculate<BigDecimal> ofCalc(S s) {
         StringBuilder linkLog = new StringBuilder();
@@ -241,7 +252,6 @@ public class Null extends NullUtil {
     public static <T> NullChain<T> empty() {
         return NullBuild.empty(new StringBuilder(), new NullCollect());
     }
-
 
 
 }

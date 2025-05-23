@@ -41,18 +41,6 @@ public interface NullConvertExt<T> extends NullConvert<T>, NullToolsExt<T> {
     }
 
     @Override
-    default <V> NullStream<V> toParallelStream(Class<V> type){
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.toParallelStream(type);
-    }
-
-    @Override
-    default <V> NullStream<V> toStream(Class<V> type){
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.toStream(type);
-    }
-
-    @Override
     default <C> NullStream<C> toStream(){
         NullChain<T> tNullChain = toNULL();
         return tNullChain.toStream();
@@ -69,5 +57,11 @@ public interface NullConvertExt<T> extends NullConvert<T>, NullToolsExt<T> {
     default  NullCalculate<BigDecimal> toCalc(){
         NullChain<T> tNullChain = toNULL();
         return tNullChain.toCalc();
+    }
+
+    @Override
+    default  NullCalculate<BigDecimal> toCalc(Number defaultValue){
+        NullChain<T> tNullChain = toNULL();
+        return tNullChain.toCalc(defaultValue);
     }
 }
