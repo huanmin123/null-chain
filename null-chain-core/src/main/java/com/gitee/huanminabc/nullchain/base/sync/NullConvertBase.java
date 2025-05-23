@@ -165,6 +165,17 @@ public class NullConvertBase<T> extends NullToolsBase<T> implements NullConvert<
             linkLog.append("toCalc->");
             return NullBuild.noEmptyCalc(BigDecimal.valueOf(((Number) value).doubleValue()), linkLog, collect);
         }
+        //如果是字符串,判断是否是数字
+        if (value instanceof String) {
+            try {
+                BigDecimal bigDecimal = new BigDecimal((String) value);
+                linkLog.append("toCalc->");
+                return NullBuild.noEmptyCalc(bigDecimal, linkLog, collect);
+            } catch (Exception e) {
+                linkLog.append("toCalc? ");
+                throw new NullChainException(linkLog.append("toCalc? ").append(value).append(" 不是数字").toString());
+            }
+        }
         throw new NullChainException(linkLog.append("toCalc? ").append(value.getClass()).append("类型不兼容Number").toString());
     }
 

@@ -468,6 +468,10 @@ public class ObjNullTest {
     public  void NullCalculate(){
         Double i = Null.ofCalc(10).add(1).add(4L).divide(2).result(BigDecimal::doubleValue).get();//9
         System.out.println(i);
+        Double v = Null.of("1231").toCalc().add(new BigDecimal(111)).subtract(10).result(BigDecimal::doubleValue).get();
+        System.out.println(v);//201.0
+
+        System.out.println( new BigDecimal("a123"));
 
     }
 
