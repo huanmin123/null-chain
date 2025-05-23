@@ -155,13 +155,13 @@ public class NullCalculateAsyncBase<T extends BigDecimal> extends NullKernelAsyn
         if (isNull || t2 == null) {
             return NullBuild.emptyCalcAsync(linkLog, collect);
         }
-        double v1 = t2.doubleValue();
-        if (v1 == 0) {
-            throw new NullChainException(linkLog.append("divide? ").append("除数不能为0").toString());
-        }
         CompletableFuture<BigDecimal> uCompletableFuture = completableFuture.thenApplyAsync((value) -> {
             if (Null.is(value)) {
                 return null;
+            }
+            double v1 = t2.doubleValue();
+            if (v1 == 0) {
+                throw new NullChainException(linkLog.append("divide? ").append("除数不能为0").toString());
             }
             //在进行除法运算时，可能会出现除不尽的情况，从而导致无限循环小数。当有溢出的的时候会进行截取到16位然后四舍五入到15位
             BigDecimal divide = value.divide(BigDecimal.valueOf(v1), 15, RoundingMode.HALF_UP);
@@ -183,12 +183,12 @@ public class NullCalculateAsyncBase<T extends BigDecimal> extends NullKernelAsyn
             t2 = defaultValue;
         }
         double v1 = t2.doubleValue();
-        if (v1 == 0) {
-            throw new NullChainException(linkLog.append("divide? ").append("除数不能为0").toString());
-        }
         CompletableFuture<BigDecimal> uCompletableFuture = completableFuture.thenApplyAsync((value) -> {
             if (Null.is(value)) {
                 return null;
+            }
+            if (v1 == 0) {
+                throw new NullChainException(linkLog.append("divide? ").append("除数不能为0").toString());
             }
             //在进行除法运算时，可能会出现除不尽的情况，从而导致无限循环小数。当有溢出的的时候会进行截取到16位然后四舍五入到15位
             BigDecimal divide = value.divide(BigDecimal.valueOf(v1), 15, RoundingMode.HALF_UP);
@@ -297,12 +297,12 @@ public class NullCalculateAsyncBase<T extends BigDecimal> extends NullKernelAsyn
         if (isNull) {
             return NullBuild.emptyCalcAsync(linkLog, collect);
         }
-        if (roundingMode == null) {
-            throw new NullChainException(linkLog.append("round? ").append("roundingMode不能是空").toString());
-        }
         CompletableFuture<BigDecimal> uCompletableFuture = completableFuture.thenApplyAsync((value) -> {
             if (Null.is(value)) {
                 return null;
+            }
+            if (roundingMode == null) {
+                throw new NullChainException(linkLog.append("round? ").append("roundingMode不能是空").toString());
             }
             BigDecimal round = value.setScale(0, roundingMode);
             linkLog.append("round->");
@@ -321,18 +321,24 @@ public class NullCalculateAsyncBase<T extends BigDecimal> extends NullKernelAsyn
         if (isNull) {
             return NullBuild.emptyAsync(linkLog, collect);
         }
-        if (pickValue == null) {
-            throw new NullChainException(linkLog.append("result? ").append("pickValue取值器不能是空").toString());
-        }
         CompletableFuture<V> uCompletableFuture = completableFuture.thenApplyAsync((value) -> {
             if (Null.is(value)) {
                 return null;
             }
-            V v = pickValue.apply(value);
+            if (pickValue == null) {
+                throw new NullChainException(linkLog.append("map? ").append("pickValue取值器不能是空").toString());
+            }
+            V v;
+            try {
+                v = pickValue.apply(value);
+            } catch (Exception e) {
+                linkLog.append("map? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
             if (v == null) {
                 return null;
             }
-            linkLog.append("result->");
+            linkLog.append("map->");
             return v;
         },getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog,this.currentThreadFactoryName, collect);

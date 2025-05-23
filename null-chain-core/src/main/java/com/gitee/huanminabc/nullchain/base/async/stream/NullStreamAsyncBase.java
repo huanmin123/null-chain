@@ -68,14 +68,14 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 return null;
             }
             if (function == null) {
-                throw new NullChainException(linkLog.append("map? ").append("function must not be null").toString());
+                throw new NullChainException(linkLog.append("map2? ").append("function must not be null").toString());
             }
             try {
                 R stream = (R) ((Stream) value).map((data)-> function.apply((NullChain)Null.of(data), (T)data));
-                linkLog.append("map->");
+                linkLog.append("map2->");
                 return stream;
             } catch (Exception e) {
-                linkLog.append("map? ");
+                linkLog.append("map2? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, getCT(true));

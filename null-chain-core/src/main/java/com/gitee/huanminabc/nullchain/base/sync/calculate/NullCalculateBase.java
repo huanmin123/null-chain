@@ -1,10 +1,7 @@
 package com.gitee.huanminabc.nullchain.base.sync.calculate;
 
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
-import com.gitee.huanminabc.nullchain.common.NullBuild;
-import com.gitee.huanminabc.nullchain.common.NullChainException;
-import com.gitee.huanminabc.nullchain.common.NullCollect;
-import com.gitee.huanminabc.nullchain.common.NullKernelAbstract;
+import com.gitee.huanminabc.nullchain.common.*;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import lombok.extern.slf4j.Slf4j;
 
@@ -242,11 +239,17 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
         if (pickValue == null) {
             throw new NullChainException(linkLog.append("result? ").append("pickValue取值器不能是空").toString());
         }
-        V v = pickValue.apply(value);
+        V v;
+        try {
+            v = pickValue.apply(value);
+        } catch (Exception e) {
+            linkLog.append("map? ");
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+        }
         if (v == null) {
             return NullBuild.empty(linkLog, collect);
         }
-        linkLog.append("result->");
+        linkLog.append("map->");
         return NullBuild.noEmpty(v, linkLog, collect);
     }
 
