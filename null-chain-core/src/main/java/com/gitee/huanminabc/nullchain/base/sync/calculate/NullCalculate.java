@@ -7,8 +7,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 /**
- * @description:  底层采用的是BigDecimal
+ * @description: 底层采用的是BigDecimal
  * 方法入参取值都是doubleValue 避免了精度丢失 ,计算的过程都是BigDecimal
+ * 要求实现Number的类必须都实现doubleValue方法并且返回正确的值
  * @author: huanmin
  * @create: 2025-05-22 10:12
  **/
@@ -21,10 +22,10 @@ public interface NullCalculate<T extends Number> {
     <V extends Number> NullCalculate<T> subtract(V t2);
 
     //乘
-    <V extends Number>NullCalculate<T> multiply(V t2) ;
+    <V extends Number> NullCalculate<T> multiply(V t2);
 
     //除
-    <V extends Number>NullCalculate<T> divide(V t2) ;
+    <V extends Number> NullCalculate<T> divide(V t2);
 
     //取余  比如 5.0 % 2=1.0
     NullCalculate<T> remainder(T t2);
@@ -43,10 +44,11 @@ public interface NullCalculate<T extends Number> {
 
 
     //舍入
-    NullCalculate<T> round(int newScale,RoundingMode roundingMode);
+    NullCalculate<T> round(int newScale, RoundingMode roundingMode);
+
     //默认保留2位 并且 四舍五入
     NullCalculate<T> round();
 
-    <V extends Number> NullChain<V> result(NullFun<BigDecimal,V> pickValue );
+    <V extends Number> NullChain<V> result(NullFun<BigDecimal, V> pickValue);
 
 }
