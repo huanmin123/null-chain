@@ -38,7 +38,7 @@ public class NullConvertBase<T> extends NullToolsBase<T> implements NullConvert<
         //开启异步
         CompletableFuture<T> completableFuture = new CompletableFuture<>();
         completableFuture.complete(value);
-        return NullBuild.noEmptyAsync(completableFuture, linkLog, collect);
+        return NullBuild.noEmptyAsync(completableFuture, linkLog,ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME, collect);
     }
 
     @Override

@@ -37,10 +37,8 @@ public interface NullConvertAsync<T> extends NullToolsAsync<T> {
 
 
     //转换为stream，只能处理Collection的子类和数组
-    <V> NullStreamAsync<V> toStream(Class<V> type);
     //xxx.<AgentFeeRatio>toStream()
     <V> NullStreamAsync<V> toStream();
-    <V> NullStreamAsync<V> toParallelStream(Class<V> type);
     <V> NullStreamAsync<V> toParallelStream();
 
 }

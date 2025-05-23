@@ -466,11 +466,11 @@ public class ObjNullTest {
 
     @Test
     public  void nullCalculate(){
-        Double i = Null.ofCalc(10).add(1).add(4L,0).divide(2).map(BigDecimal::doubleValue).get();
+        Double i = Null.ofCalc(10).add(1).add(4L,0).divide(2).round().map(BigDecimal::doubleValue).get();
         System.out.println(i);//7.5
         Double v = Null.of("1231").toCalc().add(new BigDecimal(111)).subtract(10).map(BigDecimal::doubleValue).get();
         System.out.println(v);//201.0
-        Double v1 = Null.of("").toCalc(11).add(new BigDecimal(11)).subtract(10).map(BigDecimal::doubleValue).get();
+        Double v1 = Null.of("").toCalc(11).add(11).subtract(10).map(BigDecimal::doubleValue).get();
         System.out.println(v1);//12
         Double v2 = Null.of(10.5).toCalc().pow(3).map(BigDecimal::doubleValue).get();
         System.out.println(v2);//0.0

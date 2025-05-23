@@ -620,7 +620,7 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
                 }
             }
             return null;
-        }, getCT());
+        }, getCT(true));
         StackTraceElement stackTraceElement = StackTraceUtil.stackTraceLevel(4);
         objectCompletableFuture.exceptionally((e) -> {
             e.addSuppressed(new NullChainException(stackTraceElement.toString()));
@@ -660,7 +660,7 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
                 }
             }
             return null;
-        }, getCT());
+        }, getCT(true));
         StackTraceElement stackTraceElement = StackTraceUtil.stackTraceLevel(4);
         objectCompletableFuture.exceptionally((e) -> {
             e.addSuppressed(new NullChainException(stackTraceElement.toString()));
@@ -683,7 +683,7 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
                 throw new NullChainException(linkLog.toString());
             }
             return null;
-        }, getCT());
+        }, getCT(true));
         StackTraceElement stackTraceElement = StackTraceUtil.stackTraceLevel(4);
         objectCompletableFuture.exceptionally((e) -> {
             e.addSuppressed(new NullChainException(stackTraceElement.toString()));

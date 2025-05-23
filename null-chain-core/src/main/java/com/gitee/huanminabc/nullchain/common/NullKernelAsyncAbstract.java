@@ -6,6 +6,8 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -30,12 +32,16 @@ public abstract class NullKernelAsyncAbstract<T> implements Serializable, NullCh
     protected String currentThreadFactoryName = ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME;
 
     //获取当前线程池
-    protected ThreadPoolExecutor getCT() {
+    protected ExecutorService getCT(boolean forkJoinPool) {
+        //如果是默认线程那么使用工作窃取线程 , 因为这种线程池是共享任务的基本不会有切换线程带来的性能损失,只适合快速且短小的任务
+        if (forkJoinPool && ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME.equals(currentThreadFactoryName)) {
+            return ForkJoinPool.commonPool();
+        }
         return ThreadFactoryUtil.getExecutor(currentThreadFactoryName);
     }
 
-    public NullKernelAsyncAbstract(){
-        this(new StringBuilder(),false,new NullCollect());
+    public NullKernelAsyncAbstract() {
+        this(new StringBuilder(), false, new NullCollect());
     }
 
     public NullKernelAsyncAbstract(StringBuilder linkLog, boolean isNull, NullCollect collect) {

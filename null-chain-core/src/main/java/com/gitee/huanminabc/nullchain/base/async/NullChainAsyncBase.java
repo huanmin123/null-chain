@@ -65,7 +65,7 @@ public class NullChainAsyncBase<T> extends NullConvertAsyncBase<T> implements Nu
                 linkLog.append("of? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
+        }, getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -98,7 +98,7 @@ public class NullChainAsyncBase<T> extends NullConvertAsyncBase<T> implements Nu
             }
             linkLog.append("ofAny->");
             return t;
-        }, getCT());
+        }, getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -125,7 +125,7 @@ public class NullChainAsyncBase<T> extends NullConvertAsyncBase<T> implements Nu
                 linkLog.append("ifGo? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
+        }, getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -150,7 +150,7 @@ public class NullChainAsyncBase<T> extends NullConvertAsyncBase<T> implements Nu
             }
             linkLog.append("check->");
             return t;
-        }, getCT());
+        }, getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -175,7 +175,7 @@ public class NullChainAsyncBase<T> extends NullConvertAsyncBase<T> implements Nu
                 linkLog.append("then? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
+        }, getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -200,7 +200,7 @@ public class NullChainAsyncBase<T> extends NullConvertAsyncBase<T> implements Nu
                 linkLog.append("then? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
+        }, getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -225,7 +225,7 @@ public class NullChainAsyncBase<T> extends NullConvertAsyncBase<T> implements Nu
                 linkLog.append("then? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
+        }, getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -255,7 +255,7 @@ public class NullChainAsyncBase<T> extends NullConvertAsyncBase<T> implements Nu
                 linkLog.append("map? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
+        }, getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -284,7 +284,7 @@ public class NullChainAsyncBase<T> extends NullConvertAsyncBase<T> implements Nu
                 linkLog.append("map? ");
                 throw new NullChainException(e, linkLog.toString());
             }
-        }, getCT());
+        }, getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -314,7 +314,7 @@ public class NullChainAsyncBase<T> extends NullConvertAsyncBase<T> implements Nu
                 linkLog.append("unChain? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
+        }, getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -343,7 +343,7 @@ public class NullChainAsyncBase<T> extends NullConvertAsyncBase<T> implements Nu
                 linkLog.append("unOptional? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
+        }, getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -374,7 +374,7 @@ public class NullChainAsyncBase<T> extends NullConvertAsyncBase<T> implements Nu
             }
             linkLog.append("or->");
             return t;
-        }, getCT());
+        }, getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -392,7 +392,7 @@ public class NullChainAsyncBase<T> extends NullConvertAsyncBase<T> implements Nu
                 return defaultValue;
             }
             return t;
-        }, getCT());
+        }, getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -450,7 +450,7 @@ public class NullChainAsyncBase<T> extends NullConvertAsyncBase<T> implements Nu
                 }
             }
             return __task__(value, threadFactoryName, nullGroupTask);
-        }, getCT());
+        }, getCT(false));
 
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
 
@@ -506,7 +506,7 @@ public class NullChainAsyncBase<T> extends NullConvertAsyncBase<T> implements Nu
                 linkLog.append("nfTask? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
+        }, getCT(false));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -560,7 +560,7 @@ public class NullChainAsyncBase<T> extends NullConvertAsyncBase<T> implements Nu
             }
             linkLog.append("nfTasks->");
             return nullChainMap;
-        }, getCT());
+        }, getCT(false));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -639,7 +639,7 @@ public class NullChainAsyncBase<T> extends NullConvertAsyncBase<T> implements Nu
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
 
-        }, getCT());
+        }, getCT(false));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 

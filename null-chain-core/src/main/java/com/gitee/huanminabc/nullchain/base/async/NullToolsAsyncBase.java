@@ -55,7 +55,7 @@ public class NullToolsAsyncBase<T> extends NullFinalityAsyncBase<T> implements N
             }
             linkLog.append("dateFormat->");
             return string;
-        }, getCT());
+        }, getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -87,7 +87,7 @@ public class NullToolsAsyncBase<T> extends NullFinalityAsyncBase<T> implements N
             }
             linkLog.append("dateOffset->");
             return string;
-        }, getCT());
+        }, getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -122,7 +122,7 @@ public class NullToolsAsyncBase<T> extends NullFinalityAsyncBase<T> implements N
             }
             linkLog.append("dateCompare->");
             return compare;
-        }, getCT());
+        }, getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -158,7 +158,7 @@ public class NullToolsAsyncBase<T> extends NullFinalityAsyncBase<T> implements N
                 linkLog.append("json? 失败:");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
+        }, getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -184,7 +184,7 @@ public class NullToolsAsyncBase<T> extends NullFinalityAsyncBase<T> implements N
                 linkLog.append("json? 失败:");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
+        }, getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -216,7 +216,7 @@ public class NullToolsAsyncBase<T> extends NullFinalityAsyncBase<T> implements N
                 linkLog.append("copy? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
+        }, getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -237,7 +237,7 @@ public class NullToolsAsyncBase<T> extends NullFinalityAsyncBase<T> implements N
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
 
-        }, getCT());
+        }, getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -274,7 +274,7 @@ public class NullToolsAsyncBase<T> extends NullFinalityAsyncBase<T> implements N
                 linkLog.append("pick? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
+        }, getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -305,7 +305,7 @@ public class NullToolsAsyncBase<T> extends NullFinalityAsyncBase<T> implements N
         http.setCollect(collect);
         http.setCurrentThreadFactoryName(currentThreadFactoryName);
         http.setNull(isNull);
-        http.setCompletableFuture((CompletableFuture<Object>) completableFuture);
+        http.setCompletableFuture(completableFuture);
         return http;
     }
 
@@ -351,7 +351,7 @@ public class NullToolsAsyncBase<T> extends NullFinalityAsyncBase<T> implements N
                 linkLog.append("tool? ").append(tool1.getClass().getName()).append("失败: ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
+        }, getCT(false));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 

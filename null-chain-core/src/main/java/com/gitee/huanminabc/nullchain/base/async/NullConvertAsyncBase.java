@@ -79,7 +79,7 @@ public class NullConvertAsyncBase<T> extends NullToolsAsyncBase<T> implements Nu
                 return uClass.cast(value);
             }
             return null;
-        }, getCT());
+        }, getCT(true));
         return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
@@ -96,8 +96,40 @@ public class NullConvertAsyncBase<T> extends NullToolsAsyncBase<T> implements Nu
     }
 
 
+
     @Override
-    public <V> NullStreamAsync<V> toStream(Class<V> type) {
+    public <V> NullStreamAsync<V> toStream() {
+        if (isNull) {
+            return NullBuild.emptyStreamAsync(linkLog,collect);
+        }
+        CompletableFuture<V> uCompletableFuture = completableFuture.thenApplyAsync((value) -> {
+            if (Null.is(value)) {
+                return null;
+            }
+            return (V)toStream((Class) value.getClass());
+        }, getCT(true));
+        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
+    }
+
+
+
+    @Override
+    public <V> NullStreamAsync<V> toParallelStream() {
+        if (isNull) {
+            return NullBuild.emptyStreamAsync(linkLog,collect);
+        }
+        CompletableFuture<V> uCompletableFuture = completableFuture.thenApplyAsync((value) -> {
+            if (Null.is(value)) {
+                return null;
+            }
+            return (V)toParallelStream((Class) value.getClass());
+        }, getCT(true));
+        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
+    }
+
+
+
+    private  <V> NullStreamAsync<V> toStream(Class<V> type) {
         if (isNull) {
             return NullBuild.emptyStreamAsync(linkLog,collect);
         }
@@ -126,26 +158,10 @@ public class NullConvertAsyncBase<T> extends NullToolsAsyncBase<T> implements Nu
                 return (V) map.entrySet().stream();
             }
             throw new NullChainException(linkLog.append("toStream? ").append(value.getClass()).append("类型不支持转换为Stream").toString());
-        }, getCT());
-        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
+        }, getCT(true));
+        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
-
-    @Override
-    public <V> NullStreamAsync<V> toStream() {
-        if (isNull) {
-            return NullBuild.emptyStreamAsync(linkLog,collect);
-        }
-        CompletableFuture<V> uCompletableFuture = completableFuture.thenApplyAsync((value) -> {
-            if (Null.is(value)) {
-                return null;
-            }
-            return (V)toStream((Class) value.getClass());
-        }, getCT());
-        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
-    }
-
-    @Override
-    public <V> NullStreamAsync<V> toParallelStream(Class<V> type) {
+    private  <V> NullStreamAsync<V> toParallelStream(Class<V> type) {
         if (isNull) {
             return NullBuild.emptyStreamAsync(linkLog,collect);
         }
@@ -174,24 +190,8 @@ public class NullConvertAsyncBase<T> extends NullToolsAsyncBase<T> implements Nu
                 return (V) map.entrySet().stream().parallel();
             }
             throw new NullChainException(linkLog.append("toParallelStream? ").append(value.getClass()).append("类型不支持转换为Stream").toString());
-        }, getCT());
-        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
+        }, getCT(true));
+        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
-
-    @Override
-    public <V> NullStreamAsync<V> toParallelStream() {
-        if (isNull) {
-            return NullBuild.emptyStreamAsync(linkLog,collect);
-        }
-        CompletableFuture<V> uCompletableFuture = completableFuture.thenApplyAsync((value) -> {
-            if (Null.is(value)) {
-                return null;
-            }
-            return (V)toParallelStream((Class) value.getClass());
-        }, getCT());
-        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
-    }
-
-
 }
 

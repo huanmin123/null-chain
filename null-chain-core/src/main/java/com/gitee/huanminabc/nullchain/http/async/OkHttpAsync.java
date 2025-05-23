@@ -148,7 +148,7 @@ public class OkHttpAsync<T> extends NullKernelAsyncAbstract<T> implements NullHt
                 linkLog.append("get? ").append(e.getMessage());
                 throw new NullChainException(linkLog.toString());
             }
-         },getCT());
+         }, getCT(true));
         return this;
     }
 
@@ -171,7 +171,7 @@ public class OkHttpAsync<T> extends NullKernelAsyncAbstract<T> implements NullHt
                 linkLog.append("post? ").append(e.getMessage());
                 throw new NullChainException(linkLog.toString());
             }
-        },getCT());
+        }, getCT(false));
         return this;
     }
 
@@ -193,7 +193,7 @@ public class OkHttpAsync<T> extends NullKernelAsyncAbstract<T> implements NullHt
                 linkLog.append("put? ").append(e.getMessage());
                 throw new NullChainException(linkLog.toString());
             }
-        },getCT());
+        }, getCT(false));
 
         return this;
     }
@@ -216,7 +216,7 @@ public class OkHttpAsync<T> extends NullKernelAsyncAbstract<T> implements NullHt
                 linkLog.append("del? ").append(e.getMessage());
                 throw new NullChainException(linkLog.toString());
             }
-        },getCT());
+        }, getCT(false));
         return this;
     }
 
@@ -243,7 +243,7 @@ public class OkHttpAsync<T> extends NullKernelAsyncAbstract<T> implements NullHt
             } catch (Exception e) {
                 throw new NullChainException(linkLog.append("downloadFileAsync? ").append(e.getMessage()).toString());
             }
-        },getCT());
+        }, getCT(false));
         return NullBuild.noEmptyAsync(booleanCompletableFuture, linkLog, currentThreadFactoryName,collect);
     }
 
@@ -272,7 +272,7 @@ public class OkHttpAsync<T> extends NullKernelAsyncAbstract<T> implements NullHt
             }
             linkLog.append("toStr->");
             return str;
-        },getCT());
+        }, getCT(false));
 
         return NullBuild.noEmptyAsync(stringCompletableFuture, linkLog, currentThreadFactoryName,collect);
     }

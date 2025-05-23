@@ -4,6 +4,8 @@ package com.gitee.huanminabc.nullchain.common;
 import com.gitee.huanminabc.common.multithreading.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.base.async.NullChainAsyncBase;
+import com.gitee.huanminabc.nullchain.base.async.calculate.NullCalculateAsync;
+import com.gitee.huanminabc.nullchain.base.async.calculate.NullCalculateAsyncBase;
 import com.gitee.huanminabc.nullchain.base.async.stream.NullStreamAsync;
 import com.gitee.huanminabc.nullchain.base.async.stream.NullStreamAsyncBase;
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
@@ -38,20 +40,7 @@ public class NullBuild {
 
 
 
-    public static <T> NullStream<T> emptyStream(StringBuilder linkLog, NullCollect nullChainCollect) {
-        return new NullStreamBase<T>(linkLog, true, nullChainCollect);
-    }
-    public static <T> NullStream<T> noEmptyStream(T object, StringBuilder linkLog, NullCollect nullChainCollect) {
-        return new NullStreamBase<>(object, linkLog, nullChainCollect);
-    }
 
-    public static <T> NullStreamAsync<T> emptyStreamAsync(StringBuilder linkLog, NullCollect nullChainCollect) {
-        return new NullStreamAsyncBase<T>(linkLog, true, nullChainCollect);
-    }
-
-    public static <T> NullStreamAsync<T> noEmptyStreamAsync(CompletableFuture<T> completableFuture, StringBuilder linkLog, NullCollect collect) {
-        return new NullStreamAsyncBase<T>(completableFuture, linkLog, ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME, collect);
-    }
 
 
 
@@ -81,8 +70,24 @@ public class NullBuild {
         return new NullChainAsyncBase<T>(completableFuture, linkLog, threadFactoryName, collect);
     }
 
-    public static <T> NullChainAsyncBase<T> noEmptyAsync(CompletableFuture<T> completableFuture, StringBuilder linkLog, NullCollect collect) {
-        return noEmptyAsync(completableFuture, linkLog, ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME, collect);
+
+
+
+
+
+    public static <T> NullStream<T> emptyStream(StringBuilder linkLog, NullCollect nullChainCollect) {
+        return new NullStreamBase<T>(linkLog, true, nullChainCollect);
+    }
+    public static <T> NullStream<T> noEmptyStream(T object, StringBuilder linkLog, NullCollect nullChainCollect) {
+        return new NullStreamBase<>(object, linkLog, nullChainCollect);
+    }
+
+    public static <T> NullStreamAsync<T> emptyStreamAsync(StringBuilder linkLog, NullCollect nullChainCollect) {
+        return new NullStreamAsyncBase<T>(linkLog, true, nullChainCollect);
+    }
+
+    public static <T> NullStreamAsync<T> noEmptyStreamAsync(CompletableFuture<T> completableFuture, StringBuilder linkLog, String threadFactoryName, NullCollect collect) {
+        return new NullStreamAsyncBase<T>(completableFuture, linkLog, threadFactoryName, collect);
     }
 
 
@@ -92,7 +97,12 @@ public class NullBuild {
     public static <V extends Number> NullCalculate<V> noEmptyCalc(BigDecimal value, StringBuilder linkLog, NullCollect collect) {
         return new NullCalculateBase( value, linkLog, collect);
     }
-
+    public static <V extends Number> NullCalculateAsync<V> emptyCalcAsync(StringBuilder linkLog, NullCollect collect) {
+        return new NullCalculateAsyncBase(linkLog,true, collect);
+    }
+    public static <V extends Number> NullCalculateAsync<V> noEmptyCalcAsync(CompletableFuture<BigDecimal> completableFuture, StringBuilder linkLog, String threadFactoryName, NullCollect collect) {
+        return new NullCalculateAsyncBase( completableFuture, linkLog,threadFactoryName, collect);
+    }
 
 
 

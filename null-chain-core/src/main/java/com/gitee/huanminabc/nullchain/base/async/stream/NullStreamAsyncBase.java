@@ -54,8 +54,8 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 linkLog.append("map? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
-        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
+        }, getCT(true));
+        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
     @Override
@@ -71,15 +71,15 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 throw new NullChainException(linkLog.append("map? ").append("function must not be null").toString());
             }
             try {
-                R stream = (R) ((Stream) value).map((data)->{return function.apply((NullChain)Null.of(data), (T)data);});
+                R stream = (R) ((Stream) value).map((data)-> function.apply((NullChain)Null.of(data), (T)data));
                 linkLog.append("map->");
                 return stream;
             } catch (Exception e) {
                 linkLog.append("map? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
-        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
+        }, getCT(true));
+        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
     @Override
@@ -102,8 +102,8 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 linkLog.append("filter? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
-        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
+        }, getCT(true));
+        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
     @Override
@@ -123,8 +123,8 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 linkLog.append("sorted? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
-        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
+        }, getCT(true));
+        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
     @Override
@@ -147,8 +147,8 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 linkLog.append("sorted? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
-        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
+        }, getCT(true));
+        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
     @Override
@@ -168,8 +168,8 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 linkLog.append("distinct? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
-        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
+        }, getCT(true));
+        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
     @Override
@@ -192,8 +192,8 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 linkLog.append("limit? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
-        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
+        }, getCT(true));
+        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
     @Override
@@ -217,8 +217,8 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 linkLog.append("skip? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
-        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
+        }, getCT(true));
+        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
     @Override
@@ -242,8 +242,8 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 linkLog.append("then? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
-        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
+        }, getCT(true));
+        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
     @Override
@@ -266,8 +266,8 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 linkLog.append("then? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
-        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
+        }, getCT(true));
+        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
     @Override
@@ -290,8 +290,8 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 linkLog.append("flatStream? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
-        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, collect);
+        }, getCT(true));
+        return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
     @Override
@@ -315,8 +315,8 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 linkLog.append("collect? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
-        return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, collect);
+        }, getCT(true));
+        return NullBuild.noEmptyAsync(uCompletableFuture, linkLog,this.currentThreadFactoryName, collect);
     }
 
     @Override
@@ -343,8 +343,8 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }
-        , getCT());
-        return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, collect);
+        , getCT(true));
+        return NullBuild.noEmptyAsync(uCompletableFuture, linkLog,this.currentThreadFactoryName, collect);
     }
 
     @Override
@@ -367,8 +367,8 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 linkLog.append("findFirst? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
-        return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, collect);
+        }, getCT(true));
+        return NullBuild.noEmptyAsync(uCompletableFuture, linkLog,this.currentThreadFactoryName, collect);
     }
 
     @Override
@@ -391,8 +391,8 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                     linkLog.append("findAny? ");
                     throw NullReflectionKit.addRunErrorMessage(e, linkLog);
                 }
-            }, getCT());
-            return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, collect);
+            }, getCT(true));
+            return NullBuild.noEmptyAsync(uCompletableFuture, linkLog,this.currentThreadFactoryName, collect);
     }
 
     @Override
@@ -415,8 +415,8 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 linkLog.append("reduce? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
-        return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, collect);
+        }, getCT(true));
+        return NullBuild.noEmptyAsync(uCompletableFuture, linkLog,this.currentThreadFactoryName, collect);
     }
 
     @Override
@@ -436,8 +436,8 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 linkLog.append("count? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
-        return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, collect);
+        }, getCT(true));
+        return NullBuild.noEmptyAsync(uCompletableFuture, linkLog,this.currentThreadFactoryName, collect);
     }
 
     @Override
@@ -463,8 +463,8 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 linkLog.append("min? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
-        return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, collect);
+        }, getCT(true));
+        return NullBuild.noEmptyAsync(uCompletableFuture, linkLog,this.currentThreadFactoryName, collect);
     }
 
     @Override
@@ -487,8 +487,8 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 linkLog.append("allMatch? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
-        return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, collect);
+        }, getCT(true));
+        return NullBuild.noEmptyAsync(uCompletableFuture, linkLog,this.currentThreadFactoryName, collect);
     }
 
     @Override
@@ -511,8 +511,8 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 linkLog.append("anyMatch? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
-        return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, collect);
+        }, getCT(true));
+        return NullBuild.noEmptyAsync(uCompletableFuture, linkLog,this.currentThreadFactoryName, collect);
     }
 
     @Override
@@ -535,8 +535,8 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 linkLog.append("noneMatch? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
-        return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, collect);
+        }, getCT(true));
+        return NullBuild.noEmptyAsync(uCompletableFuture, linkLog,this.currentThreadFactoryName, collect);
     }
 
     @Override
@@ -558,6 +558,6 @@ public class NullStreamAsyncBase<T> extends NullKernelAsyncAbstract<T> implement
                 linkLog.append("forEach? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-        }, getCT());
+        }, getCT(true));
     }
 }
