@@ -58,10 +58,4 @@ public interface NullConvertExt<T> extends NullConvert<T>, NullToolsExt<T> {
         NullChain<T> tNullChain = toNULL();
         return tNullChain.toCalc();
     }
-
-    @Override
-    default  NullCalculate<BigDecimal> toCalc(Number defaultValue){
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.toCalc(defaultValue);
-    }
 }

@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -132,6 +133,16 @@ public class ObjNullAsyncTest {
         }).start();
         System.out.println("====");
         SleepTools.second(21);
+    }
+
+    @Test
+    public  void nullCalculate(){
+        Double v = Null.of("1231").async().toCalc().add(new BigDecimal(111)).subtract(10).map(BigDecimal::doubleValue).get();
+        System.out.println(v);//201.0
+        Double v1 = Null.of("").or("1123").async().toCalc().add(11).subtract(10).map(BigDecimal::doubleValue).get();
+        System.out.println(v1);//12
+        Double v2 = Null.of(10.5).async().toCalc().pow(3).map(BigDecimal::doubleValue).get();
+        System.out.println(v2);//0.0
     }
 
     @Test

@@ -1,13 +1,16 @@
 package com.gitee.huanminabc.nullchain.base.async;
 
 
+import com.gitee.huanminabc.nullchain.base.async.calculate.NullCalculateAsync;
 import com.gitee.huanminabc.nullchain.base.async.stream.NullStreamAsync;
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
+import com.gitee.huanminabc.nullchain.base.sync.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.base.sync.stream.NullStream;
 import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
 import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
 import com.gitee.huanminabc.nullchain.http.async.OkHttpAsyncChain;
 
+import java.math.BigDecimal;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -40,5 +43,8 @@ public interface NullConvertAsync<T> extends NullToolsAsync<T> {
     //xxx.<AgentFeeRatio>toStream()
     <V> NullStreamAsync<V> toStream();
     <V> NullStreamAsync<V> toParallelStream();
+
+    //转计算 , 支持Number 和 String(数字)
+    NullCalculateAsync<BigDecimal> toCalc();
 
 }

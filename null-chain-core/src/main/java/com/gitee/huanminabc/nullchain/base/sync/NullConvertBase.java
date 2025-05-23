@@ -126,35 +126,6 @@ public class NullConvertBase<T> extends NullToolsBase<T> implements NullConvert<
         throw new NullChainException(linkLog.append("toCalc? ").append(value.getClass()).append("类型不兼容Number").toString());
     }
 
-    @Override
-    public NullCalculate<BigDecimal> toCalc(Number defaultValue) {
-        Object newValue = value;
-        if (isNull) {
-            if (defaultValue == null) {
-                linkLog.append("toCalc? ");
-                return NullBuild.emptyCalc(linkLog, collect);
-            }
-            newValue= defaultValue;
-        }
-        if (newValue instanceof Number) {
-            linkLog.append("toCalc->");
-            return NullBuild.noEmptyCalc(BigDecimal.valueOf(((Number) newValue).doubleValue()), linkLog, collect);
-        }
-        //如果是字符串,判断是否是数字
-        if (value instanceof String) {
-            try {
-                BigDecimal newValueStr = new BigDecimal((String) newValue);
-                linkLog.append("toCalc->");
-                return NullBuild.noEmptyCalc(newValueStr, linkLog, collect);
-            } catch (Exception e) {
-                linkLog.append("toCalc? ");
-                throw new NullChainException(linkLog.append("toCalc? ").append(value).append(" 不是数字").toString());
-            }
-        }
-        throw new NullChainException(linkLog.append("toCalc? ").append(value.getClass()).append("类型不兼容Number").toString());
-    }
-
-
     private  <V> NullStream<V> toStream(Class<V> type) {
         if (isNull) {
             return NullBuild.emptyStream(linkLog, collect);

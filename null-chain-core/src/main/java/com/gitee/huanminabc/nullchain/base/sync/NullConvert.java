@@ -36,6 +36,5 @@ public interface NullConvert<T> extends NullTools<T> {
 
     //转计算 , 支持Number 和 String(数字)
      NullCalculate<BigDecimal> toCalc();
-     NullCalculate<BigDecimal> toCalc(Number defaultValue);
 
 }

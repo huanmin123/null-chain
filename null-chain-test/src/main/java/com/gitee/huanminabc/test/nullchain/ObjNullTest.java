@@ -470,7 +470,7 @@ public class ObjNullTest {
         System.out.println(i);//7.5
         Double v = Null.of("1231").toCalc().add(new BigDecimal(111)).subtract(10).map(BigDecimal::doubleValue).get();
         System.out.println(v);//201.0
-        Double v1 = Null.of("").toCalc(11).add(11).subtract(10).map(BigDecimal::doubleValue).get();
+        Double v1 = Null.of("").or("11").toCalc().add(11).subtract(10).map(BigDecimal::doubleValue).get();
         System.out.println(v1);//12
         Double v2 = Null.of(10.5).toCalc().pow(3).map(BigDecimal::doubleValue).get();
         System.out.println(v2);//0.0

@@ -2,6 +2,7 @@ package com.gitee.huanminabc.nullchain.base.async;
 
 
 import com.gitee.huanminabc.nullchain.Null;
+import com.gitee.huanminabc.nullchain.base.async.calculate.NullCalculateAsync;
 import com.gitee.huanminabc.nullchain.base.async.stream.NullStreamAsync;
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
@@ -11,6 +12,7 @@ import com.gitee.huanminabc.nullchain.common.NullCollect;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
@@ -51,20 +53,20 @@ public class NullConvertAsyncBase<T> extends NullToolsAsyncBase<T> implements Nu
     @Override
     public NullChain<T> sync() {
         if (isNull) {
-            return NullBuild.empty(linkLog,collect);
+            return NullBuild.empty(linkLog, collect);
         }
         T join = completableFuture.join();
         if (Null.is(join)) {
-            return NullBuild.empty(linkLog,collect);
+            return NullBuild.empty(linkLog, collect);
         }
         linkLog.append("sync->");
-        return NullBuild.noEmpty(join, linkLog,collect);
+        return NullBuild.noEmpty(join, linkLog, collect);
     }
 
     @Override
     public <U> NullChainAsync<U> type(Class<U> uClass) {
         if (isNull) {
-            return NullBuild.emptyAsync(linkLog,collect);
+            return NullBuild.emptyAsync(linkLog, collect);
         }
 
         CompletableFuture<U> uCompletableFuture = completableFuture.thenApplyAsync((value) -> {
@@ -86,52 +88,77 @@ public class NullConvertAsyncBase<T> extends NullToolsAsyncBase<T> implements Nu
     @Override
     public <U> NullChainAsync<U> type(U uClass) {
         if (isNull) {
-            return NullBuild.emptyAsync(linkLog,collect);
+            return NullBuild.emptyAsync(linkLog, collect);
         }
         if (uClass == null) {
-            completableFuture.completeExceptionally(new NullChainException( linkLog.append("type? ").append("转换类型不能为空").toString()));
+            completableFuture.completeExceptionally(new NullChainException(linkLog.append("type? ").append("转换类型不能为空").toString()));
             return (NullChainAsync) NullBuild.noEmptyAsync(completableFuture, linkLog, super.currentThreadFactoryName, collect);
         }
         return type((Class<U>) uClass.getClass());
     }
 
 
-
     @Override
     public <V> NullStreamAsync<V> toStream() {
         if (isNull) {
-            return NullBuild.emptyStreamAsync(linkLog,collect);
+            return NullBuild.emptyStreamAsync(linkLog, collect);
         }
         CompletableFuture<V> uCompletableFuture = completableFuture.thenApplyAsync((value) -> {
             if (Null.is(value)) {
                 return null;
             }
-            return (V)toStream((Class) value.getClass());
+            return (V) toStream((Class) value.getClass());
         }, getCT(true));
         return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
-
 
 
     @Override
     public <V> NullStreamAsync<V> toParallelStream() {
         if (isNull) {
-            return NullBuild.emptyStreamAsync(linkLog,collect);
+            return NullBuild.emptyStreamAsync(linkLog, collect);
         }
         CompletableFuture<V> uCompletableFuture = completableFuture.thenApplyAsync((value) -> {
             if (Null.is(value)) {
                 return null;
             }
-            return (V)toParallelStream((Class) value.getClass());
+            return (V) toParallelStream((Class) value.getClass());
         }, getCT(true));
         return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
-
-
-    private  <V> NullStreamAsync<V> toStream(Class<V> type) {
+    @Override
+    public NullCalculateAsync<BigDecimal> toCalc() {
         if (isNull) {
-            return NullBuild.emptyStreamAsync(linkLog,collect);
+            return NullBuild.emptyCalcAsync(linkLog, collect);
+        }
+        CompletableFuture<BigDecimal> uCompletableFuture = completableFuture.thenApplyAsync((value) -> {
+            if (Null.is(value)) {
+                return null;
+            }
+            if (value instanceof Number) {
+                linkLog.append("toCalc->");
+                return BigDecimal.valueOf(((Number) value).doubleValue());
+            }
+            //如果是字符串,判断是否是数字
+            if (value instanceof String) {
+                try {
+                    BigDecimal bigDecimal = new BigDecimal((String) value);
+                    linkLog.append("toCalc->");
+                    return bigDecimal;
+                } catch (Exception e) {
+                    linkLog.append("toCalc? ");
+                    throw new NullChainException(linkLog.append("toCalc? ").append(value).append(" 不是数字").toString());
+                }
+            }
+            throw new NullChainException(linkLog.append("toCalc? ").append(value.getClass()).append("类型不兼容Number").toString());
+        }, getCT(true));
+        return NullBuild.noEmptyCalcAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
+    }
+
+    private <V> NullStreamAsync<V> toStream(Class<V> type) {
+        if (isNull) {
+            return NullBuild.emptyStreamAsync(linkLog, collect);
         }
         CompletableFuture<V> uCompletableFuture = completableFuture.thenApplyAsync((value) -> {
             if (Null.is(value)) {
@@ -161,9 +188,10 @@ public class NullConvertAsyncBase<T> extends NullToolsAsyncBase<T> implements Nu
         }, getCT(true));
         return NullBuild.noEmptyStreamAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
-    private  <V> NullStreamAsync<V> toParallelStream(Class<V> type) {
+
+    private <V> NullStreamAsync<V> toParallelStream(Class<V> type) {
         if (isNull) {
-            return NullBuild.emptyStreamAsync(linkLog,collect);
+            return NullBuild.emptyStreamAsync(linkLog, collect);
         }
         CompletableFuture<V> uCompletableFuture = completableFuture.thenApplyAsync((value) -> {
             if (Null.is(value)) {
@@ -184,7 +212,7 @@ public class NullConvertAsyncBase<T> extends NullToolsAsyncBase<T> implements Nu
                 return (V) Stream.of(array).parallel();
             }
             //map
-            if ( value instanceof java.util.Map) {
+            if (value instanceof java.util.Map) {
                 linkLog.append("toParallelStream->");
                 java.util.Map map = (java.util.Map) value;
                 return (V) map.entrySet().stream().parallel();
