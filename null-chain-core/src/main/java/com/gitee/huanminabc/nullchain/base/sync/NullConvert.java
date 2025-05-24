@@ -4,6 +4,7 @@ package com.gitee.huanminabc.nullchain.base.sync;
 import com.gitee.huanminabc.nullchain.base.async.NullChainAsync;
 import com.gitee.huanminabc.nullchain.base.sync.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.base.sync.stream.NullStream;
+import com.gitee.huanminabc.nullchain.common.function.NullFun;
 
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -36,5 +37,6 @@ public interface NullConvert<T> extends NullTools<T> {
 
     //转计算 , 支持Number 和 String(数字)
      NullCalculate<BigDecimal> toCalc();
+    NullChain<T> toCalc2(NullFun<NullCalculate<BigDecimal>,NullCalculate<BigDecimal>> calc);
 
 }

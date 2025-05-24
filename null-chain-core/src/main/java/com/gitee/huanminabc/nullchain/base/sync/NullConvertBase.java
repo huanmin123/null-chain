@@ -8,6 +8,7 @@ import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.base.sync.stream.NullStream;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
+import com.gitee.huanminabc.nullchain.common.function.NullFun;
 
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -124,6 +125,20 @@ public class NullConvertBase<T> extends NullToolsBase<T> implements NullConvert<
             }
         }
         throw new NullChainException(linkLog.append("toCalc? ").append(value.getClass()).append("类型不兼容Number").toString());
+    }
+
+    @Override
+    public NullChain<T> toCalc2(NullFun<NullCalculate<BigDecimal>, NullCalculate<BigDecimal>> calc) {
+        if (isNull) {
+            return NullBuild.empty(linkLog, collect);
+        }
+        if (value instanceof Number) {
+            linkLog.append("toCalc->");
+            BigDecimal bigDecimal = BigDecimal.valueOf(((Number) value).doubleValue());
+            NullCalculate<BigDecimal> apply = calc.apply(NullBuild.noEmptyCalc(bigDecimal, linkLog, collect));
+            return NullBuild.noEmpty()
+        }
+
     }
 
     private  <V> NullStream<V> toStream(Class<V> type) {
