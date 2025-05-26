@@ -1,7 +1,6 @@
 package com.gitee.huanminabc.nullchain.common;
 
 
-import com.gitee.huanminabc.common.multithreading.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.base.async.NullChainAsyncBase;
 import com.gitee.huanminabc.nullchain.base.async.calculate.NullCalculateAsync;
@@ -10,8 +9,8 @@ import com.gitee.huanminabc.nullchain.base.async.stream.NullStreamAsync;
 import com.gitee.huanminabc.nullchain.base.async.stream.NullStreamAsyncBase;
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
 import com.gitee.huanminabc.nullchain.base.sync.NullChainBase;
-import com.gitee.huanminabc.nullchain.base.sync.calculate.NullCalculate;
-import com.gitee.huanminabc.nullchain.base.sync.calculate.NullCalculateBase;
+import com.gitee.huanminabc.nullchain.base.leaf.calculate.NullCalculate;
+import com.gitee.huanminabc.nullchain.base.leaf.calculate.NullCalculateBase;
 import com.gitee.huanminabc.nullchain.base.sync.stream.NullStream;
 import com.gitee.huanminabc.nullchain.base.sync.stream.NullStreamBase;
 import com.gitee.huanminabc.nullchain.task.NullTask;

@@ -1,8 +1,6 @@
-package com.gitee.huanminabc.nullchain.base.sync.calculate;
+package com.gitee.huanminabc.nullchain.base.leaf.calculate;
 
-import com.gitee.huanminabc.nullchain.base.sync.NullChain;
 import com.gitee.huanminabc.nullchain.common.*;
-import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
@@ -230,27 +228,4 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
     public NullCalculate<T> round() {
         return round(2, RoundingMode.HALF_UP);
     }
-
-    @Override
-    public <V extends Number> NullChain<V> map(NullFun<BigDecimal, V> pickValue) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        if (pickValue == null) {
-            throw new NullChainException(linkLog.append("result? ").append("pickValue取值器不能是空").toString());
-        }
-        V v;
-        try {
-            v = pickValue.apply(value);
-        } catch (Exception e) {
-            linkLog.append("map? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
-        if (v == null) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        linkLog.append("map->");
-        return NullBuild.noEmpty(v, linkLog, collect);
-    }
-
 }

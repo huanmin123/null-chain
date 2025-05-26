@@ -2,12 +2,14 @@ package com.gitee.huanminabc.nullchain.base.async;
 
 
 import com.gitee.huanminabc.nullchain.Null;
-import com.gitee.huanminabc.nullchain.base.async.calculate.NullCalculateAsync;
 import com.gitee.huanminabc.nullchain.base.async.stream.NullStreamAsync;
+import com.gitee.huanminabc.nullchain.base.leaf.calculate.NullCalculate;
+import com.gitee.huanminabc.nullchain.base.leaf.calculate.NullCalculateBase;
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
+import com.gitee.huanminabc.nullchain.common.function.NullFun;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -128,32 +130,41 @@ public class NullConvertAsyncBase<T> extends NullToolsAsyncBase<T> implements Nu
     }
 
     @Override
-    public NullCalculateAsync<BigDecimal> toCalc() {
+    public     <V> NullChainAsync<V> calc(NullFun<NullCalculate<BigDecimal>,NullCalculate<BigDecimal>> calc, NullFun<BigDecimal, V> pickValue){
         if (isNull) {
-            return NullBuild.emptyCalcAsync(linkLog, collect);
+            return NullBuild.emptyAsync(linkLog, collect);
         }
-        CompletableFuture<BigDecimal> uCompletableFuture = completableFuture.thenApplyAsync((value) -> {
-            if (Null.is(value)) {
-                return null;
-            }
+        CompletableFuture<V> uCompletableFuture = completableFuture.thenApplyAsync((value) -> {
             if (value instanceof Number) {
-                linkLog.append("toCalc->");
-                return BigDecimal.valueOf(((Number) value).doubleValue());
+                BigDecimal bigDecimal = BigDecimal.valueOf(((Number) value).doubleValue());
+                NullCalculateBase<BigDecimal> apply = (NullCalculateBase)calc.apply(NullBuild.noEmptyCalc(bigDecimal, linkLog, collect));
+                if (apply.isEmpty()){
+                    return null;
+                }
+                V v = pickValue.apply(apply.getValue());
+                linkLog.append("calc->");
+                return v;
             }
             //如果是字符串,判断是否是数字
             if (value instanceof String) {
                 try {
                     BigDecimal bigDecimal = new BigDecimal((String) value);
-                    linkLog.append("toCalc->");
-                    return bigDecimal;
+
+                    NullCalculateBase<BigDecimal> apply = (NullCalculateBase)calc.apply(NullBuild.noEmptyCalc(bigDecimal, linkLog, collect));
+                    if (apply.isEmpty()){
+                        return null;
+                    }
+                    V v = pickValue.apply(apply.getValue());
+                    linkLog.append("calc->");
+                    return v;
                 } catch (Exception e) {
-                    linkLog.append("toCalc? ");
-                    throw new NullChainException(linkLog.append("toCalc? ").append(value).append(" 不是数字").toString());
+                    linkLog.append("calc? ");
+                    throw new NullChainException(linkLog.append("calc? ").append(value).append(" 不是数字").toString());
                 }
             }
-            throw new NullChainException(linkLog.append("toCalc? ").append(value.getClass()).append("类型不兼容Number").toString());
+            throw new NullChainException(linkLog.append("calc? ").append(value.getClass()).append("类型不兼容Number").toString());
         }, getCT(true));
-        return NullBuild.noEmptyCalcAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
+        return NullBuild.noEmptyAsync(uCompletableFuture, linkLog, super.currentThreadFactoryName, collect);
     }
 
     private <V> NullStreamAsync<V> toStream(Class<V> type) {

@@ -5,7 +5,6 @@ import com.gitee.huanminabc.common.base.SerializeUtil;
 import com.gitee.huanminabc.common.test.CodeTimeUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
-import com.gitee.huanminabc.nullchain.base.sync.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.enums.TimeEnum;
 import com.gitee.huanminabc.nullchain.common.NullChainCheckException;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
@@ -380,10 +379,7 @@ public class ObjNullTest {
 
         List<UserEntity> userEntityList = new ArrayList<>();
         userEntityList.add(userEntity);
-        Null.ofStream(userEntityList).map2((nullChain, userEntity) -> {
-            System.out.println(userEntity);
-            return nullChain;
-        }).forEach(System.out::println);
+
     }
 
     @Test
@@ -466,14 +462,8 @@ public class ObjNullTest {
 
     @Test
     public  void nullCalculate(){
-        Double i = Null.ofCalc(10).add(1).add(4L,0).divide(2).round().map(BigDecimal::doubleValue).get();
-        System.out.println(i);//7.5
-        Double v = Null.of("1231").toCalc().add(new BigDecimal(111)).subtract(10).map(BigDecimal::doubleValue).get();
-        System.out.println(v);//201.0
-        Double v1 = Null.of("").or("11").toCalc().add(11).subtract(10).map(BigDecimal::doubleValue).get();
-        System.out.println(v1);//12
-        Double v2 = Null.of(10.5).toCalc().pow(3).map(BigDecimal::doubleValue).get();
-        System.out.println(v2);//0.0
+        Double v = Null.of(10.5).calc((num) -> num.add(1).add(2), BigDecimal::doubleValue).get();
+        System.out.println(v);
     }
 
 

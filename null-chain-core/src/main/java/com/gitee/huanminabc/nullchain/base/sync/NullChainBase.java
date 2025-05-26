@@ -129,22 +129,22 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
             return NullBuild.empty(linkLog, collect);
         }
         if (Null.is(function)) {
-            throw new NullChainException(linkLog.append("of? 传参不能为空").toString());
+            throw new NullChainException(linkLog.append("ofAny? 传参不能为空").toString());
         }
         try {
             for (int i = 0; i < function.length; i++) {
                 NullFun<? super T, ? extends U> nullFun = function[i];
                 U apply = nullFun.apply(value);
                 if (Null.is(apply)) {
-                    linkLog.append("of? 第").append(i + 1).append("个");
+                    linkLog.append("ofAny? 第").append(i + 1).append("个");
                     return NullBuild.empty(linkLog, collect);
                 }
             }
         } catch (Exception e) {
-            linkLog.append("of? ");
+            linkLog.append("ofAny? ");
             throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
-        linkLog.append("of->");
+        linkLog.append("ofAny->");
         return NullBuild.noEmpty(value, linkLog, collect);
 
     }

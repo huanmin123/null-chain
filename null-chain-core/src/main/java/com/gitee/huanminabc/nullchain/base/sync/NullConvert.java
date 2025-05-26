@@ -2,13 +2,11 @@ package com.gitee.huanminabc.nullchain.base.sync;
 
 
 import com.gitee.huanminabc.nullchain.base.async.NullChainAsync;
-import com.gitee.huanminabc.nullchain.base.sync.calculate.NullCalculate;
+import com.gitee.huanminabc.nullchain.base.leaf.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.base.sync.stream.NullStream;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
 
 import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.Optional;
 
 /**
  * @author huanmin
@@ -36,7 +34,6 @@ public interface NullConvert<T> extends NullTools<T> {
     <V> NullStream<V> toParallelStream();
 
     //转计算 , 支持Number 和 String(数字)
-     NullCalculate<BigDecimal> toCalc();
-    NullChain<T> toCalc2(NullFun<NullCalculate<BigDecimal>,NullCalculate<BigDecimal>> calc);
+    <V> NullChain<V> calc(NullFun<NullCalculate<BigDecimal>,NullCalculate<BigDecimal>> calc, NullFun<BigDecimal, V> pickValue);
 
 }

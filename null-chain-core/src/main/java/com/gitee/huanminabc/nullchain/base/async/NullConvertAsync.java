@@ -3,15 +3,11 @@ package com.gitee.huanminabc.nullchain.base.async;
 
 import com.gitee.huanminabc.nullchain.base.async.calculate.NullCalculateAsync;
 import com.gitee.huanminabc.nullchain.base.async.stream.NullStreamAsync;
+import com.gitee.huanminabc.nullchain.base.leaf.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
-import com.gitee.huanminabc.nullchain.base.sync.calculate.NullCalculate;
-import com.gitee.huanminabc.nullchain.base.sync.stream.NullStream;
-import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
-import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
-import com.gitee.huanminabc.nullchain.http.async.OkHttpAsyncChain;
+import com.gitee.huanminabc.nullchain.common.function.NullFun;
 
 import java.math.BigDecimal;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author huanmin
@@ -45,6 +41,6 @@ public interface NullConvertAsync<T> extends NullToolsAsync<T> {
     <V> NullStreamAsync<V> toParallelStream();
 
     //转计算 , 支持Number 和 String(数字)
-    NullCalculateAsync<BigDecimal> toCalc();
+    <V> NullChainAsync<V> calc(NullFun<NullCalculate<BigDecimal>,NullCalculate<BigDecimal>> calc, NullFun<BigDecimal, V> pickValue);
 
 }

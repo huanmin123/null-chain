@@ -1,7 +1,4 @@
-package com.gitee.huanminabc.nullchain.base.sync.calculate;
-
-import com.gitee.huanminabc.nullchain.base.sync.NullChain;
-import com.gitee.huanminabc.nullchain.common.function.NullFun;
+package com.gitee.huanminabc.nullchain.base.leaf.calculate;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -13,7 +10,7 @@ import java.math.RoundingMode;
  * @author: huanmin
  * @create: 2025-05-22 10:12
  **/
-public interface NullCalculate<T extends Number> {
+public interface NullCalculate<T extends BigDecimal> {
 
     //加
     <V extends Number> NullCalculate<T> add(V t2);
@@ -56,6 +53,5 @@ public interface NullCalculate<T extends Number> {
     //默认保留2位 并且 四舍五入
     NullCalculate<T> round();
 
-    <V extends Number> NullChain<V> map(NullFun<BigDecimal, V> pickValue);
 
 }

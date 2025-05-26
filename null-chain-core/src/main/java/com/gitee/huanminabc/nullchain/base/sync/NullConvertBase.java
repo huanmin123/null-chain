@@ -3,7 +3,8 @@ package com.gitee.huanminabc.nullchain.base.sync;
 
 import com.gitee.huanminabc.common.multithreading.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.base.async.NullChainAsync;
-import com.gitee.huanminabc.nullchain.base.sync.calculate.NullCalculate;
+import com.gitee.huanminabc.nullchain.base.leaf.calculate.NullCalculate;
+import com.gitee.huanminabc.nullchain.base.leaf.calculate.NullCalculateBase;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.base.sync.stream.NullStream;
@@ -103,42 +104,38 @@ public class NullConvertBase<T> extends NullToolsBase<T> implements NullConvert<
         return toParallelStream((Class) value.getClass());
     }
 
-
     @Override
-    public NullCalculate<BigDecimal> toCalc() {
+    public <V> NullChain<V> calc(NullFun<NullCalculate<BigDecimal>, NullCalculate<BigDecimal>> calc, NullFun<BigDecimal, V> pickValue) {
         if (isNull) {
-            return NullBuild.emptyCalc(linkLog, collect);
+            return NullBuild.empty(linkLog, collect);
         }
         if (value instanceof Number) {
-            linkLog.append("toCalc->");
-            return NullBuild.noEmptyCalc(BigDecimal.valueOf(((Number) value).doubleValue()), linkLog, collect);
+            BigDecimal bigDecimal = BigDecimal.valueOf(((Number) value).doubleValue());
+            NullCalculateBase<BigDecimal> apply = (NullCalculateBase)calc.apply(NullBuild.noEmptyCalc(bigDecimal, linkLog, collect));
+            if (apply.isEmpty()){
+                return NullBuild.empty(linkLog, collect);
+            }
+            V v = pickValue.apply(apply.getValue());
+            linkLog.append("calc->");
+            return NullBuild.noEmpty(v, linkLog, collect);
         }
         //如果是字符串,判断是否是数字
         if (value instanceof String) {
             try {
                 BigDecimal bigDecimal = new BigDecimal((String) value);
-                linkLog.append("toCalc->");
-                return NullBuild.noEmptyCalc(bigDecimal, linkLog, collect);
+                NullCalculateBase<BigDecimal> apply = (NullCalculateBase)calc.apply(NullBuild.noEmptyCalc(bigDecimal, linkLog, collect));
+                if (apply.isEmpty()){
+                    return NullBuild.empty(linkLog, collect);
+                }
+                V v = pickValue.apply(apply.getValue());
+                linkLog.append("calc->");
+                return NullBuild.noEmpty(v, linkLog, collect);
             } catch (Exception e) {
-                linkLog.append("toCalc? ");
-                throw new NullChainException(linkLog.append("toCalc? ").append(value).append(" 不是数字").toString());
+                linkLog.append("calc? ");
+                throw new NullChainException(linkLog.append("calc? ").append(value).append(" 不是数字").toString());
             }
         }
-        throw new NullChainException(linkLog.append("toCalc? ").append(value.getClass()).append("类型不兼容Number").toString());
-    }
-
-    @Override
-    public NullChain<T> toCalc2(NullFun<NullCalculate<BigDecimal>, NullCalculate<BigDecimal>> calc) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        if (value instanceof Number) {
-            linkLog.append("toCalc->");
-            BigDecimal bigDecimal = BigDecimal.valueOf(((Number) value).doubleValue());
-            NullCalculate<BigDecimal> apply = calc.apply(NullBuild.noEmptyCalc(bigDecimal, linkLog, collect));
-            return NullBuild.noEmpty()
-        }
-
+        throw new NullChainException(linkLog.append("calc? ").append(value.getClass()).append("类型不兼容Number").toString());
     }
 
     private  <V> NullStream<V> toStream(Class<V> type) {

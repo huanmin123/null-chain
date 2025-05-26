@@ -3,15 +3,12 @@ package com.gitee.huanminabc.nullchain.base.sync.ext;
 import com.gitee.huanminabc.nullchain.base.async.NullChainAsync;
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
 import com.gitee.huanminabc.nullchain.base.sync.NullConvert;
-import com.gitee.huanminabc.nullchain.base.sync.calculate.NullCalculate;
+import com.gitee.huanminabc.nullchain.base.leaf.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.base.sync.stream.NullStream;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
-import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
-import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
-import com.gitee.huanminabc.nullchain.http.sync.OkHttpChain;
+import com.gitee.huanminabc.nullchain.common.function.NullFun;
 
 import java.math.BigDecimal;
-import java.util.concurrent.TimeUnit;
 
 public interface NullConvertExt<T> extends NullConvert<T>, NullToolsExt<T> {
 
@@ -54,8 +51,8 @@ public interface NullConvertExt<T> extends NullConvert<T>, NullToolsExt<T> {
 
     //转计算
     @Override
-    default  NullCalculate<BigDecimal> toCalc(){
+    default <V> NullChain<V> calc(NullFun<NullCalculate<BigDecimal>,NullCalculate<BigDecimal>> calc, NullFun<BigDecimal, V> pickValue){
         NullChain<T> tNullChain = toNULL();
-        return tNullChain.toCalc();
+        return tNullChain.calc(calc,pickValue);
     }
 }
