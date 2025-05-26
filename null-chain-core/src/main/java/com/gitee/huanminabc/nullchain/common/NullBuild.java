@@ -3,16 +3,14 @@ package com.gitee.huanminabc.nullchain.common;
 
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.base.async.NullChainAsyncBase;
-import com.gitee.huanminabc.nullchain.base.async.calculate.NullCalculateAsync;
-import com.gitee.huanminabc.nullchain.base.async.calculate.NullCalculateAsyncBase;
 import com.gitee.huanminabc.nullchain.base.async.stream.NullStreamAsync;
 import com.gitee.huanminabc.nullchain.base.async.stream.NullStreamAsyncBase;
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
 import com.gitee.huanminabc.nullchain.base.sync.NullChainBase;
 import com.gitee.huanminabc.nullchain.base.leaf.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.base.leaf.calculate.NullCalculateBase;
-import com.gitee.huanminabc.nullchain.base.sync.stream.NullStream;
-import com.gitee.huanminabc.nullchain.base.sync.stream.NullStreamBase;
+import com.gitee.huanminabc.nullchain.base.leaf.stream.NullStream;
+import com.gitee.huanminabc.nullchain.base.leaf.stream.NullStreamBase;
 import com.gitee.huanminabc.nullchain.task.NullTask;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
 import com.gitee.huanminabc.nullchain.vessel.NullMap;
@@ -44,8 +42,14 @@ public class NullBuild {
 
 
 
-    public static <T> NullChain<T> empty(StringBuilder linkLog, NullCollect nullChainCollect) {
-        return new NullChainBase<T>(linkLog, true, nullChainCollect);
+    public static <T> NullChain<T> empty(StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
+        return new NullChainBase<T>(linkLog, true, nullChainCollect,taskList);
+    }
+    public static <T> NullChain<T> busy(NullKernelAbstract o) {
+        return (NullChain)o;
+    }
+    public static <T> NullChain<T> busy(NullTaskList taskList) {
+        return noEmpty(null,new StringBuilder(),new NullCollect(),taskList);
     }
 
     public static <T> NullChainAsyncBase<T> emptyAsync(StringBuilder linkLog, NullCollect nullChainCollect) {
@@ -53,8 +57,8 @@ public class NullBuild {
     }
 
     //过程中使用
-    public static <T> NullChain<T> noEmpty(T object, StringBuilder linkLog, NullCollect nullChainCollect) {
-        return new NullChainBase<>(object, linkLog, nullChainCollect);
+    public static <T> NullChain<T> noEmpty(T object, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
+        return new NullChainBase<>(object, linkLog, nullChainCollect,taskList);
     }
 
 
@@ -74,11 +78,11 @@ public class NullBuild {
 
 
 
-    public static <T> NullStream<T> emptyStream(StringBuilder linkLog, NullCollect nullChainCollect) {
-        return new NullStreamBase<T>(linkLog, true, nullChainCollect);
+    public static <T> NullStream<T> emptyStream(StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
+        return new NullStreamBase<T>(linkLog, true, nullChainCollect,taskList);
     }
-    public static <T> NullStream<T> noEmptyStream(T object, StringBuilder linkLog, NullCollect nullChainCollect) {
-        return new NullStreamBase<>(object, linkLog, nullChainCollect);
+    public static <T> NullStream<T> noEmptyStream(T object, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
+        return new NullStreamBase<>(object, linkLog, nullChainCollect,taskList);
     }
 
     public static <T> NullStreamAsync<T> emptyStreamAsync(StringBuilder linkLog, NullCollect nullChainCollect) {
@@ -90,18 +94,13 @@ public class NullBuild {
     }
 
 
-    public static <V extends Number> NullCalculate<V> emptyCalc(StringBuilder linkLog, NullCollect collect) {
-        return new NullCalculateBase(linkLog,true, collect);
+    public static  NullCalculate<BigDecimal> emptyCalc(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
+        return new NullCalculateBase<>(linkLog,true, collect,taskList);
     }
-    public static <V extends Number> NullCalculate<V> noEmptyCalc(BigDecimal value, StringBuilder linkLog, NullCollect collect) {
-        return new NullCalculateBase( value, linkLog, collect);
+    public static NullCalculate<BigDecimal> noEmptyCalc(BigDecimal value, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
+        return new NullCalculateBase<>( value, linkLog, collect,taskList);
     }
-    public static <V extends Number> NullCalculateAsync<V> emptyCalcAsync(StringBuilder linkLog, NullCollect collect) {
-        return new NullCalculateAsyncBase(linkLog,true, collect);
-    }
-    public static <V extends Number> NullCalculateAsync<V> noEmptyCalcAsync(CompletableFuture<BigDecimal> completableFuture, StringBuilder linkLog, String threadFactoryName, NullCollect collect) {
-        return new NullCalculateAsyncBase( completableFuture, linkLog,threadFactoryName, collect);
-    }
+
 
 
 
@@ -112,7 +111,7 @@ public class NullBuild {
             return null;
         }
         if (nullChain instanceof NullChainBase) {
-            return ((NullChainBase<T>) nullChain).getValue();
+            return ((NullChainBase<T>) nullChain).value;
         }
         //这种情况就是继承,无法直接利用NullChainBase的getValue方法需要自己拦截
         //类一旦继承NULLExt,走到这里那么本身肯定不是空,所以必然能获取到值,不会报错
@@ -125,9 +124,9 @@ public class NullBuild {
         for (int i = 0; i < ts.length; i++) {
             T t = ts[i];
             if (Null.is(t)) {
-                nullChains[i] = new NullChainBase<>(new StringBuilder(), true, new NullCollect());
+                nullChains[i] = new NullChainBase<>(new StringBuilder(), true, new NullCollect(),new NullTaskList());
             } else {
-                nullChains[i] = new NullChainBase<>(t, new StringBuilder(), new NullCollect());
+                nullChains[i] = new NullChainBase<>(t, new StringBuilder(), new NullCollect(),new NullTaskList());
             }
         }
         return nullChains;

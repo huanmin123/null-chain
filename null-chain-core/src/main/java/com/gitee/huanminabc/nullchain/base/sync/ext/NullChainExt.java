@@ -33,7 +33,7 @@ public interface NullChainExt<T> extends NullChain<T>, NullConvertExt<T> {
         return tNullChain.ifGo(function);
     }
     @Override
-    default <X extends Throwable> NullChain<T> check(Supplier<? extends X> exceptionSupplier) throws X{
+    default <X extends RuntimeException> NullChain<T> check(Supplier<? extends X> exceptionSupplier) throws X{
          NullChain<T> tNullChain = toNULL();
          return tNullChain.check(exceptionSupplier);
     }

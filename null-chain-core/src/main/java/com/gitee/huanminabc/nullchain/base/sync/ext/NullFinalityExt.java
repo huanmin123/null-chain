@@ -5,11 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.gitee.huanminabc.nullchain.NullCheck;
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
 import com.gitee.huanminabc.nullchain.base.sync.NullFinality;
-import com.gitee.huanminabc.nullchain.common.NullBuild;
-import com.gitee.huanminabc.nullchain.common.NullChainCheckException;
-import com.gitee.huanminabc.nullchain.common.NullCollect;
+import com.gitee.huanminabc.nullchain.common.*;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
-import com.gitee.huanminabc.nullchain.common.NullByteBuddy;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -26,28 +23,9 @@ public interface NullFinalityExt<T> extends NullFinality<T>, NullCheck {
 
 
     @Override
-    default boolean isAny(NullFun<? super T, ?>... function) {
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.isAny(function);
-    }
-    @Override
-    default boolean isAll(NullFun<? super T, ?>... function){
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.isAll(function);
-    }
-
-
-    @Override
     default boolean non() {
         NullChain<T> tNullChain = toNULL();
         return tNullChain.non();
-    }
-
-
-    @Override
-    default boolean nonAll(NullFun<? super T, ?>... function) {
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.nonAll(function);
     }
 
     @JSONField(serialize = false)
@@ -96,74 +74,74 @@ public interface NullFinalityExt<T> extends NullFinality<T>, NullCheck {
         return tNullChain.collect(exceptionSupplier);
     }
 
-
-    @Override
-    default <U extends T> boolean eq(U obj) {
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.eq(obj);
-    }
-
-    @Override
-    default <U extends T> boolean eqAny(U... b){
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.eqAny(b);
-    }
-
-    @Override
-    default <U extends T> boolean notEq(U obj){
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.notEq(obj);
-    }
-
-    @Override
-    default <U extends T> boolean notEqAll(U... b){
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.notEqAll(b);
-    }
-
-    @Override
-    default boolean logic(Function<T, Boolean> obj){
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.logic(obj);
-    }
-
-    @Override
-    default <U extends T> boolean inAny(U... obj) {
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.inAny(obj);
-    }
-
-
-
-    @Override
-    default <U extends T> boolean notIn(U... obj) {
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.notIn(obj);
-    }
-
-    @Override
-    default <C extends Comparable<T>> boolean le(C obj){
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.le(obj);
-    }
-
-    @Override
-    default <C extends Comparable<T>> boolean lt(C obj){
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.lt(obj);
-    }
-
-    @Override
-    default <C extends Comparable<T>> boolean ge(C obj){
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.ge(obj);
-    }
-
-    @Override
-    default <C extends Comparable<T>> boolean gt(C obj){
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.gt(obj);
-    }
+//
+//    @Override
+//    default <U extends T> boolean eq(U obj) {
+//        NullChain<T> tNullChain = toNULL();
+//        return tNullChain.eq(obj);
+//    }
+//
+//    @Override
+//    default <U extends T> boolean eqAny(U... b){
+//        NullChain<T> tNullChain = toNULL();
+//        return tNullChain.eqAny(b);
+//    }
+//
+//    @Override
+//    default <U extends T> boolean notEq(U obj){
+//        NullChain<T> tNullChain = toNULL();
+//        return tNullChain.notEq(obj);
+//    }
+//
+//    @Override
+//    default <U extends T> boolean notEqAll(U... b){
+//        NullChain<T> tNullChain = toNULL();
+//        return tNullChain.notEqAll(b);
+//    }
+//
+//    @Override
+//    default boolean logic(Function<T, Boolean> obj){
+//        NullChain<T> tNullChain = toNULL();
+//        return tNullChain.logic(obj);
+//    }
+//
+//    @Override
+//    default <U extends T> boolean inAny(U... obj) {
+//        NullChain<T> tNullChain = toNULL();
+//        return tNullChain.inAny(obj);
+//    }
+//
+//
+//
+//    @Override
+//    default <U extends T> boolean notIn(U... obj) {
+//        NullChain<T> tNullChain = toNULL();
+//        return tNullChain.notIn(obj);
+//    }
+//
+//    @Override
+//    default <C extends Comparable<T>> boolean le(C obj){
+//        NullChain<T> tNullChain = toNULL();
+//        return tNullChain.le(obj);
+//    }
+//
+//    @Override
+//    default <C extends Comparable<T>> boolean lt(C obj){
+//        NullChain<T> tNullChain = toNULL();
+//        return tNullChain.lt(obj);
+//    }
+//
+//    @Override
+//    default <C extends Comparable<T>> boolean ge(C obj){
+//        NullChain<T> tNullChain = toNULL();
+//        return tNullChain.ge(obj);
+//    }
+//
+//    @Override
+//    default <C extends Comparable<T>> boolean gt(C obj){
+//        NullChain<T> tNullChain = toNULL();
+//        return tNullChain.gt(obj);
+//    }
 
 
     @Override
@@ -195,11 +173,11 @@ public interface NullFinalityExt<T> extends NullFinality<T>, NullCheck {
         return tNullChain.orElse(defaultValue);
     }
 
-    @Override
-    default   int length(){
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.length();
-    }
+//    @Override
+//    default   int length(){
+//        NullChain<T> tNullChain = toNULL();
+//        return tNullChain.length();
+//    }
 
     /**
      * 判断是否为空,内部使用外部不要调用, 请使用{@link #is()}方法
@@ -217,9 +195,9 @@ public interface NullFinalityExt<T> extends NullFinality<T>, NullCheck {
         boolean empty = isEmpty();
         if (empty) {
             linkLog.append("Null?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append(" Null.");
-        return NullBuild.noEmpty((T) this, linkLog, new NullCollect());
+        return NullBuild.noEmpty((T) this, linkLog, new NullCollect(),new NullTaskList());
     }
 }

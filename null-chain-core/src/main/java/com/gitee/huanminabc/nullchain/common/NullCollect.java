@@ -32,10 +32,10 @@ public class NullCollect implements Serializable {
         Object o = nullMap.get(t);
         if (Null.is(o)) {
             linkLog.append("NullCollect.get?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append("NullCollect.get->");
-        return NullBuild.noEmpty((T)o, linkLog,new NullCollect());
+        return NullBuild.noEmpty((T)o, linkLog,new NullCollect(),new NullTaskList());
     }
 
     public boolean isEmpty() {

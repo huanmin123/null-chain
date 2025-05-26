@@ -3,11 +3,9 @@ package com.gitee.huanminabc.nullchain.base.sync;
 
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.*;
-import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.common.NullReflectionKit;
 
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -17,316 +15,139 @@ import java.util.function.Supplier;
 public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFinality<T> {
 
 
-    public NullFinalityBase(StringBuilder linkLog, boolean isNull, NullCollect collect) {
-        super(linkLog, isNull, collect);
+    public NullFinalityBase(StringBuilder linkLog, boolean isNull, NullCollect collect, NullTaskList taskList) {
+        super(linkLog, isNull, collect,taskList);
     }
 
-    public NullFinalityBase(T object, StringBuilder linkLog, NullCollect collect) {
-        super(object, linkLog, collect);
-    }
-
-    @SafeVarargs
-    @Override
-    public final boolean isAny(NullFun<? super T, ?>... function) {
-        if (isNull || function == null) {
-            return true;
-        }
-        try {
-            for (NullFun<? super T, ?> fun : function) {
-                if (Null.is(fun.apply(value))) {
-                    return true;
-                }
-            }
-        } catch (Exception e) {
-            linkLog.append("...is? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
-        return isNull;
-    }
-
-    @SafeVarargs
-    @Override
-    public final boolean isAll(NullFun<? super T, ?>... function) {
-        if (isNull || function == null) {
-            return false;
-        }
-        try {
-            for (NullFun<? super T, ?> fun : function) {
-                if (Null.non(fun.apply(value))) {
-                    return false;
-                }
-            }
-        } catch (Exception e) {
-            linkLog.append("...isAll? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
-        return true;
+    public NullFinalityBase(T object, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
+        super(object, linkLog, collect,taskList);
     }
 
 
     @Override
     public boolean is() {
-        return isNull;
+        return taskList.runTaskAll().isNull;
     }
 
     @Override
     public boolean non() {
-        return !isNull;
-    }
-
-    @SafeVarargs
-    @Override
-    public final boolean nonAll(NullFun<? super T, ?>... function) {
-        if (isNull || function == null) {
-            return false;
-        }
-        try {
-            for (NullFun<? super T, ?> fun : function) {
-                if (Null.is(fun.apply(value))) {
-                    return false;
-                }
-            }
-        } catch (Exception e) {
-            linkLog.append("...non? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
-        return true;
-    }
-
-
-    @Override
-    public <U extends T> boolean eq(U obj) {
-        return Null.eq(obj, value);
+        return !is();
     }
 
     @Override
-    public <U extends T> boolean eqAny(U... b) {
-        if (isNull || Null.is(b)) {
-            return false;
+    public T getSafe() throws NullChainCheckException {
+        NullChainBase<Object> nullChainBase = taskList.runTaskAll();
+        if (nullChainBase.isNull) {
+            throw new NullChainCheckException(nullChainBase.linkLog.toString());
         }
-        return Null.eqAny(value, b);
+        return (T) nullChainBase.value;
     }
 
     @Override
-    public <U extends T> boolean notEq(U obj) {
-        return !Null.eq(obj, value);
+    public T get() {
+        NullChainBase<Object> nullChainBase = taskList.runTaskAll();
+        if (nullChainBase.isNull) {
+            throw new NullChainException(nullChainBase.linkLog.toString());
+        }
+        return (T)nullChainBase.value;
     }
 
-    @Override
-    public <U extends T> boolean notEqAll(U... b) {
-        if (isNull || Null.is(b)) {
-            return true;
-        }
-        return Null.notEqAll(value, b);
-    }
-
-    @Override
-    public boolean logic(Function<T, Boolean> obj) {
-        if (isNull || obj == null) {
-            return false;
-        }
-        try {
-            return obj.apply(value);
-        } catch (Exception e) {
-            linkLog.append("...notEq? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
-    }
-
-    @SafeVarargs
-    @Override
-    public final <U extends T> boolean inAny(U... obj) {
-        if (isNull || Null.is(obj)) {
-            return false;
-        }
-        for (U u : obj) {
-            if (value.equals(u)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-
-    @SafeVarargs
-    @Override
-    public final <U extends T> boolean notIn(U... obj) {
-        if (isNull || Null.is(obj)) {
-            return true;
-        }
-        for (U u : obj) {
-            if (value.equals(u)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public <C extends Comparable<T>> boolean le(C obj) {
-        if (isNull || Null.is(obj)) {
-            return false;
-        }
-        if (value instanceof Comparable) {
-            //判断obj是否是value的父类或者实现类
-            if (value.getClass().isAssignableFrom(obj.getClass())) {
-                return ((Comparable) value).compareTo(obj) <= 0;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public <C extends Comparable<T>> boolean lt(C obj) {
-        if (isNull || Null.is(obj)) {
-            return false;
-        }
-        if (value instanceof Comparable) {
-            //判断obj是否是value的父类或者实现类
-            if (value.getClass().isAssignableFrom(obj.getClass())) {
-                return ((Comparable) value).compareTo(obj) < 0;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public <C extends Comparable<T>> boolean ge(C obj) {
-        if (isNull || Null.is(obj)) {
-            return false;
-        }
-        if (value instanceof Comparable) {
-            //判断obj是否是value的父类或者实现类
-            if (value.getClass().isAssignableFrom(obj.getClass())) {
-                return ((Comparable) value).compareTo(obj) >= 0;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public <C extends Comparable<T>> boolean gt(C obj) {
-        if (isNull || Null.is(obj)) {
-            return false;
-        }
-        if (value instanceof Comparable) {
-            //判断obj是否是value的父类或者实现类
-            if (value.getClass().isAssignableFrom(obj.getClass())) {
-                return ((Comparable) value).compareTo(obj) > 0;
-            }
-        }
-        return false;
-    }
 
 
     @Override
     public void ifPresent(Consumer<? super T> action) {
-        if (action == null) {
-            linkLog.append("...ifPresent? ");
-            throw new NullChainException(linkLog.toString());
-        }
-        if (!isNull) {
-            try {
-                action.accept(value);
-            } catch (Exception e) {
-                linkLog.append("...ifPresent? ");
-                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+        taskList.runTaskAll((nullChainBase)->{
+            if (!nullChainBase.isNull) {
+                if (action == null) {
+                    nullChainBase.linkLog.append("...ifPresent? ");
+                    throw new NullChainException(nullChainBase.linkLog.toString());
+                }
+                try {
+                    action.accept((T)nullChainBase.value);
+                } catch (Exception e) {
+                    nullChainBase.linkLog.append("...ifPresent? ");
+                    throw NullReflectionKit.addRunErrorMessage(e, nullChainBase.linkLog);
+                }
             }
-        }
+        });
     }
 
 
     @Override
     public void ifPresentOrElse(Consumer<? super T> action, Runnable emptyAction) {
-        if (!isNull) {
+        NullChainBase<Object> nullChainBase = taskList.runTaskAll();
+        if (!nullChainBase.isNull) {
             if (action == null) {
-                linkLog.append("...ifPresentOrElse-action? ");
-                throw new NullChainException(linkLog.toString());
+                nullChainBase.linkLog.append("...ifPresentOrElse-action? ");
+                throw new NullChainException(nullChainBase.linkLog.toString());
             }
             try {
-                action.accept(value);
+                action.accept((T)nullChainBase.value);
             } catch (Exception e) {
-                linkLog.append("...ifPresentOrElse-action? ");
+                nullChainBase.linkLog.append("...ifPresentOrElse-action? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         } else {
             if (emptyAction == null) {
-                linkLog.append("...ifPresentOrElse-emptyAction? ");
-                throw new NullChainException(linkLog.toString());
+                nullChainBase.linkLog.append("...ifPresentOrElse-emptyAction? ");
+                throw new NullChainException(nullChainBase.linkLog.toString());
             }
             try {
                 emptyAction.run();
             } catch (Exception e) {
-                linkLog.append("...ifPresentOrElse-emptyAction? ");
-                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+                nullChainBase.linkLog.append("...ifPresentOrElse-emptyAction? ");
+                throw NullReflectionKit.addRunErrorMessage(e, nullChainBase.linkLog);
             }
         }
     }
 
-    @Override
-    public int length() {
-        if (isNull) {
-            return 0;
-        }
-        return NullReflectionKit.getSize(value);
-    }
 
-    @Override
-    public T getSafe() throws NullChainCheckException {
-        if (isNull) {
-            throw new NullChainCheckException(linkLog.toString());
-        }
-        return value;
-    }
 
-    @Override
-    public T get() {
-        if (isNull) {
-            throw new NullChainException(linkLog.toString());
-        }
-        return value;
-    }
+
 
 
     @Override
     public <X extends Throwable> T get(Supplier<? extends X> exceptionSupplier) throws X {
-        if (!isNull) {
-            return value;
+        NullChainBase<Object> nullChainBase = taskList.runTaskAll();
+        if (!nullChainBase.isNull) {
+            return (T)nullChainBase.value;
         } else {
             if (exceptionSupplier == null) {
-                linkLog.append("...getSafe? 异常处理器不能为空");
-                throw new NullChainException(linkLog.toString());
+                nullChainBase.linkLog.append("...getSafe? 异常处理器不能为空");
+                throw new NullChainException(nullChainBase.linkLog.toString());
             }
             X x;
             try {
                 x = exceptionSupplier.get();
             } catch (Exception e) {
-                linkLog.append("...getSafe? ");
-                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+                nullChainBase.linkLog.append("...getSafe? ");
+                throw NullReflectionKit.addRunErrorMessage(e, nullChainBase.linkLog);
             }
-            throw NullReflectionKit.orThrow(x, linkLog);
+            throw NullReflectionKit.orThrowable(x, nullChainBase.linkLog);
         }
     }
 
     @Override
     public T get(String exceptionMessage, Object... args) {
-        if (!isNull) {
-            return value;
+        NullChainBase<Object> nullChainBase = taskList.runTaskAll();
+        if (!nullChainBase.isNull) {
+            return (T)nullChainBase.value;
         } else {
             if (args == null || args.length == 0 || exceptionMessage == null) {
-                linkLog.append(exceptionMessage == null ? "" : exceptionMessage);
+                nullChainBase.linkLog.append(exceptionMessage == null ? "" : exceptionMessage);
             } else {
                 String format = String.format(exceptionMessage.replaceAll("\\{\\s*}", "%s"), args);
-                linkLog.append(" ").append(format);
+                nullChainBase.linkLog.append(" ").append(format);
             }
-            throw new NullChainException(linkLog.toString());
+            throw new NullChainException(nullChainBase.linkLog.toString());
         }
     }
 
     @Override
     public T orElseNull() {
-        if (!isNull) {
-            return value;
+        NullChainBase<Object> nullChainBase = taskList.runTaskAll();
+        if (!nullChainBase.isNull) {
+            return (T)nullChainBase.value;
         }
         return null;
     }
@@ -334,15 +155,17 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
 
     @Override
     public NullCollect collect() {
-        if (isNull) {
-            throw new NullChainException(linkLog.toString());
+        NullChainBase<Object> nullChainBase = taskList.runTaskAll();
+        if (nullChainBase.isNull) {
+            throw new NullChainException(nullChainBase.linkLog.toString());
         }
-        return collect;
+        return nullChainBase.collect;
     }
 
     @Override
     public NullCollect collect(String exceptionMessage, Object... args) {
-        if (isNull) {
+        NullChainBase<Object> nullChainBase = taskList.runTaskAll();
+        if (nullChainBase.isNull) {
             if (args == null || args.length == 0 || exceptionMessage == null) {
                 linkLog.append(exceptionMessage == null ? "" : exceptionMessage);
             } else {
@@ -356,19 +179,20 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
 
     @Override
     public <X extends Throwable> NullCollect collect(Supplier<? extends X> exceptionSupplier) throws X {
-        if (isNull) {
+        NullChainBase<Object> nullChainBase = taskList.runTaskAll();
+        if (nullChainBase.isNull) {
             if (exceptionSupplier == null) {
-                linkLog.append("...collectSafe? 异常处理器不能为空");
-                throw new NullChainException(linkLog.toString());
+                nullChainBase.linkLog.append("...collectSafe? 异常处理器不能为空");
+                throw new NullChainException(nullChainBase.linkLog.toString());
             }
             X x;
             try {
                 x = exceptionSupplier.get();
             } catch (Exception e) {
-                linkLog.append("...collectSafe? ");
-                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+                nullChainBase.linkLog.append("...collectSafe? ");
+                throw NullReflectionKit.addRunErrorMessage(e, nullChainBase.linkLog);
             }
-            throw NullReflectionKit.orThrow(x, linkLog);
+            throw NullReflectionKit.orThrowable(x, nullChainBase.linkLog);
         }
         return collect;
     }
@@ -376,42 +200,177 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
 
     @Override
     public T orElse(T defaultValue) {
-        if (!isNull) {
-            return value;
+        NullChainBase<Object> nullChainBase = taskList.runTaskAll();
+        if (!nullChainBase.isNull) {
+            return (T)nullChainBase.value;
         }
         //判断defaultValue
         if (Null.is(defaultValue)) {
-            linkLog.append("...orElse? 默认值不能是空的");
-            throw new NullChainException(linkLog.toString());
+            nullChainBase.linkLog.append("...orElse? 默认值不能是空的");
+            throw new NullChainException(nullChainBase.linkLog.toString());
         }
         return defaultValue;
     }
 
     @Override
     public T orElse(Supplier<T> defaultValue) {
-        if (!isNull) {
-            return value;
+        NullChainBase<Object> nullChainBase = taskList.runTaskAll();
+        if (!nullChainBase.isNull) {
+            return (T)nullChainBase.value;
         }
         if (defaultValue == null) {
             linkLog.append("...orElse? 默认值不能为空");
-            throw new NullChainException(linkLog.toString());
+            throw new NullChainException(nullChainBase.linkLog.toString());
         }
         T t;
         try {
             t = defaultValue.get();
         } catch (Exception e) {
-            linkLog.append("...orElse? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            nullChainBase.linkLog.append("...orElse? ");
+            throw NullReflectionKit.addRunErrorMessage(e, nullChainBase.linkLog);
         }
         if (Null.is(t)) {
-            linkLog.append("orElse? 默认值不能是空的");
-            throw new NullChainException(linkLog.toString());
+            nullChainBase.linkLog.append("orElse? 默认值不能是空的");
+            throw new NullChainException(nullChainBase.linkLog.toString());
         }
         return t;
 
     }
 
+    //    @Override
+//    public int length() {
+//        if (isNull) {
+//            return 0;
+//        }
+//        return NullReflectionKit.getSize(value);
+//    }
 
+
+
+    //
+//    @Override
+//    public <U extends T> boolean eq(U obj) {
+//        return Null.eq(obj, value);
+//    }
+//
+//    @Override
+//    public <U extends T> boolean eqAny(U... b) {
+//        if (isNull || Null.is(b)) {
+//            return false;
+//        }
+//        return Null.eqAny(value, b);
+//    }
+//
+//    @Override
+//    public <U extends T> boolean notEq(U obj) {
+//        return !Null.eq(obj, value);
+//    }
+//
+//    @Override
+//    public <U extends T> boolean notEqAll(U... b) {
+//        if (isNull || Null.is(b)) {
+//            return true;
+//        }
+//        return Null.notEqAll(value, b);
+//    }
+//
+//    @Override
+//    public boolean logic(Function<T, Boolean> obj) {
+//        if (isNull || obj == null) {
+//            return false;
+//        }
+//        try {
+//            return obj.apply(value);
+//        } catch (Exception e) {
+//            linkLog.append("...notEq? ");
+//            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+//        }
+//    }
+//
+//    @SafeVarargs
+//    @Override
+//    public final <U extends T> boolean inAny(U... obj) {
+//        if (isNull || Null.is(obj)) {
+//            return false;
+//        }
+//        for (U u : obj) {
+//            if (value.equals(u)) {
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
+//
+//
+//    @SafeVarargs
+//    @Override
+//    public final <U extends T> boolean notIn(U... obj) {
+//        if (isNull || Null.is(obj)) {
+//            return true;
+//        }
+//        for (U u : obj) {
+//            if (value.equals(u)) {
+//                return false;
+//            }
+//        }
+//        return true;
+//    }
+//
+//    @Override
+//    public <C extends Comparable<T>> boolean le(C obj) {
+//        if (isNull || Null.is(obj)) {
+//            return false;
+//        }
+//        if (value instanceof Comparable) {
+//            //判断obj是否是value的父类或者实现类
+//            if (value.getClass().isAssignableFrom(obj.getClass())) {
+//                return ((Comparable) value).compareTo(obj) <= 0;
+//            }
+//        }
+//        return false;
+//    }
+//
+//    @Override
+//    public <C extends Comparable<T>> boolean lt(C obj) {
+//        if (isNull || Null.is(obj)) {
+//            return false;
+//        }
+//        if (value instanceof Comparable) {
+//            //判断obj是否是value的父类或者实现类
+//            if (value.getClass().isAssignableFrom(obj.getClass())) {
+//                return ((Comparable) value).compareTo(obj) < 0;
+//            }
+//        }
+//        return false;
+//    }
+//
+//    @Override
+//    public <C extends Comparable<T>> boolean ge(C obj) {
+//        if (isNull || Null.is(obj)) {
+//            return false;
+//        }
+//        if (value instanceof Comparable) {
+//            //判断obj是否是value的父类或者实现类
+//            if (value.getClass().isAssignableFrom(obj.getClass())) {
+//                return ((Comparable) value).compareTo(obj) >= 0;
+//            }
+//        }
+//        return false;
+//    }
+//
+//    @Override
+//    public <C extends Comparable<T>> boolean gt(C obj) {
+//        if (isNull || Null.is(obj)) {
+//            return false;
+//        }
+//        if (value instanceof Comparable) {
+//            //判断obj是否是value的父类或者实现类
+//            if (value.getClass().isAssignableFrom(obj.getClass())) {
+//                return ((Comparable) value).compareTo(obj) > 0;
+//            }
+//        }
+//        return false;
+//    }
     @Override
     public String toString() {
         return "NullFinalityBase{" +

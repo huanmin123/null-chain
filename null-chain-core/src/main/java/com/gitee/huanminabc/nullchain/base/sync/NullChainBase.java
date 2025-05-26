@@ -29,445 +29,531 @@ import java.util.function.Supplier;
 @Slf4j
 public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T> {
 
-    public NullChainBase(StringBuilder linkLog, boolean isNull, NullCollect collect) {
-        super(linkLog, isNull, collect);
+    public NullChainBase(StringBuilder linkLog, boolean isNull, NullCollect collect, NullTaskList taskList) {
+        super(linkLog, isNull, collect,taskList);
     }
 
-    public NullChainBase(T object, StringBuilder linkLog, NullCollect collect) {
-        super(object, linkLog, collect);
+    public NullChainBase(T object, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
+        super(object, linkLog, collect, taskList);
     }
 
 
     @Override
     public <U> NullChain<T> of(NullFun<? super T, ? extends U> function) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        if (function == null) {
-            throw new NullChainException(linkLog.append("of? 传参不能为空").toString());
-        }
-        try {
-            U apply = function.apply(value);
-            if (Null.is(apply)) {
-                return NullBuild.empty(linkLog.append("of?"), collect);
+        this.taskList.add((value)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
             }
-            linkLog.append("of->");
-            return NullBuild.noEmpty(value, linkLog, collect);
-        } catch (Exception e) {
-            linkLog.append("of? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
+            if (function == null) {
+                throw new NullChainException(linkLog.append("of? 传参不能为空").toString());
+            }
+            try {
+                U apply = function.apply((T)value);
+                if (Null.is(apply)) {
+                    linkLog.append("of?");
+                    return NullBuild.empty(linkLog, collect, taskList);
+                }
+                linkLog.append("of->");
+                return NullBuild.noEmpty(value, linkLog, collect, taskList);
+            } catch (Exception e) {
+                linkLog.append("of? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+        });
+        return  NullBuild.busy(this);
     }
 
     @Override
     public NullChain<T> ifGo(NullFun<? super T, Boolean> function) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        if (function == null) {
-            throw new NullChainException(linkLog.append("ifGo? 传参不能为空").toString());
-        }
-        try {
-            Boolean apply = function.apply(value);
-            if (!apply) {
-                return NullBuild.empty(linkLog.append("ifGo?"), collect);
+        this.taskList.add((value)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
             }
-            linkLog.append("ifGo->");
-            return NullBuild.noEmpty(value, linkLog, collect);
-        } catch (Exception e) {
-            linkLog.append("ifGo? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
+            if (function == null) {
+                throw new NullChainException(linkLog.append("ifGo? 传参不能为空").toString());
+            }
+            try {
+                Boolean apply = function.apply((T)value);
+                if (!apply) {
+                    linkLog.append("ifGo?");
+                    return NullBuild.empty(linkLog, collect, taskList);
+                }
+                linkLog.append("ifGo->");
+                return NullBuild.noEmpty(value, linkLog, collect, taskList);
+            } catch (Exception e) {
+                linkLog.append("ifGo? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+        });
+        return  NullBuild.busy(this);
     }
 
     @Override
-    public <X extends Throwable> NullChain<T> check(Supplier<? extends X> exceptionSupplier) throws X {
-        if (isNull) {
-            if (exceptionSupplier == null) {
-                linkLog.append("check? 异常处理器不能为空");
-                throw new NullChainException(linkLog.toString());
+    public <X extends RuntimeException> NullChain<T> check(Supplier<? extends X> exceptionSupplier) throws X {
+        this.taskList.add((value)->{
+            if (isNull) {
+                if (exceptionSupplier == null) {
+                    linkLog.append("check? 异常处理器不能为空");
+                    throw new NullChainException(linkLog.toString());
+                }
+                X x;
+                try {
+                    x = exceptionSupplier.get();
+                } catch (Exception e) {
+                    linkLog.append("check? ");
+                    throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+                }
+                throw NullReflectionKit.orRuntimeException(x, linkLog);
             }
-            X x;
-            try {
-                x = exceptionSupplier.get();
-            } catch (Exception e) {
-                linkLog.append("check? ");
-                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-            }
-            throw NullReflectionKit.orThrow(x, linkLog);
-        }
-        return NullBuild.noEmpty(value, linkLog, collect);
+            return NullBuild.noEmpty(value, linkLog, collect, taskList);
+        });
+        return  NullBuild.busy(this);
+
     }
 
     @Override
     public <U> NullChain<T> isNull(NullFun<? super T, ? extends U> function) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        if (function == null) {
-            throw new NullChainException(linkLog.append("isNull? 传参不能为空").toString());
-        }
-        try {
-            U apply = function.apply(value);
-            if (Null.non(apply)) {
-                linkLog.append("isNull?");
-                return NullBuild.empty(linkLog, collect);
+        this.taskList.add((value)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
             }
-            linkLog.append("isNull->");
-            return NullBuild.noEmpty(value, linkLog, collect);
-        } catch (Exception e) {
-            linkLog.append("isNull? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
+            if (function == null) {
+                throw new NullChainException(linkLog.append("isNull? 传参不能为空").toString());
+            }
+            try {
+                U apply = function.apply((T)value);
+                if (Null.non(apply)) {
+                    linkLog.append("isNull?");
+                    return NullBuild.empty(linkLog, collect, taskList);
+                }
+                linkLog.append("isNull->");
+                return NullBuild.noEmpty(value, linkLog, collect, taskList);
+            } catch (Exception e) {
+                linkLog.append("isNull? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+        });
+        return  NullBuild.busy(this);
     }
 
 
     @SafeVarargs
     @Override
     public final <U> NullChain<T> ofAny(NullFun<? super T, ? extends U>... function) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        if (Null.is(function)) {
-            throw new NullChainException(linkLog.append("ofAny? 传参不能为空").toString());
-        }
-        try {
-            for (int i = 0; i < function.length; i++) {
-                NullFun<? super T, ? extends U> nullFun = function[i];
-                U apply = nullFun.apply(value);
-                if (Null.is(apply)) {
-                    linkLog.append("ofAny? 第").append(i + 1).append("个");
-                    return NullBuild.empty(linkLog, collect);
-                }
+        this.taskList.add((value)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
             }
-        } catch (Exception e) {
-            linkLog.append("ofAny? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
-        linkLog.append("ofAny->");
-        return NullBuild.noEmpty(value, linkLog, collect);
+            if (Null.is(function)) {
+                throw new NullChainException(linkLog.append("ofAny? 传参不能为空").toString());
+            }
+            try {
+                for (int i = 0; i < function.length; i++) {
+                    NullFun<? super T, ? extends U> nullFun = function[i];
+                    U apply = nullFun.apply((T)value);
+                    if (Null.is(apply)) {
+                        linkLog.append("ofAny? 第").append(i + 1).append("个");
+                        return NullBuild.empty(linkLog, collect, taskList);
+                    }
+                }
+            } catch (Exception e) {
+                linkLog.append("ofAny? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+            linkLog.append("ofAny->");
+            return NullBuild.noEmpty(value, linkLog, collect, taskList);
 
+        });
+        return  NullBuild.busy(this);
     }
 
     @Override
     public NullChain<T> then(Runnable function) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        if (function == null) {
-            throw new NullChainException(linkLog.append("then? 传参不能为空").toString());
-        }
-        try {
-            function.run();
-            linkLog.append("then->");
-            return NullBuild.noEmpty(value, linkLog, collect);
-        } catch (Exception e) {
-            linkLog.append("then? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
+        this.taskList.add((value)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            if (function == null) {
+                throw new NullChainException(linkLog.append("then? 传参不能为空").toString());
+            }
+            try {
+                function.run();
+                linkLog.append("then->");
+                return NullBuild.noEmpty(value, linkLog, collect, taskList);
+            } catch (Exception e) {
+                linkLog.append("then? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+        });
+        return  NullBuild.busy(this);
+
     }
 
     @Override
     public NullChain<T> then(Consumer<? super T> function) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        if (function == null) {
-            throw new NullChainException(linkLog.append("then? 传参不能为空").toString());
-        }
-        try {
-            function.accept(value);
-            linkLog.append("then->");
-            return NullBuild.noEmpty(value, linkLog, collect);
-        } catch (Exception e) {
-            linkLog.append("then? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
+        this.taskList.add((value)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            if (function == null) {
+                throw new NullChainException(linkLog.append("then? 传参不能为空").toString());
+            }
+            try {
+                function.accept((T)value);
+                linkLog.append("then->");
+                return NullBuild.noEmpty(value, linkLog, collect, taskList);
+            } catch (Exception e) {
+                linkLog.append("then? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+        });
+        return  NullBuild.busy(this);
+
     }
 
     @Override
     public NullChain<T> then2(NullConsumer2<NullChain<T>, ? super T> function) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        if (function == null) {
-            throw new NullChainException(linkLog.append("then2? 传参不能为空").toString());
-        }
-        try {
-            function.accept(Null.of(value), value);
-            linkLog.append("then2->");
-            return NullBuild.noEmpty(value, linkLog, collect);
-        } catch (Exception e) {
-            linkLog.append("then2? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
+        this.taskList.add((value)->{
+            T valueT = (T) value;
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            if (function == null) {
+                throw new NullChainException(linkLog.append("then2? 传参不能为空").toString());
+            }
+            try {
+                function.accept(Null.of(valueT), valueT);
+                linkLog.append("then2->");
+                return NullBuild.noEmpty(value, linkLog, collect, taskList);
+            } catch (Exception e) {
+                linkLog.append("then2? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+        });
+        return  NullBuild.busy(this);
+
     }
 
 
     @Override
     public <U> NullChain<U> map(NullFun<? super T, ? extends U> function) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        if (function == null) {
-            throw new NullChainException(linkLog.append("map? 传参不能为空").toString());
-        }
-        try {
-            U apply = function.apply(value);
-            if (Null.is(apply)) {
-                return NullBuild.empty(linkLog.append("map?"), collect);
+        this.taskList.add((value)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
             }
-            linkLog.append("map->");
-            return NullBuild.noEmpty(apply, linkLog, collect);
-        } catch (Exception e) {
-            linkLog.append("map? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
+            if (function == null) {
+                throw new NullChainException(linkLog.append("map? 传参不能为空").toString());
+            }
+            try {
+                U apply = function.apply((T)value);
+                if (Null.is(apply)) {
+                    linkLog.append("map?");
+                    return NullBuild.empty(linkLog, collect, taskList);
+                }
+                linkLog.append("map->");
+                return NullBuild.noEmpty(apply, linkLog, collect, taskList);
+            } catch (Exception e) {
+                linkLog.append("map? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+        });
+        return  NullBuild.busy(this);
 
     }
 
     @Override
     public <U> NullChain<U> map2(NullFun2<NullChain<T>, ? super T, ? extends U> function) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        if (function == null) {
-            throw new NullChainException(linkLog.append("map2? 传参不能为空").toString());
-        }
-        try {
-            U apply = function.apply(Null.of(value), value);
-            if (Null.is(apply)) {
-                return NullBuild.empty(linkLog.append("map2?"), collect);
+        this.taskList.add((value)->{
+            T value1 = (T) value;
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
             }
-            linkLog.append("map2->");
-            return NullBuild.noEmpty(apply, linkLog, collect);
-        } catch (Exception e) {
-            linkLog.append("map2? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
+            if (function == null) {
+                throw new NullChainException(linkLog.append("map2? 传参不能为空").toString());
+            }
+            try {
+                U apply = function.apply(Null.of(value1), value1);
+                if (Null.is(apply)) {
+                    linkLog.append("map2?");
+                    return NullBuild.empty(linkLog, collect, taskList);
+                }
+                linkLog.append("map2->");
+                return NullBuild.noEmpty(apply, linkLog, collect, taskList);
+            } catch (Exception e) {
+                linkLog.append("map2? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+        });
+        return  NullBuild.busy(this);
+
     }
 
 
     @Override
     public <U> NullChain<U> flatChain(NullFun<? super T, ? extends NullChain<U>> function) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        if (function == null) {
-            throw new NullChainException(linkLog.append("unchain? 传参不能为空").toString());
-        }
-        try {
-            NullChain<U> apply = function.apply(value);
-            if (apply.is()) {
-                linkLog.append("unchain?");
-                return NullBuild.empty(linkLog, collect);
+        this.taskList.add((value)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
             }
-            linkLog.append("unchain->");
-            return NullBuild.noEmpty(apply.get(), linkLog, collect);
-        } catch (Exception e) {
-            linkLog.append("unchain? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
+            if (function == null) {
+                throw new NullChainException(linkLog.append("unchain? 传参不能为空").toString());
+            }
+            try {
+                NullChain<U> apply = function.apply((T)value);
+                if (apply.is()) {
+                    linkLog.append("unchain?");
+                    return NullBuild.empty(linkLog, collect, taskList);
+                }
+                linkLog.append("unchain->");
+                return NullBuild.noEmpty(apply.get(), linkLog, collect, taskList);
+            } catch (Exception e) {
+                linkLog.append("unchain? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+        });
+        return  NullBuild.busy(this);
+
     }
 
     @Override
     public <U> NullChain<U> flatOptional(NullFun<? super T, ? extends Optional<U>> function) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        if (function == null) {
-            throw new NullChainException(linkLog.append("unOptional? 传参不能为空").toString());
-        }
-        try {
-            Optional<U> apply = function.apply(value);
-            if (!apply.isPresent()) {
-                linkLog.append("unOptional?");
-                return NullBuild.empty(linkLog, collect);
+        this.taskList.add((value)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
             }
-            linkLog.append("unOptional->");
-            return NullBuild.noEmpty(apply.get(), linkLog, collect);
-        } catch (Exception e) {
-            linkLog.append("unOptional? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
+            if (function == null) {
+                throw new NullChainException(linkLog.append("unOptional? 传参不能为空").toString());
+            }
+            try {
+                Optional<U> apply = function.apply((T)value);
+                if (!apply.isPresent()) {
+                    linkLog.append("unOptional?");
+                    return NullBuild.empty(linkLog, collect, taskList);
+                }
+                linkLog.append("unOptional->");
+                return NullBuild.noEmpty(apply.get(), linkLog, collect, taskList);
+            } catch (Exception e) {
+                linkLog.append("unOptional? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+        });
+        return  NullBuild.busy(this);
+
     }
 
 
     @Override
     public NullChain<T> or(Supplier<? extends T> supplier) {
-        if (isNull) {
-            if (supplier == null) {
-                throw new NullChainException(linkLog.append("or? 传参不能为空").toString());
-            }
-            try {
-                T t = supplier.get();
-                if (Null.is(t)) {
-                    linkLog.append("or?");
-                    return NullBuild.empty(linkLog, collect);
+        this.taskList.add((value)->{
+            if (isNull) {
+                if (supplier == null) {
+                    throw new NullChainException(linkLog.append("or? 传参不能为空").toString());
                 }
-                linkLog.append("or->");
-                return NullBuild.noEmpty(t, linkLog, collect);
-            } catch (Exception e) {
-                linkLog.append("or? ");
-                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+                try {
+                    T t = supplier.get();
+                    if (Null.is(t)) {
+                        linkLog.append("or?");
+                        return NullBuild.empty(linkLog, collect, taskList);
+                    }
+                    linkLog.append("or->");
+                    return NullBuild.noEmpty(t, linkLog, collect, taskList);
+                } catch (Exception e) {
+                    linkLog.append("or? ");
+                    throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+                }
             }
-        }
-        linkLog.append("or->");
-        return NullBuild.noEmpty(value, linkLog, collect);
+            linkLog.append("or->");
+            return NullBuild.noEmpty(value, linkLog, collect, taskList);
+        });
+        return  NullBuild.busy(this);
+
     }
 
     @Override
     public NullChain<T> or(T defaultValue) {
-        if (isNull) {
-            if (Null.is(defaultValue)) {
-                linkLog.append("or? 传参不能为空");
-                return NullBuild.empty(linkLog, collect);
+        this.taskList.add((value)->{
+            if (isNull) {
+                if (Null.is(defaultValue)) {
+                    linkLog.append("or? 传参不能为空");
+                    return NullBuild.empty(linkLog, collect, taskList);
+                }
+                linkLog.append("or->");
+                return NullBuild.noEmpty(defaultValue, linkLog, collect,taskList);
             }
             linkLog.append("or->");
-            return NullBuild.noEmpty(defaultValue, linkLog, collect);
-        }
-        linkLog.append("or->");
-        return NullBuild.noEmpty(value, linkLog, collect);
+            return NullBuild.noEmpty(value, linkLog, collect, taskList);
+        });
+        return  NullBuild.busy(this);
+
     }
 
 
     @Override
     public <R> NullChain<R> task(Class<? extends NullTask<T, R>> task, Object... params) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        if (task == null) {
-            throw new NullChainException(linkLog.append("task? 传参不能为空").toString());
-        }
-        Object o = __task__(task.getName(), params);
-        return NullBuild.noEmpty((R) o, linkLog, collect);
+        this.taskList.add((value)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            if (task == null) {
+                throw new NullChainException(linkLog.append("task? 传参不能为空").toString());
+            }
+            Object o = __task__(task.getName(), params);
+            return NullBuild.noEmpty((R) o, linkLog, collect, taskList);
+        });
+        return  NullBuild.busy(this);
+
     }
 
 
     @Override
     public NullChain<?> task(String classPath, Object... params) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        if (Null.is(classPath)) {
-            throw new NullChainException(linkLog.append("task? 传参不能为空").toString());
-        }
-        Object o = __task__(classPath, params);
-        return NullBuild.noEmpty(o, linkLog, collect);
+        this.taskList.add((value)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            if (Null.is(classPath)) {
+                throw new NullChainException(linkLog.append("task? 传参不能为空").toString());
+            }
+            Object o = __task__(classPath, params);
+            return NullBuild.noEmpty(o, linkLog, collect, taskList);
+        });
+        return  NullBuild.busy(this);
 
     }
 
 
     @Override
     public NullChain<NullMap<String, Object>> task(NullGroupTask nullGroupTask) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        return task(nullGroupTask, ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME);
+        this.taskList.add((value)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            return task(nullGroupTask, ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME);
+        });
+        return  NullBuild.busy(this);
+
     }
 
     @Override
     public NullChain<NullMap<String, Object>> task(NullGroupTask nullGroupTask, String threadFactoryName) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        if (Null.isAny(nullGroupTask, threadFactoryName)) {
-            throw new NullChainException(linkLog.append("task? 传参不能为空").toString());
-        }
-        return __task__(nullGroupTask, threadFactoryName);
+        this.taskList.add((value)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            if (Null.isAny(nullGroupTask, threadFactoryName)) {
+                throw new NullChainException(linkLog.append("task? 传参不能为空").toString());
+            }
+            return __task__(nullGroupTask, threadFactoryName);
+        });
+        return  NullBuild.busy(this);
+
     }
 
     @Override
     public NullChain<?> nfTask(String nfContext, Object... params) {
-        if (Null.is(nfContext)) {
-            throw new NullChainException(linkLog.append("nfTask? 脚本内容不能为空").toString());
-        }
-        NullGroupNfTask.NullTaskInfo nullTaskInfo = NullGroupNfTask.task(nfContext, params);
-        return nfTask(nullTaskInfo);
+        this.taskList.add((value)->{
+            if (Null.is(nfContext)) {
+                throw new NullChainException(linkLog.append("nfTask? 脚本内容不能为空").toString());
+            }
+            NullGroupNfTask.NullTaskInfo nullTaskInfo = NullGroupNfTask.task(nfContext, params);
+            return nfTask(nullTaskInfo);
+        });
+        return  NullBuild.busy(this);
+
     }
 
     @Override
     public NullChain<?> nfTask(NullGroupNfTask.NullTaskInfo nullTaskInfo, String threadFactoryName) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        if (Null.isAny(nullTaskInfo, threadFactoryName)) {
-            linkLog.append("nfTask? 传参不能为空");
-            throw new NullChainException(linkLog.toString());
-        }
-        //脚本内容不能是空
-        if (Null.is(nullTaskInfo.getNfContext())) {
-            linkLog.append("nfTask? 脚本内容不能为空");
-            throw new NullChainException(linkLog.toString());
-        }
-
-        try {
-            Object o = __nfTask__(nullTaskInfo.getNfContext(), threadFactoryName, nullTaskInfo.getLogger(), nullTaskInfo.getParams());
-            if (Null.is(o)) {
-                linkLog.append("nfTask? ");
-                return NullBuild.empty(linkLog, collect);
+        this.taskList.add((value)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
             }
-            linkLog.append("nfTask->");
-            return NullBuild.noEmpty(o, linkLog, collect);
-        } catch (Exception e) {
-            linkLog.append("nfTask? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
+            if (Null.isAny(nullTaskInfo, threadFactoryName)) {
+                linkLog.append("nfTask? 传参不能为空");
+                throw new NullChainException(linkLog.toString());
+            }
+            //脚本内容不能是空
+            if (Null.is(nullTaskInfo.getNfContext())) {
+                linkLog.append("nfTask? 脚本内容不能为空");
+                throw new NullChainException(linkLog.toString());
+            }
+
+            try {
+                Object o = __nfTask__(nullTaskInfo.getNfContext(), threadFactoryName, nullTaskInfo.getLogger(), nullTaskInfo.getParams());
+                if (Null.is(o)) {
+                    linkLog.append("nfTask? ");
+                    return NullBuild.empty(linkLog, collect, taskList);
+                }
+                linkLog.append("nfTask->");
+                return NullBuild.noEmpty(o, linkLog, collect,taskList);
+            } catch (Exception e) {
+                linkLog.append("nfTask? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+        });
+        return  NullBuild.busy(this);
+
     }
 
     @Override
     public NullChain<NullMap<String, Object>> nfTasks(NullGroupNfTask nullGroupNfTask, String threadFactoryName) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        if (Null.isAny(nullGroupNfTask, threadFactoryName)) {
-            linkLog.append("nfTasks? 传参不能为空");
-            throw new NullChainException(linkLog.toString());
-        }
-        ThreadPoolExecutor executor = ThreadFactoryUtil.getExecutor(threadFactoryName);
-        NullGroupNfTask.NullTaskInfo[] list = nullGroupNfTask.getList();
-        //脚本内容不能是空
-        for (NullGroupNfTask.NullTaskInfo nullTaskInfo : list) {
-            if (Null.is(nullTaskInfo.getNfContext())) {
-                linkLog.append("nfTasks? 脚本内容不能为空");
+        this.taskList.add((value)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            if (Null.isAny(nullGroupNfTask, threadFactoryName)) {
+                linkLog.append("nfTasks? 传参不能为空");
                 throw new NullChainException(linkLog.toString());
             }
-        }
-        NullChainException nullChainException = new NullChainException();
-        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-        List<Future<?>> futures = new ArrayList<>();
-        NullMap<String, Object> nullChainMap = NullMap.newConcurrentHashMap();
-        for (NullGroupNfTask.NullTaskInfo nullTaskInfo : list) {
-            Future<?> submit = executor.submit(() -> {
-                try {
-                    Object run = __nfTask__(nullTaskInfo.getNfContext(), threadFactoryName, nullTaskInfo.getLogger(), nullTaskInfo.getParams());
-                    if (Null.is(run)) {
-                        return;
-                    }
-                    nullChainMap.put(nullTaskInfo.getKey(), run);
-                } catch (Exception e) {
-                    nullChainException.setMessage(stackTrace, linkLog.toString());
-                    e.addSuppressed(nullChainException);
-                    log.error("{}task? {}多任务脚本并发执行失败", linkLog, nullTaskInfo.getKey(), e);
+            ThreadPoolExecutor executor = ThreadFactoryUtil.getExecutor(threadFactoryName);
+            NullGroupNfTask.NullTaskInfo[] list = nullGroupNfTask.getList();
+            //脚本内容不能是空
+            for (NullGroupNfTask.NullTaskInfo nullTaskInfo : list) {
+                if (Null.is(nullTaskInfo.getNfContext())) {
+                    linkLog.append("nfTasks? 脚本内容不能为空");
+                    throw new NullChainException(linkLog.toString());
                 }
-            });
-            futures.add(submit);
-        }
-        //等待所有任务执行完毕
-        for (Future<?> future : futures) {
-            try {
-                future.get();
-            } catch (Exception ignored) {
-
             }
-        }
-        linkLog.append("task->");
-        return NullBuild.noEmpty(nullChainMap, linkLog, collect);
+            NullChainException nullChainException = new NullChainException();
+            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+            List<Future<?>> futures = new ArrayList<>();
+            NullMap<String, Object> nullChainMap = NullMap.newConcurrentHashMap();
+            for (NullGroupNfTask.NullTaskInfo nullTaskInfo : list) {
+                Future<?> submit = executor.submit(() -> {
+                    try {
+                        Object run = __nfTask__(nullTaskInfo.getNfContext(), threadFactoryName, nullTaskInfo.getLogger(), nullTaskInfo.getParams());
+                        if (Null.is(run)) {
+                            return;
+                        }
+                        nullChainMap.put(nullTaskInfo.getKey(), run);
+                    } catch (Exception e) {
+                        nullChainException.setMessage(stackTrace, linkLog.toString());
+                        e.addSuppressed(nullChainException);
+                        log.error("{}task? {}多任务脚本并发执行失败", linkLog, nullTaskInfo.getKey(), e);
+                    }
+                });
+                futures.add(submit);
+            }
+            //等待所有任务执行完毕
+            for (Future<?> future : futures) {
+                try {
+                    future.get();
+                } catch (Exception ignored) {
+
+                }
+            }
+            linkLog.append("task->");
+            return NullBuild.noEmpty(nullChainMap, linkLog, collect,taskList);
+        });
+        return  NullBuild.busy(this);
+
     }
 
     @Override
     public NullChain<?> nfTask(NullGroupNfTask.NullTaskInfo nullTaskInfo) {
-        return nfTask(nullTaskInfo, ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME);
+        this.taskList.add((value)-> nfTask(nullTaskInfo, ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME));
+        return  NullBuild.busy(this);
+
     }
 
     private NullChain<NullMap<String, Object>> __task__(NullGroupTask nullGroupTask, String threadFactoryName) {
@@ -516,7 +602,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
             }
         }
         linkLog.append("task->");
-        return NullBuild.noEmpty(nullChainMap, linkLog, collect);
+        return NullBuild.noEmpty(nullChainMap, linkLog, collect,taskList);
     }
 
 
@@ -526,7 +612,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
             Object run = NullBuild.taskRun(value, nullTask, linkLog, params);
             if (Null.is(run)) {
                 linkLog.append("task? ");
-                return NullBuild.empty(linkLog, collect);
+                return NullBuild.empty(linkLog, collect, taskList);
             }
             linkLog.append("task->");
             return run;

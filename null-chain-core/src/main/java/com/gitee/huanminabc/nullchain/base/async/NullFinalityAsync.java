@@ -82,7 +82,7 @@ public interface NullFinalityAsync<T> extends Serializable {
      * @return T
      * @throws X 自定义异常
      */
-    <X extends Throwable> T get(Supplier<? extends X> exceptionSupplier) throws X;
+    <X extends RuntimeException> T get(Supplier<? extends X> exceptionSupplier) throws X;
 
 
     T orElseNull() ;
@@ -110,7 +110,7 @@ public interface NullFinalityAsync<T> extends Serializable {
     //安全的收集器,链接不能有空值,否则抛出异常,异常信息可以自定义
     NullCollect collect(String exceptionMessage, Object... args);
     //安全的收集器,链接不能有空值,否则抛出异常,异常信息可以自定义
-    <X extends Throwable> NullCollect collect(Supplier<? extends X> exceptionSupplier) throws X;
+    <X extends RuntimeException> NullCollect collect(Supplier<? extends X> exceptionSupplier) throws X;
 
 
     /**

@@ -5,6 +5,7 @@ import com.gitee.huanminabc.nullchain.base.sync.NullChain;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
+import com.gitee.huanminabc.nullchain.common.NullTaskList;
 
 import java.util.Collection;
 import java.util.Map;
@@ -74,15 +75,15 @@ public class NullSuperMap<K,V>  implements NullMap<K,V>{
         StringBuilder linkLog = new StringBuilder();
         if (Null.is(key)){
             linkLog.append("NullSuperMap.get?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         V v = map.get(key);
         if (Null.is(v)) {
             linkLog.append("NullSuperMap.get?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append("NullSuperMap.get->");
-        return NullBuild.noEmpty(v, linkLog, new NullCollect());
+        return NullBuild.noEmpty(v, linkLog, new NullCollect(),new NullTaskList());
     }
 
     @Override
@@ -116,15 +117,15 @@ public class NullSuperMap<K,V>  implements NullMap<K,V>{
         StringBuilder linkLog = new StringBuilder();
         if (Null.is(key) || Null.is(value)){
             linkLog.append("NullSuperMap.putIfAbsent?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         V v = map.putIfAbsent(key, value);
         if (Null.is(v)) {
             linkLog.append("NullSuperMap.putIfAbsent?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append("NullSuperMap.putIfAbsent->");
-        return NullBuild.noEmpty(v, linkLog, new NullCollect());
+        return NullBuild.noEmpty(v, linkLog, new NullCollect(),new NullTaskList());
     }
 
     @Override
@@ -132,15 +133,15 @@ public class NullSuperMap<K,V>  implements NullMap<K,V>{
         StringBuilder linkLog = new StringBuilder();
         if (Null.is(key) || Objects.isNull(mappingFunction)){
             linkLog.append("NullSuperMap.computeIfAbsent?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         V v = map.computeIfAbsent(key, mappingFunction);
         if (Null.is(v)) {
             linkLog.append("NullSuperMap.computeIfAbsent?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append("NullSuperMap.computeIfAbsent->");
-        return NullBuild.noEmpty(v, linkLog, new NullCollect());
+        return NullBuild.noEmpty(v, linkLog, new NullCollect(),new NullTaskList());
     }
 
     @Override
@@ -148,15 +149,15 @@ public class NullSuperMap<K,V>  implements NullMap<K,V>{
         StringBuilder linkLog = new StringBuilder();
         if (Null.is(key) || Objects.isNull(remappingFunction)){
             linkLog.append("NullSuperMap.computeIfPresent?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         V v = map.computeIfPresent(key, remappingFunction);
         if (Null.is(v)) {
             linkLog.append("NullSuperMap.computeIfPresent?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append("NullSuperMap.computeIfPresent->");
-        return NullBuild.noEmpty(v, linkLog, new NullCollect());
+        return NullBuild.noEmpty(v, linkLog, new NullCollect(),new NullTaskList());
     }
 
     @Override
@@ -164,15 +165,15 @@ public class NullSuperMap<K,V>  implements NullMap<K,V>{
         StringBuilder linkLog = new StringBuilder();
         if (Null.is(key) ||Objects.isNull(remappingFunction)){
             linkLog.append("NullSuperMap.compute?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         V v = map.compute(key, remappingFunction);
         if (Null.is(v)) {
             linkLog.append("NullSuperMap.compute?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append("NullSuperMap.compute->");
-        return NullBuild.noEmpty(v, linkLog, new NullCollect());
+        return NullBuild.noEmpty(v, linkLog, new NullCollect(),new NullTaskList());
     }
 
     @Override
@@ -180,15 +181,15 @@ public class NullSuperMap<K,V>  implements NullMap<K,V>{
         StringBuilder linkLog = new StringBuilder();
         if (Null.is(key) || Null.is(value) ||Objects.isNull(remappingFunction)){
             linkLog.append("NullSuperMap.merge?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         V v = map.merge(key, value, remappingFunction);
         if (Null.is(v)) {
             linkLog.append("NullSuperMap.merge?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append("NullSuperMap.merge->");
-        return NullBuild.noEmpty(v, linkLog, new NullCollect());
+        return NullBuild.noEmpty(v, linkLog, new NullCollect(),new NullTaskList());
     }
 
     @Override

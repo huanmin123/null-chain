@@ -206,7 +206,7 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
 
 
     @Override
-    public <X extends Throwable> T get(Supplier<? extends X> exceptionSupplier) throws X {
+    public <X extends RuntimeException> T get(Supplier<? extends X> exceptionSupplier) throws X {
         if (isNull) {
             if (exceptionSupplier == null) {
                 linkLog.append("...get? 异常处理器不能为空");
@@ -219,7 +219,7 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
                 linkLog.append("...get? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            throw NullReflectionKit.orThrow(x, linkLog);
+            throw NullReflectionKit.orRuntimeException(x, linkLog);
         }
 
         T join;
@@ -240,7 +240,7 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
                 linkLog.append("...get? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            throw NullReflectionKit.orThrow(x, linkLog);
+            throw NullReflectionKit.orRuntimeException(x, linkLog);
         }
         return join;
     }
@@ -296,7 +296,7 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
     }
 
     @Override
-    public <X extends Throwable> NullCollect collect(Supplier<? extends X> exceptionSupplier) throws X {
+    public <X extends RuntimeException> NullCollect collect(Supplier<? extends X> exceptionSupplier) throws X {
         if (isNull) {
             if (exceptionSupplier == null) {
                 linkLog.append("...collectSafe? 异常处理器不能为空");
@@ -309,7 +309,7 @@ public class NullFinalityAsyncBase<T> extends NullKernelAsyncAbstract<T> impleme
                 linkLog.append("...collectSafe? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            throw NullReflectionKit.orThrow(x, linkLog);
+            throw NullReflectionKit.orRuntimeException(x, linkLog);
         }
         try {
             completableFuture.join();//阻塞当前线程等待结果

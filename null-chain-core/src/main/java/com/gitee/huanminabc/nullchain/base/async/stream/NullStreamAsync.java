@@ -2,7 +2,6 @@ package com.gitee.huanminabc.nullchain.base.async.stream;
 
 import com.gitee.huanminabc.nullchain.base.async.NullChainAsync;
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
-import com.gitee.huanminabc.nullchain.base.sync.stream.NullStream;
 import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.common.function.NullFun2;

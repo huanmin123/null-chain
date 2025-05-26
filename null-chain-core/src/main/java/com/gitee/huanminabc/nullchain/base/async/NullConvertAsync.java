@@ -1,7 +1,6 @@
 package com.gitee.huanminabc.nullchain.base.async;
 
 
-import com.gitee.huanminabc.nullchain.base.async.calculate.NullCalculateAsync;
 import com.gitee.huanminabc.nullchain.base.async.stream.NullStreamAsync;
 import com.gitee.huanminabc.nullchain.base.leaf.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
@@ -40,7 +39,5 @@ public interface NullConvertAsync<T> extends NullToolsAsync<T> {
     <V> NullStreamAsync<V> toStream();
     <V> NullStreamAsync<V> toParallelStream();
 
-    //转计算 , 支持Number 和 String(数字)
-    <V> NullChainAsync<V> calc(NullFun<NullCalculate<BigDecimal>,NullCalculate<BigDecimal>> calc, NullFun<BigDecimal, V> pickValue);
 
 }

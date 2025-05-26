@@ -1,13 +1,16 @@
 package com.gitee.huanminabc.nullchain;
 
 
+import com.gitee.huanminabc.nullchain.base.leaf.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
-import com.gitee.huanminabc.nullchain.base.sync.stream.NullStream;
+import com.gitee.huanminabc.nullchain.base.leaf.stream.NullStream;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
+import com.gitee.huanminabc.nullchain.common.NullTaskList;
 import com.gitee.huanminabc.nullchain.common.NullUtil;
 import com.gitee.huanminabc.nullchain.vessel.*;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -24,83 +27,89 @@ import java.util.stream.Stream;
 public class Null extends NullUtil {
 
     public static <T> NullChain<T> of(T o) {
-        StringBuilder linkLog = new StringBuilder();
-        if (Null.is(o)) {
-            linkLog.append(" Null.of?");
-            return NullBuild.empty(linkLog, new NullCollect());
-        }
-        linkLog.append(" Null.of->");
-        return NullBuild.noEmpty(o, linkLog, new NullCollect());
+        NullTaskList nullTaskList = new NullTaskList();
+        nullTaskList.add((__)->{
+            StringBuilder linkLog = new StringBuilder();
+            if (Null.is(o)) {
+                linkLog.append(" Null.of?");
+                return NullBuild.empty(linkLog, new NullCollect(), nullTaskList);
+            }
+            linkLog.append(" Null.of->");
+            return NullBuild.noEmpty(o, linkLog, new NullCollect(), nullTaskList);
+        });
+        return NullBuild.busy(nullTaskList);
+
     }
 
     public static <T> NullChain<T[]> of(T[] array) {
+        NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
         if (Null.is(array)) {
             linkLog.append(" Null.of?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append(" Null.of->");
-        return NullBuild.noEmpty(array, linkLog, new NullCollect());
+        return NullBuild.noEmpty(array, linkLog, new NullCollect(),new NullTaskList());
     }
 
     public static <T> NullChain<Collection<T>> of(Collection<T> list) {
         StringBuilder linkLog = new StringBuilder();
         if (Null.is(list)) {
             linkLog.append(" Null.of?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append(" Null.of->");
-        return NullBuild.noEmpty(list, linkLog, new NullCollect());
+        return NullBuild.noEmpty(list, linkLog, new NullCollect(),new NullTaskList());
     }
 
     public static <T> NullChain<NullCollection<T>> of(NullCollection<T> list) {
         StringBuilder linkLog = new StringBuilder();
         if (Null.is(list)) {
             linkLog.append(" Null.of?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append(" Null.of->");
-        return NullBuild.noEmpty(list, linkLog, new NullCollect());
+        return NullBuild.noEmpty(list, linkLog, new NullCollect(),new NullTaskList());
     }
 
     public static <T> NullChain<Queue<T>> of(Queue<T> queue) {
         StringBuilder linkLog = new StringBuilder();
         if (Null.is(queue)) {
             linkLog.append(" Null.of?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append(" Null.of->");
-        return NullBuild.noEmpty(queue, linkLog, new NullCollect());
+        return NullBuild.noEmpty(queue, linkLog, new NullCollect(),new NullTaskList());
     }
 
     public static <T> NullChain<Deque<T>> of(Deque<T> queue) {
         StringBuilder linkLog = new StringBuilder();
         if (Null.is(queue)) {
             linkLog.append(" Null.of?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append(" Null.of->");
-        return NullBuild.noEmpty(queue, linkLog, new NullCollect());
+        return NullBuild.noEmpty(queue, linkLog, new NullCollect(),new NullTaskList());
     }
 
     public static <T> NullChain<NullDeque<T>> of(NullDeque<T> queue) {
         StringBuilder linkLog = new StringBuilder();
         if (Null.is(queue)) {
             linkLog.append(" Null.of?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append(" Null.of->");
-        return NullBuild.noEmpty(queue, linkLog, new NullCollect());
+        return NullBuild.noEmpty(queue, linkLog, new NullCollect(),new NullTaskList());
     }
 
     public static <T> NullChain<NullQuery<T>> of(NullQuery<T> queue) {
         StringBuilder linkLog = new StringBuilder();
         if (Null.is(queue)) {
             linkLog.append(" Null.of?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append(" Null.of->");
-        return NullBuild.noEmpty(queue, linkLog, new NullCollect());
+        return NullBuild.noEmpty(queue, linkLog, new NullCollect(),new NullTaskList());
     }
 
 
@@ -108,20 +117,20 @@ public class Null extends NullUtil {
         StringBuilder linkLog = new StringBuilder();
         if (Null.is(set)) {
             linkLog.append(" Null.of?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append(" Null.of->");
-        return NullBuild.noEmpty(set, linkLog, new NullCollect());
+        return NullBuild.noEmpty(set, linkLog, new NullCollect(),new NullTaskList());
     }
 
     public static <T> NullChain<NullSet<T>> of(NullSet<T> set) {
         StringBuilder linkLog = new StringBuilder();
         if (Null.is(set)) {
             linkLog.append(" Null.of?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append(" Null.of->");
-        return NullBuild.noEmpty(set, linkLog, new NullCollect());
+        return NullBuild.noEmpty(set, linkLog, new NullCollect(),new NullTaskList());
     }
 
 
@@ -129,10 +138,10 @@ public class Null extends NullUtil {
         StringBuilder linkLog = new StringBuilder();
         if (Null.is(list)) {
             linkLog.append(" Null.of?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append(" Null.of->");
-        return NullBuild.noEmpty(list, linkLog, new NullCollect());
+        return NullBuild.noEmpty(list, linkLog, new NullCollect(),new NullTaskList());
     }
 
 
@@ -140,10 +149,10 @@ public class Null extends NullUtil {
         StringBuilder linkLog = new StringBuilder();
         if (Null.is(list)) {
             linkLog.append(" Null.of?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append(" Null.of->");
-        return NullBuild.noEmpty(list, linkLog, new NullCollect());
+        return NullBuild.noEmpty(list, linkLog, new NullCollect(),new NullTaskList());
     }
 
 
@@ -151,20 +160,20 @@ public class Null extends NullUtil {
         StringBuilder linkLog = new StringBuilder();
         if (Null.is(map)) {
             linkLog.append(" Null.of?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append(" Null.of->");
-        return NullBuild.noEmpty(map, linkLog, new NullCollect());
+        return NullBuild.noEmpty(map, linkLog, new NullCollect(),new NullTaskList());
     }
 
     public static <K, V> NullChain<NullMap<K, V>> of(NullMap<K, V> map) {
         StringBuilder linkLog = new StringBuilder();
         if (Null.is(map)) {
             linkLog.append(" Null.of?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append(" Null.of->");
-        return NullBuild.noEmpty(map, linkLog, new NullCollect());
+        return NullBuild.noEmpty(map, linkLog, new NullCollect(),new NullTaskList());
     }
 
 
@@ -179,15 +188,60 @@ public class Null extends NullUtil {
         StringBuilder linkLog = new StringBuilder();
         if (stream == null) {
             linkLog.append(" Null.of?");
-            return NullBuild.emptyStream(linkLog, new NullCollect());
+            return NullBuild.emptyStream(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append(" Null.of->");
         NullCollect collect = new NullCollect();
-        return NullBuild.noEmptyStream((S) stream, linkLog, collect);
+        return NullBuild.noEmptyStream((S) stream, linkLog, collect,new NullTaskList());
     }
 
+
+    public static <NUM extends Number> NullCalculate<BigDecimal> ofCalc(NUM num) {
+        StringBuilder linkLog = new StringBuilder();
+        if (num == null) {
+            linkLog.append(" Null.ofCalc?");
+            return NullBuild.emptyCalc(linkLog, new NullCollect(),new NullTaskList());
+        }
+        linkLog.append(" Null.ofCalc->");
+        NullCollect collect = new NullCollect();
+        return NullBuild.noEmptyCalc(BigDecimal.valueOf(num.doubleValue()), linkLog, collect,new NullTaskList());
+    }
+
+    public static <NUM extends Number> NullCalculate<BigDecimal> ofCalc(NullChain<NUM> nullChain) {
+        StringBuilder linkLog = new StringBuilder();
+        if (nullChain == null || nullChain.is()) {
+            linkLog.append(" Null.ofCalc?");
+            return NullBuild.emptyCalc(linkLog, new NullCollect(),new NullTaskList());
+        }
+        linkLog.append(" Null.ofCalc->");
+        return NullBuild.noEmptyCalc(BigDecimal.valueOf(nullChain.get().doubleValue()), linkLog, new NullCollect(),new NullTaskList());
+    }
+
+    //将Collection转为NullStream
+    public static <S> NullStream<S> ofStream(Collection<S> collection) {
+        StringBuilder linkLog = new StringBuilder();
+        if (collection == null) {
+            linkLog.append(" Null.toStream?");
+            return NullBuild.emptyStream(linkLog, new NullCollect(),new NullTaskList());
+        }
+        linkLog.append(" Null.toStream->");
+        return NullBuild.noEmptyStream((S) collection.stream(), linkLog,  new NullCollect(),new NullTaskList());
+    }
+
+    //将数组转为NullStream
+    public static <T> NullStream<T> ofStream(NullChain<? extends Collection<T>> nullChain) {
+        StringBuilder linkLog = new StringBuilder();
+        if (nullChain == null || nullChain.is()) {
+            linkLog.append(" Null.toStream?");
+            return NullBuild.emptyStream(linkLog, new NullCollect(),new NullTaskList());
+        }
+        linkLog.append(" Null.toStream->");
+        return NullBuild.noEmptyStream((T)nullChain.get().stream(), linkLog,  new NullCollect(),new NullTaskList());
+    }
+
+
     public static <T> NullChain<T> empty() {
-        return NullBuild.empty(new StringBuilder(), new NullCollect());
+        return NullBuild.empty(new StringBuilder(), new NullCollect(),new NullTaskList());
     }
 
 

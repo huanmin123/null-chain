@@ -2,11 +2,7 @@ package com.gitee.huanminabc.nullchain.base.sync;
 
 
 import com.gitee.huanminabc.nullchain.base.async.NullChainAsync;
-import com.gitee.huanminabc.nullchain.base.leaf.calculate.NullCalculate;
-import com.gitee.huanminabc.nullchain.base.sync.stream.NullStream;
-import com.gitee.huanminabc.nullchain.common.function.NullFun;
-
-import java.math.BigDecimal;
+import com.gitee.huanminabc.nullchain.base.leaf.stream.NullStream;
 
 /**
  * @author huanmin
@@ -15,9 +11,9 @@ import java.math.BigDecimal;
 public interface NullConvert<T> extends NullTools<T> {
 
     //同步转异步
-    NullChainAsync<T> async();
+    NullChain<T> async();
     //带线程池的同步转异步
-    NullChainAsync<T> async(String threadFactoryName);
+    NullChain<T> async(String threadFactoryName);
 
 
     //将object转化为指定的类型 这种一般用于,你通过某种操作,导致推导出来的类型变为了Object, 但是你知道它的具体类型, 那么你可以使用这个方法
@@ -27,13 +23,6 @@ public interface NullConvert<T> extends NullTools<T> {
 
     <U> NullChain<U> type(U uClass);
 
-    // 转换为stream，只能处理Collection的子类和数组
-    // 使用的时候需要指定泛型的类型 xxx.<T>toStream()
-    // 如果是map返回的是Map.Entry<K, V> , 那么需要<Map.Entry<String,Integer>>toStream()来指定类型
-    <V> NullStream<V> toStream();
-    <V> NullStream<V> toParallelStream();
 
-    //转计算 , 支持Number 和 String(数字)
-    <V> NullChain<V> calc(NullFun<NullCalculate<BigDecimal>,NullCalculate<BigDecimal>> calc, NullFun<BigDecimal, V> pickValue);
 
 }

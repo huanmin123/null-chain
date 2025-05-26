@@ -27,12 +27,20 @@ import java.lang.reflect.Method;
 public class NullReflectionKit {
 
     //追加异常链路信息
-    public  static  <X extends Throwable> X orThrow(X exception,StringBuilder linkLog) throws X {
+    public  static  <X extends RuntimeException> X orRuntimeException(X exception, StringBuilder linkLog) throws X {
         //反射取出来最顶级的detailMessage,把链路信息放进去
         Class<? extends Throwable> aClass = exception.getClass();
         updateDetailMessage(exception, linkLog, aClass);
         return exception;
     }
+    public  static  <X extends Throwable> X orThrowable(X exception, StringBuilder linkLog) throws X {
+        //反射取出来最顶级的detailMessage,把链路信息放进去
+        Class<? extends Throwable> aClass = exception.getClass();
+        updateDetailMessage(exception, linkLog, aClass);
+        return exception;
+    }
+
+
 
     public  static  <X extends Throwable> NullChainException addRunErrorMessage(X exception, StringBuilder linkLog)  {
         //反射取出来最顶级的detailMessage,把链路信息放进去

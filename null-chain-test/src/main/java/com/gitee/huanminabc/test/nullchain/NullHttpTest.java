@@ -76,12 +76,12 @@ public class NullHttpTest {
         Map<String,Object> from=new HashMap<>();
         from.put("username","admin");
         from.put("password","123");
-        NullChainAsync<String> str = Null.of(from).async().http("http://127.0.0.1:8798/user/userInfo/get").get().toStr().then((v)->{
-            System.out.println("异步回调:"+v);
-        });
+//        NullChainAsync<String> str = Null.of(from).async().http("http://127.0.0.1:8798/user/userInfo/get").get().toStr().then((v)->{
+//            System.out.println("异步回调:"+v);
+//        });
         System.out.println("===========================");
 
-        str.ifPresent(System.out::println);
+//        str.ifPresent(System.out::println);
 
     }
     @Test

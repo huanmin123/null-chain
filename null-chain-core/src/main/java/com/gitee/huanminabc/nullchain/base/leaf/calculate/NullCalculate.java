@@ -1,5 +1,8 @@
 package com.gitee.huanminabc.nullchain.base.leaf.calculate;
 
+import com.gitee.huanminabc.nullchain.base.sync.NullChain;
+import com.gitee.huanminabc.nullchain.common.function.NullFun;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
@@ -17,17 +20,17 @@ public interface NullCalculate<T extends BigDecimal> {
     <V extends Number> NullCalculate<T> add(V t2,V defaultValue);
 
     //减
-    <V extends Number> NullCalculate<T> subtract(V t2);
-    <V extends Number> NullCalculate<T> subtract(V t2,V defaultValue);
+    <V extends Number> NullCalculate<T> sub(V t2);
+    <V extends Number> NullCalculate<T> sub(V t2, V defaultValue);
 
     //乘
-    <V extends Number> NullCalculate<T> multiply(V t2);
+    <V extends Number> NullCalculate<T> mul(V t2);
 
-    <V extends Number> NullCalculate<T> multiply(V t2,V defaultValue);
+    <V extends Number> NullCalculate<T> mul(V t2, V defaultValue);
 
     //除
-    <V extends Number> NullCalculate<T> divide(V t2);
-    <V extends Number> NullCalculate<T> divide(V t2,V defaultValue);
+    <V extends Number> NullCalculate<T> div(V t2);
+    <V extends Number> NullCalculate<T> div(V t2, V defaultValue);
 
 
     //取反 比如-1.0变成1.0  而1.0变成-1.0
@@ -53,5 +56,5 @@ public interface NullCalculate<T extends BigDecimal> {
     //默认保留2位 并且 四舍五入
     NullCalculate<T> round();
 
-
+    <V extends Number> NullChain<V> map(NullFun<BigDecimal, V> pickValue);
 }

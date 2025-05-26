@@ -3,15 +3,12 @@ package com.gitee.huanminabc.nullchain.base.sync;
 
 import com.gitee.huanminabc.common.multithreading.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.base.async.NullChainAsync;
-import com.gitee.huanminabc.nullchain.base.leaf.calculate.NullCalculate;
-import com.gitee.huanminabc.nullchain.base.leaf.calculate.NullCalculateBase;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
-import com.gitee.huanminabc.nullchain.base.sync.stream.NullStream;
+import com.gitee.huanminabc.nullchain.base.leaf.stream.NullStream;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
-import com.gitee.huanminabc.nullchain.common.function.NullFun;
+import com.gitee.huanminabc.nullchain.common.NullTaskList;
 
-import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
@@ -23,173 +20,81 @@ import java.util.stream.Stream;
 public class NullConvertBase<T> extends NullToolsBase<T> implements NullConvert<T> {
 
 
-    public NullConvertBase(StringBuilder linkLog, boolean isNull, NullCollect collect) {
-        super(linkLog, isNull, collect);
+    public NullConvertBase(StringBuilder linkLog, boolean isNull, NullCollect collect, NullTaskList taskList) {
+        super(linkLog, isNull, collect,taskList);
     }
 
-    public NullConvertBase(T object, StringBuilder linkLog, NullCollect collect) {
-        super(object, linkLog, collect);
-    }
-
-    @Override
-    public NullChainAsync<T> async() {
-        if (isNull) {
-            return NullBuild.emptyAsync(linkLog, collect);
-        }
-        linkLog.append("async->");
-        //开启异步
-        CompletableFuture<T> completableFuture = new CompletableFuture<>();
-        completableFuture.complete(value);
-        return NullBuild.noEmptyAsync(completableFuture, linkLog,ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME, collect);
+    public NullConvertBase(T object, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
+        super(object, linkLog, collect,taskList);
     }
 
     @Override
-    public NullChainAsync<T> async(String threadFactoryName) throws NullChainException {
-        if (isNull) {
-            return NullBuild.emptyAsync(linkLog, collect);
-        }
-        ThreadFactoryUtil.addExecutor(threadFactoryName);
-        linkLog.append("async->");
-        //开启异步
-        CompletableFuture<T> completableFuture = new CompletableFuture<>();
-        completableFuture.complete(value);
-        return NullBuild.noEmptyAsync(completableFuture, linkLog, threadFactoryName, collect);
+    public NullChain<T> async() {
+        this.taskList.add((value)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect,taskList);
+            }
+            linkLog.append("async->");
+            NullChainBase<T> chain = (NullChainBase)NullBuild.noEmpty(value, linkLog, collect, taskList);
+            chain.async=true;
+            return chain;
+        });
+        return  NullBuild.busy(this);
+        
+    }
+
+    @Override
+    public NullChain<T> async(String threadFactoryName) throws NullChainException {
+        this.taskList.add((value)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect,taskList);
+            }
+            ThreadFactoryUtil.addExecutor(threadFactoryName);
+            linkLog.append("async->");
+//            //开启异步
+//            CompletableFuture<T> completableFuture = new CompletableFuture<>();
+//            completableFuture.complete(value);
+//            return NullBuild.noEmpty(completableFuture, linkLog, threadFactoryName, collect);
+            NullChainBase<T> chain = (NullChainBase)NullBuild.noEmpty(value, linkLog, collect, taskList);
+            chain.async=true;
+            return chain;
+        });
+        return  NullBuild.busy(this);
     }
 
     @Override
     public <U> NullChain<U> type(Class<U> uClass) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        if (uClass == null) {
-            throw new NullChainException(linkLog.append("type? ").append("转换类型不能为空").toString());
-        }
-        if (uClass.isInstance(value)) {
-            linkLog.append("type->");
-            return NullBuild.noEmpty(uClass.cast(value), linkLog, collect);
-        } else {
-            linkLog.append("type? ").append("类型不匹配 ").append(value.getClass().getName()).append(" vs ").append(uClass.getName());
-            return NullBuild.empty(linkLog, collect);
-        }
+        this.taskList.add((value)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            if (uClass == null) {
+                throw new NullChainException(linkLog.append("type? ").append("转换类型不能为空").toString());
+            }
+            if (uClass.isInstance(value)) {
+                linkLog.append("type->");
+                return NullBuild.noEmpty(uClass.cast(value), linkLog, collect,taskList);
+            } else {
+                linkLog.append("type? ").append("类型不匹配 ").append(value.getClass().getName()).append(" vs ").append(uClass.getName());
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+        });
+        return  NullBuild.busy(this);
+
     }
 
     @Override
     public <U> NullChain<U> type(U uClass) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        if (uClass == null) {
-            throw new NullChainException(linkLog.append("type? ").append("转换类型不能为空").toString());
-        }
-        return type((Class<U>) uClass.getClass());
-    }
-
-
-
-    @Override
-    public <C> NullStream<C> toStream() {
-        if (isNull) {
-            return NullBuild.emptyStream(linkLog, collect);
-        }
-        return toStream((Class) value.getClass());
-    }
-
-
-
-    @Override
-    public <V> NullStream<V> toParallelStream() {
-        if (isNull) {
-            return NullBuild.emptyStream(linkLog, collect);
-        }
-        return toParallelStream((Class) value.getClass());
-    }
-
-    @Override
-    public <V> NullChain<V> calc(NullFun<NullCalculate<BigDecimal>, NullCalculate<BigDecimal>> calc, NullFun<BigDecimal, V> pickValue) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect);
-        }
-        if (value instanceof Number) {
-            BigDecimal bigDecimal = BigDecimal.valueOf(((Number) value).doubleValue());
-            NullCalculateBase<BigDecimal> apply = (NullCalculateBase)calc.apply(NullBuild.noEmptyCalc(bigDecimal, linkLog, collect));
-            if (apply.isEmpty()){
-                return NullBuild.empty(linkLog, collect);
+        this.taskList.add((value)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
             }
-            V v = pickValue.apply(apply.getValue());
-            linkLog.append("calc->");
-            return NullBuild.noEmpty(v, linkLog, collect);
-        }
-        //如果是字符串,判断是否是数字
-        if (value instanceof String) {
-            try {
-                BigDecimal bigDecimal = new BigDecimal((String) value);
-                NullCalculateBase<BigDecimal> apply = (NullCalculateBase)calc.apply(NullBuild.noEmptyCalc(bigDecimal, linkLog, collect));
-                if (apply.isEmpty()){
-                    return NullBuild.empty(linkLog, collect);
-                }
-                V v = pickValue.apply(apply.getValue());
-                linkLog.append("calc->");
-                return NullBuild.noEmpty(v, linkLog, collect);
-            } catch (Exception e) {
-                linkLog.append("calc? ");
-                throw new NullChainException(linkLog.append("calc? ").append(value).append(" 不是数字").toString());
+            if (uClass == null) {
+                throw new NullChainException(linkLog.append("type? ").append("转换类型不能为空").toString());
             }
-        }
-        throw new NullChainException(linkLog.append("calc? ").append(value.getClass()).append("类型不兼容Number").toString());
+            return type((Class<U>) uClass.getClass());
+        });
+        return  NullBuild.busy(this);
     }
 
-    private  <V> NullStream<V> toStream(Class<V> type) {
-        if (isNull) {
-            return NullBuild.emptyStream(linkLog, collect);
-        }
-        if (type == null) {
-            throw new NullChainException(linkLog.append("toStream? ").append("type must not be null").toString());
-        }
-        if (value instanceof Collection) {
-            linkLog.append("toStream->");
-            Collection collection = (Collection) value;
-            return NullBuild.noEmptyStream((V) collection.stream(), linkLog, collect);
-        }
-        //数组
-        if (value instanceof Object[]) {
-            linkLog.append("toStream->");
-            Object[] array = (Object[]) value;
-            return NullBuild.noEmptyStream((V) Stream.of(array), linkLog, collect);
-        }
-        //map
-        if (value instanceof java.util.Map) {
-            linkLog.append("toStream->");
-            java.util.Map map = (java.util.Map) value;
-            return NullBuild.noEmptyStream((V) map.entrySet().stream(), linkLog, collect);
-        }
-
-
-        throw new NullChainException(linkLog.append("toStream? ").append(value.getClass()).append("类型不支持转换为Stream").toString());
-    }
-    private  <V> NullStream<V> toParallelStream(Class<V> type) {
-        if (isNull) {
-            return NullBuild.emptyStream(linkLog, collect);
-        }
-        if (type == null) {
-            throw new NullChainException(linkLog.append("toParallelStream? ").append("type must not be null").toString());
-        }
-        if (value instanceof Collection) {
-            linkLog.append("toParallelStream->");
-            Collection collection = (Collection) value;
-            return NullBuild.noEmptyStream((V) collection.parallelStream(), linkLog, collect);
-        }
-        //数组
-        if (value instanceof Object[]) {
-            linkLog.append("toParallelStream->");
-            Object[] array = (Object[]) value;
-            return NullBuild.noEmptyStream((V) Stream.of(array).parallel(), linkLog, collect);
-        }
-        //map
-        if (value instanceof java.util.Map) {
-            linkLog.append("toParallelStream->");
-            java.util.Map map = (java.util.Map) value;
-            return NullBuild.noEmptyStream((V) map.entrySet().stream().parallel(), linkLog, collect);
-        }
-        throw new NullChainException(linkLog.append("toParallelStream? ").append(value.getClass()).append("类型不支持转换为Stream").toString());
-    }
 }

@@ -87,14 +87,18 @@ public class ObjNullTest {
     @SneakyThrows
     @Test
     public void of_ok01() {
-        Null.of(userEntity).map(UserEntity::getAnInt).ifPresent(System.out::println);
+//        Null.of(userEntity).map(UserEntity::getAnInt).ifPresent(System.out::println);
 
-        Object str = "123";
-        Null.of(str).type(String.class).map(String::length).ifPresent(System.out::println);
-        Null.of(str).type("").map(String::length).ifPresent(System.out::println);
+
+        Null.of(userEntity).async().map(UserEntity::getAnInt).ifPresent(System.out::println);
+        System.out.println("=============================");
+
+//        Object str = "123";
+//        Null.of(str).type(String.class).map(String::length).ifPresent(System.out::println);
+//        Null.of(str).type("").map(String::length).ifPresent(System.out::println);
 //        userEntity.setName(null);
-        boolean iss = Null.of(userEntity).of(UserEntity::getId).is();
-        System.out.println(iss);//false
+//        boolean iss = Null.of(userEntity).of(UserEntity::getId).is();
+//        System.out.println(iss);//false
 
     }
 
@@ -213,19 +217,17 @@ public class ObjNullTest {
     @Test
     public void testeq() {
         String eqa = "123";
-        boolean eq = Null.of(eqa).eq("123");
-        System.out.println(eq);
-        boolean notEq = Null.of(eqa).notEq("123");
-        System.out.println(notEq); //false
-
-        boolean eq1 = Null.of(eqa).inAny("1234", "123");
-        System.out.println(eq1);
-        Set<String> strings = Sets.newHashSet("123", "1234");
-        boolean eq2 = Null.of(eqa).notIn(strings.toArray(new String[0]));
-        System.out.println(eq2);
+//        boolean eq = Null.of(eqa).eq("123");
+//        System.out.println(eq);
+//        boolean notEq = Null.of(eqa).notEq("123");
+//        System.out.println(notEq); //false
+//
+//        boolean eq1 = Null.of(eqa).inAny("1234", "123");
+//        System.out.println(eq1);
+//        Set<String> strings = Sets.newHashSet("123", "1234");
+//        boolean eq2 = Null.of(eqa).notIn(strings.toArray(new String[0]));
+//        System.out.println(eq2);
     }
-
-
 
 
     @Test
@@ -272,9 +274,6 @@ public class ObjNullTest {
                 .dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.YEARS).get();
 
         System.out.println(time222);
-
-
-
 
 
     }
@@ -346,8 +345,8 @@ public class ObjNullTest {
         Map map = new HashMap();
         map.put("1", 1);
         map.put("2", 2);
-        int length = Null.of(map).length();
-        System.out.println(length);
+//        int length = Null.of(map).length();
+//        System.out.println(length);
     }
 
     @Test
@@ -355,10 +354,10 @@ public class ObjNullTest {
         Integer a = 12344;
         Integer b = 1233;
         Long c = 1233L;
-        boolean lt = Null.of(a).le(123);
-        boolean lt1 = Null.of(c).le(123L);
-        boolean lt2 = Null.of("").le("112");
-        System.out.println(lt);
+//        boolean lt = Null.of(a).le(123);
+//        boolean lt1 = Null.of(c).le(123L);
+//        boolean lt2 = Null.of("").le("112");
+//        System.out.println(lt);
 
 
         Long l = Null.of(Stream.of(1, 2, 34)).count().get();
@@ -367,20 +366,16 @@ public class ObjNullTest {
 
     @Test
     public void ofStream() {
-        List<RoleEntity> roleEntities = Null.of(userEntity)
-                .map(UserEntity::getList)
-                .<UserEntity>toStream()
-                .filter(Null::non)
+        NullChain<List<UserEntity>> listNullChain = Null.of(userEntity)
+                .map(UserEntity::getList);
+        List<RoleEntity> roleEntities = Null.ofStream(listNullChain).filter(Null::non)
                 .map(UserEntity::getRoleData)
                 .sorted(Comparator.comparing(RoleEntity::getRoleName))
-                .collect(Collectors.toList()).get();
+                .collect(Collectors.toList())
+                .get();
         System.out.println(roleEntities);
-
-
-        List<UserEntity> userEntityList = new ArrayList<>();
-        userEntityList.add(userEntity);
-
     }
+
 
     @Test
     public void copy() {
@@ -406,13 +401,13 @@ public class ObjNullTest {
     }
 
     @Test
-    public  void or(){
+    public void or() {
         String str = "123";
         String str1 = Null.of(str).or("456").get();
         System.out.println(str1);
 
         String str2 = null;
-        String str3 = Null.of(str2).or(()->"123").get();
+        String str3 = Null.of(str2).or(() -> "123").get();
         System.out.println(str3);
 
     }
@@ -423,8 +418,9 @@ public class ObjNullTest {
         roleEntity.setRoleName("admin");
         return Null.of(roleEntity);
     }
+
     @Test
-    public  void unChain() {
+    public void unChain() {
         Null.of(userEntity)
                 .map(UserEntity::getId)
                 .map(this::testChain)//返回NullChain<RoleEntity>, 后续无法继续操作RoleEntity了需要脱壳
@@ -441,10 +437,11 @@ public class ObjNullTest {
     private Optional<RoleEntity> testOptional(Integer t) {
         RoleEntity roleEntity = new RoleEntity();
         roleEntity.setRoleName("admin");
-        return  Optional.of(roleEntity);
+        return Optional.of(roleEntity);
     }
+
     @Test
-    public  void unOptional(){
+    public void unOptional() {
         Null.of(userEntity)
                 .map(UserEntity::getId)
                 .flatOptional(this::testOptional)
@@ -453,7 +450,7 @@ public class ObjNullTest {
     }
 
     @Test
-    public  void orEmpty(){
+    public void orEmpty() {
         UserExtEntity userExtEntity = Null.orEmpty(null, UserExtEntity.class);
         System.out.println(userExtEntity.is());
 
@@ -461,20 +458,21 @@ public class ObjNullTest {
 
 
     @Test
-    public  void nullCalculate(){
-        Double v = Null.of(10.5).calc((num) -> num.add(1).add(2), BigDecimal::doubleValue).get();
+    public void nullCalculate() {
+        NullChain<Double> doubleNullChain = Null.of(10.5);
+        Double v = Null.ofCalc(doubleNullChain).add(2).sub(1).map(BigDecimal::doubleValue).get();
         System.out.println(v);
     }
 
 
-    public  void ofStream1231(){
+    public void ofStream1231() {
         Map<String, Object> map = new HashMap<>();
         map.put("1", 1);
         map.put("2", 2);
-        Null.of(map).<Map.Entry<String,Integer>>toStream().forEach((entry) -> {
-            System.out.println(entry.getKey());
-            System.out.println(entry.getValue());
-        });
+//        Null.of(map).<Map.Entry<String, Integer>>toStream().forEach((entry) -> {
+//            System.out.println(entry.getKey());
+//            System.out.println(entry.getValue());
+//        });
     }
 
 }

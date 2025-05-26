@@ -23,26 +23,9 @@ public interface NullFinality<T>  extends Serializable {
     boolean is();
 
     /**
-     * 提取上个任务内部的多个值,只要有一个是空那么就返回true
-     */
-    boolean isAny(NullFun<? super T, ?>... function);
-
-    //全部是空返回true , 只要有一个不是空返回false
-    boolean isAll(NullFun<? super T, ?>... function);
-
-    /**
      * 判断上一个任务的值是否是空. true表示不是空, false是空
      */
     boolean non();
-
-    /**
-     * 提取上个任务内部的多个值,全部不为空那么就返回true
-     */
-    boolean nonAll(NullFun<? super T, ?>... function);
-
-
-
-
 
     /**
      * 获取上一个任务的值, 如果上一个任务是空那么就抛出异常,外部调用者需要捕获异常进行处理为空的情况
@@ -98,57 +81,23 @@ public interface NullFinality<T>  extends Serializable {
 
 
 
-    /**
-     * 判断是否相等 如果相等返回true
-     * 注意: 如果上一个任务返回的是null那么就返回false
-     * (示例: a==b)
-     */
-    <U extends T> boolean eq(U obj);
-
-    <U extends T> boolean eqAny(U... b);
-
-
-    /**
-     * 判断是否不相等 如果不相等返回true
-     * 注意: 如果上一个任务返回的是null那么就返回false
-     * (示例: a!=b)
-     */
-    <U extends T> boolean notEq(U obj);
-
-    <U extends T> boolean notEqAll(U... b);
-
-
-    /**
-     * 上个任务的值和多个值比较,只要有一个相等就返回true
-     * 注意: 如果上一个任务返回的是null那么就返回false
-     *  (示例: a==b || a==c || a==d)
-     */
-    <U extends T> boolean inAny(U... obj);
-
-
-    /**
-     * 上个任务的值和多个值比较,全部不相等就返回true
-     * (示例: a!=b && a!=c && a!=d)
-     */
-    <U extends T> boolean notIn(U... obj);
-
-
-    //le 小于等于 , 上一个任务的值小于等于obj的值
-    <C extends Comparable<T>> boolean le(C obj);
-
-    //lt 小于 , 上一个任务的值小于obj的值
-    <C extends Comparable<T>> boolean lt(C obj);
-
-    //ge 大于等于 , 上一个任务的值大于等于obj的值
-    <C extends Comparable<T>> boolean ge(C obj);
-
-    //gt 大于 , 上一个任务的值大于obj的值
-    <C extends Comparable<T>> boolean gt(C obj);
-
-    /**
-     * 自定义逻辑判断
-     */
-    boolean logic(Function<T ,Boolean> obj);
+//
+//    //le 小于等于 , 上一个任务的值小于等于obj的值
+//    <C extends Comparable<T>> boolean le(C obj);
+//
+//    //lt 小于 , 上一个任务的值小于obj的值
+//    <C extends Comparable<T>> boolean lt(C obj);
+//
+//    //ge 大于等于 , 上一个任务的值大于等于obj的值
+//    <C extends Comparable<T>> boolean ge(C obj);
+//
+//    //gt 大于 , 上一个任务的值大于obj的值
+//    <C extends Comparable<T>> boolean gt(C obj);
+//
+//    /**
+//     * 自定义逻辑判断
+//     */
+//    boolean logic(Function<T ,Boolean> obj);
 
 
 
@@ -161,13 +110,13 @@ public interface NullFinality<T>  extends Serializable {
 
     void ifPresentOrElse(Consumer<? super T> action, Runnable emptyAction);
 
-    /**
-     * 获取值的长度, 如果值是null那么返回0
-     * 1. 如果8大数据类型那么返回的是toString 的长度
-     * 2. 如果是集合和数组那么返回的是 length 或者 size的长度
-     * 3. 如果是自定义对象内部有length 或者 size方法那么返回的是length 或者 size的长度
-     */
-    int length();
+//    /**
+//     * 获取值的长度, 如果值是null那么返回0
+//     * 1. 如果8大数据类型那么返回的是toString 的长度
+//     * 2. 如果是集合和数组那么返回的是 length 或者 size的长度
+//     * 3. 如果是自定义对象内部有length 或者 size方法那么返回的是length 或者 size的长度
+//     */
+//    int length();
 
 
 

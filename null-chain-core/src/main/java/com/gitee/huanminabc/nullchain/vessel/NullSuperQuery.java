@@ -4,6 +4,7 @@ import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.base.sync.NullChain;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
+import com.gitee.huanminabc.nullchain.common.NullTaskList;
 
 import java.util.*;
 
@@ -53,10 +54,10 @@ public class NullSuperQuery<T> implements NullQuery<T> {
         T poll = queue.poll();
         if (Null.is(poll)) {
             linkLog.append("NullSuperQuery.poll?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append("NullSuperQuery.poll->");
-        return NullBuild.noEmpty(poll, linkLog, new NullCollect());
+        return NullBuild.noEmpty(poll, linkLog, new NullCollect(),new NullTaskList());
     }
 
     @Override
@@ -70,10 +71,10 @@ public class NullSuperQuery<T> implements NullQuery<T> {
         T peek = queue.peek();
         if (Null.is(peek)) {
             linkLog.append("NullSuperQuery.peek?");
-            return NullBuild.empty(linkLog, new NullCollect());
+            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
         }
         linkLog.append("NullSuperQuery.peek->");
-        return NullBuild.noEmpty(peek, linkLog, new NullCollect());
+        return NullBuild.noEmpty(peek, linkLog, new NullCollect(),new NullTaskList());
     }
 
     @Override

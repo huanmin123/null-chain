@@ -44,7 +44,7 @@ public interface NullChain<T> extends NullConvert<T> {
      * @return
      * @param <X>
      */
-    <X extends Throwable> NullChain<T> check(Supplier<? extends X> exceptionSupplier) throws X;
+    <X extends RuntimeException> NullChain<T> check(Supplier<? extends X> exceptionSupplier) throws X;
 
     /**
      * 如果是空继续往下走, 但是不会用到这个值 , 也不会出现空指针, 只是一种并且的补充

@@ -17,19 +17,19 @@ import com.gitee.huanminabc.nullchain.common.NullReflectionKit;
 
 public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T> {
 
-    public NullToolsBase(StringBuilder linkLog, boolean isNull, NullCollect collect) {
-        super(linkLog, isNull, collect);
+    public NullToolsBase(StringBuilder linkLog, boolean isNull, NullCollect collect, NullTaskList taskList) {
+        super(linkLog, isNull, collect,taskList);
     }
 
-    public NullToolsBase(T object, StringBuilder linkLog, NullCollect collect) {
-        super(object, linkLog, collect);
+    public NullToolsBase(T object, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
+        super(object, linkLog, collect,taskList);
     }
 
     //将时间类型(Date,LocalDate,LocalDateTime), 10或13位时间戳, 转换为指定格式的时间字符串
     @Override
     public NullChain<String> dateFormat(DateFormatEnum dateFormatEnum) {
         if (isNull) {
-            return NullBuild.empty(linkLog, collect);
+            return NullBuild.empty(linkLog, collect, taskList);
         }
 
         String string;
@@ -44,13 +44,13 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
             throw new NullChainException(linkLog.toString());
         }
         linkLog.append("dateFormat->");
-        return NullBuild.noEmpty(string, linkLog, collect);
+        return NullBuild.noEmpty(string, linkLog, collect,taskList);
     }
 
     @Override
     public NullChain<T> dateOffset(DateOffsetEnum offsetEnum, int num, TimeEnum timeEnum) {
         if (isNull) {
-            return NullBuild.empty(linkLog, collect);
+            return NullBuild.empty(linkLog, collect, taskList);
         }
         T t;
         try {
@@ -64,7 +64,7 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
             throw new NullChainException(linkLog.toString());
         }
         linkLog.append("dateOffset->");
-        return NullBuild.noEmpty(t, linkLog, collect);
+        return NullBuild.noEmpty(t, linkLog, collect,taskList);
     }
 
     @Override
@@ -75,7 +75,7 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
     @Override
     public NullChain<Integer> dateCompare(Object date) {
         if (isNull) {
-            return NullBuild.empty(linkLog, collect);
+            return NullBuild.empty(linkLog, collect, taskList);
         }
 
         Integer compare;
@@ -90,19 +90,19 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
             throw new NullChainException(linkLog.toString());
         }
         linkLog.append("dateCompare->");
-        return NullBuild.noEmpty(compare, linkLog, collect);
+        return NullBuild.noEmpty(compare, linkLog, collect, taskList);
     }
 
 
     @Override
     public NullChain<String> json() {
         if (isNull) {
-            return NullBuild.empty(linkLog, collect);
+            return NullBuild.empty(linkLog, collect, taskList);
         }
         //如果是字符串直接返回
         if (value instanceof String) {
             linkLog.append("json->");
-            return NullBuild.noEmpty(value.toString(), linkLog, collect);
+            return NullBuild.noEmpty(value.toString(), linkLog, collect, taskList);
         }
         try {
             String json = JSON.toJSONString(value);
@@ -113,10 +113,10 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
                     json.equals("{\"empty\":false}")// 这个是因为继承了NULLCheck里面的isEmpty方法导致的
             ) {
                 linkLog.append("json? ");
-                return NullBuild.empty(linkLog, collect);
+                return NullBuild.empty(linkLog, collect, taskList);
             }
             linkLog.append("json->");
-            return NullBuild.noEmpty(json, linkLog, collect);
+            return NullBuild.noEmpty(json, linkLog, collect, taskList);
         } catch (Exception e) {
             linkLog.append("json? ");
             throw NullReflectionKit.addRunErrorMessage(e, linkLog);
@@ -126,7 +126,7 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
     @Override
     public <U> NullChain<U> json(Class<U> uClass) {
         if (isNull) {
-            return NullBuild.empty(linkLog, collect);
+            return NullBuild.empty(linkLog, collect, taskList);
         }
         if (uClass == null) {
             throw new NullChainException(linkLog.append("json? ").append(uClass).append(" 不是字符串").toString());
@@ -139,7 +139,7 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
         try {
             U u = JSON.parseObject(value.toString(), uClass);
             linkLog.append("json->");
-            return NullBuild.noEmpty(u, linkLog, collect);
+            return NullBuild.noEmpty(u, linkLog, collect, taskList);
         } catch (Exception e) {
             linkLog.append("json? ");
             throw NullReflectionKit.addRunErrorMessage(e, linkLog);
@@ -149,7 +149,7 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
     @Override
     public <U> NullChain<U> json(U uClass) {
         if (isNull) {
-            return NullBuild.empty(linkLog, collect);
+            return NullBuild.empty(linkLog, collect, taskList);
         }
         return json((Class<U>) uClass.getClass());
     }
@@ -157,11 +157,11 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
     @Override
     public NullChain<T> copy() {
         if (isNull) {
-            return NullBuild.empty(linkLog, collect);
+            return NullBuild.empty(linkLog, collect, taskList);
         }
         try {
             linkLog.append("copy->");
-            return NullBuild.noEmpty(BeanCopyUtil.copy(value), linkLog, collect);
+            return NullBuild.noEmpty(BeanCopyUtil.copy(value), linkLog, collect, taskList);
         } catch (Exception e) {
             linkLog.append("copy? ");
             throw NullReflectionKit.addRunErrorMessage(e, linkLog);
@@ -171,11 +171,11 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
     @Override
     public NullChain<T> deepCopy() {
         if (isNull) {
-            return NullBuild.empty(linkLog, collect);
+            return NullBuild.empty(linkLog, collect, taskList);
         }
         try {
             linkLog.append("deepCopy->");
-            return NullBuild.noEmpty(BeanCopyUtil.deepCopy(value), linkLog, collect);
+            return NullBuild.noEmpty(BeanCopyUtil.deepCopy(value), linkLog, collect, taskList);
         } catch (Exception e) {
             linkLog.append("deepCopy? ");
             throw NullReflectionKit.addRunErrorMessage(e, linkLog);
@@ -186,7 +186,7 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
     @Override
     public final <U> NullChain<T> pick(NullFun<? super T, ? extends U>... mapper) {
         if (isNull) {
-            return NullBuild.empty(linkLog, collect);
+            return NullBuild.empty(linkLog, collect, taskList);
         }
         if (Null.is(mapper)) {
             throw new NullChainException(linkLog.append("pick? 传参不能为空").toString());
@@ -206,7 +206,7 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
                 }
             }
             linkLog.append("pick->");
-            return NullBuild.noEmpty(object, linkLog, collect);
+            return NullBuild.noEmpty(object, linkLog, collect, taskList);
         } catch (Exception e) {
             linkLog.append("pick? ");
             throw NullReflectionKit.addRunErrorMessage(e, linkLog);
@@ -245,7 +245,7 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
     @Override
     public <R> NullChain<R> tool(Class<? extends NullTool<T, R>> tool) {
         if (isNull) {
-            return NullBuild.empty(linkLog, collect);
+            return NullBuild.empty(linkLog, collect, taskList);
         }
         return tool(tool, new Object[]{});
     }
@@ -253,7 +253,7 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
     @Override
     public <R> NullChain<R> tool(Class<? extends NullTool<T, R>> tool, Object... params) {
         if (isNull) {
-            return NullBuild.empty(linkLog, collect);
+            return NullBuild.empty(linkLog, collect, taskList);
         }
 
         NullTool<T, R> tool1 = NullToolFactory.getTool(tool);
@@ -265,10 +265,10 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
             R run = NullBuild.toolRun(value, tool1, linkLog, params);
             if (Null.is(run)) {
                 linkLog.append("tool? ");
-                return NullBuild.empty(linkLog, collect);
+                return NullBuild.empty(linkLog, collect, taskList);
             }
             linkLog.append("tool->");
-            return NullBuild.noEmpty(run, linkLog, collect);
+            return NullBuild.noEmpty(run, linkLog, collect, taskList);
         } catch (NullChainCheckException e) {
             throw new NullChainException(e);
         } catch (Exception e) {

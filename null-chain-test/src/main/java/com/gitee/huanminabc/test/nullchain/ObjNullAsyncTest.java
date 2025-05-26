@@ -46,21 +46,21 @@ public class ObjNullAsyncTest {
 //        userEntity.setRoleData(null);
 //        userEntity.getRoleData().setRoleName(null);
 //        NullChainAsync<String> map = Null.of(userEntity).map(UserEntity::getRoleData).async().map(RoleEntity::getRoleName);
-         Null.of(userEntity).map(UserEntity::getRoleData).async().map(null).then(()->{
-            System.out.println("=====");
-            throw  new RuntimeException("123");
-        }).except(e->{
-           log.error("",e);
-         });
+//         Null.of(userEntity).map(UserEntity::getRoleData).async().map(null).then(()->{
+//            System.out.println("=====");
+//            throw  new RuntimeException("123");
+//        }).except(e->{
+//           log.error("",e);
+//         });
     }
     @Test
     public void test11() {
 //        userEntity.setRoleData(null);
 //        userEntity.getRoleData().setRoleName(null);
-        NullChainAsync<String> map = Null.of(userEntity).map(UserEntity::getRoleData).async().map(RoleEntity::getRoleName);
-        String s = map.get((BizException::new));
-        System.out.println(s);
-        System.out.println("====");
+//        NullChainAsync<String> map = Null.of(userEntity).map(UserEntity::getRoleData).async().map(RoleEntity::getRoleName);
+//        String s = map.get((BizException::new));
+//        System.out.println(s);
+//        System.out.println("====");
     }
 
     @Test
@@ -71,14 +71,14 @@ public class ObjNullAsyncTest {
 
         userEntity.getRoleData().setRoleName(null);
         //推荐这样的写法, 先异步各种处理,  让代码自己跑脱离主线程,  之后我们可以写自己的逻辑,    然后再同步获取结果
-        NullChainAsync<String> map = Null.of(userEntity).async().map(UserEntity::getRoleData).map(RoleEntity::getRoleName);
+//        NullChainAsync<String> map = Null.of(userEntity).async().map(UserEntity::getRoleData).map(RoleEntity::getRoleName);
 
         //执行其他逻辑代码
         //xxxxx
 
         //获取之前异步的结果
-        String res = map.orElse("123");
-        System.out.println(res);
+//        String res = map.orElse("123");
+//        System.out.println(res);
     }
 
     @Test
@@ -122,24 +122,19 @@ public class ObjNullAsyncTest {
     }
     @Test
     public void collect() {
-        NullChainAsync<RoleEntity> map = Null.of(userEntity).async().map(UserEntity::getRoleData);
-        new Thread(()->{
-            SleepTools.second(2);
-            NullCollect mapCollect = map.collect();
-            NullChain<RoleEntity> roleEntityNullChain = mapCollect.get(RoleEntity.class);
-            roleEntityNullChain.ifPresent(System.out::println);
-            NullChain<UserEntity> userEntityNullChain = mapCollect.get(UserEntity.class);
-            userEntityNullChain.ifPresent(System.out::println);
-        }).start();
-        System.out.println("====");
-        SleepTools.second(21);
+//        NullChainAsync<RoleEntity> map = Null.of(userEntity).async().map(UserEntity::getRoleData);
+//        new Thread(()->{
+//            SleepTools.second(2);
+//            NullCollect mapCollect = map.collect();
+//            NullChain<RoleEntity> roleEntityNullChain = mapCollect.get(RoleEntity.class);
+//            roleEntityNullChain.ifPresent(System.out::println);
+//            NullChain<UserEntity> userEntityNullChain = mapCollect.get(UserEntity.class);
+//            userEntityNullChain.ifPresent(System.out::println);
+//        }).start();
+//        System.out.println("====");
+//        SleepTools.second(21);
     }
 
-    @Test
-    public  void nullCalculate(){
-        Double v2 = Null.of(10.5).async().calc((num)->num.add(1).add(2),BigDecimal::doubleValue).get();
-        System.out.println(v2);//0.0
-    }
 
     @Test
     public void time() throws Exception {

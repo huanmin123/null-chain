@@ -146,7 +146,7 @@ public class NullChainAsyncBase<T> extends NullConvertAsyncBase<T> implements Nu
                     linkLog.append("check? ");
                     throw NullReflectionKit.addRunErrorMessage(e, linkLog);
                 }
-                throw NullReflectionKit.orThrow(x, linkLog);
+                throw NullReflectionKit.orRuntimeException(x, linkLog);
             }
             linkLog.append("check->");
             return t;
