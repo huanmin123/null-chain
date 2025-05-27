@@ -1,11 +1,11 @@
 package com.gitee.huanminabc.nullchain;
 
 
-import com.gitee.huanminabc.nullchain.member.calculate.NullCalculate;
+import com.gitee.huanminabc.nullchain.leaf.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.core.NullChain;
-import com.gitee.huanminabc.nullchain.member.http.OkHttp;
-import com.gitee.huanminabc.nullchain.member.http.OkHttpChain;
-import com.gitee.huanminabc.nullchain.member.stream.NullStream;
+import com.gitee.huanminabc.nullchain.leaf.date.NullDate;
+import com.gitee.huanminabc.nullchain.leaf.http.OkHttpChain;
+import com.gitee.huanminabc.nullchain.leaf.stream.NullStream;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
 import com.gitee.huanminabc.nullchain.common.NullTaskList;
@@ -307,40 +307,56 @@ public class Null extends NullUtil {
         StringBuilder linkLog = new StringBuilder();
         if (Null.isAny(url, value)) {
             linkLog.append(" Null.ofHttp?");
-            return OkHttp.empty(linkLog);
+            return NullBuild.emptyHttp(linkLog);
         }
         linkLog.append(" Null.ofHttp->");
-        return OkHttp.notEmpty(url, value, linkLog, new NullCollect(), new NullTaskList());
+        return NullBuild.notEmptyHttp(url, value, linkLog, new NullCollect(), new NullTaskList());
     }
     public static <T> OkHttpChain ofHttp(String httpName, String url, T value) {
         StringBuilder linkLog = new StringBuilder();
         if (Null.isAny(url, value)) {
             linkLog.append(" Null.ofHttp?");
-            return OkHttp.empty(linkLog);
+            return NullBuild.emptyHttp(linkLog);
         }
         linkLog.append(" Null.ofHttp->");
-        return OkHttp.notEmpty(httpName,url, value, linkLog, new NullCollect(), new NullTaskList());
+        return NullBuild.notEmptyHttp(httpName,url, value, linkLog, new NullCollect(), new NullTaskList());
     }
 
     public static <T> OkHttpChain ofHttp(String url, NullChain<T> value) {
         StringBuilder linkLog = new StringBuilder();
         if (Null.isAny(url, value)) {
             linkLog.append(" Null.ofHttp?");
-            return OkHttp.empty(linkLog);
+            return NullBuild.emptyHttp(linkLog);
         }
         linkLog.append(" Null.ofHttp->");
-        return OkHttp.notEmpty(url, value, linkLog, new NullCollect(), new NullTaskList());
+        return NullBuild.notEmptyHttp(url, value, linkLog, new NullCollect(), new NullTaskList());
     }
 
     public static <T> OkHttpChain ofHttp(String httpName, String url, NullChain<T> value) {
         StringBuilder linkLog = new StringBuilder();
         if (Null.isAny(url, value)) {
             linkLog.append(" Null.ofHttp?");
-            return OkHttp.empty(linkLog);
+            return NullBuild.emptyHttp(linkLog);
         }
         linkLog.append(" Null.ofHttp->");
-        return OkHttp.notEmpty(httpName,url, value, linkLog, new NullCollect(), new NullTaskList());
+        return NullBuild.notEmptyHttp(httpName,url, value, linkLog, new NullCollect(), new NullTaskList());
     }
+
+    public  static  <T> NullDate<T> ofDate(T value) {
+        NullTaskList nullTaskList = new NullTaskList();
+        nullTaskList.add((__) -> {
+            StringBuilder linkLog = new StringBuilder();
+            if (Null.is(value)) {
+                linkLog.append(" Null.ofDate?");
+                return NullBuild.emptyDate(linkLog);
+            }
+            linkLog.append(" Null.ofDate->");
+            return NullBuild.notEmptyDate(value, linkLog, new NullCollect(), new NullTaskList());
+        });
+        return NullBuild.busyDate(nullTaskList);
+
+    }
+
 
     public static <T> NullChain<T> empty() {
         return NullBuild.empty(new StringBuilder(), new NullCollect(), new NullTaskList());

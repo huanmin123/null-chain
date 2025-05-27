@@ -1,4 +1,4 @@
-package com.gitee.huanminabc.nullchain.member.calculate;
+package com.gitee.huanminabc.nullchain.leaf.calculate;
 
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.*;

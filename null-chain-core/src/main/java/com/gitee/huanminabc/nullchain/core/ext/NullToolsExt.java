@@ -21,30 +21,30 @@ public interface NullToolsExt<T> extends NullTools<T>,  NullFinalityExt<T>{
         NullChain<T> tNullChain = toNULL();
         return tNullChain.json(uClass);
     }
-
-    @Override
-    default NullChain<String> dateFormat(DateFormatEnum dateFormatEnum) {
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.dateFormat(dateFormatEnum);
-    }
-
-    @Override
-    default NullChain<T> dateOffset(DateOffsetEnum controlEnum, int num, TimeEnum timeEnum) {
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.dateOffset(controlEnum, num, timeEnum);
-    }
-
-    @Override
-    default NullChain<T> dateOffset(DateOffsetEnum controlEnum, TimeEnum timeEnum) {
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.dateOffset(controlEnum, timeEnum);
-    }
-
-    @Override
-    default NullChain<Integer> dateCompare(Object date) {
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.dateCompare(date);
-    }
+//
+//    @Override
+//    default NullChain<String> dateFormat(DateFormatEnum dateFormatEnum) {
+//        NullChain<T> tNullChain = toNULL();
+//        return tNullChain.dateFormat(dateFormatEnum);
+//    }
+//
+//    @Override
+//    default NullChain<T> dateOffset(DateOffsetEnum controlEnum, int num, TimeEnum timeEnum) {
+//        NullChain<T> tNullChain = toNULL();
+//        return tNullChain.dateOffset(controlEnum, num, timeEnum);
+//    }
+//
+//    @Override
+//    default NullChain<T> dateOffset(DateOffsetEnum controlEnum, TimeEnum timeEnum) {
+//        NullChain<T> tNullChain = toNULL();
+//        return tNullChain.dateOffset(controlEnum, timeEnum);
+//    }
+//
+//    @Override
+//    default NullChain<Integer> dateCompare(Object date) {
+//        NullChain<T> tNullChain = toNULL();
+//        return tNullChain.dateCompare(date);
+//    }
 
 
     @Override

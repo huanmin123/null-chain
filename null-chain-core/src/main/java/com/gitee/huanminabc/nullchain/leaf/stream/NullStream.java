@@ -1,4 +1,4 @@
-package com.gitee.huanminabc.nullchain.member.stream;
+package com.gitee.huanminabc.nullchain.leaf.stream;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;

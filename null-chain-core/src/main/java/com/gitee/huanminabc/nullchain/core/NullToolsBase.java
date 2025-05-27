@@ -23,81 +23,81 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
         super(object, linkLog, collect,taskList);
     }
 
-    //将时间类型(Date,LocalDate,LocalDateTime), 10或13位时间戳, 转换为指定格式的时间字符串
-    @Override
-    public NullChain<String> dateFormat(DateFormatEnum dateFormatEnum) {
-        this.taskList.add((value)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
-            String string;
-            try {
-                string = NullDateFormat.toString(value, dateFormatEnum);
-            } catch (Exception e) {
-                linkLog.append("dateFormat? ").append(value).append(" to ").append(dateFormatEnum.getValue()).append(" 失败:").append(e.getMessage());
-                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-            }
-            if (string == null) {
-                linkLog.append("dateFormat? 转换时间格式失败数据格式不正确");
-                throw new NullChainException(linkLog.toString());
-            }
-            linkLog.append("dateFormat->");
-            return NullBuild.noEmpty(string, linkLog, collect,taskList);
-        });
-        return  NullBuild.busy(this);
-    }
-
-    @Override
-    public NullChain<T> dateOffset(DateOffsetEnum offsetEnum, int num, TimeEnum timeEnum) {
-        this.taskList.add((value)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
-            T t;
-            try {
-                t = NullDateFormat.dateOffset((T)value, offsetEnum, num, timeEnum);
-            } catch (Exception e) {
-                linkLog.append("dateOffset? ").append(value).append(" 偏移时间失败:").append(e.getMessage());
-                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-            }
-            if (t == null) {
-                linkLog.append("dateOffset? 偏移时间失败数据格式不正确");
-                throw new NullChainException(linkLog.toString());
-            }
-            linkLog.append("dateOffset->");
-            return NullBuild.noEmpty(t, linkLog, collect,taskList);
-        });
-        return  NullBuild.busy(this);
-    }
-
-    @Override
-    public NullChain<T> dateOffset(DateOffsetEnum controlEnum, TimeEnum timeEnum) {
-        return dateOffset(controlEnum, 0, timeEnum);
-    }
-
-    @Override
-    public NullChain<Integer> dateCompare(Object date) {
-        this.taskList.add((value)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
-
-            Integer compare;
-            try {
-                compare = NullDateFormat.dateCompare(value, date);
-            } catch (Exception e) {
-                linkLog.append("dateCompare? ").append(value).append(" 比较时间失败:").append(e.getMessage());
-                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-            }
-            if (compare == null) {
-                linkLog.append("dateCompare? 比较时间失败数据格式不正确");
-                throw new NullChainException(linkLog.toString());
-            }
-            linkLog.append("dateCompare->");
-            return NullBuild.noEmpty(compare, linkLog, collect, taskList);
-        });
-        return  NullBuild.busy(this);
-    }
+//    //将时间类型(Date,LocalDate,LocalDateTime), 10或13位时间戳, 转换为指定格式的时间字符串
+//    @Override
+//    public NullChain<String> dateFormat(DateFormatEnum dateFormatEnum) {
+//        this.taskList.add((value)->{
+//            if (isNull) {
+//                return NullBuild.empty(linkLog, collect, taskList);
+//            }
+//            String string;
+//            try {
+//                string = NullDateFormat.toString(value, dateFormatEnum);
+//            } catch (Exception e) {
+//                linkLog.append("dateFormat? ").append(value).append(" to ").append(dateFormatEnum.getValue()).append(" 失败:").append(e.getMessage());
+//                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+//            }
+//            if (string == null) {
+//                linkLog.append("dateFormat? 转换时间格式失败数据格式不正确");
+//                throw new NullChainException(linkLog.toString());
+//            }
+//            linkLog.append("dateFormat->");
+//            return NullBuild.noEmpty(string, linkLog, collect,taskList);
+//        });
+//        return  NullBuild.busy(this);
+//    }
+//
+//    @Override
+//    public NullChain<T> dateOffset(DateOffsetEnum offsetEnum, int num, TimeEnum timeEnum) {
+//        this.taskList.add((value)->{
+//            if (isNull) {
+//                return NullBuild.empty(linkLog, collect, taskList);
+//            }
+//            T t;
+//            try {
+//                t = NullDateFormat.dateOffset((T)value, offsetEnum, num, timeEnum);
+//            } catch (Exception e) {
+//                linkLog.append("dateOffset? ").append(value).append(" 偏移时间失败:").append(e.getMessage());
+//                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+//            }
+//            if (t == null) {
+//                linkLog.append("dateOffset? 偏移时间失败数据格式不正确");
+//                throw new NullChainException(linkLog.toString());
+//            }
+//            linkLog.append("dateOffset->");
+//            return NullBuild.noEmpty(t, linkLog, collect,taskList);
+//        });
+//        return  NullBuild.busy(this);
+//    }
+//
+//    @Override
+//    public NullChain<T> dateOffset(DateOffsetEnum controlEnum, TimeEnum timeEnum) {
+//        return dateOffset(controlEnum, 0, timeEnum);
+//    }
+//
+//    @Override
+//    public NullChain<Integer> dateCompare(Object date) {
+//        this.taskList.add((value)->{
+//            if (isNull) {
+//                return NullBuild.empty(linkLog, collect, taskList);
+//            }
+//
+//            Integer compare;
+//            try {
+//                compare = NullDateFormat.dateCompare(value, date);
+//            } catch (Exception e) {
+//                linkLog.append("dateCompare? ").append(value).append(" 比较时间失败:").append(e.getMessage());
+//                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+//            }
+//            if (compare == null) {
+//                linkLog.append("dateCompare? 比较时间失败数据格式不正确");
+//                throw new NullChainException(linkLog.toString());
+//            }
+//            linkLog.append("dateCompare->");
+//            return NullBuild.noEmpty(compare, linkLog, collect, taskList);
+//        });
+//        return  NullBuild.busy(this);
+//    }
 
 
     @Override

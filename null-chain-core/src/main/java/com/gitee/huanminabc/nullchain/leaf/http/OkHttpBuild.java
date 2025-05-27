@@ -1,4 +1,4 @@
-package com.gitee.huanminabc.nullchain.member.http;
+package com.gitee.huanminabc.nullchain.leaf.http;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.annotation.JSONField;

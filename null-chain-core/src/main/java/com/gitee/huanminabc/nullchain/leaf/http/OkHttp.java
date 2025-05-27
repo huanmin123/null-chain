@@ -1,4 +1,4 @@
-package com.gitee.huanminabc.nullchain.member.http;
+package com.gitee.huanminabc.nullchain.leaf.http;
 
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.core.NullChain;
@@ -24,27 +24,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class OkHttp<T> extends NullKernelAbstract<T> implements NullHttp, OkHttpChain {
     public static final String DEFAULT_THREAD_FACTORY_NAME = "$$$--NULL_DEFAULT_OKHTTP_SYNC--$$$";
-    //创建一个空的OkHttpUtil
-    public static <T> OkHttpChain empty(StringBuilder linkLog) {
-        OkHttp<T> okHttp = new OkHttp<>();
-        okHttp.setNull(true);
-        okHttp.setLinkLog(linkLog);
-        return okHttp;
-    }
-    public static <T> OkHttpChain notEmpty(String url, T value, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
-        return notEmpty(OkHttp.DEFAULT_THREAD_FACTORY_NAME, url, value, linkLog, nullChainCollect, taskList);
-    }
 
-    public static <T> OkHttpChain notEmpty(String httpName,String url, T value, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
-        OkHttp<T> okHttp = new OkHttp<>(httpName);
-        okHttp.setUrl(url);
-        okHttp.setValue(value);
-        okHttp.setNull(true);
-        okHttp.setLinkLog(linkLog);
-        okHttp.setCollect(nullChainCollect);
-        okHttp.setTaskList(taskList);
-        return okHttp;
-    }
 
     private OkHttpClient okHttpClient;
     private Map<String, String> headerMap;

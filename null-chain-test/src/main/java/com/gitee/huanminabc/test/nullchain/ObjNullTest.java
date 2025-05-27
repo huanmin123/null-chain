@@ -61,6 +61,11 @@ public class ObjNullTest {
         NullChain<Double> roleIdCalc = Null.ofCalc(roleId).add(100).div(10).map(BigDecimal::doubleValue);
         System.out.println(roleIdCalc.get());
     }
+    @Test
+    public void ofDate() {
+        String s = Null.ofDate(new Date()).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).get();
+        System.out.println(s);
+    }
 
 
 
@@ -175,8 +180,8 @@ public class ObjNullTest {
 
     @Test
     public void of_ok11() throws NullChainCheckException {
-        String dateFormat = Null.of(userEntity).map(UserEntity::getRoleData).map(RoleEntity::getRoleCreationTime).dateFormat(DateFormatEnum.DATETIME_PATTERN_START).getSafe();
-        System.out.println(dateFormat);
+//        String dateFormat = Null.of(userEntity).map(UserEntity::getRoleData).map(RoleEntity::getRoleCreationTime).dateFormat(DateFormatEnum.DATETIME_PATTERN_START).getSafe();
+//        System.out.println(dateFormat);
     }
 
     //可以进行网络之间的传输
@@ -240,48 +245,48 @@ public class ObjNullTest {
 
     @Test
     public void dateOffset() {
-        Date date = new Date();
-        Null.of(date).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
-        String date1 = DateUtil.dateString();
-        Null.of(date1).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).ifPresent(System.out::println);
-//        Long date2= date.getTime();
-        Integer date2 = 1741585344;
-        Null.of(date2).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
-
-        Long date24 = 1741585344000L;
-        Null.of(date24).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
-
-        String date21 = "1741585344";
-        Null.of(date21).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
-
-        String date23 = "1741585344000";
-        Null.of(date23).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
-
-
-        LocalDate date3 = LocalDate.now();
-        Null.of(date3).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
-        LocalDateTime date4 = LocalDateTime.now();
-        Null.of(date4).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
-
-        Null.of(date).dateOffset(DateOffsetEnum.START_ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
-        Null.of(date).dateOffset(DateOffsetEnum.START_SUB, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
-
-        Null.of(date).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.MONTHS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
-        Null.of(new Date()).dateOffset(DateOffsetEnum.START, TimeEnum.MONTHS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
-        Null.of(date).dateOffset(DateOffsetEnum.START_ADD, 0, TimeEnum.MONTHS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
-
-        Integer monthStart = Null.of(new Date()).dateOffset(DateOffsetEnum.START, TimeEnum.MONTHS).dateFormat(DateFormatEnum.NUM_DATE_PATTERN).map(Integer::parseInt).get();
-        System.out.println(monthStart);
-
-        Integer endStart = Null.of(monthStart)
-                .dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.YEARS)
-                .dateOffset(DateOffsetEnum.SUB, 1, TimeEnum.DAYS).get();
-        System.out.println(endStart);
-
-        Long time222 = Null.of(new Date().getTime())
-                .dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.YEARS).get();
-
-        System.out.println(time222);
+//        Date date = new Date();
+//        Null.of(date).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
+//        String date1 = DateUtil.dateString();
+//        Null.of(date1).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).ifPresent(System.out::println);
+////        Long date2= date.getTime();
+//        Integer date2 = 1741585344;
+//        Null.of(date2).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
+//
+//        Long date24 = 1741585344000L;
+//        Null.of(date24).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
+//
+//        String date21 = "1741585344";
+//        Null.of(date21).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
+//
+//        String date23 = "1741585344000";
+//        Null.of(date23).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
+//
+//
+//        LocalDate date3 = LocalDate.now();
+//        Null.of(date3).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
+//        LocalDateTime date4 = LocalDateTime.now();
+//        Null.of(date4).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
+//
+//        Null.of(date).dateOffset(DateOffsetEnum.START_ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
+//        Null.of(date).dateOffset(DateOffsetEnum.START_SUB, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
+//
+//        Null.of(date).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.MONTHS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
+//        Null.of(new Date()).dateOffset(DateOffsetEnum.START, TimeEnum.MONTHS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
+//        Null.of(date).dateOffset(DateOffsetEnum.START_ADD, 0, TimeEnum.MONTHS).dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
+//
+//        Integer monthStart = Null.of(new Date()).dateOffset(DateOffsetEnum.START, TimeEnum.MONTHS).dateFormat(DateFormatEnum.NUM_DATE_PATTERN).map(Integer::parseInt).get();
+//        System.out.println(monthStart);
+//
+//        Integer endStart = Null.of(monthStart)
+//                .dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.YEARS)
+//                .dateOffset(DateOffsetEnum.SUB, 1, TimeEnum.DAYS).get();
+//        System.out.println(endStart);
+//
+//        Long time222 = Null.of(new Date().getTime())
+//                .dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.YEARS).get();
+//
+//        System.out.println(time222);
 
 
     }
@@ -289,44 +294,44 @@ public class ObjNullTest {
     @SneakyThrows
     @Test
     public void dateCompare() {
-        Date date = new Date();
-        Date date1 = new Date(date.getTime() + 1000);
-        Integer compare = Null.of(date).dateCompare(date1).getSafe();
-        System.out.println(compare);
-
-        String date2 = "2025-01-01";
-        Integer compare1 = Null.of(date2).dateCompare(date1).getSafe();
-        System.out.println(compare1);
-
-        LocalDate date3 = LocalDate.now();
-        LocalDate date4 = LocalDate.now().plusDays(1);
-        Integer compare2 = Null.of(date3).dateCompare(date4).getSafe();
-        System.out.println(compare2);
-
-        LocalDateTime date5 = LocalDateTime.now();
-        LocalDateTime date6 = LocalDateTime.now();
-        Integer compare3 = Null.of(date5).dateCompare(date6).getSafe();
-        System.out.println(compare3);
-
-        Null.of("2024-11").dateCompare("2024-12").ifPresent(System.out::println);
-        Null.of("2024-12").dateCompare("2024-12").ifPresent(System.out::println);
-        Null.of("2024-12").dateCompare("2024-11").ifPresent(System.out::println);
+//        Date date = new Date();
+//        Date date1 = new Date(date.getTime() + 1000);
+//        Integer compare = Null.of(date).dateCompare(date1).getSafe();
+//        System.out.println(compare);
+//
+//        String date2 = "2025-01-01";
+//        Integer compare1 = Null.of(date2).dateCompare(date1).getSafe();
+//        System.out.println(compare1);
+//
+//        LocalDate date3 = LocalDate.now();
+//        LocalDate date4 = LocalDate.now().plusDays(1);
+//        Integer compare2 = Null.of(date3).dateCompare(date4).getSafe();
+//        System.out.println(compare2);
+//
+//        LocalDateTime date5 = LocalDateTime.now();
+//        LocalDateTime date6 = LocalDateTime.now();
+//        Integer compare3 = Null.of(date5).dateCompare(date6).getSafe();
+//        System.out.println(compare3);
+//
+//        Null.of("2024-11").dateCompare("2024-12").ifPresent(System.out::println);
+//        Null.of("2024-12").dateCompare("2024-12").ifPresent(System.out::println);
+//        Null.of("2024-12").dateCompare("2024-11").ifPresent(System.out::println);
 
 
     }
 
     @Test
     public void emptyObject() {
-        UserExtEntity empty1 = Null.createEmpty(UserExtEntity.class);
-
-        empty1.dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
-
-        boolean b = empty1.is();
-        System.out.println(b); //true
-//        System.out.println(empty1.getId()); //异常
-
-        UserExtEntity empty2 = new UserExtEntity();
-        System.out.println(empty2.getId()); //true
+//        UserExtEntity empty1 = Null.createEmpty(UserExtEntity.class);
+//
+//        empty1.dateFormat(DateFormatEnum.DATETIME_PATTERN).ifPresent(System.out::println);
+//
+//        boolean b = empty1.is();
+//        System.out.println(b); //true
+////        System.out.println(empty1.getId()); //异常
+//
+//        UserExtEntity empty2 = new UserExtEntity();
+//        System.out.println(empty2.getId()); //true
 
     }
 

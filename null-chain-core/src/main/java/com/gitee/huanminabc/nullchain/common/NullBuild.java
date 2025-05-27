@@ -4,10 +4,14 @@ package com.gitee.huanminabc.nullchain.common;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.core.NullChainBase;
-import com.gitee.huanminabc.nullchain.member.calculate.NullCalculate;
-import com.gitee.huanminabc.nullchain.member.calculate.NullCalculateBase;
-import com.gitee.huanminabc.nullchain.member.stream.NullStream;
-import com.gitee.huanminabc.nullchain.member.stream.NullStreamBase;
+import com.gitee.huanminabc.nullchain.leaf.calculate.NullCalculate;
+import com.gitee.huanminabc.nullchain.leaf.calculate.NullCalculateBase;
+import com.gitee.huanminabc.nullchain.leaf.date.NullDate;
+import com.gitee.huanminabc.nullchain.leaf.date.NullDateBase;
+import com.gitee.huanminabc.nullchain.leaf.http.OkHttp;
+import com.gitee.huanminabc.nullchain.leaf.http.OkHttpChain;
+import com.gitee.huanminabc.nullchain.leaf.stream.NullStream;
+import com.gitee.huanminabc.nullchain.leaf.stream.NullStreamBase;
 import com.gitee.huanminabc.nullchain.task.NullTask;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
 import com.gitee.huanminabc.nullchain.vessel.NullMap;
@@ -41,18 +45,10 @@ public class NullBuild {
     public static <T> NullChain<T> empty(StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
         return new NullChainBase<T>(linkLog, true, nullChainCollect,taskList);
     }
-    //将NullKernelAbstract转换为 NullChainBase
-    public static <T> NullChain<T> busy(NullKernelAbstract o) {
-        if (o instanceof NullChainBase) {
-            return (NullChain)o;
-        }
-        NullChainBase<T> tNullChain = (NullChainBase<T>) new NullChainBase<>(o.value, o.linkLog, o.collect, o.taskList);
-        tNullChain.setNull(o.isNull);
-        return tNullChain;
-    }
-    public static <T> NullChain<T> busy(NullTaskList taskList) {
-        return noEmpty(null,new StringBuilder(),new NullCollect(),taskList);
-    }
+
+
+
+
     //过程中使用
     public static <T> NullChain<T> noEmpty(T object, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
         return new NullChainBase<>(object, linkLog, nullChainCollect,taskList);
@@ -72,6 +68,72 @@ public class NullBuild {
     public static NullCalculate<BigDecimal> noEmptyCalc(BigDecimal value, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
         return new NullCalculateBase<>( value, linkLog, collect,taskList);
     }
+
+    //创建一个空的OkHttpUtil
+    public static <T> OkHttpChain emptyHttp(StringBuilder linkLog) {
+        OkHttp<T> okHttp = new OkHttp<>();
+        okHttp.setNull(true);
+        okHttp.setLinkLog(linkLog);
+        return okHttp;
+    }
+    public static <T> OkHttpChain notEmptyHttp(String url, T value, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
+        return notEmptyHttp(OkHttp.DEFAULT_THREAD_FACTORY_NAME, url, value, linkLog, nullChainCollect, taskList);
+    }
+
+    public static <T> OkHttpChain notEmptyHttp(String httpName, String url, T value, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
+        OkHttp<T> okHttp = new OkHttp<>(httpName);
+        okHttp.setUrl(url);
+        okHttp.setValue(value);
+        okHttp.setNull(true);
+        okHttp.setLinkLog(linkLog);
+        okHttp.setCollect(nullChainCollect);
+        okHttp.setTaskList(taskList);
+        return okHttp;
+    }
+
+
+
+
+    //将NullKernelAbstract转换为 NullChainBase
+    public static <T> NullChain<T> busy(NullKernelAbstract o) {
+        if (o instanceof NullChainBase) {
+            return (NullChain)o;
+        }
+        NullChainBase<T> tNullChain = (NullChainBase<T>) new NullChainBase<>(o.value, o.linkLog, o.collect, o.taskList);
+        tNullChain.setNull(o.isNull);
+        return tNullChain;
+    }
+
+    public static <T> NullChain<T> busy(NullTaskList taskList) {
+        return noEmpty(null,new StringBuilder(),new NullCollect(),taskList);
+    }
+
+    public static <T> NullDate<T> busyDate(NullTaskList taskList) {
+        return notEmptyDate(null,new StringBuilder(),new NullCollect(),taskList);
+    }
+
+
+
+    public static <T> NullDate<T> emptyDate(StringBuilder linkLog) {
+        return new NullDateBase<>(linkLog, true, new NullCollect(),new NullTaskList());
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -156,5 +218,7 @@ public class NullBuild {
     }
 
 
-
+    public static <T> NullDate<T> notEmptyDate(T value, StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
+        return new NullDateBase<>(value, linkLog, nullCollect, nullTaskList);
+    }
 }
