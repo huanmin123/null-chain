@@ -1,4 +1,4 @@
-package com.gitee.huanminabc.nullchain.base.sync;
+package com.gitee.huanminabc.nullchain.base;
 
 import com.gitee.huanminabc.nullchain.common.*;
 import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;

@@ -1,15 +1,13 @@
-package com.gitee.huanminabc.nullchain.base.sync.ext;
+package com.gitee.huanminabc.nullchain.base.ext;
 
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.gitee.huanminabc.nullchain.NullCheck;
-import com.gitee.huanminabc.nullchain.base.sync.NullChain;
-import com.gitee.huanminabc.nullchain.base.sync.NullFinality;
+import com.gitee.huanminabc.nullchain.base.NullChain;
+import com.gitee.huanminabc.nullchain.base.NullFinality;
 import com.gitee.huanminabc.nullchain.common.*;
-import com.gitee.huanminabc.nullchain.common.function.NullFun;
 
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 @SuppressWarnings("unchecked")
 public interface NullFinalityExt<T> extends NullFinality<T>, NullCheck {
@@ -156,6 +154,13 @@ public interface NullFinalityExt<T> extends NullFinality<T>, NullCheck {
         NullChain<T> tNullChain = toNULL();
         tNullChain.ifPresentOrElse(action, emptyAction);
     }
+
+    @Override
+    default void except(Consumer<Throwable> consumer){
+        NullChain<T> tNullChain = toNULL();
+        tNullChain.except(consumer);
+    }
+
     @Override
     default T orElseNull(){
         NullChain<T> tNullChain = toNULL();

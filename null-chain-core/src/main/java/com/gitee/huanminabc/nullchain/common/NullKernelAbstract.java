@@ -1,16 +1,13 @@
 package com.gitee.huanminabc.nullchain.common;
 
 import com.gitee.huanminabc.nullchain.NullCheck;
-import com.gitee.huanminabc.nullchain.base.sync.NullChainBase;
-import lombok.Getter;
+import com.gitee.huanminabc.nullchain.base.NullChainBase;
 import lombok.Setter;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.LinkedList;
-import java.util.Queue;
 
 /**
  * @program: java-huanmin-utils

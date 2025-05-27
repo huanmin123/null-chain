@@ -1,4 +1,4 @@
-package com.gitee.huanminabc.nullchain.base.sync;
+package com.gitee.huanminabc.nullchain.base;
 
 import com.gitee.huanminabc.common.multithreading.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.Null;
@@ -296,18 +296,18 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
                 return NullBuild.empty(linkLog, collect, taskList);
             }
             if (function == null) {
-                throw new NullChainException(linkLog.append("unchain? 传参不能为空").toString());
+                throw new NullChainException(linkLog.append("flatChain? 传参不能为空").toString());
             }
             try {
                 NullChain<U> apply = function.apply((T)value);
                 if (apply.is()) {
-                    linkLog.append("unchain?");
+                    linkLog.append("flatChain?");
                     return NullBuild.empty(linkLog, collect, taskList);
                 }
-                linkLog.append("unchain->");
+                linkLog.append("flatChain->");
                 return NullBuild.noEmpty(apply.get(), linkLog, collect, taskList);
             } catch (Exception e) {
-                linkLog.append("unchain? ");
+                linkLog.append("flatChain? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         });
@@ -322,18 +322,18 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
                 return NullBuild.empty(linkLog, collect, taskList);
             }
             if (function == null) {
-                throw new NullChainException(linkLog.append("unOptional? 传参不能为空").toString());
+                throw new NullChainException(linkLog.append("flatOptional? 传参不能为空").toString());
             }
             try {
                 Optional<U> apply = function.apply((T)value);
                 if (!apply.isPresent()) {
-                    linkLog.append("unOptional?");
+                    linkLog.append("flatOptional?");
                     return NullBuild.empty(linkLog, collect, taskList);
                 }
-                linkLog.append("unOptional->");
+                linkLog.append("flatOptional->");
                 return NullBuild.noEmpty(apply.get(), linkLog, collect, taskList);
             } catch (Exception e) {
-                linkLog.append("unOptional? ");
+                linkLog.append("flatOptional? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         });
@@ -390,15 +390,23 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
 
     @Override
     public <R> NullChain<R> task(Class<? extends NullTask<T, R>> task, Object... params) {
-        this.taskList.add((value)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
+
+        this.taskList.add(new NullTaskFunAbs() {
+            @Override
+            public boolean isHeavyTask() {
+                return true;
             }
-            if (task == null) {
-                throw new NullChainException(linkLog.append("task? 传参不能为空").toString());
+            @Override
+            public NullChain nodeTask(Object value) throws RuntimeException {
+                if (isNull) {
+                    return NullBuild.empty(linkLog, collect, taskList);
+                }
+                if (task == null) {
+                    throw new NullChainException(linkLog.append("task? 传参不能为空").toString());
+                }
+                Object o = __task__(task.getName(), params);
+                return NullBuild.noEmpty((R) o, linkLog, collect, taskList);
             }
-            Object o = __task__(task.getName(), params);
-            return NullBuild.noEmpty((R) o, linkLog, collect, taskList);
         });
         return  NullBuild.busy(this);
 
@@ -407,15 +415,22 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
 
     @Override
     public NullChain<?> task(String classPath, Object... params) {
-        this.taskList.add((value)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
+        this.taskList.add(new NullTaskFunAbs() {
+            @Override
+            public boolean isHeavyTask() {
+                return true;
             }
-            if (Null.is(classPath)) {
-                throw new NullChainException(linkLog.append("task? 传参不能为空").toString());
+            @Override
+            public NullChain nodeTask(Object value) throws RuntimeException {
+                if (isNull) {
+                    return NullBuild.empty(linkLog, collect, taskList);
+                }
+                if (Null.is(classPath)) {
+                    throw new NullChainException(linkLog.append("task? 传参不能为空").toString());
+                }
+                Object o = __task__(classPath, params);
+                return NullBuild.noEmpty(o, linkLog, collect, taskList);
             }
-            Object o = __task__(classPath, params);
-            return NullBuild.noEmpty(o, linkLog, collect, taskList);
         });
         return  NullBuild.busy(this);
 
@@ -424,26 +439,26 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
 
     @Override
     public NullChain<NullMap<String, Object>> task(NullGroupTask nullGroupTask) {
-        this.taskList.add((value)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
-            return task(nullGroupTask, ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME);
-        });
-        return  NullBuild.busy(this);
-
+        return task(nullGroupTask, ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME);
     }
 
     @Override
     public NullChain<NullMap<String, Object>> task(NullGroupTask nullGroupTask, String threadFactoryName) {
-        this.taskList.add((value)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
+        this.taskList.add(new NullTaskFunAbs() {
+            @Override
+            public boolean isHeavyTask() {
+                return true;
             }
-            if (Null.isAny(nullGroupTask, threadFactoryName)) {
-                throw new NullChainException(linkLog.append("task? 传参不能为空").toString());
+            @Override
+            public NullChain nodeTask(Object value) throws RuntimeException {
+                if (isNull) {
+                    return NullBuild.empty(linkLog, collect, taskList);
+                }
+                if (Null.isAny(nullGroupTask, threadFactoryName)) {
+                    throw new NullChainException(linkLog.append("task? 传参不能为空").toString());
+                }
+                return __task__(nullGroupTask, threadFactoryName);
             }
-            return __task__(nullGroupTask, threadFactoryName);
         });
         return  NullBuild.busy(this);
 
@@ -451,110 +466,118 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
 
     @Override
     public NullChain<?> nfTask(String nfContext, Object... params) {
-        this.taskList.add((value)->{
-            if (Null.is(nfContext)) {
-                throw new NullChainException(linkLog.append("nfTask? 脚本内容不能为空").toString());
-            }
-            NullGroupNfTask.NullTaskInfo nullTaskInfo = NullGroupNfTask.task(nfContext, params);
-            return nfTask(nullTaskInfo);
-        });
-        return  NullBuild.busy(this);
-
+        NullGroupNfTask.NullTaskInfo nullTaskInfo = NullGroupNfTask.task(nfContext, params);
+        return nfTask(nullTaskInfo);
     }
+    @Override
+    public NullChain<?> nfTask(NullGroupNfTask.NullTaskInfo nullTaskInfo) {
+        return nfTask(nullTaskInfo, ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME);
+    }
+
 
     @Override
     public NullChain<?> nfTask(NullGroupNfTask.NullTaskInfo nullTaskInfo, String threadFactoryName) {
-        this.taskList.add((value)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
+        this.taskList.add(new NullTaskFunAbs() {
+            @Override
+            public boolean isHeavyTask() {
+                return true;
             }
-            if (Null.isAny(nullTaskInfo, threadFactoryName)) {
-                linkLog.append("nfTask? 传参不能为空");
-                throw new NullChainException(linkLog.toString());
-            }
-            //脚本内容不能是空
-            if (Null.is(nullTaskInfo.getNfContext())) {
-                linkLog.append("nfTask? 脚本内容不能为空");
-                throw new NullChainException(linkLog.toString());
-            }
-
-            try {
-                Object o = __nfTask__(nullTaskInfo.getNfContext(), threadFactoryName, nullTaskInfo.getLogger(), nullTaskInfo.getParams());
-                if (Null.is(o)) {
-                    linkLog.append("nfTask? ");
+            @Override
+            public NullChain nodeTask(Object value) throws RuntimeException {
+                if (isNull) {
                     return NullBuild.empty(linkLog, collect, taskList);
                 }
-                linkLog.append("nfTask->");
-                return NullBuild.noEmpty(o, linkLog, collect,taskList);
-            } catch (Exception e) {
-                linkLog.append("nfTask? ");
-                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+                if (Null.isAny(nullTaskInfo, threadFactoryName)) {
+                    linkLog.append("nfTask? 传参不能为空");
+                    throw new NullChainException(linkLog.toString());
+                }
+                //脚本内容不能是空
+                if (Null.is(nullTaskInfo.getNfContext())) {
+                    linkLog.append("nfTask? 脚本内容不能为空");
+                    throw new NullChainException(linkLog.toString());
+                }
+
+                try {
+                    Object o = __nfTask__(nullTaskInfo.getNfContext(), threadFactoryName, nullTaskInfo.getLogger(), nullTaskInfo.getParams());
+                    if (Null.is(o)) {
+                        linkLog.append("nfTask? ");
+                        return NullBuild.empty(linkLog, collect, taskList);
+                    }
+                    linkLog.append("nfTask->");
+                    return NullBuild.noEmpty(o, linkLog, collect,taskList);
+                } catch (Exception e) {
+                    linkLog.append("nfTask? ");
+                    throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+                }
             }
         });
         return  NullBuild.busy(this);
 
     }
+
+
 
     @Override
     public NullChain<NullMap<String, Object>> nfTasks(NullGroupNfTask nullGroupNfTask, String threadFactoryName) {
-        this.taskList.add((value)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
+        this.taskList.add(new NullTaskFunAbs() {
+            @Override
+            public boolean isHeavyTask() {
+                return true;
             }
-            if (Null.isAny(nullGroupNfTask, threadFactoryName)) {
-                linkLog.append("nfTasks? 传参不能为空");
-                throw new NullChainException(linkLog.toString());
-            }
-            ThreadPoolExecutor executor = ThreadFactoryUtil.getExecutor(threadFactoryName);
-            NullGroupNfTask.NullTaskInfo[] list = nullGroupNfTask.getList();
-            //脚本内容不能是空
-            for (NullGroupNfTask.NullTaskInfo nullTaskInfo : list) {
-                if (Null.is(nullTaskInfo.getNfContext())) {
-                    linkLog.append("nfTasks? 脚本内容不能为空");
+            @Override
+            public NullChain nodeTask(Object value) throws RuntimeException {
+                if (isNull) {
+                    return NullBuild.empty(linkLog, collect, taskList);
+                }
+                if (Null.isAny(nullGroupNfTask, threadFactoryName)) {
+                    linkLog.append("nfTasks? 传参不能为空");
                     throw new NullChainException(linkLog.toString());
                 }
-            }
-            NullChainException nullChainException = new NullChainException();
-            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-            List<Future<?>> futures = new ArrayList<>();
-            NullMap<String, Object> nullChainMap = NullMap.newConcurrentHashMap();
-            for (NullGroupNfTask.NullTaskInfo nullTaskInfo : list) {
-                Future<?> submit = executor.submit(() -> {
-                    try {
-                        Object run = __nfTask__(nullTaskInfo.getNfContext(), threadFactoryName, nullTaskInfo.getLogger(), nullTaskInfo.getParams());
-                        if (Null.is(run)) {
-                            return;
-                        }
-                        nullChainMap.put(nullTaskInfo.getKey(), run);
-                    } catch (Exception e) {
-                        nullChainException.setMessage(stackTrace, linkLog.toString());
-                        e.addSuppressed(nullChainException);
-                        log.error("{}task? {}多任务脚本并发执行失败", linkLog, nullTaskInfo.getKey(), e);
+                ThreadPoolExecutor executor = ThreadFactoryUtil.getExecutor(threadFactoryName);
+                NullGroupNfTask.NullTaskInfo[] list = nullGroupNfTask.getList();
+                //脚本内容不能是空
+                for (NullGroupNfTask.NullTaskInfo nullTaskInfo : list) {
+                    if (Null.is(nullTaskInfo.getNfContext())) {
+                        linkLog.append("nfTasks? 脚本内容不能为空");
+                        throw new NullChainException(linkLog.toString());
                     }
-                });
-                futures.add(submit);
-            }
-            //等待所有任务执行完毕
-            for (Future<?> future : futures) {
-                try {
-                    future.get();
-                } catch (Exception ignored) {
-
                 }
+                NullChainException nullChainException = new NullChainException();
+                StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+                List<Future<?>> futures = new ArrayList<>();
+                NullMap<String, Object> nullChainMap = NullMap.newConcurrentHashMap();
+                for (NullGroupNfTask.NullTaskInfo nullTaskInfo : list) {
+                    Future<?> submit = executor.submit(() -> {
+                        try {
+                            Object run = __nfTask__(nullTaskInfo.getNfContext(), threadFactoryName, nullTaskInfo.getLogger(), nullTaskInfo.getParams());
+                            if (Null.is(run)) {
+                                return;
+                            }
+                            nullChainMap.put(nullTaskInfo.getKey(), run);
+                        } catch (Exception e) {
+                            nullChainException.setMessage(stackTrace, linkLog.toString());
+                            e.addSuppressed(nullChainException);
+                            log.error("{}task? {}多任务脚本并发执行失败", linkLog, nullTaskInfo.getKey(), e);
+                        }
+                    });
+                    futures.add(submit);
+                }
+                //等待所有任务执行完毕
+                for (Future<?> future : futures) {
+                    try {
+                        future.get();
+                    } catch (Exception ignored) {
+
+                    }
+                }
+                linkLog.append("task->");
+                return NullBuild.noEmpty(nullChainMap, linkLog, collect,taskList);
             }
-            linkLog.append("task->");
-            return NullBuild.noEmpty(nullChainMap, linkLog, collect,taskList);
         });
         return  NullBuild.busy(this);
-
     }
 
-    @Override
-    public NullChain<?> nfTask(NullGroupNfTask.NullTaskInfo nullTaskInfo) {
-        this.taskList.add((value)-> nfTask(nullTaskInfo, ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME));
-        return  NullBuild.busy(this);
 
-    }
 
     private NullChain<NullMap<String, Object>> __task__(NullGroupTask nullGroupTask, String threadFactoryName) {
 

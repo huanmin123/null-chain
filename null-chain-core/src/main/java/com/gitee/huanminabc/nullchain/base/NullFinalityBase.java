@@ -1,4 +1,4 @@
-package com.gitee.huanminabc.nullchain.base.sync;
+package com.gitee.huanminabc.nullchain.base;
 
 
 import com.gitee.huanminabc.nullchain.Null;
@@ -16,11 +16,11 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
 
 
     public NullFinalityBase(StringBuilder linkLog, boolean isNull, NullCollect collect, NullTaskList taskList) {
-        super(linkLog, isNull, collect,taskList);
+        super(linkLog, isNull, collect, taskList);
     }
 
     public NullFinalityBase(T object, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        super(object, linkLog, collect,taskList);
+        super(object, linkLog, collect, taskList);
     }
 
 
@@ -49,68 +49,77 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
         if (nullChainBase.isNull) {
             throw new NullChainException(nullChainBase.linkLog.toString());
         }
-        return (T)nullChainBase.value;
+        return (T) nullChainBase.value;
     }
-
 
 
     @Override
     public void ifPresent(Consumer<? super T> action) {
-        taskList.runTaskAll((nullChainBase)->{
+        taskList.runTaskAll((nullChainBase) -> {
             if (!nullChainBase.isNull) {
                 if (action == null) {
                     nullChainBase.linkLog.append("...ifPresent? ");
                     throw new NullChainException(nullChainBase.linkLog.toString());
                 }
                 try {
-                    action.accept((T)nullChainBase.value);
+                    action.accept((T) nullChainBase.value);
                 } catch (Exception e) {
                     nullChainBase.linkLog.append("...ifPresent? ");
                     throw NullReflectionKit.addRunErrorMessage(e, nullChainBase.linkLog);
                 }
             }
-        });
+        },null);
     }
 
 
     @Override
     public void ifPresentOrElse(Consumer<? super T> action, Runnable emptyAction) {
-        NullChainBase<Object> nullChainBase = taskList.runTaskAll();
-        if (!nullChainBase.isNull) {
-            if (action == null) {
-                nullChainBase.linkLog.append("...ifPresentOrElse-action? ");
-                throw new NullChainException(nullChainBase.linkLog.toString());
+        taskList.runTaskAll((nullChainBase) -> {
+            if (!nullChainBase.isNull) {
+                if (action == null) {
+                    nullChainBase.linkLog.append("...ifPresentOrElse-action? ");
+                    throw new NullChainException(nullChainBase.linkLog.toString());
+                }
+                try {
+                    action.accept((T) nullChainBase.value);
+                } catch (Exception e) {
+                    nullChainBase.linkLog.append("...ifPresentOrElse-action? ");
+                    throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+                }
+            } else {
+                if (emptyAction == null) {
+                    nullChainBase.linkLog.append("...ifPresentOrElse-emptyAction? ");
+                    throw new NullChainException(nullChainBase.linkLog.toString());
+                }
+                try {
+                    emptyAction.run();
+                } catch (Exception e) {
+                    nullChainBase.linkLog.append("...ifPresentOrElse-emptyAction? ");
+                    throw NullReflectionKit.addRunErrorMessage(e, nullChainBase.linkLog);
+                }
             }
-            try {
-                action.accept((T)nullChainBase.value);
-            } catch (Exception e) {
-                nullChainBase.linkLog.append("...ifPresentOrElse-action? ");
-                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-            }
-        } else {
-            if (emptyAction == null) {
-                nullChainBase.linkLog.append("...ifPresentOrElse-emptyAction? ");
-                throw new NullChainException(nullChainBase.linkLog.toString());
-            }
-            try {
-                emptyAction.run();
-            } catch (Exception e) {
-                nullChainBase.linkLog.append("...ifPresentOrElse-emptyAction? ");
-                throw NullReflectionKit.addRunErrorMessage(e, nullChainBase.linkLog);
-            }
-        }
+        },null);
     }
 
-
-
-
+    @Override
+    public void except(Consumer<Throwable> consumer) {
+        taskList.runTaskAll((nullChainBase) -> {
+            if (nullChainBase.isNull) {
+                consumer.accept(new NullChainException(nullChainBase.linkLog.toString()));
+                return;
+            }
+            if (consumer == null) {
+                throw new NullChainException(linkLog.append("...capture? 参数不能为空").toString());
+            }
+        },consumer);
+    }
 
 
     @Override
     public <X extends Throwable> T get(Supplier<? extends X> exceptionSupplier) throws X {
         NullChainBase<Object> nullChainBase = taskList.runTaskAll();
         if (!nullChainBase.isNull) {
-            return (T)nullChainBase.value;
+            return (T) nullChainBase.value;
         } else {
             if (exceptionSupplier == null) {
                 nullChainBase.linkLog.append("...getSafe? 异常处理器不能为空");
@@ -131,7 +140,7 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
     public T get(String exceptionMessage, Object... args) {
         NullChainBase<Object> nullChainBase = taskList.runTaskAll();
         if (!nullChainBase.isNull) {
-            return (T)nullChainBase.value;
+            return (T) nullChainBase.value;
         } else {
             if (args == null || args.length == 0 || exceptionMessage == null) {
                 nullChainBase.linkLog.append(exceptionMessage == null ? "" : exceptionMessage);
@@ -147,7 +156,7 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
     public T orElseNull() {
         NullChainBase<Object> nullChainBase = taskList.runTaskAll();
         if (!nullChainBase.isNull) {
-            return (T)nullChainBase.value;
+            return (T) nullChainBase.value;
         }
         return null;
     }
@@ -202,7 +211,7 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
     public T orElse(T defaultValue) {
         NullChainBase<Object> nullChainBase = taskList.runTaskAll();
         if (!nullChainBase.isNull) {
-            return (T)nullChainBase.value;
+            return (T) nullChainBase.value;
         }
         //判断defaultValue
         if (Null.is(defaultValue)) {
@@ -216,7 +225,7 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
     public T orElse(Supplier<T> defaultValue) {
         NullChainBase<Object> nullChainBase = taskList.runTaskAll();
         if (!nullChainBase.isNull) {
-            return (T)nullChainBase.value;
+            return (T) nullChainBase.value;
         }
         if (defaultValue == null) {
             linkLog.append("...orElse? 默认值不能为空");
@@ -244,7 +253,6 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
 //        }
 //        return NullReflectionKit.getSize(value);
 //    }
-
 
 
     //

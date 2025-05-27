@@ -1,17 +1,11 @@
-package com.gitee.huanminabc.nullchain.base.sync;
+package com.gitee.huanminabc.nullchain.base;
 
 
 import com.gitee.huanminabc.common.multithreading.executor.ThreadFactoryUtil;
-import com.gitee.huanminabc.nullchain.base.async.NullChainAsync;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
-import com.gitee.huanminabc.nullchain.base.leaf.stream.NullStream;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
 import com.gitee.huanminabc.nullchain.common.NullTaskList;
-
-import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Stream;
 
 /**
  * @author huanmin
@@ -51,12 +45,9 @@ public class NullConvertBase<T> extends NullToolsBase<T> implements NullConvert<
             }
             ThreadFactoryUtil.addExecutor(threadFactoryName);
             linkLog.append("async->");
-//            //开启异步
-//            CompletableFuture<T> completableFuture = new CompletableFuture<>();
-//            completableFuture.complete(value);
-//            return NullBuild.noEmpty(completableFuture, linkLog, threadFactoryName, collect);
             NullChainBase<T> chain = (NullChainBase)NullBuild.noEmpty(value, linkLog, collect, taskList);
             chain.async=true;
+            taskList.setCurrentThreadFactoryName(threadFactoryName);
             return chain;
         });
         return  NullBuild.busy(this);

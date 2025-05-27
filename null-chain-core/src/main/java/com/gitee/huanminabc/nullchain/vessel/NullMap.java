@@ -3,7 +3,7 @@ package com.gitee.huanminabc.nullchain.vessel;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.NullCheck;
 import com.gitee.huanminabc.nullchain.NullExt;
-import com.gitee.huanminabc.nullchain.base.sync.NullChain;
+import com.gitee.huanminabc.nullchain.base.NullChain;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

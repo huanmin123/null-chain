@@ -1,9 +1,12 @@
-package com.gitee.huanminabc.nullchain.http.async;
+package com.gitee.huanminabc.nullchain.base.leaf.http;
 
 import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
 
-public interface OkHttpProtocolAsyncChain extends OkHttpResultAsyncChain {
-
+/**
+ * @author huanmin
+ * @date 2024/11/30
+ */
+public interface OkHttpProtocolChain  extends OkHttpResultChain {
     /**
      * 设置get请求协议和参数
      * 根据规范如果是get请求,那么参数是拼接在url后面的, 不支持请求体这些
@@ -11,7 +14,7 @@ public interface OkHttpProtocolAsyncChain extends OkHttpResultAsyncChain {
      * 数据拼接:  会自动识别url中是否有参数,如果有会自动和节点参数拼接
      * @return
      */
-    OkHttpAsync get();
+    OkHttpChain get();
 
     /**
      * 设置post请求协议和参数
@@ -24,13 +27,13 @@ public interface OkHttpProtocolAsyncChain extends OkHttpResultAsyncChain {
      * 数据的来源: 可以是一个对象或者Map  , 值为null的参数会被忽略
      * @return
      */
-    OkHttpAsync post(OkHttpPostEnum type);
+    OkHttpChain post(OkHttpPostEnum type);
 
     /**
      * 设置put请求协议和参数, 和post一样,只是请求类型不一样
      * @return
      */
-    OkHttpAsync put(OkHttpPostEnum type);
+    OkHttpChain put(OkHttpPostEnum type);
 
     /**
      * 设置为delete请求协议和参数
@@ -39,5 +42,5 @@ public interface OkHttpProtocolAsyncChain extends OkHttpResultAsyncChain {
      * 数据拼接:  会自动识别url中是否有参数,如果有会自动和节点参数拼接
      * @return
      */
-    OkHttpAsync del();
+    OkHttpChain del();
 }

@@ -1,14 +1,11 @@
-package com.gitee.huanminabc.nullchain.base.sync;
+package com.gitee.huanminabc.nullchain.base;
 
 
 import com.gitee.huanminabc.nullchain.common.NullChainCheckException;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
-import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
-import com.gitee.huanminabc.nullchain.common.function.NullFun;
 
 import java.io.Serializable;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -109,6 +106,14 @@ public interface NullFinality<T>  extends Serializable {
 
 
     void ifPresentOrElse(Consumer<? super T> action, Runnable emptyAction);
+
+
+    /**
+     * 抓取异步链路中的异常
+     */
+    void except(Consumer<Throwable> consumer);
+
+
 
 //    /**
 //     * 获取值的长度, 如果值是null那么返回0

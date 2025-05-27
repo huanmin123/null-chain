@@ -1,6 +1,6 @@
-package com.gitee.huanminabc.nullchain.http.sync;
+package com.gitee.huanminabc.nullchain.base.leaf.http;
 
-import com.gitee.huanminabc.nullchain.base.sync.NullChain;
+import com.gitee.huanminabc.nullchain.base.NullChain;
 
 import java.io.InputStream;
 /**

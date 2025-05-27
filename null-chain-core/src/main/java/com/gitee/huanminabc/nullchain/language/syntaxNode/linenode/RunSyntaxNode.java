@@ -2,7 +2,7 @@ package com.gitee.huanminabc.nullchain.language.syntaxNode.linenode;
 
 import com.gitee.huanminabc.common.multithreading.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.Null;
-import com.gitee.huanminabc.nullchain.base.sync.NullChain;
+import com.gitee.huanminabc.nullchain.base.NullChain;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullNode;
 import com.gitee.huanminabc.nullchain.common.NullType;

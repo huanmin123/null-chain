@@ -1,7 +1,6 @@
 package com.gitee.huanminabc.nullchain.common.function;
 
-import com.gitee.huanminabc.nullchain.base.sync.NullChain;
-import lombok.extern.slf4j.Slf4j;
+import com.gitee.huanminabc.nullchain.base.NullChain;
 
 /**
  * @description:
@@ -10,5 +9,5 @@ import lombok.extern.slf4j.Slf4j;
  **/
 @FunctionalInterface
 public interface NullTaskFun<T> {
-    NullChain<T> task(T value) throws  RuntimeException;
+    NullChain<T> nodeTask(T value) throws  RuntimeException;
 }

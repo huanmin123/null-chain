@@ -1,18 +1,18 @@
 package com.gitee.huanminabc.nullchain.common;
 
-import com.gitee.huanminabc.nullchain.base.sync.NullChain;
-import com.gitee.huanminabc.nullchain.base.sync.NullChainBase;
+import com.gitee.huanminabc.common.exception.StackTraceUtil;
+import com.gitee.huanminabc.common.multithreading.executor.ThreadFactoryUtil;
+import com.gitee.huanminabc.nullchain.base.NullChainBase;
 import com.gitee.huanminabc.nullchain.common.function.NullTaskFun;
-import com.gitee.huanminabc.nullchain.task.NullTask;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * @description:
@@ -21,69 +21,113 @@ import java.util.function.Supplier;
  **/
 @Slf4j
 public class NullTaskList {
-    private Queue<NullTaskFun> tasks;
+    private Queue<NullTaskFunAbs> tasks;
+
+    @Setter
+    protected String currentThreadFactoryName = ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME;
+
+    //获取当前线程池
+    protected ExecutorService getCT(boolean forkJoinPool) {
+        //如果是默认线程那么使用工作窃取线程 , 因为这种线程池是共享任务的基本不会有切换线程带来的性能损失,只适合快速且短小的任务
+        if (forkJoinPool && ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME.equals(currentThreadFactoryName)) {
+            return ForkJoinPool.commonPool();
+        }
+        return ThreadFactoryUtil.getExecutor(currentThreadFactoryName);
+    }
 
     public NullTaskList() {
         tasks = new LinkedList<>();
     }
 
     public void add(NullTaskFun task) {
-        tasks.add(task);
+        if (NullTaskFunAbs.class.isAssignableFrom(task.getClass())) {
+            NullTaskFunAbs taskAbs = (NullTaskFunAbs) task;
+            tasks.add(taskAbs);
+        } else {
+            tasks.add(new NullTaskFunAbs() {
+                @Override
+                public boolean isHeavyTask() {
+                    return false;
+                }
+
+                @Override
+                public NullChainBase nodeTask(Object value) throws RuntimeException {
+                    return (NullChainBase) task.nodeTask(value);
+                }
+            });
+        }
+
     }
 
 
-    //运行任务返回结果
-    //async 如果调用方支持异步那么开启异步之后的节点将脱离主线程
+    //运行任务返回结果  (非异步的方法执行)
     public <T> NullChainBase<T> runTaskAll() {
+        if (tasks==null){
+            throw new NullChainException("空链已经执行过了,不能重复执行");
+        }
         NullChainBase<T> chain = null;
         while (!tasks.isEmpty()) {
             NullTaskFun task = tasks.poll();
-            NullChainBase task1 = (NullChainBase) task.task(chain == null ? null : chain.value);
+            NullChainBase task1 = (NullChainBase) task.nodeTask(chain == null ? null : chain.value);
             if (task1.isNull) {
                 return task1;
             }
             chain = task1;
         }
-        tasks=null;//避免被重复调用
+        tasks = null;//避免被重复调用
         return chain;
     }
 
-    public <T> void runTaskAll(Consumer<NullChainBase<T>> supplier) {
+    //运行任务返回结果  如果调用方支持异步那么开启异步之后的节点将脱离主线程  比如ifPresent
+    public <T> void runTaskAll(Consumer<NullChainBase<T>> supplier, Consumer<Throwable> consumer) {
+        if (tasks==null){
+            throw new NullChainException("空链已经执行过了,不能重复执行");
+        }
         NullChainBase chain = null;
         CompletableFuture<NullChainBase> completableFuture = null;
         while (!tasks.isEmpty()) {
-            NullTaskFun poll = tasks.poll();
-            if (completableFuture==null) {
-                NullChainBase task = (NullChainBase) poll.task(chain == null ? null : chain.value);
+            NullTaskFunAbs poll = tasks.poll();
+            if (completableFuture == null) {
+                NullChainBase task = (NullChainBase) poll.nodeTask(chain == null ? null : chain.value);
                 if (task.isNull) {
                     supplier.accept(task);
-                    return ;
+                    return;
                 }
-                if (task.async){
+                if (task.async) {
                     completableFuture = new CompletableFuture();
                     completableFuture.complete(task);
                 }
                 chain = task;
-            }else{
-                completableFuture=completableFuture.thenComposeAsync ((taskFut)-> {
-                    NullChainBase task1 = (NullChainBase)poll.task(taskFut.value);
+            } else {
+                completableFuture = completableFuture.thenComposeAsync((taskFut) -> {
+                    NullChainBase task1 = (NullChainBase) poll.nodeTask(taskFut.value);
                     if (task1.isNull) {
                         supplier.accept(task1);
                         return CompletableFuture.completedFuture(null);
                     }
                     //继续执行
                     return CompletableFuture.completedFuture(task1);
-
-                });
+                }, getCT(!poll.isHeavyTask()));
             }
         }
-        tasks=null;
-        if (completableFuture==null) {
+        tasks = null;
+        if (completableFuture == null) {
             supplier.accept(chain);
-        }else{
-            completableFuture.thenComposeAsync((nullChainBase)->{
+        } else {
+            completableFuture.thenComposeAsync((nullChainBase) -> {
                 supplier.accept(nullChainBase);
                 return CompletableFuture.completedFuture(null);
+            }, getCT(false));//终结的方法一般都比较重, 不使用窃取线程池
+            StackTraceElement stackTraceElement = StackTraceUtil.stackTraceLevel(5);
+            completableFuture.exceptionally((e) -> {
+                e.addSuppressed(new NullChainException(stackTraceElement.toString()));
+                if (consumer != null) {
+                    consumer.accept(e);
+                } else {
+                    log.error("", e);
+                }
+
+                return null;
             });
         }
 

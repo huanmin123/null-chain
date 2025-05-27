@@ -1,13 +1,12 @@
-package com.gitee.huanminabc.nullchain.base.sync.ext;
+package com.gitee.huanminabc.nullchain.base.ext;
 
-import com.gitee.huanminabc.nullchain.base.sync.NullChain;
-import com.gitee.huanminabc.nullchain.base.sync.NullTools;
+import com.gitee.huanminabc.nullchain.base.NullChain;
+import com.gitee.huanminabc.nullchain.base.NullTools;
 import com.gitee.huanminabc.nullchain.enums.TimeEnum;
-import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
 import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
-import com.gitee.huanminabc.nullchain.http.sync.OkHttpChain;
+import com.gitee.huanminabc.nullchain.base.leaf.http.OkHttpChain;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
 
 public interface NullToolsExt<T> extends NullTools<T>,  NullFinalityExt<T>{

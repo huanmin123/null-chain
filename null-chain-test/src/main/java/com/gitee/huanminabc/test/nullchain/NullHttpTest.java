@@ -6,7 +6,6 @@ import com.gitee.huanminabc.common.file.ReadFileBytesUtil;
 import com.gitee.huanminabc.common.test.ExecutorTestUtil;
 import com.gitee.huanminabc.common.test.PathUtil;
 import com.gitee.huanminabc.nullchain.Null;
-import com.gitee.huanminabc.nullchain.base.async.NullChainAsync;
 import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
 import lombok.Data;
 import org.junit.jupiter.api.BeforeEach;

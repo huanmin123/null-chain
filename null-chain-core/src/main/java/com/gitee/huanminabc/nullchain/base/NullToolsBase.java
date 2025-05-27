@@ -1,4 +1,4 @@
-package com.gitee.huanminabc.nullchain.base.sync;
+package com.gitee.huanminabc.nullchain.base;
 
 import com.alibaba.fastjson2.JSON;
 import com.gitee.huanminabc.common.base.BeanCopyUtil;
@@ -9,8 +9,8 @@ import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
 import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
 import com.gitee.huanminabc.nullchain.enums.TimeEnum;
-import com.gitee.huanminabc.nullchain.http.sync.OkHttp;
-import com.gitee.huanminabc.nullchain.http.sync.OkHttpChain;
+import com.gitee.huanminabc.nullchain.base.leaf.http.OkHttp;
+import com.gitee.huanminabc.nullchain.base.leaf.http.OkHttpChain;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
 import com.gitee.huanminabc.nullchain.tool.NullToolFactory;
 import com.gitee.huanminabc.nullchain.common.NullReflectionKit;

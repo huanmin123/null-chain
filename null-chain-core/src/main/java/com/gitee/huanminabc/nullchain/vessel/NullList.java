@@ -1,7 +1,5 @@
 package com.gitee.huanminabc.nullchain.vessel;
 
-import com.gitee.huanminabc.nullchain.base.sync.NullChain;
-
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;

@@ -2,10 +2,10 @@ package com.gitee.huanminabc.nullchain.common;
 
 import com.gitee.huanminabc.nullchain.NullCheck;
 import com.gitee.huanminabc.nullchain.NullExt;
-import com.gitee.huanminabc.nullchain.base.sync.ext.NullChainExt;
-import com.gitee.huanminabc.nullchain.base.sync.ext.NullConvertExt;
-import com.gitee.huanminabc.nullchain.base.sync.ext.NullFinalityExt;
-import com.gitee.huanminabc.nullchain.base.sync.ext.NullToolsExt;
+import com.gitee.huanminabc.nullchain.base.ext.NullChainExt;
+import com.gitee.huanminabc.nullchain.base.ext.NullConvertExt;
+import com.gitee.huanminabc.nullchain.base.ext.NullFinalityExt;
+import com.gitee.huanminabc.nullchain.base.ext.NullToolsExt;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.description.DeclaredByType;
 import net.bytebuddy.description.type.TypeDefinition;

@@ -2,7 +2,9 @@ package com.gitee.huanminabc.nullchain;
 
 
 import com.gitee.huanminabc.nullchain.base.leaf.calculate.NullCalculate;
-import com.gitee.huanminabc.nullchain.base.sync.NullChain;
+import com.gitee.huanminabc.nullchain.base.NullChain;
+import com.gitee.huanminabc.nullchain.base.leaf.http.OkHttp;
+import com.gitee.huanminabc.nullchain.base.leaf.http.OkHttpChain;
 import com.gitee.huanminabc.nullchain.base.leaf.stream.NullStream;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
@@ -240,6 +242,25 @@ public class Null extends NullUtil {
     }
 
 
+    public static <T> OkHttpChain ofHttp(String url, T value) {
+        StringBuilder linkLog = new StringBuilder();
+        if (Null.isAny(url,value)) {
+            linkLog.append(" Null.ofHttp?");
+            return OkHttp.empty(linkLog);
+        }
+        linkLog.append(" Null.ofHttp->");
+        return OkHttp.notEmpty( url, value, linkLog, new NullCollect(), new NullTaskList());
+    }
+
+    public static <T> OkHttpChain ofHttp(String url, NullChain<T> value) {
+        StringBuilder linkLog = new StringBuilder();
+        if (Null.isAny(url,value)) {
+            linkLog.append(" Null.ofHttp?");
+            return OkHttp.empty(linkLog);
+        }
+        linkLog.append(" Null.ofHttp->");
+        return OkHttp.notEmpty( url, value, linkLog, new NullCollect(), new NullTaskList());
+    }
     public static <T> NullChain<T> empty() {
         return NullBuild.empty(new StringBuilder(), new NullCollect(),new NullTaskList());
     }

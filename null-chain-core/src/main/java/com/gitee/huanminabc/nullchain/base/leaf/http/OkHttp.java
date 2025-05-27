@@ -1,13 +1,8 @@
-package com.gitee.huanminabc.nullchain.http.sync;
+package com.gitee.huanminabc.nullchain.base.leaf.http;
 
 import com.gitee.huanminabc.nullchain.Null;
-import com.gitee.huanminabc.nullchain.base.sync.NullChain;
-import com.gitee.huanminabc.nullchain.common.NullBuild;
-import com.gitee.huanminabc.nullchain.common.NullChainException;
-import com.gitee.huanminabc.nullchain.common.NullCollect;
-import com.gitee.huanminabc.nullchain.common.NullKernelAbstract;
-import com.gitee.huanminabc.nullchain.http.NullHttp;
-import com.gitee.huanminabc.nullchain.http.OkHttpBuild;
+import com.gitee.huanminabc.nullchain.base.NullChain;
+import com.gitee.huanminabc.nullchain.common.*;
 import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -16,8 +11,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.InputStream;
 import java.net.Proxy;
 import java.util.LinkedHashMap;
@@ -38,6 +31,17 @@ public class OkHttp<T> extends NullKernelAbstract<T> implements NullHttp, OkHttp
         OkHttp<T> okHttp = new OkHttp<>();
         okHttp.setNull(true);
         okHttp.setLinkLog(linkLog);
+        return okHttp;
+    }
+
+    public static <T> OkHttpChain notEmpty(String url, T value, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
+        OkHttp<T> okHttp = new OkHttp<>();
+        okHttp.setUrl(url);
+        okHttp.setValue(value);
+        okHttp.setNull(true);
+        okHttp.setLinkLog(linkLog);
+        okHttp.setCollect(new NullCollect());
+        okHttp.setTaskList(new NullTaskList());
         return okHttp;
     }
 

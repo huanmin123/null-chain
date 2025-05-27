@@ -1,6 +1,6 @@
 package com.gitee.huanminabc.nullchain.language.internal;
 
-import com.gitee.huanminabc.nullchain.base.sync.NullChain;
+import com.gitee.huanminabc.nullchain.base.NullChain;
 import com.gitee.huanminabc.nullchain.vessel.NullSuperList;
 import com.gitee.huanminabc.nullchain.vessel.NullSuperMap;
 import lombok.Data;

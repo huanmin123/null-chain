@@ -1,4 +1,4 @@
-package com.gitee.huanminabc.nullchain.http;
+package com.gitee.huanminabc.nullchain.base.leaf.http;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.annotation.JSONField;
@@ -6,9 +6,9 @@ import com.gitee.huanminabc.common.reflect.AnnotationUtil;
 import com.gitee.huanminabc.common.reflect.FieldUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
+import com.gitee.huanminabc.nullchain.common.function.NullHttpSupplierEx;
 import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
 import com.gitee.huanminabc.nullchain.http.async.OkHttpAsync;
-import com.gitee.huanminabc.nullchain.http.sync.OkHttp;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 
@@ -129,7 +129,7 @@ public class OkHttpBuild {
     }
 
     //重试3次,不行就拉倒, 就剩网络波动也不可能连续3次失败
-    private static <T> T retry(String url, HttpSupplierEx<T> runnable) {
+    private static <T> T retry(String url, NullHttpSupplierEx<T> runnable) {
         for (int i = 1; i <= 3; i++) {
             try {
                 return runnable.get();

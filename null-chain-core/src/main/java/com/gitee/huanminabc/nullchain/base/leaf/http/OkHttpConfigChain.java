@@ -1,4 +1,4 @@
-package com.gitee.huanminabc.nullchain.http.sync;
+package com.gitee.huanminabc.nullchain.base.leaf.http;
 
 import java.net.Proxy;
 import java.util.concurrent.TimeUnit;
