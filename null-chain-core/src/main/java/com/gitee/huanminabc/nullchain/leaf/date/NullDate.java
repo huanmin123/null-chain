@@ -27,7 +27,7 @@ public interface NullDate<T> extends NullChain<T> {
      *
      * @param dateFormatEnum
      */
-    NullDateBase<String> dateFormat(DateFormatEnum dateFormatEnum);
+    NullDate<String> dateFormat(DateFormatEnum dateFormatEnum);
 
     /**
      * 将时间进行偏移
@@ -43,8 +43,8 @@ public interface NullDate<T> extends NullChain<T> {
      * @param num         偏移量
      * @param timeEnum    时间单位
      */
-    NullDateBase<T> dateOffset(DateOffsetEnum controlEnum, int num, TimeEnum timeEnum);
-    NullDateBase<T> dateOffset(DateOffsetEnum controlEnum, TimeEnum timeEnum);
+    NullDate<T> dateOffset(DateOffsetEnum controlEnum, int num, TimeEnum timeEnum);
+    NullDate<T> dateOffset(DateOffsetEnum controlEnum, TimeEnum timeEnum);
 
     /**
      * 将时间进行比较, 如果节点的时间大于date,返回1,等于返回0,小于返回-1
@@ -56,5 +56,5 @@ public interface NullDate<T> extends NullChain<T> {
      * 5. 13位时间戳（数字或者字符串）
      * 6. 格式化的时间格式字符串({@link DateFormatEnum})
      */
-    NullDateBase<Integer> dateCompare(Object date);
+    NullDate<Integer> dateCompare(Object date);
 }

@@ -63,6 +63,7 @@ public class ObjNullTest {
     }
     @Test
     public void ofDate() {
+//        = Null.ofDate(new Date()).
         String s = Null.ofDate(new Date()).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).get();
         System.out.println(s);
     }

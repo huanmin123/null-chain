@@ -2,7 +2,6 @@ package com.gitee.huanminabc.nullchain.common;
 
 import com.gitee.huanminabc.nullchain.NullCheck;
 import com.gitee.huanminabc.nullchain.core.NullChainBase;
-import lombok.Data;
 import lombok.Setter;
 
 import java.io.IOException;
@@ -16,13 +15,13 @@ import java.io.Serializable;
  * @author: huanmin
  * @create: 2025-03-21 12:53
  **/
-@Data
 public class NullKernelAbstract<T> implements Serializable, NullCheck {
     private static final long serialVersionUID = 1L;
     protected boolean isNull; //true 为null ,false 不为null
     protected T value;//当前任务的值
     //是否异步 true 开始异步 false 没有开启(默认)
     protected boolean async=false;
+
     protected transient StringBuilder linkLog;
     //收集器
     protected transient NullCollect collect;

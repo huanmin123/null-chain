@@ -43,11 +43,19 @@ public class OkHttp<T> extends NullKernelAbstract<T> implements NullHttp, OkHttp
     private T value;
 
 
-    public OkHttp() {
+    public OkHttp(boolean isNull, StringBuilder linkLog) {
         this.okHttpClient = OkHttpBuild.getOkHttp(OkHttp.DEFAULT_THREAD_FACTORY_NAME);
+        this.isNull = isNull;
+        this.linkLog = linkLog;
     }
-    public OkHttp(String httpName) {
+    public OkHttp(String httpName, String url, T value, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
         this.okHttpClient = OkHttpBuild.getOkHttp(httpName);
+        this.isNull = false;
+        this.url = url;
+        this.value = value;
+        this.linkLog = linkLog;
+        this.collect = nullChainCollect;
+        this.taskList = taskList;
     }
 
 

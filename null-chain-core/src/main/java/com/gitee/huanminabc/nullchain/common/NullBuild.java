@@ -71,27 +71,19 @@ public class NullBuild {
 
     //创建一个空的OkHttpUtil
     public static <T> OkHttpChain emptyHttp(StringBuilder linkLog) {
-        OkHttp<T> okHttp = new OkHttp<>();
-        okHttp.setNull(true);
-        okHttp.setLinkLog(linkLog);
-        return okHttp;
+        return new OkHttp<>(true,linkLog);
     }
     public static <T> OkHttpChain notEmptyHttp(String url, T value, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
         return notEmptyHttp(OkHttp.DEFAULT_THREAD_FACTORY_NAME, url, value, linkLog, nullChainCollect, taskList);
     }
 
     public static <T> OkHttpChain notEmptyHttp(String httpName, String url, T value, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
-        OkHttp<T> okHttp = new OkHttp<>(httpName);
-        okHttp.setUrl(url);
-        okHttp.setValue(value);
-        okHttp.setNull(true);
-        okHttp.setLinkLog(linkLog);
-        okHttp.setCollect(nullChainCollect);
-        okHttp.setTaskList(taskList);
-        return okHttp;
+        return  new OkHttp<>(httpName,url, value, linkLog, nullChainCollect, taskList);
     }
 
-
+    public static <T> NullDate<T> notEmptyDate(T value, StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
+        return new NullDateBase<>(value, linkLog, nullCollect, nullTaskList);
+    }
 
 
     //将NullKernelAbstract转换为 NullChainBase
@@ -99,15 +91,20 @@ public class NullBuild {
         if (o instanceof NullChainBase) {
             return (NullChain)o;
         }
-        NullChainBase<T> tNullChain = (NullChainBase<T>) new NullChainBase<>(o.value, o.linkLog, o.collect, o.taskList);
-        tNullChain.setNull(o.isNull);
-        return tNullChain;
+        return (NullChainBase<T>) new NullChainBase<>(o.isNull,o.value, o.linkLog, o.collect, o.taskList);
     }
 
     public static <T> NullChain<T> busy(NullTaskList taskList) {
         return noEmpty(null,new StringBuilder(),new NullCollect(),taskList);
     }
 
+
+    public  static <T> NullDate  busyDate(NullKernelAbstract o) {
+        if (o instanceof NullDateBase) {
+            return (NullDate)o;
+        }
+        return new NullDateBase<>(o.isNull,o.value, o.linkLog, o.collect, o.taskList);
+    }
     public static <T> NullDate<T> busyDate(NullTaskList taskList) {
         return notEmptyDate(null,new StringBuilder(),new NullCollect(),taskList);
     }
@@ -117,6 +114,7 @@ public class NullBuild {
     public static <T> NullDate<T> emptyDate(StringBuilder linkLog) {
         return new NullDateBase<>(linkLog, true, new NullCollect(),new NullTaskList());
     }
+
 
 
 
@@ -218,7 +216,5 @@ public class NullBuild {
     }
 
 
-    public static <T> NullDate<T> notEmptyDate(T value, StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
-        return new NullDateBase<>(value, linkLog, nullCollect, nullTaskList);
-    }
+
 }

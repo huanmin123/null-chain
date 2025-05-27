@@ -36,6 +36,10 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
     public NullChainBase(T object, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
         super(object, linkLog, collect, taskList);
     }
+    public NullChainBase( boolean isNull,T object, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
+        super(object, linkLog, collect, taskList);
+        this.isNull = isNull;
+    }
 
 
     @Override
