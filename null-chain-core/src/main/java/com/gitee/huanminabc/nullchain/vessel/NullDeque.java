@@ -1,6 +1,6 @@
 package com.gitee.huanminabc.nullchain.vessel;
 
-import com.gitee.huanminabc.nullchain.base.NullChain;
+import com.gitee.huanminabc.nullchain.core.NullChain;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;

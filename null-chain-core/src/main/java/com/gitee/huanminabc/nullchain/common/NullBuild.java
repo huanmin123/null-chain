@@ -2,19 +2,18 @@ package com.gitee.huanminabc.nullchain.common;
 
 
 import com.gitee.huanminabc.nullchain.Null;
-import com.gitee.huanminabc.nullchain.base.NullChain;
-import com.gitee.huanminabc.nullchain.base.NullChainBase;
-import com.gitee.huanminabc.nullchain.base.leaf.calculate.NullCalculate;
-import com.gitee.huanminabc.nullchain.base.leaf.calculate.NullCalculateBase;
-import com.gitee.huanminabc.nullchain.base.leaf.stream.NullStream;
-import com.gitee.huanminabc.nullchain.base.leaf.stream.NullStreamBase;
+import com.gitee.huanminabc.nullchain.core.NullChain;
+import com.gitee.huanminabc.nullchain.core.NullChainBase;
+import com.gitee.huanminabc.nullchain.member.calculate.NullCalculate;
+import com.gitee.huanminabc.nullchain.member.calculate.NullCalculateBase;
+import com.gitee.huanminabc.nullchain.member.stream.NullStream;
+import com.gitee.huanminabc.nullchain.member.stream.NullStreamBase;
 import com.gitee.huanminabc.nullchain.task.NullTask;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
 import com.gitee.huanminabc.nullchain.vessel.NullMap;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * @author huanmin
@@ -42,8 +41,14 @@ public class NullBuild {
     public static <T> NullChain<T> empty(StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
         return new NullChainBase<T>(linkLog, true, nullChainCollect,taskList);
     }
+    //将NullKernelAbstract转换为 NullChainBase
     public static <T> NullChain<T> busy(NullKernelAbstract o) {
-        return (NullChain)o;
+        if (o instanceof NullChainBase) {
+            return (NullChain)o;
+        }
+        NullChainBase<T> tNullChain = (NullChainBase<T>) new NullChainBase<>(o.value, o.linkLog, o.collect, o.taskList);
+        tNullChain.setNull(o.isNull);
+        return tNullChain;
     }
     public static <T> NullChain<T> busy(NullTaskList taskList) {
         return noEmpty(null,new StringBuilder(),new NullCollect(),taskList);

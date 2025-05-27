@@ -2,7 +2,7 @@ package com.gitee.huanminabc.nullchain.common;
 
 import com.gitee.huanminabc.common.exception.StackTraceUtil;
 import com.gitee.huanminabc.common.multithreading.executor.ThreadFactoryUtil;
-import com.gitee.huanminabc.nullchain.base.NullChainBase;
+import com.gitee.huanminabc.nullchain.core.NullChainBase;
 import com.gitee.huanminabc.nullchain.common.function.NullTaskFun;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +22,8 @@ import java.util.function.Consumer;
 @Slf4j
 public class NullTaskList {
     private Queue<NullTaskFunAbs> tasks;
+    private NullChainBase lastResult; //最后一个任务的结果
+    private boolean lastAsync=false; //最后一个任务是否异步
 
     @Setter
     protected String currentThreadFactoryName = ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME;
@@ -62,8 +64,8 @@ public class NullTaskList {
 
     //运行任务返回结果  (非异步的方法执行)
     public <T> NullChainBase<T> runTaskAll() {
-        if (tasks==null){
-            throw new NullChainException("空链已经执行过了,不能重复执行");
+        if (lastResult!=null){
+           return lastResult;
         }
         NullChainBase<T> chain = null;
         while (!tasks.isEmpty()) {
@@ -74,14 +76,34 @@ public class NullTaskList {
             }
             chain = task1;
         }
+        lastResult= chain;
         tasks = null;//避免被重复调用
         return chain;
     }
 
     //运行任务返回结果  如果调用方支持异步那么开启异步之后的节点将脱离主线程  比如ifPresent
     public <T> void runTaskAll(Consumer<NullChainBase<T>> supplier, Consumer<Throwable> consumer) {
-        if (tasks==null){
-            throw new NullChainException("空链已经执行过了,不能重复执行");
+        if (lastResult!=null){
+            if (!lastAsync) {
+                supplier.accept(lastResult);
+            } else {
+                CompletableFuture<NullChainBase> nullChainBaseCompletableFuture = CompletableFuture.completedFuture(lastResult);
+                nullChainBaseCompletableFuture.thenComposeAsync((nullChainBase) -> {
+                    supplier.accept(nullChainBase);
+                    return CompletableFuture.completedFuture(null);
+                }, getCT(false));//终结的方法一般都比较重, 不使用窃取线程池
+                StackTraceElement stackTraceElement = StackTraceUtil.stackTraceLevel(5);
+                nullChainBaseCompletableFuture.exceptionally((e) -> {
+                    e.addSuppressed(new NullChainException(stackTraceElement.toString()));
+                    if (consumer != null) {
+                        consumer.accept(e);
+                    } else {
+                        log.error("", e);
+                    }
+                    return null;
+                });
+            }
+            return;
         }
         NullChainBase chain = null;
         CompletableFuture<NullChainBase> completableFuture = null;
@@ -110,10 +132,13 @@ public class NullTaskList {
                 }, getCT(!poll.isHeavyTask()));
             }
         }
+        lastResult= chain;
         tasks = null;
         if (completableFuture == null) {
+            lastAsync= false; //没有异步任务
             supplier.accept(chain);
         } else {
+            lastAsync= true; //有异步任务
             completableFuture.thenComposeAsync((nullChainBase) -> {
                 supplier.accept(nullChainBase);
                 return CompletableFuture.completedFuture(null);

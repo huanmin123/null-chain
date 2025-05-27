@@ -47,7 +47,7 @@ public class NfToken {
             }
         }
         if (count1 != 0 || count2 != 0 || count3 != 0 || count4 % 2 != 0) {
-            throw new NfException("{}不匹配","{} [] () \"\" ");
+            throw new NfException("{}不匹配", "{} [] () \"\" ");
         }
     }
 

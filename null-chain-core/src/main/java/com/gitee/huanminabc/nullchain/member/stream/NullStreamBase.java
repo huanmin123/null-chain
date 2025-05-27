@@ -1,7 +1,7 @@
-package com.gitee.huanminabc.nullchain.base.leaf.stream;
+package com.gitee.huanminabc.nullchain.member.stream;
 
 import com.gitee.huanminabc.nullchain.Null;
-import com.gitee.huanminabc.nullchain.base.NullChain;
+import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.*;
 import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
@@ -30,6 +30,18 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
 
     public NullStreamBase(T object, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
         super(object, linkLog, collect,taskList);
+    }
+
+    @Override
+    public NullStream<T> parallel() {
+        if (isNull) {
+            return NullBuild.emptyStream(linkLog, collect,taskList);
+        }
+        if (!(value instanceof Stream)) {
+            throw new NullChainException(linkLog.append("parallel? ").append("value must be a Stream").toString());
+        }
+        T parallel = (T)((Stream) value).parallel();
+        return  NullBuild.noEmptyStream(parallel, linkLog, collect,taskList);
     }
 
     @Override
@@ -111,7 +123,7 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
         if (isNull) {
             return NullBuild.emptyStream(linkLog, collect,taskList);
         }
-        T stream = null;
+        T stream;
         try {
             stream = (T) ((Stream) value).sorted(comparator);
         } catch (Exception e) {
@@ -165,7 +177,7 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
         if (n < 0) {
             throw new NullChainException(linkLog.append("skip? ").append("n must be greater than 0").toString());
         }
-        T stream = null;
+        T stream;
         try {
             stream = (T) ((Stream) value).skip(n);
         } catch (Exception e) {
@@ -184,7 +196,7 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
         if (action == null) {
             throw new NullChainException(linkLog.append("then? ").append("action must not be null").toString());
         }
-        T stream = null;
+        T stream;
         try {
             stream = (T) ((Stream) value).peek(action);
         } catch (Exception e) {
@@ -235,200 +247,229 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
 
     @Override
     public <R, A> NullChain<R> collect(Collector<? super T, A, R> collector) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect, taskList);
-        }
-        if (collector == null) {
-            throw new NullChainException(linkLog.append("collect? ").append("collector must not be null").toString());
-        }
-        R stream;
-        try {
-            stream = (R) ((Stream) value).collect(collector);
-        } catch (Exception e) {
-            linkLog.append("collect? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
-        linkLog.append("collect->");
-        return NullBuild.noEmpty(stream, linkLog, collect,taskList);
+        this.taskList.add((__)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            if (collector == null) {
+                throw new NullChainException(linkLog.append("collect? ").append("collector must not be null").toString());
+            }
+            R stream;
+            try {
+                stream = (R) ((Stream) value).collect(collector);
+            } catch (Exception e) {
+                linkLog.append("collect? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+            linkLog.append("collect->");
+            return NullBuild.noEmpty(stream, linkLog, collect,taskList);
+        });
+        return  NullBuild.busy(this);
     }
 
     @Override
     public NullChain<T> max(Comparator<? super T> comparator) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect, taskList);
-        }
-        if (comparator == null) {
-            throw new NullChainException(linkLog.append("max? ").append("comparator must not be null").toString());
-        }
-        Optional max;
-        try {
-            max = ((Stream) value).max(comparator);
-        } catch (Exception e) {
-            linkLog.append("max? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
-        if (!max.isPresent()) {
-            return NullBuild.empty(linkLog, collect, taskList);
-        }
-        linkLog.append("max->");
-        return NullBuild.noEmpty((T) max.get(), linkLog, collect,taskList);
+        this.taskList.add((__)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            if (comparator == null) {
+                throw new NullChainException(linkLog.append("max? ").append("comparator must not be null").toString());
+            }
+            Optional max;
+            try {
+                max = ((Stream) value).max(comparator);
+            } catch (Exception e) {
+                linkLog.append("max? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+            if (!max.isPresent()) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            linkLog.append("max->");
+            return NullBuild.noEmpty((T) max.get(), linkLog, collect,taskList);
+        });
+        return  NullBuild.busy(this);
     }
 
     @Override
     public NullChain<T> findFirst() {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect, taskList);
-        }
-
-        Optional first;
-        try {
-            first = ((Stream) value).findFirst();
-        } catch (Exception e) {
-            linkLog.append("findFirst? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
-        if (!first.isPresent()) {
-            return NullBuild.empty(linkLog, collect, taskList);
-        }
-        linkLog.append("findFirst->");
-        return NullBuild.noEmpty((T) first.get(), linkLog, collect,taskList);
+        this.taskList.add((__)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            Optional first;
+            try {
+                first = ((Stream) value).findFirst();
+            } catch (Exception e) {
+                linkLog.append("findFirst? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+            if (!first.isPresent()) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            linkLog.append("findFirst->");
+            return NullBuild.noEmpty((T) first.get(), linkLog, collect,taskList);
+        });
+        return  NullBuild.busy(this);
     }
 
     @Override
     public NullChain<T> findAny() {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect, taskList);
-        }
+        this.taskList.add((__)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
 
-        Optional any = null;
-        try {
-            any = ((Stream) value).findAny();
-        } catch (Exception e) {
-            linkLog.append("findAny? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
-        if (!any.isPresent()) {
-            return NullBuild.empty(linkLog, collect, taskList);
-        }
-        linkLog.append("findAny->");
-        return NullBuild.noEmpty((T) any.get(), linkLog, collect,taskList);
+            Optional any;
+            try {
+                any = ((Stream) value).findAny();
+            } catch (Exception e) {
+                linkLog.append("findAny? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+            if (!any.isPresent()) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            linkLog.append("findAny->");
+            return NullBuild.noEmpty((T) any.get(), linkLog, collect,taskList);
+        });
+        return  NullBuild.busy(this);
     }
 
     @Override
     public NullChain<T> reduce(BinaryOperator<T> accumulator) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect, taskList);
-        }
-        if (accumulator == null) {
-            throw new NullChainException(linkLog.append("reduce? ").append("accumulator must not be null").toString());
-        }
-        Optional reduce;
-        try {
-            reduce = ((Stream) value).reduce(accumulator);
-        } catch (Exception e) {
-            linkLog.append("reduce? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
-        if (!reduce.isPresent()) {
-            return NullBuild.empty(linkLog, collect, taskList);
-        }
-        linkLog.append("reduce->");
-        return NullBuild.noEmpty((T) reduce.get(), linkLog, collect,taskList);
+        this.taskList.add((__)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            if (accumulator == null) {
+                throw new NullChainException(linkLog.append("reduce? ").append("accumulator must not be null").toString());
+            }
+            Optional reduce;
+            try {
+                reduce = ((Stream) value).reduce(accumulator);
+            } catch (Exception e) {
+                linkLog.append("reduce? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+            if (!reduce.isPresent()) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            linkLog.append("reduce->");
+            return NullBuild.noEmpty((T) reduce.get(), linkLog, collect,taskList);
+        });
+        return  NullBuild.busy(this);
     }
 
     @Override
     public NullChain<Long> count() {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect, taskList);
-        }
-        long stream;
-        try {
-            stream = ((Stream) value).count();
-        } catch (Exception e) {
-            linkLog.append("count? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
-        linkLog.append("count->");
-        return NullBuild.noEmpty(stream, linkLog, collect,taskList);
+        this.taskList.add((__)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            long stream;
+            try {
+                stream = ((Stream) value).count();
+            } catch (Exception e) {
+                linkLog.append("count? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+            linkLog.append("count->");
+            return NullBuild.noEmpty(stream, linkLog, collect,taskList);
+        });
+        return  NullBuild.busy(this);
     }
 
     @Override
     public NullChain<T> min(Comparator<? super T> comparator) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect, taskList);
-        }
-        if (comparator == null) {
-            throw new NullChainException(linkLog.append("min? ").append("comparator must not be null").toString());
-        }
-        Optional<T> min;
-        try {
-            min = ((Stream) value).min(comparator);
-        } catch (Exception e) {
-            linkLog.append("min? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
-        if (!min.isPresent()) {
-            return NullBuild.empty(linkLog, collect, taskList);
-        }
-        linkLog.append("min->");
-        return NullBuild.noEmpty(min.get(), linkLog, collect,taskList);
+        this.taskList.add((__)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            if (comparator == null) {
+                throw new NullChainException(linkLog.append("min? ").append("comparator must not be null").toString());
+            }
+            Optional<T> min;
+            try {
+                min = ((Stream) value).min(comparator);
+            } catch (Exception e) {
+                linkLog.append("min? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+            if (!min.isPresent()) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            linkLog.append("min->");
+            return NullBuild.noEmpty(min.get(), linkLog, collect,taskList);
+        });
+        return  NullBuild.busy(this);
     }
 
     @Override
     public NullChain<Boolean> allMatch(Predicate<? super T> predicate) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect, taskList);
-        }
-        if (predicate == null) {
-            throw new NullChainException(linkLog.append("allMatch? ").append("predicate must not be null").toString());
-        }
-        boolean stream = false;
-        try {
-            stream = ((Stream) value).allMatch(predicate);
-        } catch (Exception e) {
-            linkLog.append("allMatch? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
-        linkLog.append("allMatch->");
-        return NullBuild.noEmpty(stream, linkLog, collect,taskList);
+        this.taskList.add((__)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            if (predicate == null) {
+                throw new NullChainException(linkLog.append("allMatch? ").append("predicate must not be null").toString());
+            }
+            boolean stream;
+            try {
+                stream = ((Stream) value).allMatch(predicate);
+            } catch (Exception e) {
+                linkLog.append("allMatch? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+            linkLog.append("allMatch->");
+            return NullBuild.noEmpty(stream, linkLog, collect,taskList);
+        });
+        return  NullBuild.busy(this);
     }
 
     @Override
     public NullChain<Boolean> anyMatch(Predicate<? super T> predicate) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect, taskList);
-        }
-        if (predicate == null) {
-            throw new NullChainException(linkLog.append("anyMatch? ").append("predicate must not be null").toString());
-        }
-        boolean stream;
-        try {
-            stream = ((Stream) value).anyMatch(predicate);
-        } catch (Exception e) {
-            linkLog.append("anyMatch? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
-        linkLog.append("anyMatch->");
-        return NullBuild.noEmpty(stream, linkLog, collect,taskList);
+        this.taskList.add((__)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            if (predicate == null) {
+                throw new NullChainException(linkLog.append("anyMatch? ").append("predicate must not be null").toString());
+            }
+            boolean stream;
+            try {
+                stream = ((Stream) value).anyMatch(predicate);
+            } catch (Exception e) {
+                linkLog.append("anyMatch? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+            linkLog.append("anyMatch->");
+            return NullBuild.noEmpty(stream, linkLog, collect,taskList);
+        });
+        return  NullBuild.busy(this);
     }
 
     @Override
     public NullChain<Boolean> noneMatch(Predicate<? super T> predicate) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect, taskList);
-        }
-        if (predicate == null) {
-            throw new NullChainException(linkLog.append("noneMatch? ").append("predicate must not be null").toString());
-        }
-        boolean stream = false;
-        try {
-            stream = ((Stream) value).noneMatch(predicate);
-        } catch (Exception e) {
-            linkLog.append("noneMatch? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
-        linkLog.append("noneMatch->");
-        return NullBuild.noEmpty(stream, linkLog, collect,taskList);
+        this.taskList.add((__)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            if (predicate == null) {
+                throw new NullChainException(linkLog.append("noneMatch? ").append("predicate must not be null").toString());
+            }
+            boolean stream;
+            try {
+                stream = ((Stream) value).noneMatch(predicate);
+            } catch (Exception e) {
+                linkLog.append("noneMatch? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+            linkLog.append("noneMatch->");
+            return NullBuild.noEmpty(stream, linkLog, collect,taskList);
+        });
+        return  NullBuild.busy(this);
     }
 
     @Override
@@ -445,6 +486,5 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
             linkLog.append("forEach? ");
             throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
-        linkLog.append("forEach->");
     }
 }

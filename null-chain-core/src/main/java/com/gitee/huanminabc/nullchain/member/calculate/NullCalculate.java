@@ -1,6 +1,6 @@
-package com.gitee.huanminabc.nullchain.base.leaf.calculate;
+package com.gitee.huanminabc.nullchain.member.calculate;
 
-import com.gitee.huanminabc.nullchain.base.NullChain;
+import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
 
 import java.math.BigDecimal;

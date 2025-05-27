@@ -1,6 +1,6 @@
 package com.gitee.huanminabc.nullchain.tool;
 
-import com.gitee.huanminabc.nullchain.base.NullChain;
+import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.NullType;
 import com.gitee.huanminabc.nullchain.vessel.NullMap;
 /**

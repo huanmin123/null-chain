@@ -1,7 +1,7 @@
 package com.gitee.huanminabc.nullchain.common;
 
 import com.gitee.huanminabc.nullchain.NullCheck;
-import com.gitee.huanminabc.nullchain.base.NullChainBase;
+import com.gitee.huanminabc.nullchain.core.NullChainBase;
 import lombok.Setter;
 
 import java.io.IOException;

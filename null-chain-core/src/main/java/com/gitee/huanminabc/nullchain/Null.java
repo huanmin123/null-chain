@@ -1,11 +1,11 @@
 package com.gitee.huanminabc.nullchain;
 
 
-import com.gitee.huanminabc.nullchain.base.leaf.calculate.NullCalculate;
-import com.gitee.huanminabc.nullchain.base.NullChain;
-import com.gitee.huanminabc.nullchain.base.leaf.http.OkHttp;
-import com.gitee.huanminabc.nullchain.base.leaf.http.OkHttpChain;
-import com.gitee.huanminabc.nullchain.base.leaf.stream.NullStream;
+import com.gitee.huanminabc.nullchain.member.calculate.NullCalculate;
+import com.gitee.huanminabc.nullchain.core.NullChain;
+import com.gitee.huanminabc.nullchain.member.http.OkHttp;
+import com.gitee.huanminabc.nullchain.member.http.OkHttpChain;
+import com.gitee.huanminabc.nullchain.member.stream.NullStream;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
 import com.gitee.huanminabc.nullchain.common.NullTaskList;
@@ -117,7 +117,7 @@ public class Null extends NullUtil {
 
     public static <T> NullChain<NullDeque<T>> of(NullDeque<T> queue) {
         NullTaskList nullTaskList = new NullTaskList();
-        nullTaskList.add((__)->{
+        nullTaskList.add((__) -> {
             StringBuilder linkLog = new StringBuilder();
             if (Null.is(queue)) {
                 linkLog.append(" Null.of?");
@@ -132,7 +132,7 @@ public class Null extends NullUtil {
 
     public static <T> NullChain<NullQuery<T>> of(NullQuery<T> queue) {
         NullTaskList nullTaskList = new NullTaskList();
-        nullTaskList.add((__)->{
+        nullTaskList.add((__) -> {
             StringBuilder linkLog = new StringBuilder();
             if (Null.is(queue)) {
                 linkLog.append(" Null.of?");
@@ -148,14 +148,14 @@ public class Null extends NullUtil {
 
     public static <T> NullChain<Set<T>> of(Set<T> set) {
         NullTaskList nullTaskList = new NullTaskList();
-        nullTaskList.add((__)->{
+        nullTaskList.add((__) -> {
             StringBuilder linkLog = new StringBuilder();
             if (Null.is(set)) {
                 linkLog.append(" Null.of?");
                 return NullBuild.empty(linkLog, new NullCollect(), nullTaskList);
             }
             linkLog.append(" Null.of->");
-            return NullBuild.noEmpty(set, linkLog, new NullCollect(),nullTaskList);
+            return NullBuild.noEmpty(set, linkLog, new NullCollect(), nullTaskList);
         });
         return NullBuild.busy(nullTaskList);
 
@@ -163,7 +163,7 @@ public class Null extends NullUtil {
 
     public static <T> NullChain<NullSet<T>> of(NullSet<T> set) {
         NullTaskList nullTaskList = new NullTaskList();
-        nullTaskList.add((__)->{
+        nullTaskList.add((__) -> {
             StringBuilder linkLog = new StringBuilder();
             if (Null.is(set)) {
                 linkLog.append(" Null.of?");
@@ -179,7 +179,7 @@ public class Null extends NullUtil {
 
     public static <T> NullChain<List<T>> of(List<T> list) {
         NullTaskList nullTaskList = new NullTaskList();
-        nullTaskList.add((__)->{
+        nullTaskList.add((__) -> {
             StringBuilder linkLog = new StringBuilder();
             if (Null.is(list)) {
                 linkLog.append(" Null.of?");
@@ -194,34 +194,49 @@ public class Null extends NullUtil {
 
 
     public static <T> NullChain<NullList<T>> of(NullList<T> list) {
-        StringBuilder linkLog = new StringBuilder();
-        if (Null.is(list)) {
-            linkLog.append(" Null.of?");
-            return NullBuild.empty(linkLog, new NullCollect(), new NullTaskList());
-        }
-        linkLog.append(" Null.of->");
-        return NullBuild.noEmpty(list, linkLog, new NullCollect(), new NullTaskList());
+        NullTaskList nullTaskList = new NullTaskList();
+        nullTaskList.add((__) -> {
+            StringBuilder linkLog = new StringBuilder();
+            if (Null.is(list)) {
+                linkLog.append(" Null.of?");
+                return NullBuild.empty(linkLog, new NullCollect(), nullTaskList);
+            }
+            linkLog.append(" Null.of->");
+            return NullBuild.noEmpty(list, linkLog, new NullCollect(), nullTaskList);
+        });
+        return NullBuild.busy(nullTaskList);
+
     }
 
 
     public static <K, V> NullChain<Map<K, V>> of(Map<K, V> map) {
-        StringBuilder linkLog = new StringBuilder();
-        if (Null.is(map)) {
-            linkLog.append(" Null.of?");
-            return NullBuild.empty(linkLog, new NullCollect(), new NullTaskList());
-        }
-        linkLog.append(" Null.of->");
-        return NullBuild.noEmpty(map, linkLog, new NullCollect(), new NullTaskList());
+        NullTaskList nullTaskList = new NullTaskList();
+        nullTaskList.add((__)->{
+            StringBuilder linkLog = new StringBuilder();
+            if (Null.is(map)) {
+                linkLog.append(" Null.of?");
+                return NullBuild.empty(linkLog, new NullCollect(), nullTaskList);
+            }
+            linkLog.append(" Null.of->");
+            return NullBuild.noEmpty(map, linkLog, new NullCollect(), nullTaskList);
+        });
+        return NullBuild.busy(nullTaskList);
+
     }
 
     public static <K, V> NullChain<NullMap<K, V>> of(NullMap<K, V> map) {
-        StringBuilder linkLog = new StringBuilder();
-        if (Null.is(map)) {
-            linkLog.append(" Null.of?");
-            return NullBuild.empty(linkLog, new NullCollect(), new NullTaskList());
-        }
-        linkLog.append(" Null.of->");
-        return NullBuild.noEmpty(map, linkLog, new NullCollect(), new NullTaskList());
+        NullTaskList nullTaskList = new NullTaskList();
+        nullTaskList.add((__)->{
+            StringBuilder linkLog = new StringBuilder();
+            if (Null.is(map)) {
+                linkLog.append(" Null.of?");
+                return NullBuild.empty(linkLog, new NullCollect(), nullTaskList);
+            }
+            linkLog.append(" Null.of->");
+            return NullBuild.noEmpty(map, linkLog, new NullCollect(), nullTaskList);
+        });
+        return NullBuild.busy(nullTaskList);
+
     }
 
 
@@ -244,15 +259,15 @@ public class Null extends NullUtil {
     }
 
 
-    public static <NUM extends Number> NullCalculate<BigDecimal> ofCalc(NUM num) {
+    public static <N extends Number> NullCalculate<BigDecimal> ofCalc(N n) {
         StringBuilder linkLog = new StringBuilder();
-        if (num == null) {
+        if (n == null) {
             linkLog.append(" Null.ofCalc?");
             return NullBuild.emptyCalc(linkLog, new NullCollect(), new NullTaskList());
         }
         linkLog.append(" Null.ofCalc->");
         NullCollect collect = new NullCollect();
-        return NullBuild.noEmptyCalc(BigDecimal.valueOf(num.doubleValue()), linkLog, collect, new NullTaskList());
+        return NullBuild.noEmptyCalc(BigDecimal.valueOf(n.doubleValue()), linkLog, collect, new NullTaskList());
     }
 
     public static <NUM extends Number> NullCalculate<BigDecimal> ofCalc(NullChain<NUM> nullChain) {
@@ -297,6 +312,15 @@ public class Null extends NullUtil {
         linkLog.append(" Null.ofHttp->");
         return OkHttp.notEmpty(url, value, linkLog, new NullCollect(), new NullTaskList());
     }
+    public static <T> OkHttpChain ofHttp(String httpName, String url, T value) {
+        StringBuilder linkLog = new StringBuilder();
+        if (Null.isAny(url, value)) {
+            linkLog.append(" Null.ofHttp?");
+            return OkHttp.empty(linkLog);
+        }
+        linkLog.append(" Null.ofHttp->");
+        return OkHttp.notEmpty(httpName,url, value, linkLog, new NullCollect(), new NullTaskList());
+    }
 
     public static <T> OkHttpChain ofHttp(String url, NullChain<T> value) {
         StringBuilder linkLog = new StringBuilder();
@@ -306,6 +330,16 @@ public class Null extends NullUtil {
         }
         linkLog.append(" Null.ofHttp->");
         return OkHttp.notEmpty(url, value, linkLog, new NullCollect(), new NullTaskList());
+    }
+
+    public static <T> OkHttpChain ofHttp(String httpName, String url, NullChain<T> value) {
+        StringBuilder linkLog = new StringBuilder();
+        if (Null.isAny(url, value)) {
+            linkLog.append(" Null.ofHttp?");
+            return OkHttp.empty(linkLog);
+        }
+        linkLog.append(" Null.ofHttp->");
+        return OkHttp.notEmpty(httpName,url, value, linkLog, new NullCollect(), new NullTaskList());
     }
 
     public static <T> NullChain<T> empty() {

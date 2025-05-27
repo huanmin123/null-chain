@@ -1,7 +1,7 @@
 package com.gitee.huanminabc.nullchain.common;
 
 import com.gitee.huanminabc.nullchain.Null;
-import com.gitee.huanminabc.nullchain.base.NullChain;
+import com.gitee.huanminabc.nullchain.core.NullChain;
 
 import java.io.Serializable;
 import java.util.HashMap;

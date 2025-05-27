@@ -1,10 +1,9 @@
-package com.gitee.huanminabc.nullchain.base;
+package com.gitee.huanminabc.nullchain.core;
 
 import com.gitee.huanminabc.nullchain.enums.TimeEnum;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
 import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
-import com.gitee.huanminabc.nullchain.base.leaf.http.OkHttpChain;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
 
 
@@ -100,24 +99,6 @@ public interface NullTools<T> extends NullFinality<T> {
      * 6. 格式化的时间格式字符串({@link DateFormatEnum})
      */
     NullChain<Integer> dateCompare(Object date);
-
-
-    /**
-     * 请求http, 参数由上一个任务传递
-     * @param url 请求地址
-     * @return
-     */
-    OkHttpChain http(String url);
-
-    /**
-     * 请求http
-     *
-     * @param httpName http的名称 , 不同的业务可以用不同的实例
-     * @param url      请求地址
-     * @return
-     */
-    OkHttpChain http(String httpName, String url);
-
 
 
     /**

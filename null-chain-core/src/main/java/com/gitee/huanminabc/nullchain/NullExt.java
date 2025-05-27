@@ -1,6 +1,6 @@
 package com.gitee.huanminabc.nullchain;
 
-import com.gitee.huanminabc.nullchain.base.ext.NullChainExt;
+import com.gitee.huanminabc.nullchain.core.ext.NullChainExt;
 
 /**
  * 使用NULLExt接口,可以在任何对象上直接调用链式操作 ,但是需要保证对象变量不为空

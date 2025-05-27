@@ -1,4 +1,4 @@
-package com.gitee.huanminabc.nullchain.base.leaf.http;
+package com.gitee.huanminabc.nullchain.member.http;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.annotation.JSONField;
@@ -8,7 +8,6 @@ import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.common.function.NullHttpSupplierEx;
 import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
-import com.gitee.huanminabc.nullchain.http.async.OkHttpAsync;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 
@@ -34,8 +33,6 @@ public class OkHttpBuild {
     public final static int LIMIT_MAXIMUM_POOL_SIZE = 1000;
 
     static {
-        //默认的OkHttpAsync 实例
-        OkHttpBuild.okHttpClientConcurrentHashMap.put(OkHttpAsync.DEFAULT_THREAD_FACTORY_NAME, createOkHttpClient(LIMIT_MAXIMUM_POOL_SIZE));
         //默认的OkHttp 实例
         OkHttpBuild.okHttpClientConcurrentHashMap.put(OkHttp.DEFAULT_THREAD_FACTORY_NAME, createOkHttpClient(LIMIT_MAXIMUM_POOL_SIZE));
     }

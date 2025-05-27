@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.NullExt;
-import com.gitee.huanminabc.nullchain.base.NullChain;
+import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.enums.ResponseStatusEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;

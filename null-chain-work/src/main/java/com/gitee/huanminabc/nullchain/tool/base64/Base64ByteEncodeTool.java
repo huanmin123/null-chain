@@ -2,7 +2,7 @@ package com.gitee.huanminabc.nullchain.tool.base64;
 
 
 import com.gitee.huanminabc.common.encryption.Base64Util;
-import com.gitee.huanminabc.nullchain.base.NullChain;
+import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
 import com.gitee.huanminabc.nullchain.vessel.NullMap;
 

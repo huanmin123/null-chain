@@ -1,8 +1,7 @@
-package com.gitee.huanminabc.nullchain.base.ext;
+package com.gitee.huanminabc.nullchain.core.ext;
 
-import com.gitee.huanminabc.nullchain.base.async.NullChainAsync;
-import com.gitee.huanminabc.nullchain.base.NullChain;
-import com.gitee.huanminabc.nullchain.base.NullConvert;
+import com.gitee.huanminabc.nullchain.core.NullChain;
+import com.gitee.huanminabc.nullchain.core.NullConvert;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
 
 public interface NullConvertExt<T> extends NullConvert<T>, NullToolsExt<T> {

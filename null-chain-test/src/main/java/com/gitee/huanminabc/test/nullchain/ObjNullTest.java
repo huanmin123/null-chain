@@ -4,7 +4,7 @@ package com.gitee.huanminabc.test.nullchain;
 import com.gitee.huanminabc.common.base.SerializeUtil;
 import com.gitee.huanminabc.common.test.CodeTimeUtil;
 import com.gitee.huanminabc.nullchain.Null;
-import com.gitee.huanminabc.nullchain.base.NullChain;
+import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.enums.TimeEnum;
 import com.gitee.huanminabc.nullchain.common.NullChainCheckException;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
@@ -43,6 +43,7 @@ public class ObjNullTest {
         userEntity.setAnInt(123);
 
         RoleEntity roleEntity = new RoleEntity();
+        roleEntity.setId(221);
         roleEntity.setRoleName("admin");
         roleEntity.setRoleDescription("1234");
         roleEntity.setRoleCreationTime(new Date());
@@ -54,6 +55,14 @@ public class ObjNullTest {
         userEntityList.add(null);
         userEntity.setList(userEntityList);
     }
+    @Test
+    public void of() {
+        NullChain<Long>  roleId = Null.of(userEntity).map(UserEntity::getRoleData).map(RoleEntity::getId);
+        NullChain<Double> roleIdCalc = Null.ofCalc(roleId).add(100).div(10).map(BigDecimal::doubleValue);
+        System.out.println(roleIdCalc.get());
+    }
+
+
 
 
     @SneakyThrows
@@ -367,12 +376,15 @@ public class ObjNullTest {
     public void ofStream() {
         NullChain<List<UserEntity>> listNullChain = Null.of(userEntity)
                 .map(UserEntity::getList);
-        List<RoleEntity> roleEntities = Null.ofStream(listNullChain).filter(Null::non)
+        List<RoleEntity> roleEntities = Null.ofStream(listNullChain)
+                .parallel()
+                .filter(Null::non)
                 .map(UserEntity::getRoleData)
                 .sorted(Comparator.comparing(RoleEntity::getRoleName))
                 .collect(Collectors.toList())
                 .get();
         System.out.println(roleEntities);
+        System.out.println("===================================");
     }
 
 

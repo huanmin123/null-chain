@@ -1,12 +1,11 @@
-package com.gitee.huanminabc.nullchain.base.ext;
+package com.gitee.huanminabc.nullchain.core.ext;
 
-import com.gitee.huanminabc.nullchain.base.NullChain;
-import com.gitee.huanminabc.nullchain.base.NullTools;
+import com.gitee.huanminabc.nullchain.core.NullChain;
+import com.gitee.huanminabc.nullchain.core.NullTools;
 import com.gitee.huanminabc.nullchain.enums.TimeEnum;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
 import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
-import com.gitee.huanminabc.nullchain.base.leaf.http.OkHttpChain;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
 
 public interface NullToolsExt<T> extends NullTools<T>,  NullFinalityExt<T>{
@@ -64,20 +63,6 @@ public interface NullToolsExt<T> extends NullTools<T>,  NullFinalityExt<T>{
     default NullChain<String> json() {
         NullChain<T> tNullChain = toNULL();
         return tNullChain.json();
-    }
-
-
-    @Override
-    default OkHttpChain http(String url) {
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.http(url);
-    }
-
-
-    @Override
-    default OkHttpChain http(String httpName, String url) {
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.http(httpName, url);
     }
 
     @Override

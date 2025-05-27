@@ -1,6 +1,6 @@
 package demo;
 
-import com.gitee.huanminabc.nullchain.base.NullChain;
+import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.NullResult;
 import com.gitee.huanminabc.test.nullchain.entity.UserEntity;
 import org.springframework.web.bind.annotation.PostMapping;

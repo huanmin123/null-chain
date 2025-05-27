@@ -1,6 +1,6 @@
-package com.gitee.huanminabc.nullchain.base.ext;
+package com.gitee.huanminabc.nullchain.core.ext;
 
-import com.gitee.huanminabc.nullchain.base.NullChain;
+import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.*;
 import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;

@@ -1,6 +1,6 @@
-package com.gitee.huanminabc.nullchain.base.leaf.calculate;
+package com.gitee.huanminabc.nullchain.member.calculate;
 
-import com.gitee.huanminabc.nullchain.base.NullChain;
+import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.*;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import lombok.extern.slf4j.Slf4j;
@@ -233,24 +233,27 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
 
     @Override
     public <V extends Number> NullChain<V> map(NullFun<BigDecimal, V> pickValue) {
-        if (isNull) {
-            return NullBuild.empty(linkLog, collect, taskList);
-        }
-        if (pickValue == null) {
-            throw new NullChainException(linkLog.append("result? ").append("pickValue取值器不能是空").toString());
-        }
-        V v;
-        try {
-            v = pickValue.apply(value);
-        } catch (Exception e) {
-            linkLog.append("map? ");
-            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-        }
-        if (v == null) {
-            return NullBuild.empty(linkLog, collect, taskList);
-        }
-        linkLog.append("map->");
-        return NullBuild.noEmpty(v, linkLog, collect, taskList);
+        this.taskList.add((__)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            if (pickValue == null) {
+                throw new NullChainException(linkLog.append("result? ").append("pickValue取值器不能是空").toString());
+            }
+            V v;
+            try {
+                v = pickValue.apply(value);
+            } catch (Exception e) {
+                linkLog.append("map? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+            if (v == null) {
+                return NullBuild.empty(linkLog, collect, taskList);
+            }
+            linkLog.append("map->");
+            return NullBuild.noEmpty(v, linkLog, collect, taskList);
+        });
+        return  NullBuild.busy(this);
     }
 
 }

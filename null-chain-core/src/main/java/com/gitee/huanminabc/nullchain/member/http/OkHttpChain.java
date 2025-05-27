@@ -1,4 +1,4 @@
-package com.gitee.huanminabc.nullchain.base.leaf.http;
+package com.gitee.huanminabc.nullchain.member.http;
 
 /**
  * @author huanmin

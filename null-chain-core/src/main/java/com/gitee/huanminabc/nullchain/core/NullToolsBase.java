@@ -1,4 +1,4 @@
-package com.gitee.huanminabc.nullchain.base;
+package com.gitee.huanminabc.nullchain.core;
 
 import com.alibaba.fastjson2.JSON;
 import com.gitee.huanminabc.common.reflect.BeanCopyUtil;
@@ -9,8 +9,6 @@ import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
 import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
 import com.gitee.huanminabc.nullchain.enums.TimeEnum;
-import com.gitee.huanminabc.nullchain.base.leaf.http.OkHttp;
-import com.gitee.huanminabc.nullchain.base.leaf.http.OkHttpChain;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
 import com.gitee.huanminabc.nullchain.tool.NullToolFactory;
 import com.gitee.huanminabc.nullchain.common.NullReflectionKit;
@@ -232,36 +230,6 @@ public class NullToolsBase<T> extends NullFinalityBase<T> implements NullTools<T
         });
         return  NullBuild.busy(this);
     }
-
-    @Override
-    public OkHttpChain http(String url) {
-        if (isNull) {
-            return OkHttp.empty(linkLog);
-        }
-        OkHttp<T> http = new OkHttp<>();
-        http.setUrl(url);
-        http.setValue(value);
-        http.setLinkLog(linkLog);
-        http.setNull(isNull);
-        http.setCollect(collect);
-        return http;
-    }
-
-
-    @Override
-    public OkHttpChain http(String httpName, String url) {
-        if (isNull) {
-            return OkHttp.empty(linkLog);
-        }
-        OkHttp<T> http = new OkHttp<>(httpName);
-        http.setUrl(url);
-        http.setValue((T)value);
-        http.setLinkLog(linkLog);
-        http.setNull(isNull);
-        http.setCollect(collect);
-        return http;
-    }
-
     @Override
     public <R> NullChain<R> tool(Class<? extends NullTool<T, R>> tool) {
         return tool(tool, new Object[]{});

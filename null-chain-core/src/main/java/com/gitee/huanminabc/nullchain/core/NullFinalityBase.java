@@ -1,4 +1,4 @@
-package com.gitee.huanminabc.nullchain.base;
+package com.gitee.huanminabc.nullchain.core;
 
 
 import com.gitee.huanminabc.nullchain.Null;
