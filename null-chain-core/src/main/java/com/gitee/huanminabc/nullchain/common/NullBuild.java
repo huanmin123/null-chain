@@ -2,9 +2,6 @@ package com.gitee.huanminabc.nullchain.common;
 
 
 import com.gitee.huanminabc.nullchain.Null;
-import com.gitee.huanminabc.nullchain.base.async.NullChainAsyncBase;
-import com.gitee.huanminabc.nullchain.base.async.stream.NullStreamAsync;
-import com.gitee.huanminabc.nullchain.base.async.stream.NullStreamAsyncBase;
 import com.gitee.huanminabc.nullchain.base.NullChain;
 import com.gitee.huanminabc.nullchain.base.NullChainBase;
 import com.gitee.huanminabc.nullchain.base.leaf.calculate.NullCalculate;
@@ -51,31 +48,10 @@ public class NullBuild {
     public static <T> NullChain<T> busy(NullTaskList taskList) {
         return noEmpty(null,new StringBuilder(),new NullCollect(),taskList);
     }
-
-    public static <T> NullChainAsyncBase<T> emptyAsync(StringBuilder linkLog, NullCollect nullChainCollect) {
-        return new NullChainAsyncBase<T>(linkLog, true, nullChainCollect);
-    }
-
     //过程中使用
     public static <T> NullChain<T> noEmpty(T object, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
         return new NullChainBase<>(object, linkLog, nullChainCollect,taskList);
     }
-
-
-
-    //过程中使用
-    public static <T> NullChainAsyncBase<T> noEmptyAsync(CompletableFuture<T> completableFuture, StringBuilder linkLog, String threadFactoryName, NullCollect collect) {
-        //添加到收集器里面
-        completableFuture.thenApplyAsync((T t) -> {
-            collect.add(t);
-            return t;
-        });
-        return new NullChainAsyncBase<T>(completableFuture, linkLog, threadFactoryName, collect);
-    }
-
-
-
-
 
 
     public static <T> NullStream<T> emptyStream(StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
@@ -84,15 +60,6 @@ public class NullBuild {
     public static <T> NullStream<T> noEmptyStream(T object, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
         return new NullStreamBase<>(object, linkLog, nullChainCollect,taskList);
     }
-
-    public static <T> NullStreamAsync<T> emptyStreamAsync(StringBuilder linkLog, NullCollect nullChainCollect) {
-        return new NullStreamAsyncBase<T>(linkLog, true, nullChainCollect);
-    }
-
-    public static <T> NullStreamAsync<T> noEmptyStreamAsync(CompletableFuture<T> completableFuture, StringBuilder linkLog, String threadFactoryName, NullCollect collect) {
-        return new NullStreamAsyncBase<T>(completableFuture, linkLog, threadFactoryName, collect);
-    }
-
 
     public static  NullCalculate<BigDecimal> emptyCalc(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
         return new NullCalculateBase<>(linkLog,true, collect,taskList);
