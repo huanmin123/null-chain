@@ -57,6 +57,12 @@ public class NullBuild {
     public static <T> NullChain<T> noEmpty(T object, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
         return new NullChainBase<>(object, linkLog, nullChainCollect,taskList);
     }
+    public static <T> NullChain<T> noEmpty(T object,boolean async, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
+        NullChainBase<T> tNullChainBase = new NullChainBase<>(object, linkLog, nullChainCollect, taskList);
+        tNullChainBase.async=async;
+        return tNullChainBase;
+    }
+
 
 
     public static <T> NullStream<T> emptyStream(StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {

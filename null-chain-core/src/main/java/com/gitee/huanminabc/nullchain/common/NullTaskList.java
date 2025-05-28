@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 public class NullTaskList {
     private Queue<NullTaskFunAbs> tasks;
     private NullChainBase lastResult; //最后一个任务的结果
-    private boolean lastAsync=false; //最后一个任务是否异步
+    private boolean lastAsync = false; //最后一个任务是否异步
 
     @Setter
     protected String currentThreadFactoryName = ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME;
@@ -48,11 +48,6 @@ public class NullTaskList {
         } else {
             tasks.add(new NullTaskFunAbs() {
                 @Override
-                public boolean isHeavyTask() {
-                    return false;
-                }
-
-                @Override
                 public NullChainBase nodeTask(Object value) throws RuntimeException {
                     return (NullChainBase) task.nodeTask(value);
                 }
@@ -64,26 +59,30 @@ public class NullTaskList {
 
     //运行任务返回结果  (非异步的方法执行)
     public <T> NullChainBase<T> runTaskAll() {
-        if (lastResult!=null){
-           return lastResult;
+        if (lastResult != null) {
+            return lastResult;
         }
         NullChainBase<T> chain = null;
         while (!tasks.isEmpty()) {
-            NullTaskFun task = tasks.poll();
-            NullChainBase task1 = (NullChainBase) task.nodeTask(chain == null ? null : chain.value);
-            if (task1.isNull) {
-                return task1;
+            NullTaskFunAbs poll = tasks.poll();
+            NullChainBase task1 = (NullChainBase) poll.nodeTask(chain == null ? null : chain.value);
+            if (task1.isNull ) {
+                //向后取一个, 如果后面任务是遇到上一个任务是null那么就停止执行
+                NullTaskFunAbs lastPoll  = tasks.poll();
+                if (lastPoll != null&&lastPoll.preNullEnd()) {
+                    return task1;
+                }
             }
             chain = task1;
         }
-        lastResult= chain;
+        lastResult = chain;
         tasks = null;//避免被重复调用
         return chain;
     }
 
     //运行任务返回结果  如果调用方支持异步那么开启异步之后的节点将脱离主线程  比如ifPresent
     public <T> void runTaskAll(Consumer<NullChainBase<T>> supplier, Consumer<Throwable> consumer) {
-        if (lastResult!=null){
+        if (lastResult != null) {
             if (!lastAsync) {
                 supplier.accept(lastResult);
             } else {
@@ -112,8 +111,12 @@ public class NullTaskList {
             if (completableFuture == null) {
                 NullChainBase task = (NullChainBase) poll.nodeTask(chain == null ? null : chain.value);
                 if (task.isNull) {
-                    supplier.accept(task);
-                    return;
+                    //向后取一个, 如果后面任务是遇到上一个任务是null那么就停止执行
+                    NullTaskFunAbs lastPoll = tasks.poll();
+                    if (lastPoll != null&&lastPoll.preNullEnd()) {
+                        supplier.accept(task);
+                        return;
+                    }
                 }
                 if (task.async) {
                     completableFuture = new CompletableFuture();
@@ -124,21 +127,25 @@ public class NullTaskList {
                 completableFuture = completableFuture.thenComposeAsync((taskFut) -> {
                     NullChainBase task1 = (NullChainBase) poll.nodeTask(taskFut.value);
                     if (task1.isNull) {
-                        supplier.accept(task1);
-                        return CompletableFuture.completedFuture(null);
+                        //向后取一个, 如果后面任务是遇到上一个任务是null那么就停止执行
+                        NullTaskFunAbs lastPoll = tasks.poll();
+                        if (lastPoll != null&&lastPoll.preNullEnd()) {
+                            supplier.accept(task1);
+                            return CompletableFuture.completedFuture(null);
+                        }
                     }
                     //继续执行
                     return CompletableFuture.completedFuture(task1);
                 }, getCT(!poll.isHeavyTask()));
             }
         }
-        lastResult= chain;
+        lastResult = chain;
         tasks = null;
         if (completableFuture == null) {
-            lastAsync= false; //没有异步任务
+            lastAsync = false; //没有异步任务
             supplier.accept(chain);
         } else {
-            lastAsync= true; //有异步任务
+            lastAsync = true; //有异步任务
             completableFuture.thenComposeAsync((nullChainBase) -> {
                 supplier.accept(nullChainBase);
                 return CompletableFuture.completedFuture(null);

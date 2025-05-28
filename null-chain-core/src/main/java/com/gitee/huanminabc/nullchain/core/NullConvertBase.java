@@ -29,9 +29,7 @@ public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConve
                 return NullBuild.empty(linkLog, collect,taskList);
             }
             linkLog.append("async->");
-            NullChainBase<T> chain = (NullChainBase)NullBuild.noEmpty(value, linkLog, collect, taskList);
-            chain.async=true;
-            return chain;
+            return  NullBuild.noEmpty(value,true, linkLog, collect, taskList);
         });
         return  NullBuild.busy(this);
         
@@ -44,11 +42,10 @@ public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConve
                 return NullBuild.empty(linkLog, collect,taskList);
             }
             ThreadFactoryUtil.addExecutor(threadFactoryName);
-            linkLog.append("async->");
-            NullChainBase<T> chain = (NullChainBase)NullBuild.noEmpty(value, linkLog, collect, taskList);
-            chain.async=true;
             taskList.setCurrentThreadFactoryName(threadFactoryName);
-            return chain;
+            linkLog.append("async->");
+            return    NullBuild.noEmpty(value,true, linkLog, collect, taskList);
+
         });
         return  NullBuild.busy(this);
     }

@@ -3,6 +3,7 @@ package com.gitee.huanminabc.nullchain.leaf.http;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.*;
+import com.gitee.huanminabc.nullchain.core.NullChainBase;
 import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2024/11/30
  */
 @Slf4j
-public class OkHttp<T> extends NullKernelAbstract<T> implements NullHttp, OkHttpChain {
+public class OkHttp<T> extends NullKernelAbstract<T> implements OkHttpChain {
     public static final String DEFAULT_THREAD_FACTORY_NAME = "$$$--NULL_DEFAULT_OKHTTP_SYNC--$$$";
 
 
@@ -56,6 +57,21 @@ public class OkHttp<T> extends NullKernelAbstract<T> implements NullHttp, OkHttp
         this.linkLog = linkLog;
         this.collect = nullChainCollect;
         this.taskList = taskList;
+    }
+
+    //设置异步执行还是同步执行
+    public  OkHttpChain async() {
+        if (isNull) {
+            return  this;
+        }
+        this.taskList.add((value)->{
+            if (isNull) {
+                return NullBuild.empty(linkLog, collect,taskList);
+            }
+            linkLog.append("async->");
+            return NullBuild.noEmpty(value,true, linkLog, collect, taskList);
+        });
+        return this;
     }
 
 
@@ -198,43 +214,48 @@ public class OkHttp<T> extends NullKernelAbstract<T> implements NullHttp, OkHttp
      */
     public NullChain<Boolean> downloadFile(String filePath) {
         if (isNull) {
-            return NullBuild.empty(linkLog, collect, taskList);
+            return  NullBuild.empty(linkLog, collect, taskList);
         }
-        if (Null.is(filePath)) {
-            linkLog.append("downloadFile? ").append("本地文件路径不能为空");
-            throw new NullChainException(linkLog.toString());
-        }
+        this.taskList.add((__)->{
+            if (Null.is(filePath)) {
+                linkLog.append("downloadFile? ").append("本地文件路径不能为空");
+                throw new NullChainException(linkLog.toString());
+            }
 
-        try {
-            OkHttpBuild.setHeader(headerMap, request);
-            boolean b = OkHttpBuild.downloadFile(url, filePath, okHttpClient, request);
-            linkLog.append("downloadFile->");
-            return NullBuild.noEmpty(b, linkLog, collect, taskList);
-        } catch (Exception e) {
-            linkLog.append("downloadFile? ").append(e.getMessage());
-            throw new NullChainException(linkLog.toString());
-        }
-
+            try {
+                OkHttpBuild.setHeader(headerMap, request);
+                boolean b = OkHttpBuild.downloadFile(url, filePath, okHttpClient, request);
+                linkLog.append("downloadFile->");
+                return NullBuild.noEmpty(b, linkLog, collect, taskList);
+            } catch (Exception e) {
+                linkLog.append("downloadFile? ").append(e.getMessage());
+                throw new NullChainException(linkLog.toString());
+            }
+        });
+        return NullBuild.busy( taskList);
     }
 
     //下载文件返回字节流
     public NullChain<byte[]> toBytes() {
         if (isNull) {
-            return NullBuild.empty(linkLog, collect, taskList);
+            return  NullBuild.empty(linkLog, collect, taskList);
         }
-        try {
-            OkHttpBuild.setHeader(headerMap, request);
-            byte[] bytes = OkHttpBuild.toBytes(url, okHttpClient, request);
-            if (bytes == null) {
-                linkLog.append("toBytes? ").append("返回值为空");
-                return NullBuild.empty(linkLog, collect, taskList);
+        this.taskList.add((__)->{
+            try {
+                OkHttpBuild.setHeader(headerMap, request);
+                byte[] bytes = OkHttpBuild.toBytes(url, okHttpClient, request);
+                if (bytes == null) {
+                    linkLog.append("toBytes? ").append("返回值为空");
+                    return NullBuild.empty(linkLog, collect, taskList);
+                }
+                linkLog.append("toBytes->");
+                return NullBuild.noEmpty(bytes, linkLog, collect, taskList);
+            } catch (Exception e) {
+                linkLog.append("toBytes? ").append(e.getMessage());
+                throw new NullChainException(linkLog.toString());
             }
-            linkLog.append("toBytes->");
-            return NullBuild.noEmpty(bytes, linkLog, collect, taskList);
-        } catch (Exception e) {
-            linkLog.append("toBytes? ").append(e.getMessage());
-            throw new NullChainException(linkLog.toString());
-        }
+        });
+        return NullBuild.busy( taskList);
     }
 
     //下载文件返回inputStream
@@ -242,19 +263,22 @@ public class OkHttp<T> extends NullKernelAbstract<T> implements NullHttp, OkHttp
         if (isNull) {
             return NullBuild.empty(linkLog, collect, taskList);
         }
-        try {
-            OkHttpBuild.setHeader(headerMap, request);
-            InputStream inputStream = OkHttpBuild.toInputStream(url, okHttpClient, request);
-            if (inputStream == null) {
-                linkLog.append("toInputStream? ").append("返回值为空");
-                return NullBuild.empty(linkLog, collect, taskList);
+        this.taskList.add((__)->{
+            try {
+                OkHttpBuild.setHeader(headerMap, request);
+                InputStream inputStream = OkHttpBuild.toInputStream(url, okHttpClient, request);
+                if (inputStream == null) {
+                    linkLog.append("toInputStream? ").append("返回值为空");
+                    return NullBuild.empty(linkLog, collect, taskList);
+                }
+                linkLog.append("toInputStream->");
+                return NullBuild.noEmpty(inputStream, linkLog, collect, taskList);
+            } catch (Exception e) {
+                linkLog.append("toInputStream? ").append(e.getMessage());
+                throw new NullChainException(linkLog.toString());
             }
-            linkLog.append("toInputStream->");
-            return NullBuild.noEmpty(inputStream, linkLog, collect, taskList);
-        } catch (Exception e) {
-            linkLog.append("toInputStream? ").append(e.getMessage());
-            throw new NullChainException(linkLog.toString());
-        }
+        });
+        return NullBuild.busy( taskList);
     }
 
     /**
@@ -266,20 +290,22 @@ public class OkHttp<T> extends NullKernelAbstract<T> implements NullHttp, OkHttp
         if (isNull) {
             return NullBuild.empty(linkLog, collect, taskList);
         }
-        try {
-            OkHttpBuild.setHeader(headerMap, request);
-            String str = OkHttpBuild.toStr(url, okHttpClient, request);
-            if (Null.is(str)) {
-                linkLog.append("toStr? ").append("返回值为空");
-                return NullBuild.empty(linkLog, collect, taskList);
+        this.taskList.add((__)->{
+            try {
+                OkHttpBuild.setHeader(headerMap, request);
+                String str = OkHttpBuild.toStr(url, okHttpClient, request);
+                if (Null.is(str)) {
+                    linkLog.append("toStr? ").append("返回值为空");
+                    return NullBuild.empty(linkLog, collect, taskList);
+                }
+                linkLog.append("toStr->");
+                return NullBuild.noEmpty(str, linkLog, collect, taskList);
+            } catch (Exception e) {
+                linkLog.append("toStr? ").append(e.getMessage());
+                throw new NullChainException(linkLog.toString());
             }
-            linkLog.append("toStr->");
-            return NullBuild.noEmpty(str, linkLog, collect, taskList);
-        } catch (Exception e) {
-            linkLog.append("toStr? ").append(e.getMessage());
-            throw new NullChainException(linkLog.toString());
-        }
-
+        });
+        return NullBuild.busy( taskList);
     }
 
 
