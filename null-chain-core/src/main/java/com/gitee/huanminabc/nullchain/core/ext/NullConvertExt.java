@@ -4,7 +4,7 @@ import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.core.NullConvert;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
 
-public interface NullConvertExt<T> extends NullConvert<T>, NullToolsExt<T> {
+public interface NullConvertExt<T> extends NullConvert<T>, NullWorkFlowExt<T> {
 
     @Override
     default NullChain<T> async() {
@@ -30,17 +30,4 @@ public interface NullConvertExt<T> extends NullConvert<T>, NullToolsExt<T> {
         NullChain<T> tNullChain = toNULL();
         return tNullChain.type(uClass);
     }
-
-//    @Override
-//    default <C> NullStream<C> toStream(){
-//        NullChain<T> tNullChain = toNULL();
-//        return tNullChain.toStream();
-//    }
-//
-//    @Override
-//    default <V> NullStream<V> toParallelStream(){
-//        NullChain<T> tNullChain = toNULL();
-//        return tNullChain.toParallelStream();
-//    }
-
 }

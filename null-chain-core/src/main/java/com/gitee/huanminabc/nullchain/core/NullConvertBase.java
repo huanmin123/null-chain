@@ -11,7 +11,7 @@ import com.gitee.huanminabc.nullchain.common.NullTaskList;
  * @author huanmin
  * @date 2024/1/11
  */
-public class NullConvertBase<T> extends NullToolsBase<T> implements NullConvert<T> {
+public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConvert<T> {
 
 
     public NullConvertBase(StringBuilder linkLog, boolean isNull, NullCollect collect, NullTaskList taskList) {

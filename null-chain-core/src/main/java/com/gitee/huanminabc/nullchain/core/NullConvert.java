@@ -6,7 +6,7 @@ package com.gitee.huanminabc.nullchain.core;
  * @author huanmin
  * @date 2024/1/11
  */
-public interface NullConvert<T> extends NullTools<T> {
+public interface NullConvert<T> extends NullWorkFlow<T> {
 
     //同步转异步
     NullChain<T> async();
