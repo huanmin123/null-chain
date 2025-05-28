@@ -83,6 +83,6 @@ public class NullKernelAbstract<T> implements Serializable, NullCheck {
 
     @Override
     public boolean isEmpty() {
-        return isNull;
+        return taskList.runTaskAll().isNull;
     }
 }

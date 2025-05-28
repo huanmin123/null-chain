@@ -6,10 +6,14 @@ import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.core.NullChainBase;
 import com.gitee.huanminabc.nullchain.leaf.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.leaf.calculate.NullCalculateBase;
+import com.gitee.huanminabc.nullchain.leaf.copy.NullCopy;
+import com.gitee.huanminabc.nullchain.leaf.copy.NullCopyBase;
 import com.gitee.huanminabc.nullchain.leaf.date.NullDate;
 import com.gitee.huanminabc.nullchain.leaf.date.NullDateBase;
 import com.gitee.huanminabc.nullchain.leaf.http.OkHttp;
 import com.gitee.huanminabc.nullchain.leaf.http.OkHttpChain;
+import com.gitee.huanminabc.nullchain.leaf.json.NullJson;
+import com.gitee.huanminabc.nullchain.leaf.json.NullJsonBase;
 import com.gitee.huanminabc.nullchain.leaf.stream.NullStream;
 import com.gitee.huanminabc.nullchain.leaf.stream.NullStreamBase;
 import com.gitee.huanminabc.nullchain.task.NullTask;
@@ -86,6 +90,25 @@ public class NullBuild {
     }
 
 
+
+    public static <T>  NullJson<T> emptyJson(StringBuilder linkLog) {
+        return new NullJsonBase<>(linkLog, true, new NullCollect(), new NullTaskList());
+    }
+    public static <T>  NullJson<T> notEmptyJson(T value, StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
+        return new NullJsonBase<T>(value, linkLog, nullCollect, nullTaskList);
+    }
+
+    public static <T>  NullCopy<T> emptyCopy(StringBuilder linkLog) {
+        return new NullCopyBase<>(linkLog, true, new NullCollect(), new NullTaskList());
+    }
+    public static <T>  NullCopy<T> notEmptyCopy(T value, StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
+        return new NullCopyBase<T>(value, linkLog, nullCollect, nullTaskList);
+    }
+
+
+
+
+
     //将NullKernelAbstract转换为 NullChainBase
     public static <T> NullChain<T> busy(NullKernelAbstract o) {
         if (o instanceof NullChainBase) {
@@ -109,6 +132,28 @@ public class NullBuild {
         return notEmptyDate(null,new StringBuilder(),new NullCollect(),taskList);
     }
 
+
+    public  static NullJson busyJson(NullKernelAbstract o) {
+        if (o instanceof NullJsonBase) {
+            return (NullJson)o;
+        }
+        return new NullJsonBase<>(o.isNull,o.value, o.linkLog, o.collect, o.taskList);
+    }
+    public static <T> NullJson<T> busyJson(NullTaskList taskList) {
+        return notEmptyJson(null,new StringBuilder(),new NullCollect(),taskList);
+    }
+
+
+
+    public  static NullCopy busyCopy(NullKernelAbstract o) {
+        if (o instanceof NullCopyBase) {
+            return (NullCopy)o;
+        }
+        return new NullCopyBase<>(o.isNull,o.value, o.linkLog, o.collect, o.taskList);
+    }
+    public static <T> NullCopy<T> busyCopy(NullTaskList taskList) {
+        return notEmptyCopy(null,new StringBuilder(),new NullCollect(),taskList);
+    }
 
 
     public static <T> NullDate<T> emptyDate(StringBuilder linkLog) {
@@ -214,7 +259,6 @@ public class NullBuild {
         }
 
     }
-
 
 
 }

@@ -9,6 +9,7 @@ import com.gitee.huanminabc.nullchain.enums.TimeEnum;
 import com.gitee.huanminabc.nullchain.common.NullChainCheckException;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
 import com.gitee.huanminabc.nullchain.common.NullResult;
+import com.gitee.huanminabc.nullchain.leaf.json.NullJson;
 import com.gitee.huanminabc.test.nullchain.entity.RoleEntity;
 import com.gitee.huanminabc.test.nullchain.entity.UserEntity;
 import com.gitee.huanminabc.test.nullchain.entity.UserExtEntity;
@@ -67,7 +68,13 @@ public class ObjNullTest {
         String s = Null.ofDate(new Date()).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).get();
         System.out.println(s);
     }
-
+    @Test
+    public void ofJson() {
+//        = Null.ofDate(new Date()).
+        NullChain<UserEntity> userEntityNullChain = Null.of(userEntity);
+        HashMap<String, Object> stringObjectHashMap = Null.ofJson(userEntityNullChain).json().json(new HashMap<String, Object>()).get();
+        System.out.println(stringObjectHashMap);
+    }
 
 
 
@@ -134,12 +141,6 @@ public class ObjNullTest {
         System.out.println(b);
     }
 
-    @Test
-    public void of_pick() {
-//        userEntity.setRoleData(null);
-        UserEntity userEntity1 = Null.of(userEntity).pick(UserEntity::getRoleData).get();
-        System.out.println(userEntity1);
-    }
 
 
     @Test
@@ -157,25 +158,6 @@ public class ObjNullTest {
             return userData;
         }).getSafe();
         System.out.println(userData1);
-    }
-
-    @Test
-    public void of_ok9() throws NullChainCheckException {
-        userEntity.getRoleData().setRoleDescription(null);
-        NullChain<RoleEntity> pickChain = Null.of(userEntity).map(UserEntity::getRoleData).pick(RoleEntity::getRoleName, RoleEntity::getRoleDescription);
-        //下面的操作保证了如果都不是空的情况才会执行最后的ifPresent逻辑
-        pickChain.ofAny(RoleEntity::getRoleName, RoleEntity::getRoleDescription).ifPresent(System.out::println);
-    }
-
-    @Test
-    public void of_ok9_1() {
-        try {
-            UserEntity userEntity1 = Null.of(userEntity).pick(UserEntity::getRoleData).getSafe();
-            System.out.println(userEntity1);
-        } catch (NullChainCheckException e) {
-            throw new RuntimeException(e);
-        }
-
     }
 
 
@@ -374,8 +356,8 @@ public class ObjNullTest {
 //        System.out.println(lt);
 
 
-        Long l = Null.of(Stream.of(1, 2, 34)).count().get();
-        System.out.println(l);
+//        Long l = Null.of(Stream.of(1, 2, 34)).count().get();
+//        System.out.println(l);
     }
 
     @Test
@@ -393,12 +375,6 @@ public class ObjNullTest {
         System.out.println("===================================");
     }
 
-
-    @Test
-    public void copy() {
-        Date date = Null.of(new Date()).copy().get();
-        System.out.println(date);
-    }
 
     @Test
     public void ifGo() {

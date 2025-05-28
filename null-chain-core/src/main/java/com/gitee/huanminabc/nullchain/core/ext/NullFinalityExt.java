@@ -2,6 +2,7 @@ package com.gitee.huanminabc.nullchain.core.ext;
 
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.NullCheck;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.core.NullFinality;
@@ -9,6 +10,7 @@ import com.gitee.huanminabc.nullchain.common.*;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
 @SuppressWarnings("unchecked")
 public interface NullFinalityExt<T> extends NullFinality<T>, NullCheck {
 
@@ -150,22 +152,23 @@ public interface NullFinalityExt<T> extends NullFinality<T>, NullCheck {
 
 
     @Override
-    default  void ifPresentOrElse(Consumer<? super T> action, Runnable emptyAction){
+    default void ifPresentOrElse(Consumer<? super T> action, Runnable emptyAction) {
         NullChain<T> tNullChain = toNULL();
         tNullChain.ifPresentOrElse(action, emptyAction);
     }
 
     @Override
-    default void except(Consumer<Throwable> consumer){
+    default void except(Consumer<Throwable> consumer) {
         NullChain<T> tNullChain = toNULL();
         tNullChain.except(consumer);
     }
 
     @Override
-    default T orElseNull(){
+    default T orElseNull() {
         NullChain<T> tNullChain = toNULL();
         return tNullChain.orElseNull();
     }
+
     @Override
     default T orElse(T defaultValue) {
         NullChain<T> tNullChain = toNULL();
@@ -193,16 +196,18 @@ public interface NullFinalityExt<T> extends NullFinality<T>, NullCheck {
     }
 
 
-
-
     default NullChain<T> toNULL() {
-        StringBuilder linkLog = new StringBuilder();
-        boolean empty = isEmpty();
-        if (empty) {
-            linkLog.append("Null?");
-            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
-        }
-        linkLog.append(" Null.");
-        return NullBuild.noEmpty((T) this, linkLog, new NullCollect(),new NullTaskList());
+        NullTaskList nullTaskList = new NullTaskList();
+        nullTaskList.add((__) -> {
+            StringBuilder linkLog = new StringBuilder();
+            boolean empty = isEmpty();
+            if (empty) {
+                linkLog.append("NullExt?");
+                return NullBuild.empty(linkLog, new NullCollect(), nullTaskList);
+            }
+            linkLog.append(" NullExt.");
+            return NullBuild.noEmpty((T) this, linkLog, new NullCollect(), nullTaskList);
+        });
+        return NullBuild.busy(nullTaskList);
     }
 }

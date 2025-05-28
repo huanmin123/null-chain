@@ -1,6 +1,7 @@
 package com.gitee.huanminabc.test.nullchain.entity;
 
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -30,6 +31,7 @@ public class UserEntity implements Serializable {
     private RoleEntity roleData;
     private int anInt;
     @ToString.Exclude
+    @JSONField(serialize = false)
     private List<UserEntity> list=new ArrayList<>();
 
 }

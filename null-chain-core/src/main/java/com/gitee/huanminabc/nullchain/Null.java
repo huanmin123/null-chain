@@ -5,6 +5,7 @@ import com.gitee.huanminabc.nullchain.leaf.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.leaf.date.NullDate;
 import com.gitee.huanminabc.nullchain.leaf.http.OkHttpChain;
+import com.gitee.huanminabc.nullchain.leaf.json.NullJson;
 import com.gitee.huanminabc.nullchain.leaf.stream.NullStream;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
@@ -246,18 +247,6 @@ public class Null extends NullUtil {
         return Null.of(optional.orElse(null));
     }
 
-    //将Stream转为NullChain
-    public static <S> NullStream<S> of(Stream<S> stream) {
-        StringBuilder linkLog = new StringBuilder();
-        if (stream == null) {
-            linkLog.append(" Null.of?");
-            return NullBuild.emptyStream(linkLog, new NullCollect(), new NullTaskList());
-        }
-        linkLog.append(" Null.of->");
-        NullCollect collect = new NullCollect();
-        return NullBuild.noEmptyStream((S) stream, linkLog, collect, new NullTaskList());
-    }
-
 
     public static <N extends Number> NullCalculate<BigDecimal> ofCalc(N n) {
         StringBuilder linkLog = new StringBuilder();
@@ -279,6 +268,20 @@ public class Null extends NullUtil {
         linkLog.append(" Null.ofCalc->");
         return NullBuild.noEmptyCalc(BigDecimal.valueOf(nullChain.get().doubleValue()), linkLog, new NullCollect(), new NullTaskList());
     }
+
+
+    //将Stream转为NullChain
+    public static <S> NullStream<S> ofStream(Stream<S> stream) {
+        StringBuilder linkLog = new StringBuilder();
+        if (stream == null) {
+            linkLog.append(" Null.ofStream?");
+            return NullBuild.emptyStream(linkLog, new NullCollect(), new NullTaskList());
+        }
+        linkLog.append(" Null.ofStream->");
+        NullCollect collect = new NullCollect();
+        return NullBuild.noEmptyStream((S) stream, linkLog, collect, new NullTaskList());
+    }
+
 
     //将Collection转为NullStream
     public static <S> NullStream<S> ofStream(Collection<S> collection) {
@@ -351,12 +354,55 @@ public class Null extends NullUtil {
                 return NullBuild.emptyDate(linkLog);
             }
             linkLog.append(" Null.ofDate->");
-            return NullBuild.notEmptyDate(value, linkLog, new NullCollect(), new NullTaskList());
+            return NullBuild.notEmptyDate(value, linkLog, new NullCollect(), nullTaskList);
         });
         return NullBuild.busyDate(nullTaskList);
 
     }
 
+    public  static  <T> NullDate<T> ofDate(NullChain<T> value) {
+        NullTaskList nullTaskList = new NullTaskList();
+        nullTaskList.add((__) -> {
+            StringBuilder linkLog = new StringBuilder();
+            if (Null.is(value)) {
+                linkLog.append(" Null.ofDate?");
+                return NullBuild.emptyDate(linkLog);
+            }
+            linkLog.append(" Null.ofDate->");
+            return NullBuild.notEmptyDate(value.get(), linkLog, new NullCollect(), nullTaskList);
+        });
+        return NullBuild.busyDate(nullTaskList);
+
+    }
+
+    public  static  <T> NullJson<T> ofJson(T value) {
+        NullTaskList nullTaskList = new NullTaskList();
+        nullTaskList.add((__) -> {
+            StringBuilder linkLog = new StringBuilder();
+            if (Null.is(value)) {
+                linkLog.append(" Null.ofJson?");
+                return NullBuild.emptyJson(linkLog);
+            }
+            linkLog.append(" Null.ofJson->");
+            return NullBuild.notEmptyJson(value, linkLog, new NullCollect(), nullTaskList);
+        });
+        return NullBuild.busyJson(nullTaskList);
+
+    }
+    public  static  <T> NullJson<T> ofJson(NullChain<T> value) {
+        NullTaskList nullTaskList = new NullTaskList();
+        nullTaskList.add((__) -> {
+            StringBuilder linkLog = new StringBuilder();
+            if (Null.is(value)) {
+                linkLog.append(" Null.ofJson?");
+                return NullBuild.emptyJson(linkLog);
+            }
+            linkLog.append(" Null.ofJson->");
+            return NullBuild.notEmptyJson(value.get(), linkLog, new NullCollect(), nullTaskList);
+        });
+        return NullBuild.busyJson(nullTaskList);
+
+    }
 
     public static <T> NullChain<T> empty() {
         return NullBuild.empty(new StringBuilder(), new NullCollect(), new NullTaskList());
