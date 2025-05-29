@@ -1,6 +1,8 @@
 package com.gitee.huanminabc.nullchain.common;
 
+import com.gitee.huanminabc.common.multithreading.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.NullCheck;
+import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.core.NullChainBase;
 import lombok.Setter;
 
@@ -15,7 +17,7 @@ import java.io.Serializable;
  * @author: huanmin
  * @create: 2025-03-21 12:53
  **/
-public class NullKernelAbstract<T> implements Serializable, NullCheck {
+public class NullKernelAbstract<T> implements NullKernel<T>, Serializable, NullCheck {
     private static final long serialVersionUID = 1L;
     protected transient StringBuilder linkLog;
     //收集器
@@ -72,5 +74,26 @@ public class NullKernelAbstract<T> implements Serializable, NullCheck {
     @Override
     public boolean isEmpty() {
         return taskList.runTaskAll().isNull;
+    }
+
+
+    //同步转异步
+    public NullChain<T> async() {
+        this.taskList.add((value)->{
+            linkLog.append("async->");
+            return  NullBuild.noEmpty(value);
+        });
+        return  NullBuild.busy(this);
+    }
+    //带线程池的同步转异步
+    public NullChain<T> async(String threadFactoryName) throws NullChainException {
+        this.taskList.add((value)->{
+            ThreadFactoryUtil.addExecutor(threadFactoryName);
+            taskList.setCurrentThreadFactoryName(threadFactoryName);
+            linkLog.append("async->");
+            return    NullBuild.noEmpty(value);
+
+        });
+        return  NullBuild.busy(this);
     }
 }

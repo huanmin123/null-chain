@@ -1,5 +1,6 @@
 package com.gitee.huanminabc.nullchain.leaf.json;
 
+import com.gitee.huanminabc.nullchain.common.NullKernel;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 
 /**
@@ -7,7 +8,7 @@ import com.gitee.huanminabc.nullchain.core.NullChain;
  * @author: huanmin
  * @create: 2025-05-28 09:48
  **/
-public interface NullJson <T> extends NullChain<T> {
+public interface NullJson <T> extends NullChain<T> , NullKernel<T> {
 
     /**
      * 将对象转换为json字符串

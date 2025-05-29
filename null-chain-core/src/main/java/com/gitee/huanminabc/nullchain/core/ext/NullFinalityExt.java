@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @SuppressWarnings("unchecked")
-public interface NullFinalityExt<T> extends NullFinality<T>, NullCheck {
+public interface NullFinalityExt<T> extends NullFinality<T>,NullKernelExt<T> {
 
 
     @Override
@@ -187,28 +187,5 @@ public interface NullFinalityExt<T> extends NullFinality<T>, NullCheck {
 //        return tNullChain.length();
 //    }
 
-    /**
-     * 判断是否为空,内部使用外部不要调用, 请使用{@link #is()}方法
-     */
-    @Deprecated
-    default boolean isEmpty() {
-        return NullByteBuddy.getEmptyMember(this);
-    }
 
-
-    default NullChain<T> toNULL() {
-        NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
-        NullCollect nullCollect = new NullCollect();
-        nullTaskList.add((__) -> {
-            boolean empty = isEmpty();
-            if (empty) {
-                linkLog.append("NullExt?");
-                return NullBuild.empty();
-            }
-            linkLog.append(" NullExt.");
-            return NullBuild.noEmpty((T) this);
-        });
-        return NullBuild.busy(linkLog, nullCollect, nullTaskList);
-    }
 }

@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2024/11/30
  */
 @Slf4j
-public class OkHttpBase<T> extends NullKernelAbstract<T> implements OkHttp {
+public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
     public static final String DEFAULT_THREAD_FACTORY_NAME = "$$$--NULL_DEFAULT_OKHTTP_SYNC--$$$";
     private OkHttpClient okHttpClient;
     private Map<String, String> headerMap;

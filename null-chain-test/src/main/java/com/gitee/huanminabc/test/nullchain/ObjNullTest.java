@@ -64,7 +64,6 @@ public class ObjNullTest {
 //        userEntity.getRoleData().setRoleName(null);
         UserEntity userEntity1 = Null.of(userEntity).get();
         System.out.println(userEntity1);
-
     }
 
     @Test

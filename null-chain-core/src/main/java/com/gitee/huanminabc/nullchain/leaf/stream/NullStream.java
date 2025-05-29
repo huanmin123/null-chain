@@ -1,4 +1,5 @@
 package com.gitee.huanminabc.nullchain.leaf.stream;
+import com.gitee.huanminabc.nullchain.common.NullKernel;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
@@ -20,7 +21,7 @@ import java.util.stream.Stream;
  * @author: huanmin
  * @create: 2025-02-21 17:48
  **/
-public interface NullStream<T >  {
+public interface NullStream<T > extends NullKernel<T> {
 
     //异步模式
     NullStream<T> parallel();

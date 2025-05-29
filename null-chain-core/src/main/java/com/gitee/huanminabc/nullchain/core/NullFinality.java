@@ -3,6 +3,7 @@ package com.gitee.huanminabc.nullchain.core;
 
 import com.gitee.huanminabc.nullchain.common.NullChainCheckException;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
+import com.gitee.huanminabc.nullchain.common.NullKernel;
 
 import java.io.Serializable;
 import java.util.function.Consumer;
@@ -12,7 +13,7 @@ import java.util.function.Supplier;
  * @author huanmin
  * @date 2024/1/11
  */
-public interface NullFinality<T>  extends Serializable {
+public interface NullFinality<T>  extends NullKernel<T>, Serializable {
 
     /**
      * 判断上个任务的值是否是空, true表示空, false不是空

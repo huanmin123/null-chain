@@ -15,7 +15,7 @@ import java.math.RoundingMode;
  * @create: 2025-05-22 10:12
  **/
 @Slf4j
-public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<T> implements NullCalculate<BigDecimal> {
+public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<T> implements NullCalculate<T> {
     public NullCalculateBase(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
         super(linkLog, collect,taskList);
     }
@@ -23,7 +23,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
 
 
     @Override
-    public <V extends Number> NullCalculate<BigDecimal> add(V t2) {
+    public <V extends Number> NullCalculate<T> add(V t2) {
         this.taskList.add((value)->{
             if (t2 == null) {
                 return NullBuild.empty();
@@ -37,7 +37,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
     }
 
     @Override
-    public <V extends Number> NullCalculate<BigDecimal> add(V t2, V defaultValue) {
+    public <V extends Number> NullCalculate<T> add(V t2, V defaultValue) {
         final  V t2f = t2;
         this.taskList.add((value)->{
             V t2Value = t2f;
@@ -56,7 +56,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
     }
 
     @Override
-    public <V extends Number> NullCalculate<BigDecimal> sub(V t2) {
+    public <V extends Number> NullCalculate<T> sub(V t2) {
         this.taskList.add((value)->{
             if ( t2 == null) {
                 return NullBuild.empty();
@@ -70,7 +70,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
     }
 
     @Override
-    public <V extends Number> NullCalculate<BigDecimal> sub(V t2, V defaultValue) {
+    public <V extends Number> NullCalculate<T> sub(V t2, V defaultValue) {
         final  V t2f = t2;
         this.taskList.add((value)->{
             V t2Value = t2f;
@@ -90,7 +90,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
     }
 
     @Override
-    public <V extends Number> NullCalculate<BigDecimal> mul(V t2) {
+    public <V extends Number> NullCalculate<T> mul(V t2) {
         this.taskList.add((value)->{
             if ( t2 == null) {
                 return NullBuild.empty();
@@ -104,7 +104,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
     }
 
     @Override
-    public <V extends Number> NullCalculate<BigDecimal> mul(V t2, V defaultValue) {
+    public <V extends Number> NullCalculate<T> mul(V t2, V defaultValue) {
         final  V t2f = t2;
         this.taskList.add((value)->{
             V t2Value = t2f;
@@ -124,7 +124,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
     }
 
     @Override
-    public <V extends Number> NullCalculate<BigDecimal> div(V t2) {
+    public <V extends Number> NullCalculate<T> div(V t2) {
         this.taskList.add((value)->{
             if (t2 == null) {
                 return NullBuild.empty();
@@ -142,7 +142,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
     }
 
     @Override
-    public <V extends Number> NullCalculate<BigDecimal> div(V t2, V defaultValue) {
+    public <V extends Number> NullCalculate<T> div(V t2, V defaultValue) {
         final  V t2f = t2;
         this.taskList.add((value)->{
             V t2Value = t2f;
@@ -167,7 +167,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
 
 
     @Override
-    public NullCalculate<BigDecimal> negate() {
+    public NullCalculate<T> negate() {
         this.taskList.add((value)->{
             BigDecimal negate = ((BigDecimal)value).negate();
             linkLog.append("negate->");
@@ -178,7 +178,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
     }
 
     @Override
-    public NullCalculate<BigDecimal> abs() {
+    public NullCalculate<T> abs() {
         this.taskList.add((value)->{
             BigDecimal abs = ((BigDecimal)value).abs();
             linkLog.append("abs->");
@@ -189,7 +189,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
     }
 
     @Override
-    public NullCalculate<BigDecimal> max(BigDecimal t2) {
+    public NullCalculate<T> max(BigDecimal t2) {
         this.taskList.add(new NullTaskFunAbs() {
             @Override
             public NullTaskList.NullNode nodeTask(Object preValue) throws RuntimeException {
@@ -220,7 +220,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
     }
 
     @Override
-    public NullCalculate<BigDecimal> min(BigDecimal t2) {
+    public NullCalculate<T> min(BigDecimal t2) {
 
         this.taskList.add(new NullTaskFunAbs() {
             @Override
@@ -251,7 +251,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
     }
 
     @Override
-    public NullCalculate<BigDecimal> pow(int n) {
+    public NullCalculate<T> pow(int n) {
         this.taskList.add((preValue)->{
             BigDecimal pow = ((BigDecimal)preValue).pow(n);
             linkLog.append("pow->");
@@ -263,7 +263,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
     }
 
     @Override
-    public NullCalculate<BigDecimal> round(int newScale, RoundingMode roundingMode) {
+    public NullCalculate<T> round(int newScale, RoundingMode roundingMode) {
         this.taskList.add((preValue)->{
             if (roundingMode == null) {
                 throw new NullChainException(linkLog.append("round? ").append("roundingMode不能是空").toString());
@@ -278,7 +278,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
     }
 
     @Override
-    public NullCalculate<BigDecimal> round() {
+    public NullCalculate<T> round() {
         return round(2, RoundingMode.HALF_UP);
     }
 

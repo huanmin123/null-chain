@@ -1,5 +1,6 @@
 package com.gitee.huanminabc.nullchain.leaf.date;
 
+import com.gitee.huanminabc.nullchain.common.NullKernel;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
 import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
@@ -13,7 +14,7 @@ import com.gitee.huanminabc.nullchain.enums.TimeEnum;
  * @Version: 1.0
  * @Description: 文件作用详细描述....
  */
-public interface NullDate<T> extends NullChain<T> {
+public interface NullDate<T> extends NullChain<T>, NullKernel<T> {
 
     /**
      * 将时间格式化为指定格式的时间字符串

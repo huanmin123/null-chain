@@ -1,5 +1,6 @@
 package com.gitee.huanminabc.nullchain.leaf.calculate;
 
+import com.gitee.huanminabc.nullchain.common.NullKernel;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
 
@@ -13,7 +14,7 @@ import java.math.RoundingMode;
  * @author: huanmin
  * @create: 2025-05-22 10:12
  **/
-public interface NullCalculate<T extends BigDecimal> {
+public interface NullCalculate<T extends BigDecimal> extends  NullKernel<T> {
 
     //加
     <V extends Number> NullCalculate<T> add(V t2);

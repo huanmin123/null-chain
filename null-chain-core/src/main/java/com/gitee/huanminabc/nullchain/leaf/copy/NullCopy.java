@@ -1,5 +1,6 @@
 package com.gitee.huanminabc.nullchain.leaf.copy;
 
+import com.gitee.huanminabc.nullchain.common.NullKernel;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 
@@ -8,7 +9,7 @@ import com.gitee.huanminabc.nullchain.core.NullChain;
  * @author: huanmin
  * @create: 2025-05-28 13:39
  **/
-public interface NullCopy<T> extends NullChain<T> {
+public interface NullCopy<T> extends NullChain<T>  , NullKernel<T>{
 
     /**
      * 复制上一个任务的值,返回新的任务(浅拷贝)

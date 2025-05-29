@@ -17,30 +17,7 @@ public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConve
     public NullConvertBase(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
         super(linkLog, collect,taskList);
     }
-
-
-    @Override
-    public NullChain<T> async() {
-        this.taskList.add((value)->{
-            linkLog.append("async->");
-            return  NullBuild.noEmpty(value);
-        });
-        return  NullBuild.busy(this);
-
-    }
-
-    @Override
-    public NullChain<T> async(String threadFactoryName) throws NullChainException {
-        this.taskList.add((value)->{
-            ThreadFactoryUtil.addExecutor(threadFactoryName);
-            taskList.setCurrentThreadFactoryName(threadFactoryName);
-            linkLog.append("async->");
-            return    NullBuild.noEmpty(value);
-
-        });
-        return  NullBuild.busy(this);
-    }
-
+    
     @Override
     public <U> NullChain<U> type(Class<U> uClass) {
         this.taskList.add((value)->{
