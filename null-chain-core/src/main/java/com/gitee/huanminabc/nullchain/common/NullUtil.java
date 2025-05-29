@@ -4,6 +4,7 @@ package com.gitee.huanminabc.nullchain.common;
 import com.gitee.huanminabc.common.reflect.ClassIdentifyUtil;
 import com.gitee.huanminabc.common.str.StringUtil;
 import com.gitee.huanminabc.nullchain.NullCheck;
+import com.gitee.huanminabc.nullchain.core.NullChain;
 
 import java.util.Collection;
 import java.util.Date;
@@ -63,6 +64,9 @@ public class NullUtil {
 
     //只要有一个为空就返回true
     public static boolean isAny(Object... o) {
+        if (is(o)) {
+            return true;
+        }
         for (Object o1 : o) {
             if (is(o1)) {
                 return true;
@@ -73,6 +77,9 @@ public class NullUtil {
 
     //判断全部是空返回true,只要有一个不为空就返回false
     public static boolean isAll(Object... o) {
+        if (is(o)) {
+            return true;
+        }
         for (Object o1 : o) {
             if (non(o1)) {
                 return false;
@@ -89,6 +96,9 @@ public class NullUtil {
 
     //全部不为空返回true,只要有一个为空就返回false
     public static boolean nonAll(Object... o) {
+        if (is(o)) {
+            return false;
+        }
         for (Object o1 : o) {
             if (is(o1)) {
                 return false;
@@ -103,33 +113,44 @@ public class NullUtil {
         if (isAny(a, b)) {
             return false;
         }
-        return a == b || a.equals(b);
+        Object realValueA=a;
+        Object realValueB=b;
+        if (NullKernelAbstract.class.isInstance(a)){
+            realValueA=((NullKernelAbstract)a).taskList.runTaskAll().value;
+        }
+        if (NullKernelAbstract.class.isInstance(b)){
+            realValueB=((NullKernelAbstract)b).taskList.runTaskAll().value;
+        }
+        return realValueA == realValueB || realValueA.equals(realValueB);
     }
+
     public static boolean eqAny(Object a, Object... b) {
         if (isAny(a, b)) {
             return false;
         }
         for (Object o : b) {
-            if (a == o || a.equals(o)) {
+            if (eq(a, o)) {
                 return true;
             }
         }
         return false;
     }
+
     //如果不相等那么返回true
-    public  static  boolean notEq(Object a, Object b) {
+    public static boolean notEq(Object a, Object b) {
         if (isAny(a, b)) {
             return false;
         }
         return !eq(a, b);
     }
+
     //全部不相等返回true,只要有一个相等就返回false
-    public  static  boolean notEqAll(Object a, Object... b) {
+    public static boolean notEqAll(Object a, Object... b) {
         if (isAny(a, b)) {
             return false;
         }
         for (Object o : b) {
-            if (a == o || a.equals(o)) {
+            if (eq(a, o)) {
                 return false;
             }
         }
@@ -147,6 +168,7 @@ public class NullUtil {
         }
         return null;
     }
+
     public static <T> T orElseNull(T obj) {
         if (is(obj)) {
             return null;
