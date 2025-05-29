@@ -29,18 +29,9 @@ import java.util.function.Supplier;
 @Slf4j
 public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T> {
 
-    public NullChainBase(StringBuilder linkLog, boolean isNull, NullCollect collect, NullTaskList taskList) {
-        super(linkLog, isNull, collect,taskList);
+    public NullChainBase(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
+        super(linkLog, collect,taskList);
     }
-
-    public NullChainBase(T object, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        super(object, linkLog, collect, taskList);
-    }
-    public NullChainBase( boolean isNull,T object, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        super(object, linkLog, collect, taskList);
-        this.isNull = isNull;
-    }
-
 
     @Override
     public <U> NullChain<T> of(NullFun<? super T, ? extends U> function) {
@@ -52,10 +43,10 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
                 U apply = function.apply((T)value);
                 if (Null.is(apply)) {
                     linkLog.append("of?");
-                    return NullBuild.empty(linkLog, collect, taskList);
+                    return NullBuild.empty();
                 }
                 linkLog.append("of->");
-                return NullBuild.noEmpty(value, linkLog, collect, taskList);
+                return NullBuild.noEmpty(value);
             } catch (Exception e) {
                 linkLog.append("of? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
@@ -74,10 +65,10 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
                 Boolean apply = function.apply((T)value);
                 if (!apply) {
                     linkLog.append("ifGo?");
-                    return NullBuild.empty(linkLog, collect, taskList);
+                    return NullBuild.empty();
                 }
                 linkLog.append("ifGo->");
-                return NullBuild.noEmpty(value, linkLog, collect, taskList);
+                return NullBuild.noEmpty(value);
             } catch (Exception e) {
                 linkLog.append("ifGo? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
@@ -90,9 +81,9 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
     public <U> NullChain<T> isNull(NullFun<? super T, ? extends U> function) {
         this.taskList.add(new NullTaskFunAbs() {
             @Override
-            public NullChain nodeTask(Object value) throws RuntimeException {
+            public NullTaskList.NullNode nodeTask(Object value) throws RuntimeException {
                 if (value==null) {
-                    return NullBuild.empty(linkLog, collect, taskList);
+                    return NullBuild.empty();
                 }
                 if (function == null) {
                     throw new NullChainException(linkLog.append("isNull? 传参不能为空").toString());
@@ -101,10 +92,10 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
                     U apply = function.apply((T)value);
                     if (Null.non(apply)) {
                         linkLog.append("isNull?");
-                        return NullBuild.empty(linkLog, collect, taskList);
+                        return NullBuild.empty();
                     }
                     linkLog.append("isNull->");
-                    return NullBuild.noEmpty(value, linkLog, collect, taskList);
+                    return NullBuild.noEmpty(value);
                 } catch (Exception e) {
                     linkLog.append("isNull? ");
                     throw NullReflectionKit.addRunErrorMessage(e, linkLog);
@@ -133,7 +124,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
                     U apply = nullFun.apply((T)value);
                     if (Null.is(apply)) {
                         linkLog.append("ofAny? 第").append(i + 1).append("个");
-                        return NullBuild.empty(linkLog, collect, taskList);
+                        return NullBuild.empty();
                     }
                 }
             } catch (Exception e) {
@@ -141,7 +132,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
             linkLog.append("ofAny->");
-            return NullBuild.noEmpty(value, linkLog, collect, taskList);
+            return NullBuild.noEmpty(value);
 
         });
         return  NullBuild.busy(this);
@@ -158,7 +149,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
             try {
                 function.accept((T)value);
                 linkLog.append("then->");
-                return NullBuild.noEmpty(value, linkLog, collect, taskList);
+                return NullBuild.noEmpty(value);
             } catch (Exception e) {
                 linkLog.append("then? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
@@ -178,7 +169,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
             try {
                 function.accept(Null.of(valueT), valueT);
                 linkLog.append("then2->");
-                return NullBuild.noEmpty(value, linkLog, collect, taskList);
+                return NullBuild.noEmpty(value);
             } catch (Exception e) {
                 linkLog.append("then2? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
@@ -199,10 +190,10 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
                 U apply = function.apply((T)value);
                 if (Null.is(apply)) {
                     linkLog.append("map?");
-                    return NullBuild.empty(linkLog, collect, taskList);
+                    return NullBuild.empty();
                 }
                 linkLog.append("map->");
-                return NullBuild.noEmpty(apply, linkLog, collect, taskList);
+                return NullBuild.noEmpty(apply);
             } catch (Exception e) {
                 linkLog.append("map? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
@@ -223,16 +214,16 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
                 U apply = function.apply(Null.of(value1), value1);
                 if (Null.is(apply)) {
                     linkLog.append("map2?");
-                    return NullBuild.empty(linkLog, collect, taskList);
+                    return NullBuild.empty();
                 }
                 linkLog.append("map2->");
-                return NullBuild.noEmpty(apply, linkLog, collect, taskList);
+                return NullBuild.noEmpty(apply);
             } catch (Exception e) {
                 linkLog.append("map2? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         });
-        return  NullBuild.busy(this);
+        return  (NullChain<U>)this;
 
     }
 
@@ -247,10 +238,10 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
                 NullChain<U> apply = function.apply((T)value);
                 if (apply.is()) {
                     linkLog.append("flatChain?");
-                    return NullBuild.empty(linkLog, collect, taskList);
+                    return NullBuild.empty();
                 }
                 linkLog.append("flatChain->");
-                return NullBuild.noEmpty(apply.get(), linkLog, collect, taskList);
+                return NullBuild.noEmpty(apply.get());
             } catch (Exception e) {
                 linkLog.append("flatChain? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
@@ -270,10 +261,10 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
                 Optional<U> apply = function.apply((T)value);
                 if (!apply.isPresent()) {
                     linkLog.append("flatOptional?");
-                    return NullBuild.empty(linkLog, collect, taskList);
+                    return NullBuild.empty();
                 }
                 linkLog.append("flatOptional->");
-                return NullBuild.noEmpty(apply.get(), linkLog, collect, taskList);
+                return NullBuild.noEmpty(apply.get());
             } catch (Exception e) {
                 linkLog.append("flatOptional? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
@@ -288,7 +279,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
     public NullChain<T> or(Supplier<? extends T> supplier) {
         this.taskList.add(new NullTaskFunAbs() {
             @Override
-            public NullChain nodeTask(Object value) throws RuntimeException {
+            public NullTaskList.NullNode nodeTask(Object value) throws RuntimeException {
                 if (value==null) {
                     if (supplier == null) {
                         throw new NullChainException(linkLog.append("or? 传参不能为空").toString());
@@ -297,17 +288,17 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
                         T t = supplier.get();
                         if (Null.is(t)) {
                             linkLog.append("or?");
-                            return NullBuild.empty(linkLog, collect, taskList);
+                            return NullBuild.empty();
                         }
                         linkLog.append("or->");
-                        return NullBuild.noEmpty(t, linkLog, collect, taskList);
+                        return NullBuild.noEmpty(t);
                     } catch (Exception e) {
                         linkLog.append("or? ");
                         throw NullReflectionKit.addRunErrorMessage(e, linkLog);
                     }
                 }
                 linkLog.append("or->");
-                return NullBuild.noEmpty(value, linkLog, collect, taskList);
+                return NullBuild.noEmpty(value);
             }
 
             @Override
@@ -323,17 +314,17 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
     public NullChain<T> or(T defaultValue) {
         this.taskList.add(new NullTaskFunAbs() {
             @Override
-            public NullChain nodeTask(Object value) throws RuntimeException {
+            public NullTaskList.NullNode nodeTask(Object value) throws RuntimeException {
                 if (value==null) {
                     if (Null.is(defaultValue)) {
                         linkLog.append("or? 传参不能为空");
-                        return NullBuild.empty(linkLog, collect, taskList);
+                        return NullBuild.empty();
                     }
                     linkLog.append("or->");
-                    return NullBuild.noEmpty(defaultValue, linkLog, collect,taskList);
+                    return NullBuild.noEmpty(defaultValue);
                 }
                 linkLog.append("or->");
-                return NullBuild.noEmpty(value, linkLog, collect, taskList);
+                return NullBuild.noEmpty(value);
             }
 
             @Override

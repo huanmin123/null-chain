@@ -17,24 +17,17 @@ import java.io.Serializable;
  **/
 public class NullKernelAbstract<T> implements Serializable, NullCheck {
     private static final long serialVersionUID = 1L;
-    protected boolean isNull; //true 为null ,false 不为null
-    protected T value;//当前任务的值
-    //是否异步 true 开始异步 false 没有开启(默认)
-    protected boolean async=false;
-
     protected transient StringBuilder linkLog;
     //收集器
     protected transient NullCollect collect;
     //任务队列
-    protected transient NullTaskList taskList;
+    protected  NullTaskList taskList;
 
     //如果序列化的时候发现value是null,那么就不序列化,避免不必要的无用空值传递
     private void writeObject(ObjectOutputStream out) throws IOException {
-        NullChainBase<Object> nullChainBase = this.taskList.runTaskAll();
+       NullTaskList.NullNode nullChainBase = this.taskList.runTaskAll();
         if (nullChainBase.isNull){
             throw new NullChainException("{} 序列化时发现值是空的", this.linkLog.toString());
-        }else{
-            this.value = (T) nullChainBase.value;
         }
         out.defaultWriteObject(); // 序列化非transient字段
     }
@@ -43,8 +36,9 @@ public class NullKernelAbstract<T> implements Serializable, NullCheck {
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject(); // 反序列化非transient字段
         //给linkLog赋值,不然java反序列化后linkLog是null
-        this.taskList = new NullTaskList();
-        this.taskList.add((__)-> NullBuild.noEmpty(this.value,new StringBuilder(),new NullCollect(),new NullTaskList()));
+        if (this.taskList.lastResult==null){
+            this.taskList = new NullTaskList();
+        }
         this.linkLog = new StringBuilder();
         this.collect = new NullCollect();
     }
@@ -52,11 +46,10 @@ public class NullKernelAbstract<T> implements Serializable, NullCheck {
 
 
     public NullKernelAbstract(){
-          this(new StringBuilder(),false,new NullCollect(),new NullTaskList());
+          this(new StringBuilder(),new NullCollect(),new NullTaskList());
     }
 
-    public NullKernelAbstract(StringBuilder linkLog, boolean isNull, NullCollect collect, NullTaskList taskList) {
-        this.isNull = isNull;
+    public NullKernelAbstract(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
         if (collect == null) {
             collect = new NullCollect();
         }
@@ -75,11 +68,6 @@ public class NullKernelAbstract<T> implements Serializable, NullCheck {
         }
     }
 
-    public NullKernelAbstract(T object, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        this(linkLog, false, collect,taskList);
-        this.value = object;
-        collect.add(object);//收集任务的值
-    }
 
     @Override
     public boolean isEmpty() {

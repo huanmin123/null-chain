@@ -21,12 +21,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Slf4j
 public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWorkFlow<T> {
 
-    public NullWorkFlowBase(StringBuilder linkLog, boolean isNull, NullCollect collect, NullTaskList taskList) {
-        super(linkLog, isNull, collect, taskList);
-    }
-
-    public NullWorkFlowBase(T object, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        super(object, linkLog, collect, taskList);
+    public NullWorkFlowBase(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
+        super( linkLog, collect, taskList);
     }
 
     @Override
@@ -46,10 +42,10 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
                 R run = NullBuild.toolRun((T) value, tool1, linkLog, params);
                 if (Null.is(run)) {
                     linkLog.append("tool? ");
-                    return NullBuild.empty(linkLog, collect, taskList);
+                    return NullBuild.empty();
                 }
                 linkLog.append("tool->");
-                return NullBuild.noEmpty(run, linkLog, collect, taskList);
+                return NullBuild.noEmpty(run);
             } catch (NullChainCheckException e) {
                 throw new NullChainException(e);
             } catch (Exception e) {
@@ -70,12 +66,12 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
             }
 
             @Override
-            public NullChain nodeTask(Object preValue) throws RuntimeException {
+            public NullTaskList.NullNode nodeTask(Object preValue) throws RuntimeException {
                 if (task == null) {
                     throw new NullChainException(linkLog.append("task? 传参不能为空").toString());
                 }
                 Object o = __task__(preValue,task.getName(), params);
-                return NullBuild.noEmpty((R) o, linkLog, collect, taskList);
+                return NullBuild.noEmpty((R) o);
             }
         });
         return NullBuild.busy(this);
@@ -92,12 +88,12 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
             }
 
             @Override
-            public NullChain nodeTask(Object preValue) throws RuntimeException {
+            public NullTaskList.NullNode nodeTask(Object preValue) throws RuntimeException {
                 if (Null.is(classPath)) {
                     throw new NullChainException(linkLog.append("task? 传参不能为空").toString());
                 }
                 Object o = __task__(preValue,classPath, params);
-                return NullBuild.noEmpty(o, linkLog, collect, taskList);
+                return NullBuild.noEmpty(o);
             }
         });
         return NullBuild.busy(this);
@@ -115,7 +111,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
             }
 
             @Override
-            public NullChain nodeTask(Object preValue) throws RuntimeException {
+            public NullTaskList.NullNode nodeTask(Object preValue) throws RuntimeException {
                 if (Null.isAny(nullGroupTask, ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME)) {
                     throw new NullChainException(linkLog.append("task? 传参不能为空").toString());
                 }
@@ -134,7 +130,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
             }
 
             @Override
-            public NullChain nodeTask(Object preValue) throws RuntimeException {
+            public NullTaskList.NullNode nodeTask(Object preValue) throws RuntimeException {
                 if (Null.isAny(nullGroupTask, threadFactoryName)) {
                     throw new NullChainException(linkLog.append("task? 传参不能为空").toString());
                 }
@@ -166,7 +162,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
             }
 
             @Override
-            public NullChain nodeTask(Object preValue) throws RuntimeException {
+            public NullTaskList.NullNode  nodeTask(Object preValue) throws RuntimeException {
                 if (Null.isAny(nullTaskInfo, threadFactoryName)) {
                     linkLog.append("nfTask? 传参不能为空");
                     throw new NullChainException(linkLog.toString());
@@ -181,10 +177,10 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
                     Object o = __nfTask__(preValue,nullTaskInfo.getNfContext(), threadFactoryName, nullTaskInfo.getLogger(), nullTaskInfo.getParams());
                     if (Null.is(o)) {
                         linkLog.append("nfTask? ");
-                        return NullBuild.empty(linkLog, collect, taskList);
+                        return NullBuild.empty();
                     }
                     linkLog.append("nfTask->");
-                    return NullBuild.noEmpty(o, linkLog, collect, taskList);
+                    return NullBuild.noEmpty(o);
                 } catch (Exception e) {
                     linkLog.append("nfTask? ");
                     throw NullReflectionKit.addRunErrorMessage(e, linkLog);
@@ -205,7 +201,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
             }
 
             @Override
-            public NullChain nodeTask(Object preValue) throws RuntimeException {
+            public NullTaskList.NullNode  nodeTask(Object preValue) throws RuntimeException {
                 if (Null.isAny(nullGroupNfTask, threadFactoryName)) {
                     linkLog.append("nfTasks? 传参不能为空");
                     throw new NullChainException(linkLog.toString());
@@ -248,14 +244,14 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
                     }
                 }
                 linkLog.append("task->");
-                return NullBuild.noEmpty(nullChainMap, linkLog, collect, taskList);
+                return NullBuild.noEmpty(nullChainMap);
             }
         });
         return NullBuild.busy(this);
     }
 
 
-    private NullChain<NullMap<String, Object>> __task__(Object preValue,NullGroupTask nullGroupTask, String threadFactoryName) {
+    private NullTaskList.NullNode <NullMap<String, Object>> __task__(Object preValue,NullGroupTask nullGroupTask, String threadFactoryName) {
 
         ThreadPoolExecutor executor = ThreadFactoryUtil.getExecutor(threadFactoryName);
         NullMap<String, Object> nullChainMap = NullMap.newConcurrentHashMap();
@@ -301,7 +297,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
             }
         }
         linkLog.append("task->");
-        return NullBuild.noEmpty(nullChainMap, linkLog, collect, taskList);
+        return NullBuild.noEmpty(nullChainMap);
     }
 
 
@@ -311,7 +307,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
             Object run = NullBuild.taskRun(preValue, nullTask, linkLog, params);
             if (Null.is(run)) {
                 linkLog.append("task? ");
-                return NullBuild.empty(linkLog, collect, taskList);
+                return NullBuild.empty();
             }
             linkLog.append("task->");
             return run;

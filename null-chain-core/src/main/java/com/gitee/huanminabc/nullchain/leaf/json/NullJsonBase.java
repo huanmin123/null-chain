@@ -14,29 +14,19 @@ import lombok.extern.slf4j.Slf4j;
  **/
 @Slf4j
 public class NullJsonBase<T> extends NullChainBase<T> implements   NullJson<T> {
-    public NullJsonBase(StringBuilder linkLog, boolean isNull, NullCollect collect, NullTaskList taskList) {
-        super(linkLog, isNull, collect, taskList);
+    public NullJsonBase(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
+        super(linkLog,  collect, taskList);
     }
 
-    public NullJsonBase(T object, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        super(object, linkLog, collect, taskList);
-    }
-
-    public NullJsonBase(boolean isNull, T object, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        super(isNull, object, linkLog, collect, taskList);
-    }
 
 
     @Override
     public NullJson<String> json() {
         this.taskList.add((value)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
             //如果是字符串直接返回
             if (value instanceof String) {
                 linkLog.append("json->");
-                return NullBuild.noEmpty(value.toString(), linkLog, collect, taskList);
+                return NullBuild.noEmpty(value.toString());
             }
             try {
                 String json = JSON.toJSONString(value);
@@ -47,10 +37,10 @@ public class NullJsonBase<T> extends NullChainBase<T> implements   NullJson<T> {
                         json.equals("{\"empty\":false}")// 这个是因为继承了NULLCheck里面的isEmpty方法导致的
                 ) {
                     linkLog.append("json? ");
-                    return NullBuild.empty(linkLog, collect, taskList);
+                    return NullBuild.empty();
                 }
                 linkLog.append("json->");
-                return NullBuild.noEmpty(json, linkLog, collect, taskList);
+                return NullBuild.noEmpty(json);
             } catch (Exception e) {
                 linkLog.append("json? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
@@ -62,9 +52,6 @@ public class NullJsonBase<T> extends NullChainBase<T> implements   NullJson<T> {
     @Override
     public <U> NullJson<U> json(Class<U> uClass) {
         this.taskList.add((value)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
             if (uClass == null) {
                 throw new NullChainException(linkLog.append("json? ").append(uClass).append(" 不是字符串").toString());
             }
@@ -76,7 +63,7 @@ public class NullJsonBase<T> extends NullChainBase<T> implements   NullJson<T> {
             try {
                 U u = JSON.parseObject(value.toString(), uClass);
                 linkLog.append("json->");
-                return NullBuild.noEmpty(u, linkLog, collect, taskList);
+                return NullBuild.noEmpty(u);
             } catch (Exception e) {
                 linkLog.append("json? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);

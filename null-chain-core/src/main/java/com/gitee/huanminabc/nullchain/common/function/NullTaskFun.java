@@ -1,5 +1,7 @@
 package com.gitee.huanminabc.nullchain.common.function;
 
+import com.gitee.huanminabc.nullchain.common.NullKernelAbstract;
+import com.gitee.huanminabc.nullchain.common.NullTaskList;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 
 /**
@@ -9,5 +11,5 @@ import com.gitee.huanminabc.nullchain.core.NullChain;
  **/
 @FunctionalInterface
 public interface NullTaskFun<T> {
-    NullChain<T> nodeTask(T preValue) throws  RuntimeException;
+    NullTaskList.NullNode<T> nodeTask(T preValue) throws  RuntimeException;
 }

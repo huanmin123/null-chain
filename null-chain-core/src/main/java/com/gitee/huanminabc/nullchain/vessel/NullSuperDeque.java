@@ -52,15 +52,21 @@ public class NullSuperDeque<T> implements NullDeque<T> {
 
     @Override
     public  NullChain<T> poll() {
+        NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        T poll = queue.poll();
-        if (Null.is(poll)) {
-            linkLog.append("NullSuperDeque.poll?");
-            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
-        }
+        NullCollect nullCollect = new NullCollect();
+        nullTaskList.add((__) -> {
+            T poll = queue.poll();
+            if (Null.is(poll)) {
+                linkLog.append("NullSuperDeque.poll?");
+                return NullBuild.empty();
+            }
 
-        linkLog.append("NullSuperDeque.poll->");
-        return NullBuild.noEmpty(poll, linkLog, new NullCollect(),new NullTaskList());
+            linkLog.append("NullSuperDeque.poll->");
+            return NullBuild.noEmpty(poll);
+        });
+        return NullBuild.busy(linkLog, nullCollect, nullTaskList);
+
     }
 
     @Override
@@ -70,15 +76,20 @@ public class NullSuperDeque<T> implements NullDeque<T> {
 
     @Override
     public  NullChain<T> peek() {
+        NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        T peek = queue.peek();
-        if (Null.is(peek)) {
-            linkLog.append("NullSuperDeque.peek?");
-            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
-        }
+        NullCollect nullCollect = new NullCollect();
+        nullTaskList.add((__) -> {
+            T peek = queue.peek();
+            if (Null.is(peek)) {
+                linkLog.append("NullSuperDeque.peek?");
+                return NullBuild.empty();
+            }
 
-        linkLog.append("NullSuperDeque.peek->");
-        return NullBuild.noEmpty(peek, linkLog, new NullCollect(),new NullTaskList());
+            linkLog.append("NullSuperDeque.peek->");
+            return NullBuild.noEmpty(peek);
+        });
+        return NullBuild.busy(linkLog, nullCollect, nullTaskList);
     }
 
     @Override
@@ -196,26 +207,36 @@ public class NullSuperDeque<T> implements NullDeque<T> {
 
     @Override
     public NullChain<T> pollFirst() {
+        NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        T pollFirst = queue.pollFirst();
-        if (Null.is(pollFirst)) {
-            linkLog.append("NullSuperDeque.pollFirst?");
-            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
-        }
-        linkLog.append("NullSuperDeque.pollFirst->");
-        return NullBuild.noEmpty(pollFirst, linkLog, new NullCollect(),new NullTaskList());
+        NullCollect nullCollect = new NullCollect();
+        nullTaskList.add((__) -> {
+            T pollFirst = queue.pollFirst();
+            if (Null.is(pollFirst)) {
+                linkLog.append("NullSuperDeque.pollFirst?");
+                return NullBuild.empty();
+            }
+            linkLog.append("NullSuperDeque.pollFirst->");
+            return NullBuild.noEmpty(pollFirst);
+        });
+        return NullBuild.busy(linkLog, nullCollect, nullTaskList);
     }
 
     @Override
     public NullChain<T> pollLast() {
+        NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        T pollLast = queue.pollLast();
-        if (Null.is(pollLast)) {
-            linkLog.append("NullSuperDeque.pollLast?");
-            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
-        }
-        linkLog.append("NullSuperDeque.pollLast->");
-        return NullBuild.noEmpty(pollLast, linkLog, new NullCollect(),new NullTaskList());
+        NullCollect nullCollect = new NullCollect();
+        nullTaskList.add((__) -> {
+            T pollLast = queue.pollLast();
+            if (Null.is(pollLast)) {
+                linkLog.append("NullSuperDeque.pollLast?");
+                return NullBuild.empty();
+            }
+            linkLog.append("NullSuperDeque.pollLast->");
+            return NullBuild.noEmpty(pollLast);
+        });
+        return NullBuild.busy(linkLog, nullCollect, nullTaskList);
     }
 
     @Override
@@ -230,26 +251,36 @@ public class NullSuperDeque<T> implements NullDeque<T> {
 
     @Override
     public NullChain<T> peekFirst() {
+        NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        T peekFirst = queue.peekFirst();
-        if (Null.is(peekFirst)) {
-            linkLog.append("NullSuperDeque.peekFirst?");
-            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
-        }
-        linkLog.append("NullSuperDeque.peekFirst->");
-        return NullBuild.noEmpty(peekFirst, linkLog, new NullCollect(),new NullTaskList());
+        NullCollect nullCollect = new NullCollect();
+        nullTaskList.add((__) -> {
+            T peekFirst = queue.peekFirst();
+            if (Null.is(peekFirst)) {
+                linkLog.append("NullSuperDeque.peekFirst?");
+                return NullBuild.empty();
+            }
+            linkLog.append("NullSuperDeque.peekFirst->");
+            return NullBuild.noEmpty(peekFirst);
+        });
+        return NullBuild.busy(linkLog, nullCollect, nullTaskList);
     }
 
     @Override
     public NullChain<T> peekLast() {
+        NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        T peekLast = queue.peekLast();
-        if (Null.is(peekLast)) {
-            linkLog.append("NullSuperDeque.peekLast?");
-            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
-        }
-        linkLog.append("NullSuperDeque.peekLast->");
-        return NullBuild.noEmpty(peekLast, linkLog, new NullCollect(),new NullTaskList());
+        NullCollect nullCollect = new NullCollect();
+        nullTaskList.add((__) -> {
+            T peekLast = queue.peekLast();
+            if (Null.is(peekLast)) {
+                linkLog.append("NullSuperDeque.peekLast?");
+                return NullBuild.empty();
+            }
+            linkLog.append("NullSuperDeque.peekLast->");
+            return NullBuild.noEmpty(peekLast);
+        });
+        return NullBuild.busy(linkLog, nullCollect, nullTaskList);
     }
 
     @Override

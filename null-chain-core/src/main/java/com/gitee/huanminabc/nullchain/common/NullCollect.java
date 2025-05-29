@@ -28,14 +28,19 @@ public class NullCollect implements Serializable {
 
     //获取内容
     public <T> NullChain<T> get(Class<T> t) {
+        NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
+        NullCollect nullCollect = new NullCollect();
         Object o = nullMap.get(t);
-        if (Null.is(o)) {
-            linkLog.append("NullCollect.get?");
-            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
-        }
-        linkLog.append("NullCollect.get->");
-        return NullBuild.noEmpty((T)o, linkLog,new NullCollect(),new NullTaskList());
+        nullTaskList.add((__) -> {
+            if (Null.is(o)) {
+                linkLog.append("NullCollect.get?");
+                return NullBuild.empty();
+            }
+            linkLog.append("NullCollect.get->");
+            return NullBuild.noEmpty(o);
+        });
+        return NullBuild.busy(linkLog, nullCollect, nullTaskList);
     }
 
     public boolean isEmpty() {

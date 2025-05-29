@@ -153,7 +153,7 @@ public class NullResult<T> implements Serializable {
         NullResult<T> r = new NullResult<>();
         r.setSuccess(true);
         r.setCode(ResponseStatusEnum.SUCCESS.getCode());
-        r.setData(NullBuild.getValue(data));
+        r.setData(data.get());
         r.setMessage(msg);
         return r;
     }

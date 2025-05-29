@@ -1,5 +1,6 @@
 package com.gitee.huanminabc.nullchain.leaf.calculate;
 
+import com.gitee.huanminabc.common.reflect.BeanCopyUtil;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.*;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
@@ -15,41 +16,48 @@ import java.math.RoundingMode;
  **/
 @Slf4j
 public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<T> implements NullCalculate<BigDecimal> {
-    public NullCalculateBase(StringBuilder linkLog, boolean isNull, NullCollect collect, NullTaskList taskList) {
-        super(linkLog, isNull, collect,taskList);
+    public NullCalculateBase(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
+        super(linkLog, collect,taskList);
     }
 
-    public NullCalculateBase(T object, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        super(object, linkLog, collect,taskList);
-    }
 
 
     @Override
     public <V extends Number> NullCalculate<BigDecimal> add(V t2) {
-        if (isNull || t2 == null) {
-            return NullBuild.emptyCalc(linkLog, collect, taskList);
-        }
-        double v1 = t2.doubleValue();
-        BigDecimal add = value.add(BigDecimal.valueOf(v1));
-        linkLog.append("add->");
-        return NullBuild.noEmptyCalc(add, linkLog, collect, taskList);
+        this.taskList.add((value)->{
+            if (t2 == null) {
+                return NullBuild.empty();
+            }
+            double v1 = t2.doubleValue();
+            BigDecimal add = ((BigDecimal)value).add(BigDecimal.valueOf(v1));
+            linkLog.append("add->");
+            return NullBuild.noEmpty(add);
+        });
+        return  NullBuild.busyCalc(this);
+
+
     }
 
     @Override
     public <V extends Number> NullCalculate<BigDecimal> add(V t2, V defaultValue) {
-        if (isNull) {
-            return NullBuild.emptyCalc(linkLog, collect, taskList);
-        }
-        if (t2 == null) {
-            if (defaultValue == null) {
-                return NullBuild.emptyCalc(linkLog, collect, taskList);
+        final  V t2f = t2;
+        this.taskList.add((value)->{
+            V t2Value = t2f;
+            if (t2Value == null) {
+                if (defaultValue == null) {
+                    return NullBuild.empty();
+                }
+                t2Value = defaultValue;
             }
-            t2 = defaultValue;
-        }
-        double v1 = t2.doubleValue();
-        BigDecimal add = value.add(BigDecimal.valueOf(v1));
-        linkLog.append("add->");
-        return NullBuild.noEmptyCalc(add, linkLog, collect, taskList);
+            double v1 = t2Value.doubleValue();
+            BigDecimal add = ((BigDecimal)value).add(BigDecimal.valueOf(v1));
+            linkLog.append("add->");
+            return NullBuild.noEmpty(add);
+        });
+        return  NullBuild.busyCalc(this);
+
+
+
     }
 
     @Override

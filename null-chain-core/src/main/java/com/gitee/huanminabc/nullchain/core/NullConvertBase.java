@@ -14,22 +14,19 @@ import com.gitee.huanminabc.nullchain.common.NullTaskList;
 public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConvert<T> {
 
 
-    public NullConvertBase(StringBuilder linkLog, boolean isNull, NullCollect collect, NullTaskList taskList) {
-        super(linkLog, isNull, collect,taskList);
+    public NullConvertBase(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
+        super(linkLog, collect,taskList);
     }
 
-    public NullConvertBase(T object, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        super(object, linkLog, collect,taskList);
-    }
 
     @Override
     public NullChain<T> async() {
         this.taskList.add((value)->{
             linkLog.append("async->");
-            return  NullBuild.noEmpty(value,true, linkLog, collect, taskList);
+            return  NullBuild.noEmpty(value);
         });
         return  NullBuild.busy(this);
-        
+
     }
 
     @Override
@@ -38,7 +35,7 @@ public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConve
             ThreadFactoryUtil.addExecutor(threadFactoryName);
             taskList.setCurrentThreadFactoryName(threadFactoryName);
             linkLog.append("async->");
-            return    NullBuild.noEmpty(value,true, linkLog, collect, taskList);
+            return    NullBuild.noEmpty(value);
 
         });
         return  NullBuild.busy(this);
@@ -52,10 +49,10 @@ public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConve
             }
             if (uClass.isInstance(value)) {
                 linkLog.append("type->");
-                return NullBuild.noEmpty(uClass.cast(value), linkLog, collect,taskList);
+                return NullBuild.noEmpty(uClass.cast(value));
             } else {
                 linkLog.append("type? ").append("类型不匹配 ").append(value.getClass().getName()).append(" vs ").append(uClass.getName());
-                return NullBuild.empty(linkLog, collect, taskList);
+                return NullBuild.empty();
             }
         });
         return  NullBuild.busy(this);
@@ -68,7 +65,14 @@ public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConve
             if (uClass == null) {
                 throw new NullChainException(linkLog.append("type? ").append("转换类型不能为空").toString());
             }
-            return type((Class<U>) uClass.getClass());
+            Class<?> aClass = uClass.getClass();
+            if (aClass.isInstance(value)) {
+                linkLog.append("type->");
+                return NullBuild.noEmpty(aClass.cast(value));
+            } else {
+                linkLog.append("type? ").append("类型不匹配 ").append(value.getClass().getName()).append(" vs ").append(aClass.getName());
+                return NullBuild.empty();
+            }
         });
         return  NullBuild.busy(this);
     }

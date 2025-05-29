@@ -40,75 +40,57 @@ public class NullBuild {
     }
 
 
-
-
-
-
+    public static <T> NullTaskList.NullNode<T> empty() {
+        return new NullTaskList.NullNode<>();
+    }
 
 
     public static <T> NullChain<T> empty(StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
-        return new NullChainBase<T>(linkLog, true, nullChainCollect,taskList);
+        return new NullChainBase<>(linkLog, nullChainCollect, taskList);
     }
-
-
 
 
     //过程中使用
-    public static <T> NullChain<T> noEmpty(T object, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
-        return new NullChainBase<>(object, linkLog, nullChainCollect,taskList);
-    }
-    public static <T> NullChain<T> noEmpty(T object,boolean async, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
-        NullChainBase<T> tNullChainBase = new NullChainBase<>(object, linkLog, nullChainCollect, taskList);
-        tNullChainBase.async=async;
-        return tNullChainBase;
+    public static <T> NullTaskList.NullNode<T> noEmpty(T object) {
+        return new NullTaskList.NullNode<>(object);
     }
 
+    public static <T> NullChain<T> noEmpty(StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
+        return new NullChainBase<>(linkLog, nullChainCollect, taskList);
+    }
+
+    public static <T> NullChain<T> busy(StringBuilder linkLog, NullCollect nullCollect, NullTaskList taskList) {
+        return noEmpty(linkLog, nullCollect, taskList);
+    }
 
 
     public static <T> NullStream<T> emptyStream(StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
-        return new NullStreamBase<T>(linkLog, true, nullChainCollect,taskList);
-    }
-    public static <T> NullStream<T> noEmptyStream(T object, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
-        return new NullStreamBase<>(object, linkLog, nullChainCollect,taskList);
+        return new NullStreamBase<T>(linkLog, true, nullChainCollect, taskList);
     }
 
-    public static  NullCalculate<BigDecimal> emptyCalc(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        return new NullCalculateBase<>(linkLog,true, collect,taskList);
+    public static <T> NullStream<T> noEmptyStream(T object, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
+        return new NullStreamBase<>(object, linkLog, nullChainCollect, taskList);
     }
+
+    public static NullCalculate<BigDecimal> emptyCalc(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
+        return new NullCalculateBase<>(linkLog, true, collect, taskList);
+    }
+
     public static NullCalculate<BigDecimal> noEmptyCalc(BigDecimal value, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        return new NullCalculateBase<>( value, linkLog, collect,taskList);
+        return new NullCalculateBase<>(value, linkLog, collect, taskList);
     }
 
     //创建一个空的OkHttpUtil
     public static <T> OkHttpChain emptyHttp(StringBuilder linkLog) {
-        return new OkHttp<>(true,linkLog);
+        return new OkHttp<>(true, linkLog);
     }
+
     public static <T> OkHttpChain notEmptyHttp(String url, T value, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
         return notEmptyHttp(OkHttp.DEFAULT_THREAD_FACTORY_NAME, url, value, linkLog, nullChainCollect, taskList);
     }
 
     public static <T> OkHttpChain notEmptyHttp(String httpName, String url, T value, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
-        return  new OkHttp<>(httpName,url, value, linkLog, nullChainCollect, taskList);
-    }
-
-    public static <T> NullDate<T> notEmptyDate(T value, StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
-        return new NullDateBase<>(value, linkLog, nullCollect, nullTaskList);
-    }
-
-
-
-    public static <T>  NullJson<T> emptyJson(StringBuilder linkLog) {
-        return new NullJsonBase<>(linkLog, true, new NullCollect(), new NullTaskList());
-    }
-    public static <T>  NullJson<T> notEmptyJson(T value, StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
-        return new NullJsonBase<T>(value, linkLog, nullCollect, nullTaskList);
-    }
-
-    public static <T>  NullCopy<T> emptyCopy(StringBuilder linkLog) {
-        return new NullCopyBase<>(linkLog, true, new NullCollect(), new NullTaskList());
-    }
-    public static <T>  NullCopy<T> notEmptyCopy(T value, StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
-        return new NullCopyBase<T>(value, linkLog, nullCollect, nullTaskList);
+        return new OkHttp<>(httpName, url, value, linkLog, nullChainCollect, taskList);
     }
 
 
@@ -118,88 +100,54 @@ public class NullBuild {
     //将NullKernelAbstract转换为 NullChainBase
     public static <T> NullChain<T> busy(NullKernelAbstract o) {
         if (o instanceof NullChainBase) {
-            return (NullChain)o;
+            return (NullChain) o;
         }
-        return (NullChainBase<T>) new NullChainBase<>(o.isNull,o.value, o.linkLog, o.collect, o.taskList);
-    }
-
-    public static <T> NullChain<T> busy(StringBuilder linkLog, NullCollect nullCollect,NullTaskList taskList) {
-        return noEmpty(null,linkLog,nullCollect,taskList);
+        return new NullChainBase<>(o.linkLog, o.collect, o.taskList);
     }
 
 
-    public  static <T> NullDate  busyDate(NullKernelAbstract o) {
+    public static <T> NullDate busyDate(NullKernelAbstract o) {
         if (o instanceof NullDateBase) {
-            return (NullDate)o;
+            return (NullDate) o;
         }
-        return new NullDateBase<>(o.isNull,o.value, o.linkLog, o.collect, o.taskList);
+        return new NullDateBase<>(o.linkLog, o.collect, o.taskList);
     }
-    public static <T> NullDate<T> busyDate(NullTaskList taskList) {
-        return notEmptyDate(null,new StringBuilder(),new NullCollect(),taskList);
+
+    public static <T> NullDate<T> busyDate(StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
+        return new NullDateBase<>(linkLog, nullCollect, nullTaskList);
     }
 
 
-    public  static NullJson busyJson(NullKernelAbstract o) {
+    public static NullJson busyJson(NullKernelAbstract o) {
         if (o instanceof NullJsonBase) {
-            return (NullJson)o;
+            return (NullJson) o;
         }
-        return new NullJsonBase<>(o.isNull,o.value, o.linkLog, o.collect, o.taskList);
-    }
-    public static <T> NullJson<T> busyJson(NullTaskList taskList) {
-        return notEmptyJson(null,new StringBuilder(),new NullCollect(),taskList);
+        return new NullJsonBase<>(o.linkLog, o.collect, o.taskList);
     }
 
+    public static <T> NullJson<T> busyJson(StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
+        return new NullJsonBase<T>(linkLog, nullCollect, nullTaskList);
+    }
 
 
-    public  static NullCopy busyCopy(NullKernelAbstract o) {
+    public static NullCopy busyCopy(NullKernelAbstract o) {
         if (o instanceof NullCopyBase) {
-            return (NullCopy)o;
+            return (NullCopy) o;
         }
-        return new NullCopyBase<>(o.isNull,o.value, o.linkLog, o.collect, o.taskList);
-    }
-    public static <T> NullCopy<T> busyCopy(NullTaskList taskList) {
-        return notEmptyCopy(null,new StringBuilder(),new NullCollect(),taskList);
+        return new NullCopyBase<>(o.linkLog, o.collect, o.taskList);
     }
 
-
-    public static <T> NullDate<T> emptyDate(StringBuilder linkLog) {
-        return new NullDateBase<>(linkLog, true, new NullCollect(),new NullTaskList());
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //因为NULLExt==NullChain 但是 因为NULLExt!=NullChainBase, 在NULLExt转化为NullChainBase的时候会识别导致获取内部的值失败
-    //这里兼容一下
-    public static <T> T getValue(NullChain<T> nullChain) {
-        if (nullChain == null) {
-            return null;
+    public static NullCalculate busyCalc(NullKernelAbstract o) {
+        if (o instanceof NullCalculateBase) {
+            return (NullCalculate) o;
         }
-        if (nullChain instanceof NullChainBase) {
-            return ((NullChainBase<T>) nullChain).value;
-        }
-        //这种情况就是继承,无法直接利用NullChainBase的getValue方法需要自己拦截
-        //类一旦继承NULLExt,走到这里那么本身肯定不是空,所以必然能获取到值,不会报错
-        return nullChain.get();
+        return new NullCalculateBase<>(o.linkLog, o.collect, o.taskList);
     }
+
+    public static <T> NullCopy<T> busyCopy(StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
+        return new NullCopyBase<T>(linkLog, nullCollect, nullTaskList);
+    }
+
 
     //将数组转换为空链
     public static <T> NullChain<T>[] arrayToNullChain(T[] ts) {
@@ -207,21 +155,21 @@ public class NullBuild {
         for (int i = 0; i < ts.length; i++) {
             T t = ts[i];
             if (Null.is(t)) {
-                nullChains[i] = new NullChainBase<>(new StringBuilder(), true, new NullCollect(),new NullTaskList());
+                nullChains[i] = Null.empty();
             } else {
-                nullChains[i] = new NullChainBase<>(t, new StringBuilder(), new NullCollect(),new NullTaskList());
+                nullChains[i] = Null.of(t);
             }
         }
         return nullChains;
     }
 
-    public static<T,R> R taskRun(T value, NullTask<T,R> nullTask, StringBuilder linkLog, Object... params) throws NullChainCheckException {
+    public static <T, R> R taskRun(T value, NullTask<T, R> nullTask, StringBuilder linkLog, Object... params) throws NullChainCheckException {
         NullMap<String, Object> map = NullMap.newHashMap();
         Object[] objects = params == null ? new Object[]{} : params;
         //校验参数类型和长度
         NullType nullType = nullTask.checkTypeParams();
         try {
-            if (nullType != null ) {
+            if (nullType != null) {
                 nullType.checkType(objects, map);
             }
         } catch (Exception e) {
@@ -240,13 +188,13 @@ public class NullBuild {
         }
     }
 
-    public static <T,R> R toolRun(T value, NullTool<T,R> nullTool, StringBuilder linkLog, Object... params) throws NullChainCheckException {
+    public static <T, R> R toolRun(T value, NullTool<T, R> nullTool, StringBuilder linkLog, Object... params) throws NullChainCheckException {
         NullMap<String, Object> map = NullMap.newHashMap();
         Object[] objects = params == null ? new Object[]{} : params;
         //校验参数类型和长度
         NullType nullType = nullTool.checkTypeParams();
         try {
-            if (nullType != null  ) {
+            if (nullType != null) {
                 nullType.checkType(objects, map);
             }
         } catch (Exception e) {
@@ -256,12 +204,12 @@ public class NullBuild {
         try {
             nullTool.init(value, nullChains, map);
         } catch (Exception e) {
-            throw new NullChainCheckException(e,linkLog.append("tool? ").append(nullTool.getClass().getName()).append(" 初始化失败: ").toString());
+            throw new NullChainCheckException(e, linkLog.append("tool? ").append(nullTool.getClass().getName()).append(" 初始化失败: ").toString());
         }
         try {
             return nullTool.run(value, nullChains, map);
         } catch (Exception e) {
-            throw new NullChainCheckException(e,linkLog.append("tool? ").append(nullTool.getClass().getName()).append(" 运行失败: ").toString());
+            throw new NullChainCheckException(e, linkLog.append("tool? ").append(nullTool.getClass().getName()).append(" 运行失败: ").toString());
         }
 
     }

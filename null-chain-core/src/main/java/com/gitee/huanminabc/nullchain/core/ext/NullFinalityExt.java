@@ -204,10 +204,10 @@ public interface NullFinalityExt<T> extends NullFinality<T>, NullCheck {
             boolean empty = isEmpty();
             if (empty) {
                 linkLog.append("NullExt?");
-                return NullBuild.empty(linkLog, nullCollect, nullTaskList);
+                return NullBuild.empty();
             }
             linkLog.append(" NullExt.");
-            return NullBuild.noEmpty((T) this, linkLog, nullCollect, nullTaskList);
+            return NullBuild.noEmpty((T) this);
         });
         return NullBuild.busy(linkLog, nullCollect, nullTaskList);
     }

@@ -50,14 +50,20 @@ public class NullSuperQuery<T> implements NullQuery<T> {
 
     @Override
     public  NullChain<T> poll() {
+        NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        T poll = queue.poll();
-        if (Null.is(poll)) {
-            linkLog.append("NullSuperQuery.poll?");
-            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
-        }
-        linkLog.append("NullSuperQuery.poll->");
-        return NullBuild.noEmpty(poll, linkLog, new NullCollect(),new NullTaskList());
+        NullCollect nullCollect = new NullCollect();
+        nullTaskList.add((__) -> {
+            T poll = queue.poll();
+            if (Null.is(poll)) {
+                linkLog.append("NullSuperQuery.poll?");
+                return NullBuild.empty();
+            }
+            linkLog.append("NullSuperQuery.poll->");
+            return NullBuild.noEmpty(poll);
+        });
+        return NullBuild.busy(linkLog, nullCollect, nullTaskList);
+
     }
 
     @Override
@@ -67,14 +73,19 @@ public class NullSuperQuery<T> implements NullQuery<T> {
 
     @Override
     public  NullChain<T> peek() {
+        NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        T peek = queue.peek();
-        if (Null.is(peek)) {
-            linkLog.append("NullSuperQuery.peek?");
-            return NullBuild.empty(linkLog, new NullCollect(),new NullTaskList());
-        }
-        linkLog.append("NullSuperQuery.peek->");
-        return NullBuild.noEmpty(peek, linkLog, new NullCollect(),new NullTaskList());
+        NullCollect nullCollect = new NullCollect();
+        nullTaskList.add((__) -> {
+            T peek = queue.peek();
+            if (Null.is(peek)) {
+                linkLog.append("NullSuperQuery.peek?");
+                return NullBuild.empty();
+            }
+            linkLog.append("NullSuperQuery.peek->");
+            return NullBuild.noEmpty(peek);
+        });
+        return NullBuild.busy(linkLog, nullCollect, nullTaskList);
     }
 
     @Override

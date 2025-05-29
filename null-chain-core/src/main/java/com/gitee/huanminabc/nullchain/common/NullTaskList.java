@@ -21,8 +21,27 @@ import java.util.function.Consumer;
  **/
 @Slf4j
 public class NullTaskList {
-    private Queue<NullTaskFunAbs> tasks;
-    private NullChainBase lastResult; //最后一个任务的结果
+    public static class NullNode<T> {
+        public boolean isNull; //true 为null ,false 不为null
+        public T value;//当前任务的值
+        //是否异步 true 开始异步 false 没有开启(默认)
+        public boolean async=false;
+        public NullNode( ) {
+            this.isNull = true;
+        }
+        public NullNode(T value) {
+            this.value = value;
+            this.isNull = false;
+        }
+        public NullNode(T value, boolean isNull, boolean async) {
+            this.value = value;
+            this.isNull = isNull;
+            this.async = async;
+        }
+    }
+
+    private transient Queue<NullTaskFunAbs> tasks;
+    protected NullNode lastResult; //最后一个任务的结果
     private boolean lastAsync = false; //最后一个任务是否异步
 
     @Setter
@@ -48,8 +67,8 @@ public class NullTaskList {
         } else {
             tasks.add(new NullTaskFunAbs() {
                 @Override
-                public NullChainBase nodeTask(Object value) throws RuntimeException {
-                    return (NullChainBase) task.nodeTask(value);
+                public NullNode nodeTask(Object value) throws RuntimeException {
+                    return  task.nodeTask(value);
                 }
             });
         }
@@ -58,14 +77,14 @@ public class NullTaskList {
 
 
     //运行任务返回结果  (非异步的方法执行)
-    public <T> NullChainBase<T> runTaskAll() {
+    public <T> NullNode<T> runTaskAll() {
         if (lastResult != null) {
             return lastResult;
         }
-        NullChainBase<T> chain = null;
+        NullNode<T> chain = null;
         while (!tasks.isEmpty()) {
             NullTaskFunAbs poll = tasks.poll();
-            NullChainBase task1 = (NullChainBase) poll.nodeTask(chain == null ? null : chain.value);
+            NullNode task1 =  poll.nodeTask(chain == null ? null : chain.value);
             if (task1.isNull ) {
                 //向后取一个, 如果后面任务是遇到上一个任务是null那么就停止执行
                 NullTaskFunAbs lastPoll  = tasks.peek();
@@ -81,14 +100,14 @@ public class NullTaskList {
     }
 
     //运行任务返回结果  如果调用方支持异步那么开启异步之后的节点将脱离主线程  比如ifPresent
-    public <T> void runTaskAll(Consumer<NullChainBase<T>> supplier, Consumer<Throwable> consumer) {
+    public <T> void runTaskAll(Consumer<NullNode<T>> supplier, Consumer<Throwable> consumer) {
         if (lastResult != null) {
             if (!lastAsync) {
                 supplier.accept(lastResult);
             } else {
-                CompletableFuture<NullChainBase> nullChainBaseCompletableFuture = CompletableFuture.completedFuture(lastResult);
-                nullChainBaseCompletableFuture.thenComposeAsync((nullChainBase) -> {
-                    supplier.accept(nullChainBase);
+                CompletableFuture<NullNode> nullChainBaseCompletableFuture = CompletableFuture.completedFuture(lastResult);
+                nullChainBaseCompletableFuture.thenComposeAsync((nullNode) -> {
+                    supplier.accept(nullNode);
                     return CompletableFuture.completedFuture(null);
                 }, getCT(false));//终结的方法一般都比较重, 不使用窃取线程池
                 StackTraceElement stackTraceElement = StackTraceUtil.stackTraceLevel(5);
@@ -104,12 +123,12 @@ public class NullTaskList {
             }
             return;
         }
-        NullChainBase chain = null;
-        CompletableFuture<NullChainBase> completableFuture = null;
+        NullNode chain = null;
+        CompletableFuture<NullNode> completableFuture = null;
         while (!tasks.isEmpty()) {
             NullTaskFunAbs poll = tasks.poll();
             if (completableFuture == null) {
-                NullChainBase task = (NullChainBase) poll.nodeTask(chain == null ? null : chain.value);
+                NullNode task = poll.nodeTask(chain == null ? null : chain.value);
                 if (task.isNull) {
                     //向后取一个, 如果后面任务是遇到上一个任务是null那么就停止执行
                     NullTaskFunAbs lastPoll = tasks.peek();
@@ -124,8 +143,8 @@ public class NullTaskList {
                 }
                 chain = task;
             } else {
-                completableFuture = completableFuture.thenComposeAsync((taskFut) -> {
-                    NullChainBase task1 = (NullChainBase) poll.nodeTask(taskFut.value);
+                completableFuture = completableFuture.thenComposeAsync((nullNode) -> {
+                    NullNode task1 =  poll.nodeTask(nullNode.value);
                     if (task1.isNull) {
                         //向后取一个, 如果后面任务是遇到上一个任务是null那么就停止执行
                         NullTaskFunAbs lastPoll = tasks.poll();
@@ -146,8 +165,8 @@ public class NullTaskList {
             supplier.accept(chain);
         } else {
             lastAsync = true; //有异步任务
-            completableFuture.thenComposeAsync((nullChainBase) -> {
-                supplier.accept(nullChainBase);
+            completableFuture.thenComposeAsync((nullNode) -> {
+                supplier.accept(nullNode);
                 return CompletableFuture.completedFuture(null);
             }, getCT(false));//终结的方法一般都比较重, 不使用窃取线程池
             StackTraceElement stackTraceElement = StackTraceUtil.stackTraceLevel(5);

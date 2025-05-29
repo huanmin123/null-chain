@@ -16,16 +16,8 @@ import lombok.extern.slf4j.Slf4j;
  **/
 @Slf4j
 public class NullCopyBase<T> extends NullChainBase<T> implements NullCopy<T> {
-    public NullCopyBase(StringBuilder linkLog, boolean isNull, NullCollect collect, NullTaskList taskList) {
-        super(linkLog, isNull, collect, taskList);
-    }
-
-    public NullCopyBase(T object, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        super(object, linkLog, collect, taskList);
-    }
-
-    public NullCopyBase(boolean isNull, T object, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        super(isNull, object, linkLog, collect, taskList);
+    public NullCopyBase(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
+        super(linkLog, collect, taskList);
     }
 
 
@@ -33,12 +25,9 @@ public class NullCopyBase<T> extends NullChainBase<T> implements NullCopy<T> {
     @Override
     public NullCopy<T> copy() {
         this.taskList.add((value)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
             try {
                 linkLog.append("copy->");
-                return NullBuild.noEmpty(BeanCopyUtil.copy(value), linkLog, collect, taskList);
+                return NullBuild.noEmpty(BeanCopyUtil.copy(value));
             } catch (Exception e) {
                 linkLog.append("copy? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
@@ -50,12 +39,9 @@ public class NullCopyBase<T> extends NullChainBase<T> implements NullCopy<T> {
     @Override
     public NullCopy<T> deepCopy() {
         this.taskList.add((value)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
             try {
                 linkLog.append("deepCopy->");
-                return NullBuild.noEmpty(BeanCopyUtil.deepCopy(value), linkLog, collect, taskList);
+                return NullBuild.noEmpty(BeanCopyUtil.deepCopy(value));
             } catch (Exception e) {
                 linkLog.append("deepCopy? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
@@ -68,9 +54,6 @@ public class NullCopyBase<T> extends NullChainBase<T> implements NullCopy<T> {
     @Override
     public final <U> NullCopy<T> pick(NullFun<? super T, ? extends U>... mapper) {
         this.taskList.add((value)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
             if (Null.is(mapper)) {
                 throw new NullChainException(linkLog.append("pick? 传参不能为空").toString());
             }
@@ -89,7 +72,7 @@ public class NullCopyBase<T> extends NullChainBase<T> implements NullCopy<T> {
                     }
                 }
                 linkLog.append("pick->");
-                return NullBuild.noEmpty(object, linkLog, collect, taskList);
+                return NullBuild.noEmpty(object);
             } catch (Exception e) {
                 linkLog.append("pick? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);

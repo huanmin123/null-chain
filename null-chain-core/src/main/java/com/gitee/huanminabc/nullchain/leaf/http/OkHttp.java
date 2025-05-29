@@ -42,6 +42,7 @@ public class OkHttp<T> extends NullKernelAbstract<T> implements OkHttpChain {
 
     @Setter
     private T value;
+    private final boolean isNull;
 
 
     public OkHttp(boolean isNull, StringBuilder linkLog) {
@@ -66,10 +67,10 @@ public class OkHttp<T> extends NullKernelAbstract<T> implements OkHttpChain {
         }
         this.taskList.add((value)->{
             if (isNull) {
-                return NullBuild.empty(linkLog, collect,taskList);
+                return NullBuild.empty();
             }
             linkLog.append("async->");
-            return NullBuild.noEmpty(value,true, linkLog, collect, taskList);
+            return NullBuild.noEmpty(value);
         });
         return this;
     }
@@ -218,7 +219,7 @@ public class OkHttp<T> extends NullKernelAbstract<T> implements OkHttpChain {
      */
     public NullChain<Boolean> downloadFile(String filePath) {
         if (isNull) {
-            return  NullBuild.empty(linkLog, collect, taskList);
+            return  NullBuild.busy(linkLog, collect, taskList);
         }
         this.taskList.add((__)->{
             if (Null.is(filePath)) {
@@ -230,7 +231,7 @@ public class OkHttp<T> extends NullKernelAbstract<T> implements OkHttpChain {
                 OkHttpBuild.setHeader(headerMap, request);
                 boolean b = OkHttpBuild.downloadFile(url, filePath, okHttpClient, request);
                 linkLog.append("downloadFile->");
-                return NullBuild.noEmpty(b, linkLog, collect, taskList);
+                return NullBuild.noEmpty(b);
             } catch (Exception e) {
                 linkLog.append("downloadFile? ").append(e.getMessage());
                 throw new NullChainException(linkLog.toString());
@@ -242,7 +243,7 @@ public class OkHttp<T> extends NullKernelAbstract<T> implements OkHttpChain {
     //下载文件返回字节流
     public NullChain<byte[]> toBytes() {
         if (isNull) {
-            return  NullBuild.empty(linkLog, collect, taskList);
+            return  NullBuild.empty( linkLog, collect, taskList);
         }
         this.taskList.add((__)->{
             try {
@@ -250,10 +251,10 @@ public class OkHttp<T> extends NullKernelAbstract<T> implements OkHttpChain {
                 byte[] bytes = OkHttpBuild.toBytes(url, okHttpClient, request);
                 if (bytes == null) {
                     linkLog.append("toBytes? ").append("返回值为空");
-                    return NullBuild.empty(linkLog, collect, taskList);
+                    return NullBuild.empty();
                 }
                 linkLog.append("toBytes->");
-                return NullBuild.noEmpty(bytes, linkLog, collect, taskList);
+                return NullBuild.noEmpty(bytes);
             } catch (Exception e) {
                 linkLog.append("toBytes? ").append(e.getMessage());
                 throw new NullChainException(linkLog.toString());
@@ -273,10 +274,10 @@ public class OkHttp<T> extends NullKernelAbstract<T> implements OkHttpChain {
                 InputStream inputStream = OkHttpBuild.toInputStream(url, okHttpClient, request);
                 if (inputStream == null) {
                     linkLog.append("toInputStream? ").append("返回值为空");
-                    return NullBuild.empty(linkLog, collect, taskList);
+                    return NullBuild.empty();
                 }
                 linkLog.append("toInputStream->");
-                return NullBuild.noEmpty(inputStream, linkLog, collect, taskList);
+                return NullBuild.noEmpty(inputStream);
             } catch (Exception e) {
                 linkLog.append("toInputStream? ").append(e.getMessage());
                 throw new NullChainException(linkLog.toString());
@@ -300,10 +301,10 @@ public class OkHttp<T> extends NullKernelAbstract<T> implements OkHttpChain {
                 String str = OkHttpBuild.toStr(url, okHttpClient, request);
                 if (Null.is(str)) {
                     linkLog.append("toStr? ").append("返回值为空");
-                    return NullBuild.empty(linkLog, collect, taskList);
+                    return NullBuild.empty();
                 }
                 linkLog.append("toStr->");
-                return NullBuild.noEmpty(str, linkLog, collect, taskList);
+                return NullBuild.noEmpty(str);
             } catch (Exception e) {
                 linkLog.append("toStr? ").append(e.getMessage());
                 throw new NullChainException(linkLog.toString());

@@ -16,25 +16,15 @@ import com.gitee.huanminabc.nullchain.enums.TimeEnum;
  */
 public class NullDateBase<T> extends NullChainBase<T> implements  NullDate<T>  {
 
-    public NullDateBase(StringBuilder linkLog, boolean isNull, NullCollect collect, NullTaskList taskList) {
-        super(linkLog, isNull, collect, taskList);
+    public NullDateBase(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
+        super(linkLog, collect, taskList);
     }
 
-    public NullDateBase(T object, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        super(object, linkLog, collect, taskList);
-    }
-    public NullDateBase( boolean isNull,T object, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        super(object, linkLog, collect, taskList);
-        this.isNull = isNull;
-    }
 
     //将时间类型(Date,LocalDate,LocalDateTime), 10或13位时间戳, 转换为指定格式的时间字符串
     @Override
     public NullDate<String> dateFormat(DateFormatEnum dateFormatEnum) {
         this.taskList.add((value)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
             String string;
             try {
                 string = NullDateFormat.toString(value, dateFormatEnum);
@@ -47,7 +37,7 @@ public class NullDateBase<T> extends NullChainBase<T> implements  NullDate<T>  {
                 throw new NullChainException(linkLog.toString());
             }
             linkLog.append("dateFormat->");
-            return NullBuild.noEmpty(string, linkLog, collect,taskList);
+            return NullBuild.noEmpty(string);
         });
         return  NullBuild.busyDate(this);
     }
@@ -55,9 +45,6 @@ public class NullDateBase<T> extends NullChainBase<T> implements  NullDate<T>  {
     @Override
     public NullDate<T> dateOffset(DateOffsetEnum offsetEnum, int num, TimeEnum timeEnum) {
         this.taskList.add((value)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
             T t;
             try {
                 t = NullDateFormat.dateOffset((T)value, offsetEnum, num, timeEnum);
@@ -70,7 +57,7 @@ public class NullDateBase<T> extends NullChainBase<T> implements  NullDate<T>  {
                 throw new NullChainException(linkLog.toString());
             }
             linkLog.append("dateOffset->");
-            return NullBuild.noEmpty(t, linkLog, collect,taskList);
+            return NullBuild.noEmpty(t);
         });
         return  NullBuild.busyDate(this);
     }
@@ -83,10 +70,6 @@ public class NullDateBase<T> extends NullChainBase<T> implements  NullDate<T>  {
     @Override
     public NullDate<Integer> dateCompare(Object date) {
         this.taskList.add((value)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
-
             Integer compare;
             try {
                 compare = NullDateFormat.dateCompare(value, date);
@@ -99,7 +82,7 @@ public class NullDateBase<T> extends NullChainBase<T> implements  NullDate<T>  {
                 throw new NullChainException(linkLog.toString());
             }
             linkLog.append("dateCompare->");
-            return NullBuild.noEmpty(compare, linkLog, collect, taskList);
+            return NullBuild.noEmpty(compare);
         });
         return  NullBuild.busyDate(this);
     }
