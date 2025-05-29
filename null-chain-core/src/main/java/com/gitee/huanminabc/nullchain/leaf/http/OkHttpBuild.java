@@ -34,7 +34,7 @@ public class OkHttpBuild {
 
     static {
         //默认的OkHttp 实例
-        OkHttpBuild.okHttpClientConcurrentHashMap.put(OkHttp.DEFAULT_THREAD_FACTORY_NAME, createOkHttpClient(LIMIT_MAXIMUM_POOL_SIZE));
+        OkHttpBuild.okHttpClientConcurrentHashMap.put(OkHttpBase.DEFAULT_THREAD_FACTORY_NAME, createOkHttpClient(LIMIT_MAXIMUM_POOL_SIZE));
     }
 
     private static OkHttpClient createOkHttpClient(int maxPoolSize) {

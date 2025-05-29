@@ -14,7 +14,7 @@ public interface OkHttpProtocolChain  extends OkHttpResultChain {
      * 数据拼接:  会自动识别url中是否有参数,如果有会自动和节点参数拼接
      * @return
      */
-    OkHttpChain get();
+    OkHttp get();
 
     /**
      * 设置post请求协议和参数
@@ -27,13 +27,13 @@ public interface OkHttpProtocolChain  extends OkHttpResultChain {
      * 数据的来源: 可以是一个对象或者Map  , 值为null的参数会被忽略
      * @return
      */
-    OkHttpChain post(OkHttpPostEnum type);
+    OkHttp post(OkHttpPostEnum type);
 
     /**
      * 设置put请求协议和参数, 和post一样,只是请求类型不一样
      * @return
      */
-    OkHttpChain put(OkHttpPostEnum type);
+    OkHttp put(OkHttpPostEnum type);
 
     /**
      * 设置为delete请求协议和参数
@@ -42,5 +42,5 @@ public interface OkHttpProtocolChain  extends OkHttpResultChain {
      * 数据拼接:  会自动识别url中是否有参数,如果有会自动和节点参数拼接
      * @return
      */
-    OkHttpChain del();
+    OkHttp del();
 }

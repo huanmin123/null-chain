@@ -13,7 +13,7 @@ public interface OkHttpConfigChain extends  OkHttpProtocolChain{
      * @param timeUnit
      * @return
      */
-    OkHttpChain connectTimeout(long time, TimeUnit timeUnit);
+    OkHttp connectTimeout(long time, TimeUnit timeUnit);
 
     /**
      * 设置写超时时间。默认值为10秒，一般不需要手动设置。
@@ -24,7 +24,7 @@ public interface OkHttpConfigChain extends  OkHttpProtocolChain{
      * @param timeUnit 时间单位（如秒：TimeUnit.SECONDS）
      * @return OkHttpChain对象，以便链式调用其他配置方法
      */
-    OkHttpChain writeTimeout(long time, TimeUnit timeUnit);
+    OkHttp writeTimeout(long time, TimeUnit timeUnit);
 
     /**
      * 设置读超时时间。默认值为10秒，一般不需要手动设置。
@@ -35,14 +35,14 @@ public interface OkHttpConfigChain extends  OkHttpProtocolChain{
      * @param timeUnit 时间单位（如秒：TimeUnit.SECONDS）
      * @return OkHttpChain对象，以便链式调用其他配置方法
      */
-    OkHttpChain readTimeout(long time, TimeUnit timeUnit);
+    OkHttp readTimeout(long time, TimeUnit timeUnit);
 
     /**
      * 设置代理
      * @param proxy
      * @return
      */
-    OkHttpChain proxy(Proxy proxy);
+    OkHttp proxy(Proxy proxy);
 
 
 
@@ -52,5 +52,5 @@ public interface OkHttpConfigChain extends  OkHttpProtocolChain{
      * @param value
      * @return
      */
-    OkHttpChain addHeader(String key, String value);
+    OkHttp addHeader(String key, String value);
 }

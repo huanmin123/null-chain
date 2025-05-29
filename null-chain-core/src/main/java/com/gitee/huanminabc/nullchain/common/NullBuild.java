@@ -10,8 +10,8 @@ import com.gitee.huanminabc.nullchain.leaf.copy.NullCopy;
 import com.gitee.huanminabc.nullchain.leaf.copy.NullCopyBase;
 import com.gitee.huanminabc.nullchain.leaf.date.NullDate;
 import com.gitee.huanminabc.nullchain.leaf.date.NullDateBase;
+import com.gitee.huanminabc.nullchain.leaf.http.OkHttpBase;
 import com.gitee.huanminabc.nullchain.leaf.http.OkHttp;
-import com.gitee.huanminabc.nullchain.leaf.http.OkHttpChain;
 import com.gitee.huanminabc.nullchain.leaf.json.NullJson;
 import com.gitee.huanminabc.nullchain.leaf.json.NullJsonBase;
 import com.gitee.huanminabc.nullchain.leaf.stream.NullStream;
@@ -20,8 +20,6 @@ import com.gitee.huanminabc.nullchain.task.NullTask;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
 import com.gitee.huanminabc.nullchain.vessel.NullMap;
 import lombok.extern.slf4j.Slf4j;
-
-import java.math.BigDecimal;
 
 /**
  * @author huanmin
@@ -62,39 +60,6 @@ public class NullBuild {
     public static <T> NullChain<T> busy(StringBuilder linkLog, NullCollect nullCollect, NullTaskList taskList) {
         return noEmpty(linkLog, nullCollect, taskList);
     }
-
-
-    public static <T> NullStream<T> emptyStream(StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
-        return new NullStreamBase<T>(linkLog, nullChainCollect, taskList);
-    }
-
-    public static <T> NullStream<T> noEmptyStream(StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
-        return new NullStreamBase<>(linkLog, nullChainCollect, taskList);
-    }
-
-    public static NullCalculate<BigDecimal> emptyCalc(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        return new NullCalculateBase<>(linkLog, collect, taskList);
-    }
-
-    public static NullCalculate<BigDecimal> noEmptyCalc(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        return new NullCalculateBase<>( linkLog, collect, taskList);
-    }
-
-    //创建一个空的OkHttpUtil
-    public static <T> OkHttpChain emptyHttp(StringBuilder linkLog) {
-        return new OkHttp<>(true, linkLog);
-    }
-
-    public static <T> OkHttpChain notEmptyHttp(String url, T value, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
-        return notEmptyHttp(OkHttp.DEFAULT_THREAD_FACTORY_NAME, url, value, linkLog, nullChainCollect, taskList);
-    }
-
-    public static <T> OkHttpChain notEmptyHttp(String httpName, String url, T value, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
-        return new OkHttp<>(httpName, url, value, linkLog, nullChainCollect, taskList);
-    }
-
-
-
 
 
     //将NullKernelAbstract转换为 NullChainBase
@@ -149,6 +114,8 @@ public class NullBuild {
         }
         return new NullStreamBase<>(o.linkLog, o.collect, o.taskList);
     }
+
+
     public static NullCalculate busyCalc(StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
         return new NullCalculateBase(linkLog, nullCollect, nullTaskList);
     }
@@ -159,6 +126,17 @@ public class NullBuild {
     public static <T> NullStream<T> busyStream(StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
         return new NullStreamBase<T>(linkLog, nullCollect, nullTaskList);
     }
+
+    public static OkHttp busyHttp(String url, StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
+        return new OkHttpBase(url,linkLog, nullCollect, nullTaskList);
+    }
+    public static OkHttp busyHttp(String httpName, String url, StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
+        return new OkHttpBase(httpName,url,linkLog, nullCollect, nullTaskList);
+    }
+
+
+
+
 
 
     //将数组转换为空链
@@ -225,6 +203,5 @@ public class NullBuild {
         }
 
     }
-
 
 }
