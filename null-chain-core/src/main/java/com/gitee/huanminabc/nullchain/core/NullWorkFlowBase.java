@@ -39,7 +39,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
                 throw new NullChainException(linkLog.append("tool? ").append(tool.getName()).append(" 不存在的转换器").toString());
             }
             try {
-                R run = NullBuild.toolRun((T) value, tool1, linkLog, params);
+                R run = toolRun((T) value, tool1, linkLog, params);
                 if (Null.is(run)) {
                     linkLog.append("tool? ");
                     return NullBuild.empty();
@@ -271,7 +271,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
             NullTask nullTask = getNullTask(taskName);
             Future<?> submit = executor.submit(() -> {
                 try {
-                    Object run = NullBuild.taskRun(preValue, nullTask, linkLog, params);
+                    Object run = taskRun((T)preValue, nullTask, linkLog, params);
                     if (Null.is(run)) {
                         return;
                     }
@@ -304,7 +304,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
     private Object __task__(Object preValue,String classPath, Object... params) {
         NullTask nullTask = getNullTask(classPath);
         try {
-            Object run = NullBuild.taskRun(preValue, nullTask, linkLog, params);
+            Object run = taskRun((T)preValue, nullTask, linkLog, params);
             if (Null.is(run)) {
                 linkLog.append("task? ");
                 return NullBuild.empty();
@@ -348,6 +348,58 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
         mainSystemContext.put("preValue", preValue);//上一个任务的值
         mainSystemContext.put("params", params == null ? new Object[]{} : params);
         return NfMain.run(nfContext, logger, mainSystemContext);
+    }
+
+
+    private  < R> R taskRun(T value, NullTask<T, R> nullTask, StringBuilder linkLog, Object... params) throws NullChainCheckException {
+        NullMap<String, Object> map = NullMap.newHashMap();
+        Object[] objects = params == null ? new Object[]{} : params;
+        //校验参数类型和长度
+        NullType nullType = nullTask.checkTypeParams();
+        try {
+            if (nullType != null) {
+                nullType.checkType(objects, map);
+            }
+        } catch (Exception e) {
+            throw new NullChainCheckException(e, linkLog.append("task? ").append(nullTask.getClass().getName()).append(" 任务参数校验失败").toString());
+        }
+        NullChain<Object>[] nullChains = NullBuild.arrayToNullChain(objects);
+        try {
+            nullTask.init(value, nullChains, map);
+        } catch (Exception e) {
+            throw new NullChainCheckException(e, linkLog.append("task? ").append(nullTask.getClass().getName()).append(" 初始化失败: ").toString());
+        }
+        try {
+            return nullTask.run(value, nullChains, map);
+        } catch (Exception e) {
+            throw new NullChainCheckException(e, linkLog.append("task? ").append(nullTask.getClass().getName()).append(" 运行失败: ").toString());
+        }
+    }
+
+    private  <R> R toolRun(T value, NullTool<T, R> nullTool, StringBuilder linkLog, Object... params) throws NullChainCheckException {
+        NullMap<String, Object> map = NullMap.newHashMap();
+        Object[] objects = params == null ? new Object[]{} : params;
+        //校验参数类型和长度
+        NullType nullType = nullTool.checkTypeParams();
+        try {
+            if (nullType != null) {
+                nullType.checkType(objects, map);
+            }
+        } catch (Exception e) {
+            throw new NullChainCheckException(e, linkLog.append("tool? ").append(nullTool.getClass().getName()).append(" 工具参数校验失败").toString());
+        }
+        NullChain<Object>[] nullChains = NullBuild.arrayToNullChain(objects);
+        try {
+            nullTool.init(value, nullChains, map);
+        } catch (Exception e) {
+            throw new NullChainCheckException(e, linkLog.append("tool? ").append(nullTool.getClass().getName()).append(" 初始化失败: ").toString());
+        }
+        try {
+            return nullTool.run(value, nullChains, map);
+        } catch (Exception e) {
+            throw new NullChainCheckException(e, linkLog.append("tool? ").append(nullTool.getClass().getName()).append(" 运行失败: ").toString());
+        }
+
     }
 
 }

@@ -62,7 +62,7 @@ public class NullBuild {
     }
 
 
-    //将NullKernelAbstract转换为 NullChainBase
+    //因为在不同的leaf中转化为NullChain需要 , 这样做统一的兼容
     public static <T> NullChain<T> busy(NullKernelAbstract o) {
         if (o instanceof NullChainBase) {
             return (NullChain) o;
@@ -70,51 +70,34 @@ public class NullBuild {
         return new NullChainBase<>(o.linkLog, o.collect, o.taskList);
     }
 
-
     public static <T> NullDate busyDate(NullKernelAbstract o) {
-        if (o instanceof NullDateBase) {
-            return (NullDate) o;
-        }
-        return new NullDateBase<>(o.linkLog, o.collect, o.taskList);
+        return (NullDate) o;
     }
+
+    public static NullJson busyJson(NullKernelAbstract o) {
+        return (NullJson) o;
+    }
+
+    public static NullCopy busyCopy(NullKernelAbstract o) {
+        return (NullCopy) o;
+    }
+
+    public static NullCalculate busyCalc(NullKernelAbstract o) {
+        return (NullCalculate) o;
+    }
+    public static NullStream busyStream(NullKernelAbstract o) {
+        return (NullStream) o;
+    }
+
+
 
     public static <T> NullDate<T> busyDate(StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
         return new NullDateBase<>(linkLog, nullCollect, nullTaskList);
     }
 
-
-    public static NullJson busyJson(NullKernelAbstract o) {
-        if (o instanceof NullJsonBase) {
-            return (NullJson) o;
-        }
-        return new NullJsonBase<>(o.linkLog, o.collect, o.taskList);
-    }
-
     public static <T> NullJson<T> busyJson(StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
         return new NullJsonBase<T>(linkLog, nullCollect, nullTaskList);
     }
-
-
-    public static NullCopy busyCopy(NullKernelAbstract o) {
-        if (o instanceof NullCopyBase) {
-            return (NullCopy) o;
-        }
-        return new NullCopyBase<>(o.linkLog, o.collect, o.taskList);
-    }
-
-    public static NullCalculate busyCalc(NullKernelAbstract o) {
-        if (o instanceof NullCalculateBase) {
-            return (NullCalculate) o;
-        }
-        return new NullCalculateBase<>(o.linkLog, o.collect, o.taskList);
-    }
-    public static NullStream busyStream(NullKernelAbstract o) {
-        if (o instanceof NullStreamBase) {
-            return (NullStream) o;
-        }
-        return new NullStreamBase<>(o.linkLog, o.collect, o.taskList);
-    }
-
 
     public static NullCalculate busyCalc(StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
         return new NullCalculateBase(linkLog, nullCollect, nullTaskList);
@@ -136,9 +119,6 @@ public class NullBuild {
 
 
 
-
-
-
     //将数组转换为空链
     public static <T> NullChain<T>[] arrayToNullChain(T[] ts) {
         NullChain[] nullChains = new NullChain[ts.length];
@@ -152,56 +132,4 @@ public class NullBuild {
         }
         return nullChains;
     }
-
-    public static <T, R> R taskRun(T value, NullTask<T, R> nullTask, StringBuilder linkLog, Object... params) throws NullChainCheckException {
-        NullMap<String, Object> map = NullMap.newHashMap();
-        Object[] objects = params == null ? new Object[]{} : params;
-        //校验参数类型和长度
-        NullType nullType = nullTask.checkTypeParams();
-        try {
-            if (nullType != null) {
-                nullType.checkType(objects, map);
-            }
-        } catch (Exception e) {
-            throw new NullChainCheckException(e, linkLog.append("task? ").append(nullTask.getClass().getName()).append(" 任务参数校验失败").toString());
-        }
-        NullChain<Object>[] nullChains = NullBuild.arrayToNullChain(objects);
-        try {
-            nullTask.init(value, nullChains, map);
-        } catch (Exception e) {
-            throw new NullChainCheckException(e, linkLog.append("task? ").append(nullTask.getClass().getName()).append(" 初始化失败: ").toString());
-        }
-        try {
-            return nullTask.run(value, nullChains, map);
-        } catch (Exception e) {
-            throw new NullChainCheckException(e, linkLog.append("task? ").append(nullTask.getClass().getName()).append(" 运行失败: ").toString());
-        }
-    }
-
-    public static <T, R> R toolRun(T value, NullTool<T, R> nullTool, StringBuilder linkLog, Object... params) throws NullChainCheckException {
-        NullMap<String, Object> map = NullMap.newHashMap();
-        Object[] objects = params == null ? new Object[]{} : params;
-        //校验参数类型和长度
-        NullType nullType = nullTool.checkTypeParams();
-        try {
-            if (nullType != null) {
-                nullType.checkType(objects, map);
-            }
-        } catch (Exception e) {
-            throw new NullChainCheckException(e, linkLog.append("tool? ").append(nullTool.getClass().getName()).append(" 工具参数校验失败").toString());
-        }
-        NullChain<Object>[] nullChains = NullBuild.arrayToNullChain(objects);
-        try {
-            nullTool.init(value, nullChains, map);
-        } catch (Exception e) {
-            throw new NullChainCheckException(e, linkLog.append("tool? ").append(nullTool.getClass().getName()).append(" 初始化失败: ").toString());
-        }
-        try {
-            return nullTool.run(value, nullChains, map);
-        } catch (Exception e) {
-            throw new NullChainCheckException(e, linkLog.append("tool? ").append(nullTool.getClass().getName()).append(" 运行失败: ").toString());
-        }
-
-    }
-
 }
