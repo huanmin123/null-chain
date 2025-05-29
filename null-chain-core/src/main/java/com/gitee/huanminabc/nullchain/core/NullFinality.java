@@ -67,17 +67,9 @@ public interface NullFinality<T>  extends NullKernel<T>, Serializable {
      * 收集器用于保留节点之间不同类型的值
      * 在很多情况需要查询A的值, 然后利用A的值查询B的值,然后在利用B的值查询C的值,之后还需要同时用A,B,C的值,这个时候就需要用到收集器
      * 一般来说A,B,C是连贯的, 在没有收集器的时候需要每一个都判空然后再进行操作,这样会导致代码的冗余,使用收集器可以减少代码的冗余同时保证了空安全
-     * 注意:
-     *  1. 收集器只会保留最新类型的值,旧的值会被覆盖
-     *  2. 空链不能有空值,否则抛出异常
+     * 注意: 收集器只会保留最新类型的值,旧的值会被覆盖
      */
     NullCollect collect();
-    //安全的收集器,链接不能有空值,否则抛出异常,异常信息可以自定义
-    NullCollect collect(String exceptionMessage, Object... args);
-    //安全的收集器,链接不能有空值,否则抛出异常,异常信息可以自定义
-    <X extends Throwable> NullCollect collect(Supplier<? extends X> exceptionSupplier) throws X;
-
-
 
 //
 //    //le 小于等于 , 上一个任务的值小于等于obj的值
