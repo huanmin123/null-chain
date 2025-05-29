@@ -52,7 +52,6 @@ public class NullSuperQuery<T> implements NullQuery<T> {
     public  NullChain<T> poll() {
         NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        NullCollect nullCollect = new NullCollect();
         nullTaskList.add((__) -> {
             T poll = queue.poll();
             if (Null.is(poll)) {
@@ -62,7 +61,7 @@ public class NullSuperQuery<T> implements NullQuery<T> {
             linkLog.append("NullSuperQuery.poll->");
             return NullBuild.noEmpty(poll);
         });
-        return NullBuild.busy(linkLog, nullCollect, nullTaskList);
+        return NullBuild.busy(linkLog, nullTaskList);
 
     }
 
@@ -75,7 +74,6 @@ public class NullSuperQuery<T> implements NullQuery<T> {
     public  NullChain<T> peek() {
         NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        NullCollect nullCollect = new NullCollect();
         nullTaskList.add((__) -> {
             T peek = queue.peek();
             if (Null.is(peek)) {
@@ -85,7 +83,7 @@ public class NullSuperQuery<T> implements NullQuery<T> {
             linkLog.append("NullSuperQuery.peek->");
             return NullBuild.noEmpty(peek);
         });
-        return NullBuild.busy(linkLog, nullCollect, nullTaskList);
+        return NullBuild.busy(linkLog, nullTaskList);
     }
 
     @Override

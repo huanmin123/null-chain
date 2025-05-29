@@ -54,7 +54,7 @@ public class NullSuperDeque<T> implements NullDeque<T> {
     public  NullChain<T> poll() {
         NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        NullCollect nullCollect = new NullCollect();
+
         nullTaskList.add((__) -> {
             T poll = queue.poll();
             if (Null.is(poll)) {
@@ -65,7 +65,7 @@ public class NullSuperDeque<T> implements NullDeque<T> {
             linkLog.append("NullSuperDeque.poll->");
             return NullBuild.noEmpty(poll);
         });
-        return NullBuild.busy(linkLog, nullCollect, nullTaskList);
+        return NullBuild.busy(linkLog, nullTaskList);
 
     }
 
@@ -78,7 +78,7 @@ public class NullSuperDeque<T> implements NullDeque<T> {
     public  NullChain<T> peek() {
         NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        NullCollect nullCollect = new NullCollect();
+
         nullTaskList.add((__) -> {
             T peek = queue.peek();
             if (Null.is(peek)) {
@@ -89,7 +89,7 @@ public class NullSuperDeque<T> implements NullDeque<T> {
             linkLog.append("NullSuperDeque.peek->");
             return NullBuild.noEmpty(peek);
         });
-        return NullBuild.busy(linkLog, nullCollect, nullTaskList);
+        return NullBuild.busy(linkLog, nullTaskList);
     }
 
     @Override
@@ -209,7 +209,7 @@ public class NullSuperDeque<T> implements NullDeque<T> {
     public NullChain<T> pollFirst() {
         NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        NullCollect nullCollect = new NullCollect();
+
         nullTaskList.add((__) -> {
             T pollFirst = queue.pollFirst();
             if (Null.is(pollFirst)) {
@@ -219,14 +219,14 @@ public class NullSuperDeque<T> implements NullDeque<T> {
             linkLog.append("NullSuperDeque.pollFirst->");
             return NullBuild.noEmpty(pollFirst);
         });
-        return NullBuild.busy(linkLog, nullCollect, nullTaskList);
+        return NullBuild.busy(linkLog, nullTaskList);
     }
 
     @Override
     public NullChain<T> pollLast() {
         NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        NullCollect nullCollect = new NullCollect();
+
         nullTaskList.add((__) -> {
             T pollLast = queue.pollLast();
             if (Null.is(pollLast)) {
@@ -236,7 +236,7 @@ public class NullSuperDeque<T> implements NullDeque<T> {
             linkLog.append("NullSuperDeque.pollLast->");
             return NullBuild.noEmpty(pollLast);
         });
-        return NullBuild.busy(linkLog, nullCollect, nullTaskList);
+        return NullBuild.busy(linkLog, nullTaskList);
     }
 
     @Override
@@ -253,7 +253,7 @@ public class NullSuperDeque<T> implements NullDeque<T> {
     public NullChain<T> peekFirst() {
         NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        NullCollect nullCollect = new NullCollect();
+
         nullTaskList.add((__) -> {
             T peekFirst = queue.peekFirst();
             if (Null.is(peekFirst)) {
@@ -263,14 +263,13 @@ public class NullSuperDeque<T> implements NullDeque<T> {
             linkLog.append("NullSuperDeque.peekFirst->");
             return NullBuild.noEmpty(peekFirst);
         });
-        return NullBuild.busy(linkLog, nullCollect, nullTaskList);
+        return NullBuild.busy(linkLog, nullTaskList);
     }
 
     @Override
     public NullChain<T> peekLast() {
         NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        NullCollect nullCollect = new NullCollect();
         nullTaskList.add((__) -> {
             T peekLast = queue.peekLast();
             if (Null.is(peekLast)) {
@@ -280,7 +279,7 @@ public class NullSuperDeque<T> implements NullDeque<T> {
             linkLog.append("NullSuperDeque.peekLast->");
             return NullBuild.noEmpty(peekLast);
         });
-        return NullBuild.busy(linkLog, nullCollect, nullTaskList);
+        return NullBuild.busy(linkLog, nullTaskList);
     }
 
     @Override

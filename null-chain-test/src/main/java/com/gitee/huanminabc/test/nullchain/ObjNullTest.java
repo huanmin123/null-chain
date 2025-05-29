@@ -61,7 +61,6 @@ public class ObjNullTest {
     }
     @Test
     public void of() {
-//        userEntity.getRoleData().setRoleName(null);
         UserEntity userEntity1 = Null.of(userEntity).get();
         System.out.println(userEntity1);
     }
@@ -90,7 +89,6 @@ public class ObjNullTest {
 
     @Test
     public void ofDate() {
-//        = Null.ofDate(new Date()).
         String s = Null.ofDate(new Date()).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).get();
         System.out.println(s);
     }
@@ -135,7 +133,6 @@ public class ObjNullTest {
     @Test
     public void of_ok01() {
 //        Null.of(userEntity).map(UserEntity::getAnInt).ifPresent(System.out::println);
-
 
         Null.of(userEntity).async().map(UserEntity::getAnInt).ifPresent(System.out::println);
         System.out.println("=============================");
