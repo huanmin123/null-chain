@@ -61,19 +61,6 @@ public interface NullFinalityExt<T> extends NullFinality<T>,NullKernelExt<T> {
         return tNullChain.collect();
     }
 
-    @Override
-    //安全的收集器,链接不能有空值,否则抛出异常,异常信息可以自定义
-    default NullCollect collect(String exceptionMessage, Object... args) {
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.collect(exceptionMessage, args);
-    }
-
-    @Override
-    default <X extends Throwable> NullCollect collect(Supplier<? extends X> exceptionSupplier) throws X {
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.collect(exceptionSupplier);
-    }
-
 //
 //    @Override
 //    default <U extends T> boolean eq(U obj) {
