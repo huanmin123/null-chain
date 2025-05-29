@@ -36,7 +36,6 @@ public interface NullKernelExt<T>  extends NullKernel<T>, NullCheck {
     default NullChain<T> toNULL() {
         NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        NullCollect nullCollect = new NullCollect();
         nullTaskList.add((__) -> {
             boolean empty = isEmpty();
             if (empty) {
@@ -46,6 +45,6 @@ public interface NullKernelExt<T>  extends NullKernel<T>, NullCheck {
             linkLog.append(" NullExt.");
             return NullBuild.noEmpty((T) this);
         });
-        return NullBuild.busy(linkLog, nullCollect, nullTaskList);
+        return NullBuild.busy(linkLog, nullTaskList);
     }
 }
