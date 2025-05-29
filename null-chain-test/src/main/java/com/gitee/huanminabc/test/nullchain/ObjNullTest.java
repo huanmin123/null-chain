@@ -2,38 +2,32 @@ package com.gitee.huanminabc.test.nullchain;
 
 
 import com.gitee.huanminabc.common.base.SerializeUtil;
-import com.gitee.huanminabc.common.exception.BizException;
-import com.gitee.huanminabc.common.multithreading.executor.SleepTools;
 import com.gitee.huanminabc.common.test.CodeTimeUtil;
 import com.gitee.huanminabc.nullchain.Null;
-import com.gitee.huanminabc.nullchain.core.NullChain;
-import com.gitee.huanminabc.nullchain.enums.TimeEnum;
 import com.gitee.huanminabc.nullchain.common.NullChainCheckException;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
 import com.gitee.huanminabc.nullchain.common.NullResult;
-import com.gitee.huanminabc.nullchain.leaf.json.NullJson;
+import com.gitee.huanminabc.nullchain.core.NullChain;
+import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
+import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
+import com.gitee.huanminabc.nullchain.enums.TimeEnum;
 import com.gitee.huanminabc.test.nullchain.entity.RoleEntity;
 import com.gitee.huanminabc.test.nullchain.entity.UserEntity;
 import com.gitee.huanminabc.test.nullchain.entity.UserExtEntity;
-import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
-import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
-import com.gitee.huanminabc.utils_common.base.DateUtil;
-import jline.internal.Log;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @Author huanmin
  * @Date 2024/1/11
  */
+@Slf4j
 public class ObjNullTest {
     UserEntity userEntity = new UserEntity();
 
@@ -206,6 +200,7 @@ public class ObjNullTest {
 
     @Test
     public void time() {
+        log.info("==============");
         Null.of(userEntity).get();
         CodeTimeUtil.creator(() -> {
             for (int i = 0; i < 100000; i++) {

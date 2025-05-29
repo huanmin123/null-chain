@@ -28,13 +28,10 @@
     </properties>
 
     <dependencies>
+
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
+            <groupId>com.gitee.huanminabc</groupId>
+            <artifactId>common</artifactId>
         </dependency>
 
     </dependencies>

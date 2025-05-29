@@ -1,22 +1,11 @@
 package com.gitee.huanminabc.test.nullchain;
 
-import cn.hutool.core.thread.ThreadUtil;
 import com.alibaba.fastjson2.annotation.JSONField;
-import com.gitee.huanminabc.common.file.ReadFileBytesUtil;
-import com.gitee.huanminabc.common.test.ExecutorTestUtil;
-import com.gitee.huanminabc.common.test.PathUtil;
-import com.gitee.huanminabc.nullchain.Null;
-import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
 import lombok.Data;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public class NullHttpTest {
     UserInfo userEntity = new UserInfo();

@@ -4,7 +4,6 @@ package com.gitee.huanminabc.test.nullchain.entity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.gitee.huanminabc.nullchain.NullExt;
 import lombok.Data;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -20,7 +19,6 @@ public class UserExtEntity  implements Serializable, NullExt<UserExtEntity> {
     private String sex;//性别
     private String site; //地址
     private Boolean del; //是否删除
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date date; //日期
     private RoleEntity roleData;

@@ -38,10 +38,6 @@
             <artifactId>byte-buddy</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.gitee.huanminabc</groupId>
-            <artifactId>common</artifactId>
-        </dependency>
     </dependencies>
 
 </project>
