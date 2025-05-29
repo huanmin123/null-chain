@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
@@ -21,8 +22,10 @@ import java.util.function.Consumer;
  * @create: 2025-05-26 14:22
  **/
 @Slf4j
-public class NullTaskList {
-    public static class NullNode<T> {
+public class NullTaskList implements Serializable{
+    private static final long serialVersionUID = 1L;
+    public static class NullNode<T>  implements Serializable {
+        private static final long serialVersionUID = 1L;
         public boolean isNull; //true 为null ,false 不为null
         public T value;//当前任务的值
         //是否异步 true 开始异步 false 没有开启(默认)
