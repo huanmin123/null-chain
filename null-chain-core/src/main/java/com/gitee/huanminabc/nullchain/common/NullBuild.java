@@ -65,19 +65,19 @@ public class NullBuild {
 
 
     public static <T> NullStream<T> emptyStream(StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
-        return new NullStreamBase<T>(linkLog, true, nullChainCollect, taskList);
+        return new NullStreamBase<T>(linkLog, nullChainCollect, taskList);
     }
 
-    public static <T> NullStream<T> noEmptyStream(T object, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
-        return new NullStreamBase<>(object, linkLog, nullChainCollect, taskList);
+    public static <T> NullStream<T> noEmptyStream(StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
+        return new NullStreamBase<>(linkLog, nullChainCollect, taskList);
     }
 
     public static NullCalculate<BigDecimal> emptyCalc(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        return new NullCalculateBase<>(linkLog, true, collect, taskList);
+        return new NullCalculateBase<>(linkLog, collect, taskList);
     }
 
-    public static NullCalculate<BigDecimal> noEmptyCalc(BigDecimal value, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        return new NullCalculateBase<>(value, linkLog, collect, taskList);
+    public static NullCalculate<BigDecimal> noEmptyCalc(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
+        return new NullCalculateBase<>( linkLog, collect, taskList);
     }
 
     //创建一个空的OkHttpUtil
@@ -143,9 +143,21 @@ public class NullBuild {
         }
         return new NullCalculateBase<>(o.linkLog, o.collect, o.taskList);
     }
+    public static NullStream busyStream(NullKernelAbstract o) {
+        if (o instanceof NullStreamBase) {
+            return (NullStream) o;
+        }
+        return new NullStreamBase<>(o.linkLog, o.collect, o.taskList);
+    }
+    public static NullCalculate busyCalc(StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
+        return new NullCalculateBase(linkLog, nullCollect, nullTaskList);
+    }
 
     public static <T> NullCopy<T> busyCopy(StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
         return new NullCopyBase<T>(linkLog, nullCollect, nullTaskList);
+    }
+    public static <T> NullStream<T> busyStream(StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
+        return new NullStreamBase<T>(linkLog, nullCollect, nullTaskList);
     }
 
 

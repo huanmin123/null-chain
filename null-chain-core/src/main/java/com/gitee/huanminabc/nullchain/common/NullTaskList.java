@@ -100,7 +100,7 @@ public class NullTaskList {
     }
 
     //运行任务返回结果  如果调用方支持异步那么开启异步之后的节点将脱离主线程  比如ifPresent
-    public <T> void runTaskAll(Consumer<NullNode<T>> supplier, Consumer<Throwable> consumer) {
+    public <T> void runTaskAll(Consumer<NullNode<T>> supplier, Consumer<Throwable> ex) {
         if (lastResult != null) {
             if (!lastAsync) {
                 supplier.accept(lastResult);
@@ -113,8 +113,8 @@ public class NullTaskList {
                 StackTraceElement stackTraceElement = StackTraceUtil.stackTraceLevel(5);
                 nullChainBaseCompletableFuture.exceptionally((e) -> {
                     e.addSuppressed(new NullChainException(stackTraceElement.toString()));
-                    if (consumer != null) {
-                        consumer.accept(e);
+                    if (ex != null) {
+                        ex.accept(e);
                     } else {
                         log.error("", e);
                     }
@@ -172,8 +172,8 @@ public class NullTaskList {
             StackTraceElement stackTraceElement = StackTraceUtil.stackTraceLevel(5);
             completableFuture.exceptionally((e) -> {
                 e.addSuppressed(new NullChainException(stackTraceElement.toString()));
-                if (consumer != null) {
-                    consumer.accept(e);
+                if (ex != null) {
+                    ex.accept(e);
                 } else {
                     log.error("", e);
                 }

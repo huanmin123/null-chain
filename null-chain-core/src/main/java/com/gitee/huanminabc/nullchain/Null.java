@@ -362,84 +362,116 @@ public class Null extends NullUtil {
     }
 
 
-
-    //==============================================下面的是定制版本父不依赖NullChain========================================
-
-
-
     //将Stream转为NullChain
     public static <S> NullStream<S> ofStream(Stream<S> stream) {
+        NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        if (stream == null) {
-            linkLog.append(" Null.ofStream?");
-            return NullBuild.emptyStream(linkLog, new NullCollect(), new NullTaskList());
-        }
-        linkLog.append(" Null.ofStream->");
-        NullCollect collect = new NullCollect();
-        return NullBuild.noEmptyStream((S) stream, linkLog, collect, new NullTaskList());
+        NullCollect nullCollect = new NullCollect();
+        nullTaskList.add((__) -> {
+            if (stream == null) {
+                linkLog.append(" Null.ofStream?");
+                return NullBuild.empty();
+            }
+            linkLog.append(" Null.ofStream->");
+            return NullBuild.noEmpty((S) stream);
+        });
+        return NullBuild.busyStream( linkLog, nullCollect, nullTaskList);
     }
 
 
     //将Collection转为NullStream
     public static <S> NullStream<S> ofStream(Collection<S> collection) {
+        NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        if (collection == null) {
-            linkLog.append(" Null.toStream?");
-            return NullBuild.emptyStream(linkLog, new NullCollect(), new NullTaskList());
-        }
-        linkLog.append(" Null.toStream->");
-        return NullBuild.noEmptyStream((S) collection.stream(), linkLog, new NullCollect(), new NullTaskList());
+        NullCollect nullCollect = new NullCollect();
+        nullTaskList.add((__) -> {
+            if (collection == null) {
+                linkLog.append(" Null.toStream?");
+                return NullBuild.empty();
+            }
+            linkLog.append(" Null.toStream->");
+            return NullBuild.noEmpty((S) collection.stream());
+        });
+        return NullBuild.busyStream( linkLog, nullCollect, nullTaskList);
     }
     public static <S> NullStream<S> ofStream(NullCollection<S> collection) {
+        NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        if (collection == null) {
-            linkLog.append(" Null.toStream?");
-            return NullBuild.emptyStream(linkLog, new NullCollect(), new NullTaskList());
-        }
-        linkLog.append(" Null.toStream->");
-        return NullBuild.noEmptyStream((S) collection.stream(), linkLog, new NullCollect(), new NullTaskList());
+        NullCollect nullCollect = new NullCollect();
+        nullTaskList.add((__) -> {
+            if (collection == null) {
+                linkLog.append(" Null.toStream?");
+                return NullBuild.empty();
+            }
+            linkLog.append(" Null.toStream->");
+            return NullBuild.noEmpty((S) collection.stream());
+        });
+        return NullBuild.busyStream( linkLog, nullCollect, nullTaskList);
+
     }
 
     //将数组转为NullStream
     public static <T> NullStream<T> ofStream(NullChain<? extends Collection<T>> nullChain) {
+        NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        if (nullChain == null || nullChain.is()) {
-            linkLog.append(" Null.toStream?");
-            return NullBuild.emptyStream(linkLog, new NullCollect(), new NullTaskList());
-        }
-        linkLog.append(" Null.toStream->");
-        return NullBuild.noEmptyStream((T) nullChain.get().stream(), linkLog, new NullCollect(), new NullTaskList());
+        NullCollect nullCollect = new NullCollect();
+        nullTaskList.add((__) -> {
+            if (nullChain == null || nullChain.is()) {
+                linkLog.append(" Null.toStream?");
+                return NullBuild.empty();
+            }
+            linkLog.append(" Null.toStream->");
+            return NullBuild.noEmpty((T) nullChain.get().stream());
+        });
+        return NullBuild.busyStream( linkLog, nullCollect, nullTaskList);
+
     }
 
     public static <T> NullStream<T> ofStreamNull(NullChain<? extends NullCollection<T>> nullChain) {
+        NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        if (nullChain == null || nullChain.is()) {
-            linkLog.append(" Null.toStream?");
-            return NullBuild.emptyStream(linkLog, new NullCollect(), new NullTaskList());
-        }
-        linkLog.append(" Null.toStream->");
-        return NullBuild.noEmptyStream((T) nullChain.get().stream(), linkLog, new NullCollect(), new NullTaskList());
+        NullCollect nullCollect = new NullCollect();
+        nullTaskList.add((__) -> {
+            if (nullChain == null || nullChain.is()) {
+                linkLog.append(" Null.toStream?");
+                return NullBuild.empty();
+            }
+            linkLog.append(" Null.toStream->");
+            return NullBuild.noEmpty((T) nullChain.get().stream());
+        });
+        return NullBuild.busyStream( linkLog, nullCollect, nullTaskList);
+
     }
 
     public static <N extends Number> NullCalculate<BigDecimal> ofCalc(N n) {
+        NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        if (n == null) {
-            linkLog.append(" Null.ofCalc?");
-            return NullBuild.emptyCalc(linkLog, new NullCollect(), new NullTaskList());
-        }
-        linkLog.append(" Null.ofCalc->");
-        NullCollect collect = new NullCollect();
-        return NullBuild.noEmptyCalc(BigDecimal.valueOf(n.doubleValue()), linkLog, collect, new NullTaskList());
+        NullCollect nullCollect = new NullCollect();
+        nullTaskList.add((__) -> {
+            if (n == null) {
+                linkLog.append(" Null.ofCalc?");
+                return NullBuild.empty();
+            }
+            linkLog.append(" Null.ofCalc->");
+            NullCollect collect = new NullCollect();
+            return NullBuild.noEmpty(BigDecimal.valueOf(n.doubleValue()));
+        });
+        return NullBuild.busyCalc( linkLog, nullCollect, nullTaskList);
     }
 
     public static <NUM extends Number> NullCalculate<BigDecimal> ofCalc(NullChain<NUM> nullChain) {
+        NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        if (nullChain == null || nullChain.is()) {
-            linkLog.append(" Null.ofCalc?");
-            return NullBuild.emptyCalc(linkLog, new NullCollect(), new NullTaskList());
-        }
-        linkLog.append(" Null.ofCalc->");
-        return NullBuild.noEmptyCalc(BigDecimal.valueOf(nullChain.get().doubleValue()), linkLog, new NullCollect(), new NullTaskList());
+        NullCollect nullCollect = new NullCollect();
+        nullTaskList.add((__) -> {
+            if (nullChain == null || nullChain.is()) {
+                linkLog.append(" Null.ofCalc?");
+                return NullBuild.empty();
+            }
+            linkLog.append(" Null.ofCalc->");
+            return NullBuild.noEmpty(BigDecimal.valueOf(nullChain.get().doubleValue()));
+        });
+        return NullBuild.busyCalc( linkLog, nullCollect, nullTaskList);
     }
 
 
