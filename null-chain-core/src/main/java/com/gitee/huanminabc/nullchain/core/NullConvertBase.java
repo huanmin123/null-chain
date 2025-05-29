@@ -14,10 +14,10 @@ import com.gitee.huanminabc.nullchain.common.NullTaskList;
 public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConvert<T> {
 
 
-    public NullConvertBase(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        super(linkLog, collect,taskList);
+    public NullConvertBase(StringBuilder linkLog, NullTaskList taskList) {
+        super(linkLog,taskList);
     }
-    
+
     @Override
     public <U> NullChain<U> type(Class<U> uClass) {
         this.taskList.add((value)->{

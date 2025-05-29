@@ -36,12 +36,12 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
         this.url = url;
     }
 
-    public OkHttpBase(String url, StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        this(DEFAULT_THREAD_FACTORY_NAME,url,linkLog, collect, taskList);
+    public OkHttpBase(String url, StringBuilder linkLog, NullTaskList taskList) {
+        this(DEFAULT_THREAD_FACTORY_NAME,url,linkLog, taskList);
     }
 
-    public OkHttpBase(String httpName, String url, StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
-        super(linkLog, nullChainCollect, taskList);
+    public OkHttpBase(String httpName, String url, StringBuilder linkLog, NullTaskList taskList) {
+        super(linkLog, taskList);
         this.okHttpClient = OkHttpBuild.getOkHttp(httpName);
         setUrl(url);
     }
@@ -206,7 +206,7 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
                 throw new NullChainException(linkLog.toString());
             }
         });
-        return NullBuild.busy( linkLog, collect, taskList);
+        return NullBuild.busy( linkLog, taskList);
     }
 
     //下载文件返回字节流
@@ -226,7 +226,7 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
                 throw new NullChainException(linkLog.toString());
             }
         });
-        return NullBuild.busy( linkLog, collect, taskList);
+        return NullBuild.busy( linkLog, taskList);
     }
 
     //下载文件返回inputStream
@@ -246,7 +246,7 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
                 throw new NullChainException(linkLog.toString());
             }
         });
-        return NullBuild.busy( linkLog, collect, taskList);
+        return NullBuild.busy( linkLog, taskList);
     }
 
     /**
@@ -270,7 +270,7 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
                 throw new NullChainException(linkLog.toString());
             }
         });
-        return NullBuild.busy( linkLog, collect, taskList);
+        return NullBuild.busy( linkLog, taskList);
     }
 
 

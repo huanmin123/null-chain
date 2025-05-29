@@ -43,22 +43,18 @@ public class NullBuild {
     }
 
 
-    public static <T> NullChain<T> empty(StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
-        return new NullChainBase<>(linkLog, nullChainCollect, taskList);
-    }
-
 
     //过程中使用
     public static <T> NullTaskList.NullNode<T> noEmpty(T object) {
         return new NullTaskList.NullNode<>(object);
     }
 
-    public static <T> NullChain<T> noEmpty(StringBuilder linkLog, NullCollect nullChainCollect, NullTaskList taskList) {
-        return new NullChainBase<>(linkLog, nullChainCollect, taskList);
+    public static <T> NullChain<T> noEmpty(StringBuilder linkLog, NullTaskList taskList) {
+        return new NullChainBase<>(linkLog, taskList);
     }
 
-    public static <T> NullChain<T> busy(StringBuilder linkLog, NullCollect nullCollect, NullTaskList taskList) {
-        return noEmpty(linkLog, nullCollect, taskList);
+    public static <T> NullChain<T> busy(StringBuilder linkLog, NullTaskList taskList) {
+        return noEmpty(linkLog, taskList);
     }
 
 
@@ -67,7 +63,7 @@ public class NullBuild {
         if (o instanceof NullChainBase) {
             return (NullChain) o;
         }
-        return new NullChainBase<>(o.linkLog, o.collect, o.taskList);
+        return new NullChainBase<>(o.linkLog, o.taskList);
     }
 
     public static <T> NullDate busyDate(NullKernelAbstract o) {
@@ -91,30 +87,30 @@ public class NullBuild {
 
 
 
-    public static <T> NullDate<T> busyDate(StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
-        return new NullDateBase<>(linkLog, nullCollect, nullTaskList);
+    public static <T> NullDate<T> busyDate(StringBuilder linkLog, NullTaskList nullTaskList) {
+        return new NullDateBase<>(linkLog, nullTaskList);
     }
 
-    public static <T> NullJson<T> busyJson(StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
-        return new NullJsonBase<T>(linkLog, nullCollect, nullTaskList);
+    public static <T> NullJson<T> busyJson(StringBuilder linkLog, NullTaskList nullTaskList) {
+        return new NullJsonBase<T>(linkLog, nullTaskList);
     }
 
-    public static NullCalculate busyCalc(StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
-        return new NullCalculateBase(linkLog, nullCollect, nullTaskList);
+    public static NullCalculate busyCalc(StringBuilder linkLog, NullTaskList nullTaskList) {
+        return new NullCalculateBase(linkLog, nullTaskList);
     }
 
-    public static <T> NullCopy<T> busyCopy(StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
-        return new NullCopyBase<T>(linkLog, nullCollect, nullTaskList);
+    public static <T> NullCopy<T> busyCopy(StringBuilder linkLog, NullTaskList nullTaskList) {
+        return new NullCopyBase<T>(linkLog, nullTaskList);
     }
-    public static <T> NullStream<T> busyStream(StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
-        return new NullStreamBase<T>(linkLog, nullCollect, nullTaskList);
+    public static <T> NullStream<T> busyStream(StringBuilder linkLog, NullTaskList nullTaskList) {
+        return new NullStreamBase<T>(linkLog, nullTaskList);
     }
 
-    public static OkHttp busyHttp(String url, StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
-        return new OkHttpBase(url,linkLog, nullCollect, nullTaskList);
+    public static OkHttp busyHttp(String url, StringBuilder linkLog, NullTaskList nullTaskList) {
+        return new OkHttpBase(url,linkLog, nullTaskList);
     }
-    public static OkHttp busyHttp(String httpName, String url, StringBuilder linkLog, NullCollect nullCollect, NullTaskList nullTaskList) {
-        return new OkHttpBase(httpName,url,linkLog, nullCollect, nullTaskList);
+    public static OkHttp busyHttp(String httpName, String url, StringBuilder linkLog, NullTaskList nullTaskList) {
+        return new OkHttpBase(httpName,url,linkLog, nullTaskList);
     }
 
 

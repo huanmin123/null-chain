@@ -4,6 +4,7 @@ import com.gitee.huanminabc.common.exception.StackTraceUtil;
 import com.gitee.huanminabc.common.multithreading.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.core.NullChainBase;
 import com.gitee.huanminabc.nullchain.common.function.NullTaskFun;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,14 +26,17 @@ public class NullTaskList {
         public boolean isNull; //true 为null ,false 不为null
         public T value;//当前任务的值
         //是否异步 true 开始异步 false 没有开启(默认)
-        public boolean async=false;
-        public NullNode( ) {
+        public boolean async = false;
+
+        public NullNode() {
             this.isNull = true;
         }
+
         public NullNode(T value) {
             this.value = value;
             this.isNull = false;
         }
+
         public NullNode(T value, boolean isNull, boolean async) {
             this.value = value;
             this.isNull = isNull;
@@ -40,6 +44,10 @@ public class NullTaskList {
         }
     }
 
+    //收集器
+    @Getter
+    @Setter
+    private transient NullCollect collect;
     private transient Queue<NullTaskFunAbs> tasks;
     protected NullNode lastResult; //最后一个任务的结果
     private boolean lastAsync = false; //最后一个任务是否异步
@@ -68,7 +76,7 @@ public class NullTaskList {
             tasks.add(new NullTaskFunAbs() {
                 @Override
                 public NullNode nodeTask(Object value) throws RuntimeException {
-                    return  task.nodeTask(value);
+                    return task.nodeTask(value);
                 }
             });
         }
@@ -84,13 +92,16 @@ public class NullTaskList {
         NullNode<T> chain = null;
         while (!tasks.isEmpty()) {
             NullTaskFunAbs poll = tasks.poll();
-            NullNode task1 =  poll.nodeTask(chain == null ? null : chain.value);
-            if (task1.isNull ) {
+            NullNode task1 = poll.nodeTask(chain == null ? null : chain.value);
+            if (task1.isNull) {
                 //向后取一个, 如果后面任务是遇到上一个任务是null那么就停止执行
-                NullTaskFunAbs lastPoll  = tasks.peek();
-                if (lastPoll != null&&lastPoll.preNullEnd()) {
+                NullTaskFunAbs lastPoll = tasks.peek();
+                if (lastPoll != null && lastPoll.preNullEnd()) {
                     return task1;
                 }
+            }
+            if (collect != null) {
+                collect.add(task1.value);
             }
             chain = task1;
         }
@@ -132,10 +143,13 @@ public class NullTaskList {
                 if (task.isNull) {
                     //向后取一个, 如果后面任务是遇到上一个任务是null那么就停止执行
                     NullTaskFunAbs lastPoll = tasks.peek();
-                    if (lastPoll != null&&lastPoll.preNullEnd()) {
+                    if (lastPoll != null && lastPoll.preNullEnd()) {
                         supplier.accept(task);
                         return;
                     }
+                }
+                if (collect != null) {
+                    collect.add(task.value);
                 }
                 if (task.async) {
                     completableFuture = new CompletableFuture();
@@ -144,14 +158,17 @@ public class NullTaskList {
                 chain = task;
             } else {
                 completableFuture = completableFuture.thenComposeAsync((nullNode) -> {
-                    NullNode task1 =  poll.nodeTask(nullNode.value);
+                    NullNode task1 = poll.nodeTask(nullNode.value);
                     if (task1.isNull) {
                         //向后取一个, 如果后面任务是遇到上一个任务是null那么就停止执行
                         NullTaskFunAbs lastPoll = tasks.poll();
-                        if (lastPoll != null&&lastPoll.preNullEnd()) {
+                        if (lastPoll != null && lastPoll.preNullEnd()) {
                             supplier.accept(task1);
                             return CompletableFuture.completedFuture(null);
                         }
+                    }
+                    if (collect != null) {
+                        collect.add(task1.value);
                     }
                     //继续执行
                     return CompletableFuture.completedFuture(task1);
@@ -177,7 +194,6 @@ public class NullTaskList {
                 } else {
                     log.error("", e);
                 }
-
                 return null;
             });
         }

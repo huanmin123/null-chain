@@ -21,8 +21,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Slf4j
 public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWorkFlow<T> {
 
-    public NullWorkFlowBase(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        super( linkLog, collect, taskList);
+    public NullWorkFlowBase(StringBuilder linkLog, NullTaskList taskList) {
+        super( linkLog, taskList);
     }
 
     @Override

@@ -14,8 +14,8 @@ import lombok.extern.slf4j.Slf4j;
  **/
 @Slf4j
 public class NullJsonBase<T> extends NullChainBase<T> implements   NullJson<T> {
-    public NullJsonBase(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        super(linkLog,  collect, taskList);
+    public NullJsonBase(StringBuilder linkLog,  NullTaskList taskList) {
+        super(linkLog, taskList);
     }
 
 

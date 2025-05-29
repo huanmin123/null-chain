@@ -20,8 +20,7 @@ import java.io.Serializable;
 public class NullKernelAbstract<T> implements NullKernel<T>, Serializable, NullCheck {
     private static final long serialVersionUID = 1L;
     protected transient StringBuilder linkLog;
-    //收集器
-    protected transient NullCollect collect;
+
     //任务队列
     protected  NullTaskList taskList;
 
@@ -42,20 +41,15 @@ public class NullKernelAbstract<T> implements NullKernel<T>, Serializable, NullC
             this.taskList = new NullTaskList();
         }
         this.linkLog = new StringBuilder();
-        this.collect = new NullCollect();
     }
 
 
 
     public NullKernelAbstract(){
-          this(new StringBuilder(),new NullCollect(),new NullTaskList());
+          this(new StringBuilder(),new NullTaskList());
     }
 
-    public NullKernelAbstract(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        if (collect == null) {
-            collect = new NullCollect();
-        }
-        this.collect = collect;
+    public NullKernelAbstract(StringBuilder linkLog, NullTaskList taskList) {
         if (taskList==null){
             taskList = new NullTaskList();
         }

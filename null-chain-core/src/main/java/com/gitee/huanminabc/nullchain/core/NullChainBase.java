@@ -29,8 +29,8 @@ import java.util.function.Supplier;
 @Slf4j
 public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T> {
 
-    public NullChainBase(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        super(linkLog, collect,taskList);
+    public NullChainBase(StringBuilder linkLog, NullTaskList taskList) {
+        super(linkLog,taskList);
     }
 
     @Override

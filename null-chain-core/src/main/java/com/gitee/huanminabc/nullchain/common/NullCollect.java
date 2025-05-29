@@ -18,10 +18,7 @@ public class NullCollect implements Serializable {
     }
 
     //添加内容
-    public void add(Object o) {
-        if (Null.is(o)) {
-            return;
-        }
+    protected void add(Object o) {
         //如果存在就覆盖, 按照经验来说,在一个链路中只有最后一个是有效的有价值的
         nullMap.put(o.getClass(), o);
     }
@@ -30,7 +27,6 @@ public class NullCollect implements Serializable {
     public <T> NullChain<T> get(Class<T> t) {
         NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
-        NullCollect nullCollect = new NullCollect();
         Object o = nullMap.get(t);
         nullTaskList.add((__) -> {
             if (Null.is(o)) {
@@ -40,36 +36,10 @@ public class NullCollect implements Serializable {
             linkLog.append("NullCollect.get->");
             return NullBuild.noEmpty(o);
         });
-        return NullBuild.busy(linkLog, nullCollect, nullTaskList);
+        return NullBuild.busy(linkLog, nullTaskList);
     }
 
     public boolean isEmpty() {
         return nullMap.isEmpty();
-    }
-
-    //多个类型都不能为空
-    public boolean notEmpty(Class<?>... classes) {
-        for (Class<?> aClass : classes) {
-            Object o = nullMap.get(aClass);
-            if (Null.is(o)) {
-                return false;
-            }
-        }
-        return true;
-    }
-    //只要有一个为空就返回true
-    public boolean anyEmpty(Class<?>... classes) {
-        for (Class<?> aClass : classes) {
-            Object o = nullMap.get(aClass);
-            if (Null.is(o)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return "NullChainCollect"+ nullMap;
     }
 }

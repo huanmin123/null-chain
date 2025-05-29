@@ -16,8 +16,8 @@ import lombok.extern.slf4j.Slf4j;
  **/
 @Slf4j
 public class NullCopyBase<T> extends NullChainBase<T> implements  NullCopy<T> {
-    public NullCopyBase(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        super(linkLog, collect, taskList);
+    public NullCopyBase(StringBuilder linkLog, NullTaskList taskList) {
+        super(linkLog, taskList);
     }
 
 

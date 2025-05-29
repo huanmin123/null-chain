@@ -25,8 +25,8 @@ import java.util.stream.Stream;
  * @create: 2025-02-21 17:49
  **/
 public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStream<T> {
-    public NullStreamBase(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        super( linkLog, collect, taskList);
+    public NullStreamBase(StringBuilder linkLog, NullTaskList taskList) {
+        super( linkLog, taskList);
     }
 
     @Override

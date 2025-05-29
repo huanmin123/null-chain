@@ -16,8 +16,8 @@ import com.gitee.huanminabc.nullchain.enums.TimeEnum;
  */
 public class NullDateBase<T> extends NullChainBase<T> implements  NullDate<T>  {
 
-    public NullDateBase(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        super(linkLog, collect, taskList);
+    public NullDateBase(StringBuilder linkLog, NullTaskList taskList) {
+        super(linkLog, taskList);
     }
 
 

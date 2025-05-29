@@ -15,8 +15,8 @@ import java.util.function.Supplier;
 public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFinality<T> {
 
 
-    public NullFinalityBase(StringBuilder linkLog, NullCollect collect, NullTaskList taskList) {
-        super(linkLog, collect, taskList);
+    public NullFinalityBase(StringBuilder linkLog, NullTaskList taskList) {
+        super(linkLog, taskList);
     }
 
 
@@ -161,46 +161,11 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
 
     @Override
     public NullCollect collect() {
-         NullTaskList.NullNode nullChainBase = taskList.runTaskAll();
-        if (nullChainBase.isNull) {
-            throw new NullChainException(linkLog.toString());
-        }
-        return collect;
-    }
-
-    @Override
-    public NullCollect collect(String exceptionMessage, Object... args) {
-         NullTaskList.NullNode nullChainBase = taskList.runTaskAll();
-        if (nullChainBase.isNull) {
-            if (args == null || args.length == 0 || exceptionMessage == null) {
-                linkLog.append(exceptionMessage == null ? "" : exceptionMessage);
-            } else {
-                String format = String.format(exceptionMessage.replaceAll("\\{\\s*}", "%s"), args);
-                linkLog.append(" ").append(format);
-            }
-            throw new NullChainException(linkLog.toString());
-        }
-        return collect;
-    }
-
-    @Override
-    public <X extends Throwable> NullCollect collect(Supplier<? extends X> exceptionSupplier) throws X {
-         NullTaskList.NullNode nullChainBase = taskList.runTaskAll();
-        if (nullChainBase.isNull) {
-            if (exceptionSupplier == null) {
-                linkLog.append("...collectSafe? 异常处理器不能为空");
-                throw new NullChainException(linkLog.toString());
-            }
-            X x;
-            try {
-                x = exceptionSupplier.get();
-            } catch (Exception e) {
-                linkLog.append("...collectSafe? ");
-                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-            }
-            throw NullReflectionKit.orThrowable(x, linkLog);
-        }
-        return collect;
+        //设置为可进行收集
+        taskList.setCollect(new NullCollect());
+        //执行所有的节点进收集
+        taskList.runTaskAll();
+        return taskList.getCollect();
     }
 
 
