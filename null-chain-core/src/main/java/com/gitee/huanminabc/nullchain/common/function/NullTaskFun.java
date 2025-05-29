@@ -9,5 +9,5 @@ import com.gitee.huanminabc.nullchain.core.NullChain;
  **/
 @FunctionalInterface
 public interface NullTaskFun<T> {
-    NullChain<T> nodeTask(T value) throws  RuntimeException;
+    NullChain<T> nodeTask(T preValue) throws  RuntimeException;
 }

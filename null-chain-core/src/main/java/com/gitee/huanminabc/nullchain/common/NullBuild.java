@@ -123,8 +123,8 @@ public class NullBuild {
         return (NullChainBase<T>) new NullChainBase<>(o.isNull,o.value, o.linkLog, o.collect, o.taskList);
     }
 
-    public static <T> NullChain<T> busy(NullTaskList taskList) {
-        return noEmpty(null,new StringBuilder(),new NullCollect(),taskList);
+    public static <T> NullChain<T> busy(StringBuilder linkLog, NullCollect nullCollect,NullTaskList taskList) {
+        return noEmpty(null,linkLog,nullCollect,taskList);
     }
 
 

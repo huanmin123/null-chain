@@ -119,8 +119,12 @@ public class OkHttp<T> extends NullKernelAbstract<T> implements OkHttpChain {
 
     //自定义线程池
     //new ConnectionPool(500, 10, TimeUnit.MINUTES)
-    private void connectionPool(ConnectionPool connectionPool) {
+    private OkHttpChain connectionPool(ConnectionPool connectionPool) {
+        if (isNull) {
+            return this;
+        }
         okHttpClient = okHttpClient.newBuilder().connectionPool(connectionPool).build();
+        return this;
     }
 
 
@@ -232,7 +236,7 @@ public class OkHttp<T> extends NullKernelAbstract<T> implements OkHttpChain {
                 throw new NullChainException(linkLog.toString());
             }
         });
-        return NullBuild.busy( taskList);
+        return NullBuild.busy( linkLog, collect, taskList);
     }
 
     //下载文件返回字节流
@@ -255,7 +259,7 @@ public class OkHttp<T> extends NullKernelAbstract<T> implements OkHttpChain {
                 throw new NullChainException(linkLog.toString());
             }
         });
-        return NullBuild.busy( taskList);
+        return NullBuild.busy( linkLog, collect, taskList);
     }
 
     //下载文件返回inputStream
@@ -278,7 +282,7 @@ public class OkHttp<T> extends NullKernelAbstract<T> implements OkHttpChain {
                 throw new NullChainException(linkLog.toString());
             }
         });
-        return NullBuild.busy( taskList);
+        return NullBuild.busy( linkLog, collect, taskList);
     }
 
     /**
@@ -305,7 +309,7 @@ public class OkHttp<T> extends NullKernelAbstract<T> implements OkHttpChain {
                 throw new NullChainException(linkLog.toString());
             }
         });
-        return NullBuild.busy( taskList);
+        return NullBuild.busy( linkLog, collect, taskList);
     }
 
 

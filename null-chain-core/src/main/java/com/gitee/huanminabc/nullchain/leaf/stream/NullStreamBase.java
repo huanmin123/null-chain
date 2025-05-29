@@ -248,9 +248,6 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     @Override
     public <R, A> NullChain<R> collect(Collector<? super T, A, R> collector) {
         this.taskList.add((__)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
             if (collector == null) {
                 throw new NullChainException(linkLog.append("collect? ").append("collector must not be null").toString());
             }
@@ -270,9 +267,6 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     @Override
     public NullChain<T> max(Comparator<? super T> comparator) {
         this.taskList.add((__)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
             if (comparator == null) {
                 throw new NullChainException(linkLog.append("max? ").append("comparator must not be null").toString());
             }
@@ -295,9 +289,6 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     @Override
     public NullChain<T> findFirst() {
         this.taskList.add((__)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
             Optional first;
             try {
                 first = ((Stream) value).findFirst();
@@ -317,10 +308,6 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     @Override
     public NullChain<T> findAny() {
         this.taskList.add((__)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
-
             Optional any;
             try {
                 any = ((Stream) value).findAny();
@@ -340,9 +327,6 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     @Override
     public NullChain<T> reduce(BinaryOperator<T> accumulator) {
         this.taskList.add((__)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
             if (accumulator == null) {
                 throw new NullChainException(linkLog.append("reduce? ").append("accumulator must not be null").toString());
             }
@@ -365,9 +349,6 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     @Override
     public NullChain<Long> count() {
         this.taskList.add((__)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
             long stream;
             try {
                 stream = ((Stream) value).count();
@@ -384,9 +365,6 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     @Override
     public NullChain<T> min(Comparator<? super T> comparator) {
         this.taskList.add((__)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
             if (comparator == null) {
                 throw new NullChainException(linkLog.append("min? ").append("comparator must not be null").toString());
             }
@@ -409,9 +387,6 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     @Override
     public NullChain<Boolean> allMatch(Predicate<? super T> predicate) {
         this.taskList.add((__)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
             if (predicate == null) {
                 throw new NullChainException(linkLog.append("allMatch? ").append("predicate must not be null").toString());
             }
@@ -431,9 +406,6 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     @Override
     public NullChain<Boolean> anyMatch(Predicate<? super T> predicate) {
         this.taskList.add((__)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
             if (predicate == null) {
                 throw new NullChainException(linkLog.append("anyMatch? ").append("predicate must not be null").toString());
             }
@@ -453,9 +425,6 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     @Override
     public NullChain<Boolean> noneMatch(Predicate<? super T> predicate) {
         this.taskList.add((__)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
             if (predicate == null) {
                 throw new NullChainException(linkLog.append("noneMatch? ").append("predicate must not be null").toString());
             }
@@ -474,9 +443,6 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
 
     @Override
     public void forEach(Consumer<? super T> action) {
-        if (isNull) {
-            return;
-        }
         if (action == null) {
             throw new NullChainException(linkLog.append("forEach? ").append("action must not be null").toString());
         }

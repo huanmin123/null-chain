@@ -25,9 +25,6 @@ public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConve
     @Override
     public NullChain<T> async() {
         this.taskList.add((value)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect,taskList);
-            }
             linkLog.append("async->");
             return  NullBuild.noEmpty(value,true, linkLog, collect, taskList);
         });
@@ -38,9 +35,6 @@ public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConve
     @Override
     public NullChain<T> async(String threadFactoryName) throws NullChainException {
         this.taskList.add((value)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect,taskList);
-            }
             ThreadFactoryUtil.addExecutor(threadFactoryName);
             taskList.setCurrentThreadFactoryName(threadFactoryName);
             linkLog.append("async->");
@@ -53,9 +47,6 @@ public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConve
     @Override
     public <U> NullChain<U> type(Class<U> uClass) {
         this.taskList.add((value)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
             if (uClass == null) {
                 throw new NullChainException(linkLog.append("type? ").append("转换类型不能为空").toString());
             }
@@ -74,9 +65,6 @@ public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConve
     @Override
     public <U> NullChain<U> type(U uClass) {
         this.taskList.add((value)->{
-            if (isNull) {
-                return NullBuild.empty(linkLog, collect, taskList);
-            }
             if (uClass == null) {
                 throw new NullChainException(linkLog.append("type? ").append("转换类型不能为空").toString());
             }

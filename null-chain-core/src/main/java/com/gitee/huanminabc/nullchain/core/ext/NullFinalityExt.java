@@ -198,16 +198,17 @@ public interface NullFinalityExt<T> extends NullFinality<T>, NullCheck {
 
     default NullChain<T> toNULL() {
         NullTaskList nullTaskList = new NullTaskList();
+        StringBuilder linkLog = new StringBuilder();
+        NullCollect nullCollect = new NullCollect();
         nullTaskList.add((__) -> {
-            StringBuilder linkLog = new StringBuilder();
             boolean empty = isEmpty();
             if (empty) {
                 linkLog.append("NullExt?");
-                return NullBuild.empty(linkLog, new NullCollect(), nullTaskList);
+                return NullBuild.empty(linkLog, nullCollect, nullTaskList);
             }
             linkLog.append(" NullExt.");
-            return NullBuild.noEmpty((T) this, linkLog, new NullCollect(), nullTaskList);
+            return NullBuild.noEmpty((T) this, linkLog, nullCollect, nullTaskList);
         });
-        return NullBuild.busy(nullTaskList);
+        return NullBuild.busy(linkLog, nullCollect, nullTaskList);
     }
 }

@@ -2,6 +2,7 @@ package com.gitee.huanminabc.test.nullchain;
 
 
 import com.gitee.huanminabc.common.base.SerializeUtil;
+import com.gitee.huanminabc.common.exception.BizException;
 import com.gitee.huanminabc.common.test.CodeTimeUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.core.NullChain;
@@ -58,9 +59,15 @@ public class ObjNullTest {
     }
     @Test
     public void of() {
-        NullChain<Long>  roleId = Null.of(userEntity).map(UserEntity::getRoleData).map(RoleEntity::getId);
-        NullChain<Double> roleIdCalc = Null.ofCalc(roleId).add(100).div(10).map(BigDecimal::doubleValue);
-        System.out.println(roleIdCalc.get());
+//        NullChain<Long>  roleId = Null.of(userEntity).map(UserEntity::getRoleData).map(RoleEntity::getId);
+//        NullChain<Double> roleIdCalc = Null.ofCalc(roleId).add(100).div(10).map(BigDecimal::doubleValue);
+//        System.out.println(roleIdCalc.get());
+
+
+        userEntity.getRoleData().setRoleName(null);
+        String s = Null.of(userEntity).map(UserEntity::getRoleData).map(RoleEntity::getRoleName).check(BizException::new).get();
+        System.out.println(s); //BizException: Null value is not allowed
+
     }
     @Test
     public void ofDate() {

@@ -68,7 +68,7 @@ public class NullTaskList {
             NullChainBase task1 = (NullChainBase) poll.nodeTask(chain == null ? null : chain.value);
             if (task1.isNull ) {
                 //向后取一个, 如果后面任务是遇到上一个任务是null那么就停止执行
-                NullTaskFunAbs lastPoll  = tasks.poll();
+                NullTaskFunAbs lastPoll  = tasks.peek();
                 if (lastPoll != null&&lastPoll.preNullEnd()) {
                     return task1;
                 }
@@ -112,7 +112,7 @@ public class NullTaskList {
                 NullChainBase task = (NullChainBase) poll.nodeTask(chain == null ? null : chain.value);
                 if (task.isNull) {
                     //向后取一个, 如果后面任务是遇到上一个任务是null那么就停止执行
-                    NullTaskFunAbs lastPoll = tasks.poll();
+                    NullTaskFunAbs lastPoll = tasks.peek();
                     if (lastPoll != null&&lastPoll.preNullEnd()) {
                         supplier.accept(task);
                         return;
