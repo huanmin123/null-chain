@@ -109,7 +109,7 @@ public interface NullFinality<T>  extends Serializable {
 
 
     /**
-     * 抓取异步链路中的异常
+     * 抓取异常
      */
     void except(Consumer<Throwable> consumer);
 

@@ -87,37 +87,6 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
     }
 
     @Override
-    public <X extends RuntimeException> NullChain<T> check(Supplier<? extends X> exceptionSupplier) throws X {
-        this.taskList.add(new NullTaskFunAbs() {
-            @Override
-            public NullChain nodeTask(Object value) throws RuntimeException {
-                if (value==null) {
-                    if (exceptionSupplier == null) {
-                        linkLog.append("check? 异常处理器不能为空");
-                        throw new NullChainException(linkLog.toString());
-                    }
-                    X x;
-                    try {
-                        x = exceptionSupplier.get();
-                    } catch (Exception e) {
-                        linkLog.append("check? ");
-                        throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-                    }
-                    throw NullReflectionKit.orRuntimeException(x, linkLog);
-                }
-                return NullBuild.noEmpty(value, linkLog, collect, taskList);
-            }
-
-            @Override
-            public boolean preNullEnd() {
-                return false;
-            }
-        });
-        return  NullBuild.busy(this);
-
-    }
-
-    @Override
     public <U> NullChain<T> isNull(NullFun<? super T, ? extends U> function) {
         this.taskList.add(new NullTaskFunAbs() {
             @Override
@@ -178,24 +147,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
         return  NullBuild.busy(this);
     }
 
-    @Override
-    public NullChain<T> then(Runnable function) {
-        this.taskList.add((value)->{
-            if (function == null) {
-                throw new NullChainException(linkLog.append("then? 传参不能为空").toString());
-            }
-            try {
-                function.run();
-                linkLog.append("then->");
-                return NullBuild.noEmpty(value, linkLog, collect, taskList);
-            } catch (Exception e) {
-                linkLog.append("then? ");
-                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-            }
-        });
-        return  NullBuild.busy(this);
 
-    }
 
     @Override
     public NullChain<T> then(Consumer<? super T> function) {

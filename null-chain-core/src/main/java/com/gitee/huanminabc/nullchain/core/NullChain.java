@@ -39,14 +39,6 @@ public interface NullChain<T> extends NullConvert<T> {
      NullChain<T> ifGo(NullFun<? super T, Boolean> function);
 
     /**
-     * 如果前一个节点是空,那么打断执行,抛出异常, 这样可以定制节点的异常,而不是等待到结束统一处理
-     * @param exceptionSupplier
-     * @return
-     * @param <X>
-     */
-    <X extends RuntimeException> NullChain<T> check(Supplier<? extends X> exceptionSupplier) throws X;
-
-    /**
      * 如果是空继续往下走, 但是不会用到这个值 , 也不会出现空指针, 只是一种并且的补充
      * 比如 一个对象内 a b c 都不是空 并且 d是空 那么才满足条件 , 但是在实际处理的时候不会用到d , 只是一种逻辑上的处理
      * 这个是有歧义的和of 是一种互补关系
@@ -59,7 +51,6 @@ public interface NullChain<T> extends NullConvert<T> {
      * 在上一个任务不是空的情况下执行,不改变对象类型不改变对象内容, 就是一个空白节点无状态的不影响链路的数据
      */
 
-    NullChain<T> then(Runnable function);
 
     NullChain<T> then(Consumer<? super T> function);
 

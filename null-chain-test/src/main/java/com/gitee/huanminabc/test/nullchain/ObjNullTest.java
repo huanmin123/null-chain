@@ -3,6 +3,7 @@ package com.gitee.huanminabc.test.nullchain;
 
 import com.gitee.huanminabc.common.base.SerializeUtil;
 import com.gitee.huanminabc.common.exception.BizException;
+import com.gitee.huanminabc.common.multithreading.executor.SleepTools;
 import com.gitee.huanminabc.common.test.CodeTimeUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.core.NullChain;
@@ -17,6 +18,7 @@ import com.gitee.huanminabc.test.nullchain.entity.UserExtEntity;
 import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
 import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
 import com.gitee.huanminabc.utils_common.base.DateUtil;
+import jline.internal.Log;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,16 +61,34 @@ public class ObjNullTest {
     }
     @Test
     public void of() {
-//        NullChain<Long>  roleId = Null.of(userEntity).map(UserEntity::getRoleData).map(RoleEntity::getId);
-//        NullChain<Double> roleIdCalc = Null.ofCalc(roleId).add(100).div(10).map(BigDecimal::doubleValue);
-//        System.out.println(roleIdCalc.get());
-
-
-        userEntity.getRoleData().setRoleName(null);
-        String s = Null.of(userEntity).map(UserEntity::getRoleData).map(RoleEntity::getRoleName).check(BizException::new).get();
-        System.out.println(s); //BizException: Null value is not allowed
+//        userEntity.getRoleData().setRoleName(null);
+        UserEntity userEntity1 = Null.of(userEntity).get();
+        System.out.println(userEntity1);
 
     }
+
+    @Test
+    public void ofStream() {
+        NullChain<List<UserEntity>> listNullChain = Null.of(userEntity).map(UserEntity::getList);
+
+        List<RoleEntity> roleEntities = Null.ofStream(listNullChain)
+                .parallel()
+                .filter(Null::non)
+                .map(UserEntity::getRoleData)
+                .sorted(Comparator.comparing(RoleEntity::getRoleName))
+                .collect(Collectors.toList())
+                .get();
+        System.out.println(roleEntities);
+        System.out.println("===================================");
+    }
+
+    @Test
+    public void ofCalc() {
+        NullChain<Long>  roleId = Null.of(userEntity).map(UserEntity::getRoleData).map(RoleEntity::getId);
+        NullChain<Double> roleIdCalc = Null.ofCalc(roleId).add(100).div(10).map(BigDecimal::doubleValue);
+        System.out.println(roleIdCalc.get());
+    }
+
     @Test
     public void ofDate() {
 //        = Null.ofDate(new Date()).
@@ -89,7 +109,7 @@ public class ObjNullTest {
     @Test
     public void of_okserialize() {
 //        userEntity=null;
-        NullChain<RoleEntity> map = Null.of(userEntity).check(RuntimeException::new).map(UserEntity::getRoleData);
+        NullChain<RoleEntity> map = Null.of(userEntity).map(UserEntity::getRoleData);
 //        System.out.println(map);
 //        byte[] serialize = SerializeUtil.serialize(map);
 //        NullChain<RoleEntity> unserialize = SerializeUtil.unserialize(serialize, NullChain.class);
@@ -367,20 +387,7 @@ public class ObjNullTest {
 //        System.out.println(l);
     }
 
-    @Test
-    public void ofStream() {
-        NullChain<List<UserEntity>> listNullChain = Null.of(userEntity)
-                .map(UserEntity::getList);
-        List<RoleEntity> roleEntities = Null.ofStream(listNullChain)
-                .parallel()
-                .filter(Null::non)
-                .map(UserEntity::getRoleData)
-                .sorted(Comparator.comparing(RoleEntity::getRoleName))
-                .collect(Collectors.toList())
-                .get();
-        System.out.println(roleEntities);
-        System.out.println("===================================");
-    }
+
 
 
     @Test
