@@ -208,13 +208,14 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
 
     }
 
-    //    @Override
-//    public int length() {
-//        if (isNull) {
-//            return 0;
-//        }
-//        return NullReflectionKit.getSize(value);
-//    }
+   @Override
+    public int length() {
+       NullTaskList.NullNode nullChainBase = taskList.runTaskAll();
+        if (nullChainBase.isNull) {
+            return 0;
+        }
+        return NullReflectionKit.getSize(nullChainBase.value);
+    }
 
 
     //

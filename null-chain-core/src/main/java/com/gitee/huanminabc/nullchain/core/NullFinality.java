@@ -108,13 +108,13 @@ public interface NullFinality<T>  extends NullKernel<T>, Serializable {
 
 
 
-//    /**
-//     * 获取值的长度, 如果值是null那么返回0
-//     * 1. 如果8大数据类型那么返回的是toString 的长度
-//     * 2. 如果是集合和数组那么返回的是 length 或者 size的长度
-//     * 3. 如果是自定义对象内部有length 或者 size方法那么返回的是length 或者 size的长度
-//     */
-//    int length();
+    /**
+     * 获取值的长度, 如果值是null那么返回0
+     * 1. 如果8大数据类型那么返回的是toString 的长度
+     * 2. 如果是集合和数组那么返回的是 length 或者 size的长度
+     * 3. 如果是自定义对象内部有length 或者 size方法那么返回的是length 或者 size的长度
+     */
+    int length();
 
 
 
