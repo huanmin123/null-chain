@@ -77,39 +77,34 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
         return  NullBuild.busy(this);
     }
 
+
+
+
+
     @Override
     public <U> NullChain<T> isNull(NullFun<? super T, ? extends U> function) {
-        this.taskList.add(new NullTaskFunAbs() {
-            @Override
-            public NullTaskList.NullNode nodeTask(Object value) throws RuntimeException {
-                if (value==null) {
+        this.taskList.add((value) -> {
+            if (value == null) {
+                return NullBuild.empty();
+            }
+            if (function == null) {
+                throw new NullChainException(linkLog.append("isNull? 传参不能为空").toString());
+            }
+            try {
+                U apply = function.apply((T) value);
+                if (Null.non(apply)) {
+                    linkLog.append("isNull?");
                     return NullBuild.empty();
                 }
-                if (function == null) {
-                    throw new NullChainException(linkLog.append("isNull? 传参不能为空").toString());
-                }
-                try {
-                    U apply = function.apply((T)value);
-                    if (Null.non(apply)) {
-                        linkLog.append("isNull?");
-                        return NullBuild.empty();
-                    }
-                    linkLog.append("isNull->");
-                    return NullBuild.noEmpty(value);
-                } catch (Exception e) {
-                    linkLog.append("isNull? ");
-                    throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-                }
-            }
-
-            @Override
-            public boolean preNullEnd() {
-                return false;
+                linkLog.append("isNull->");
+                return NullBuild.noEmpty(value);
+            } catch (Exception e) {
+                linkLog.append("isNull? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         });
-        return  NullBuild.busy(this);
+        return NullBuild.busy(this);
     }
-
 
     @SafeVarargs
     @Override

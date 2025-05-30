@@ -61,8 +61,6 @@ public interface NullFinality<T>  extends NullKernel<T>, Serializable {
 
     T orElse(Supplier<T> defaultValue);
 
-
-
     /**
      * 收集器用于保留节点之间不同类型的值
      * 在很多情况需要查询A的值, 然后利用A的值查询B的值,然后在利用B的值查询C的值,之后还需要同时用A,B,C的值,这个时候就需要用到收集器
@@ -70,26 +68,6 @@ public interface NullFinality<T>  extends NullKernel<T>, Serializable {
      * 注意: 收集器只会保留最新类型的值,旧的值会被覆盖
      */
     NullCollect collect();
-
-//
-//    //le 小于等于 , 上一个任务的值小于等于obj的值
-//    <C extends Comparable<T>> boolean le(C obj);
-//
-//    //lt 小于 , 上一个任务的值小于obj的值
-//    <C extends Comparable<T>> boolean lt(C obj);
-//
-//    //ge 大于等于 , 上一个任务的值大于等于obj的值
-//    <C extends Comparable<T>> boolean ge(C obj);
-//
-//    //gt 大于 , 上一个任务的值大于obj的值
-//    <C extends Comparable<T>> boolean gt(C obj);
-//
-//    /**
-//     * 自定义逻辑判断
-//     */
-//    boolean logic(Function<T ,Boolean> obj);
-
-
 
 
     /**
@@ -107,7 +85,6 @@ public interface NullFinality<T>  extends NullKernel<T>, Serializable {
     void except(Consumer<Throwable> consumer);
 
 
-
     /**
      * 获取值的长度, 如果值是null那么返回0
      * 1. 如果8大数据类型那么返回的是toString 的长度
@@ -115,8 +92,6 @@ public interface NullFinality<T>  extends NullKernel<T>, Serializable {
      * 3. 如果是自定义对象内部有length 或者 size方法那么返回的是length 或者 size的长度
      */
     int length();
-
-
 
 
 }

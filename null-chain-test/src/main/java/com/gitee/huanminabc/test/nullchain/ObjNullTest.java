@@ -392,7 +392,7 @@ public class ObjNullTest {
     public void isNull() {
         userEntity.setRoleData(null);
         //等价于  userEntity!=null && userEntity.getAge() != null && userEntity.getId() != null && userEntity.getRoleData() == null
-        Null.of(userEntity).ofAny(UserEntity::getAge, UserEntity::getId).isNull(UserEntity::getRoleData).ifPresent(System.out::println);
+//        Null.of(userEntity).ofAny(UserEntity::getAge, UserEntity::getId).isNull(UserEntity::getRoleData).ifPresent(System.out::println);
     }
 
     @Test

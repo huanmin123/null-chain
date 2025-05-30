@@ -46,7 +46,6 @@ public interface NullChain<T> extends NullConvert<T> {
     <U> NullChain<T> isNull(NullFun<? super T, ? extends U> function);
 
 
-
     /**
      * 在上一个任务不是空的情况下执行,不改变对象类型不改变对象内容, 就是一个空白节点无状态的不影响链路的数据
      */
