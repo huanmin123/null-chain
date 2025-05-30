@@ -168,11 +168,11 @@ public interface NullFinalityExt<T> extends NullFinality<T>,NullKernelExt<T> {
         return tNullChain.orElse(defaultValue);
     }
 
-//    @Override
-//    default   int length(){
-//        NullChain<T> tNullChain = toNULL();
-//        return tNullChain.length();
-//    }
+    @Override
+    default   int length(){
+        NullChain<T> tNullChain = toNULL();
+        return tNullChain.length();
+    }
 
 
 }

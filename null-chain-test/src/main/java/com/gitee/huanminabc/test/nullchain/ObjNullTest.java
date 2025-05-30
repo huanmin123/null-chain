@@ -86,6 +86,7 @@ public class ObjNullTest {
         String s = Null.ofDate(new Date()).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).get();
         System.out.println(s);
     }
+
     @Test
     public void ofJson() {
 //        = Null.ofDate(new Date()).
@@ -98,29 +99,25 @@ public class ObjNullTest {
 
     @SneakyThrows
     @Test
-    public void of_okserialize() {
-//        userEntity=null;
+    public void serializeAndDeserialize() {
         NullChain<RoleEntity> map = Null.of(userEntity).map(UserEntity::getRoleData);
-//        System.out.println(map);
-//        byte[] serialize = SerializeUtil.serialize(map);
-//        NullChain<RoleEntity> unserialize = SerializeUtil.unserialize(serialize, NullChain.class);
-        //        unserialize.orThrow().setRoleName(null);
-//        System.out.println(unserialize);
-//        String s = unserialize.map(RoleEntity::getRoleName).orThrow();
-
         byte[] serialize = SerializeUtil.serialize(map);
         NullChain<RoleEntity> unserialize = SerializeUtil.deserialize(serialize, NullChain.class);
         System.out.println(unserialize.get());
     }
-
-    @SneakyThrows
     @Test
-    public void of_okserialize1() {
-//        UserExtEntity userExtEntity = Null.createEmpty(UserExtEntity.class);
-        UserExtEntity userExtEntity = new UserExtEntity();
-        byte[] serialize = SerializeUtil.serialize(userExtEntity);
-        UserExtEntity unserialize = SerializeUtil.deserialize(serialize, UserExtEntity.class);
-        System.out.println(unserialize);
+    public void length__() {
+
+        int length = Null.of(userEntity).length();
+        System.out.println(length); //0
+        length = Null.of(123).length();
+        System.out.println(length); //3
+        length = Null.of("3333").length();
+        System.out.println(length); //4
+        length = Null.of(new Date()).length();
+        System.out.println(length); //0
+        length = Null.of(userEntity.getList()).length();
+        System.out.println(length); //3
     }
 
     @SneakyThrows
