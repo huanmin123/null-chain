@@ -140,6 +140,9 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
 
     public OkHttp post(OkHttpPostEnum type) {
         this.taskList.add((preValue)->{
+            if (preValue == Void.TYPE) {
+                return   NullBuild.empty();
+            }
             try {
                 RequestBody requestBody = OkHttpBuild.requestBodyHandel(type, preValue);
                 request = new Request.Builder().post(requestBody).url(url);
@@ -156,6 +159,9 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
 
     public OkHttp put(OkHttpPostEnum type) {
         this.taskList.add((preValue)->{
+            if (preValue == Void.TYPE) {
+                return   NullBuild.empty();
+            }
             try {
                 RequestBody requestBody = OkHttpBuild.requestBodyHandel(type, preValue);
                 request = new Request.Builder().put(requestBody).url(url);

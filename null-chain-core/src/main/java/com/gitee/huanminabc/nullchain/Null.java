@@ -346,6 +346,7 @@ public class Null extends NullUtil {
     }
 
 
+
     //将Collection转为NullStream
     public static <S> NullStream<S> ofStream(Collection<S> collection) {
         NullTaskList nullTaskList = new NullTaskList();
@@ -376,7 +377,6 @@ public class Null extends NullUtil {
 
     }
 
-    //将数组转为NullStream
     public static <T> NullStream<T> ofStream(NullChain<? extends Collection<T>> nullChain) {
         NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
@@ -386,13 +386,12 @@ public class Null extends NullUtil {
                 return NullBuild.empty();
             }
             linkLog.append(" Null.toStream->");
-            return NullBuild.noEmpty((T) nullChain.get().stream());
+            return NullBuild.noEmpty((nullChain.get()).stream());
         });
         return NullBuild.busyStream(linkLog, nullTaskList);
-
     }
 
-    public static <T> NullStream<T> ofStreamNull(NullChain<? extends NullCollection<T>> nullChain) {
+    public static <T> NullStream<T> ofStreamArray(NullChain<? extends T[]> nullChain) {
         NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
         nullTaskList.add((__) -> {
@@ -401,11 +400,11 @@ public class Null extends NullUtil {
                 return NullBuild.empty();
             }
             linkLog.append(" Null.toStream->");
-            return NullBuild.noEmpty((T) nullChain.get().stream());
+            return NullBuild.noEmpty( Arrays.stream(nullChain.get()));
         });
         return NullBuild.busyStream(linkLog, nullTaskList);
-
     }
+
 
     public static <N extends Number> NullCalculate<BigDecimal> ofCalc(N n) {
         NullTaskList nullTaskList = new NullTaskList();
@@ -437,6 +436,19 @@ public class Null extends NullUtil {
     }
 
 
+    public static <T> OkHttp ofHttp(String url) {
+        NullTaskList nullTaskList = new NullTaskList();
+        StringBuilder linkLog = new StringBuilder();
+        nullTaskList.add((__) -> {
+            if (Null.is(url)) {
+                linkLog.append(" Null.ofHttp?");
+                return NullBuild.empty();
+            }
+            linkLog.append(" Null.ofHttp->");
+            return NullBuild.noEmpty(Void.TYPE);
+        });
+        return NullBuild.busyHttp(url, linkLog, nullTaskList);
+    }
     public static <T> OkHttp ofHttp(String url, T value) {
         NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();

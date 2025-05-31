@@ -40,6 +40,11 @@ public interface NullChainExt<T> extends NullChain<T>, NullConvertExt<T> {
     }
 
     @Override
+    default NullChain<T> then(Runnable function){
+        NullChain<T> tNullChain = toNULL();
+        return tNullChain.then(function);
+    }
+    @Override
     default NullChain<T> then(Consumer<? super T> function) {
         NullChain<T> tNullChain = toNULL();
         return tNullChain.then(function);
