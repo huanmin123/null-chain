@@ -448,7 +448,9 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
                 throw new NullChainException(linkLog.toString());
             }
             try {
-                ((Stream) nullChainBase.value).forEach(action);
+                if (!nullChainBase.isNull) {
+                    ((Stream) nullChainBase.value).forEach(action);
+                }
             } catch (Exception e) {
                 linkLog.append("forEach? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
