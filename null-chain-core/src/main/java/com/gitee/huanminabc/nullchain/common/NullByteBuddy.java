@@ -2,10 +2,7 @@ package com.gitee.huanminabc.nullchain.common;
 
 import com.gitee.huanminabc.nullchain.NullCheck;
 import com.gitee.huanminabc.nullchain.NullExt;
-import com.gitee.huanminabc.nullchain.core.ext.NullChainExt;
-import com.gitee.huanminabc.nullchain.core.ext.NullConvertExt;
-import com.gitee.huanminabc.nullchain.core.ext.NullFinalityExt;
-import com.gitee.huanminabc.nullchain.core.ext.NullWorkFlowExt;
+import com.gitee.huanminabc.nullchain.core.ext.*;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.description.DeclaredByType;
 import net.bytebuddy.description.type.TypeDefinition;
@@ -83,6 +80,7 @@ public class NullByteBuddy {
             matchers.add(NullConvertExt.class.getName());
             matchers.add(NullWorkFlowExt.class.getName());
             matchers.add(NullFinalityExt.class.getName());
+            matchers.add(NullKernelExt.class.getName());
         }
 
         public boolean matches(T target) {
