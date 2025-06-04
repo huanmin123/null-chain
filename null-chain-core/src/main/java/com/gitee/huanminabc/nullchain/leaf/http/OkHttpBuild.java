@@ -3,7 +3,9 @@ package com.gitee.huanminabc.nullchain.leaf.http;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.gitee.huanminabc.common.reflect.AnnotationUtil;
+import com.gitee.huanminabc.common.reflect.ClassIdentifyUtil;
 import com.gitee.huanminabc.common.reflect.FieldUtil;
+import com.gitee.huanminabc.common.str.StringUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.common.function.NullHttpSupplierEx;
@@ -407,9 +409,14 @@ public class OkHttpBuild {
             Map<String, Object> formMap = valuetoMap(value);
             urlBuilder.append("?");
             for (Map.Entry<String, Object> entry : formMap.entrySet()) {
+                Object value1 = entry.getValue();
+                //校验value必须是基本数据类型和字符串
+                if (!ClassIdentifyUtil.isPrimitiveOrWrapperOrString(value1.getClass())){
+                    throw new NullChainException(value.getClass()+"内的值类型必须是基本数据类型(包装)或者字符串,不支持:" + value1.getClass().getName());
+                }
                 urlBuilder.append(URLEncoder.encode(entry.getKey(), "utf-8")).
                         append("=").
-                        append(URLEncoder.encode((String) entry.getValue(), "utf-8")).
+                        append(URLEncoder.encode(value1.toString(), "utf-8")).
                         append("&");
             }
             urlBuilder.deleteCharAt(urlBuilder.length() - 1);
