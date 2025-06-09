@@ -113,6 +113,9 @@ public class NullUtil {
         if (isAny(a, b)) {
             return false;
         }
+        if (a == b) {
+            return true; //如果是同一个对象那么必然相等
+        }
         Object realValueA=a;
         Object realValueB=b;
         if (NullKernelAbstract.class.isInstance(a)){
