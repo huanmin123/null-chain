@@ -22,9 +22,10 @@ import java.util.function.Consumer;
  * @create: 2025-05-26 14:22
  **/
 @Slf4j
-public class NullTaskList implements Serializable{
+public class NullTaskList implements Serializable {
     private static final long serialVersionUID = 1L;
-    public static class NullNode<T>  implements Serializable {
+
+    public static class NullNode<T> implements Serializable {
         private static final long serialVersionUID = 1L;
         public boolean isNull; //true 为null ,false 不为null
         public T value;//当前任务的值
@@ -51,9 +52,9 @@ public class NullTaskList implements Serializable{
     @Getter
     @Setter
     private transient NullCollect collect;
-    private transient Queue<NullTaskFunAbs> tasks;
+    private transient LinkedList<NullTaskFunAbs> tasks;
     protected NullNode lastResult; //最后一个任务的结果
-    private boolean lastAsync = false; //最后一个任务是否异步
+    CompletableFuture<NullNode> lastAsyncFuture ; //最后一个任务的异步结果
 
     @Setter
     protected String currentThreadFactoryName = ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME;
@@ -89,9 +90,24 @@ public class NullTaskList implements Serializable{
 
     //运行任务返回结果  (非异步的方法执行)
     public <T> NullNode<T> runTaskAll() {
-        if (lastResult != null) {
+        if (tasks==null){
+            tasks = new LinkedList<>();
+        }
+        if (lastResult != null && tasks.isEmpty()) {
             return lastResult;
         }
+        //需要把lastResult的值放入到任务链的开头, 这相当于续接上一个任务的结果
+        if (lastResult != null) {
+
+            NullTaskFunAbs taskFunAbs = new NullTaskFunAbs() {
+                @Override
+                public NullNode nodeTask(Object value) throws RuntimeException {
+                    return NullBuild.noEmpty(lastResult.value);
+                }
+            };
+            tasks.addFirst(taskFunAbs);
+        }
+
         NullNode<T> chain = null;
         while (!tasks.isEmpty()) {
             NullTaskFunAbs poll = tasks.poll();
@@ -109,14 +125,17 @@ public class NullTaskList implements Serializable{
             chain = task1;
         }
         lastResult = chain;
-        tasks = null;//避免被重复调用
         return chain;
     }
 
     //运行任务返回结果  如果调用方支持异步那么开启异步之后的节点将脱离主线程  比如ifPresent
     public <T> void runTaskAll(Consumer<NullNode<T>> supplier, Consumer<Throwable> ex) {
-        if (lastResult != null) {
-            if (!lastAsync) {
+        if (tasks==null){
+            tasks = new LinkedList<>();
+        }
+        if (lastResult != null && tasks.isEmpty()) {
+            //如果最后一个任务不是异步那么直接执行
+            if (lastAsyncFuture == null) {
                 supplier.accept(lastResult);
             } else {
                 CompletableFuture<NullNode> nullChainBaseCompletableFuture = CompletableFuture.completedFuture(lastResult);
@@ -137,8 +156,27 @@ public class NullTaskList implements Serializable{
             }
             return;
         }
+
+
         NullNode chain = null;
         CompletableFuture<NullNode> completableFuture = null;
+
+        if (lastResult != null) {
+            NullNode<Object> objectNullNode = NullBuild.noEmpty(lastResult.value);
+            if (lastAsyncFuture != null) {
+                completableFuture = lastAsyncFuture;
+            } else {
+                //需要把lastResult的值放入到任务链的开头, 这相当于续接上一个任务的结果
+                NullTaskFunAbs taskFunAbs = new NullTaskFunAbs() {
+                    @Override
+                    public NullNode nodeTask(Object value) throws RuntimeException {
+                        return objectNullNode;
+                    }
+                };
+                tasks.addFirst(taskFunAbs);
+            }
+        }
+
         while (!tasks.isEmpty()) {
             NullTaskFunAbs poll = tasks.poll();
             if (completableFuture == null) {
@@ -179,12 +217,9 @@ public class NullTaskList implements Serializable{
             }
         }
         lastResult = chain;
-        tasks = null;
         if (completableFuture == null) {
-            lastAsync = false; //没有异步任务
             supplier.accept(chain);
         } else {
-            lastAsync = true; //有异步任务
             completableFuture.thenComposeAsync((nullNode) -> {
                 supplier.accept(nullNode);
                 return CompletableFuture.completedFuture(null);
@@ -199,6 +234,7 @@ public class NullTaskList implements Serializable{
                 }
                 return null;
             });
+            lastAsyncFuture = completableFuture; //记录最后一个异步任务
         }
 
     }

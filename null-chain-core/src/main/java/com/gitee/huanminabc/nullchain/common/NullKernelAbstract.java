@@ -75,7 +75,9 @@ public class NullKernelAbstract<T> implements NullKernel<T>, Serializable, NullC
     public NullChain<T> async() {
         this.taskList.add((value)->{
             linkLog.append("async->");
-            return  NullBuild.noEmpty(value);
+            NullTaskList.NullNode<Object> objectNullNode = NullBuild.noEmpty(value);
+            objectNullNode.async= true; //设置为异步
+            return objectNullNode;
         });
         return  NullBuild.busy(this);
     }
@@ -85,7 +87,9 @@ public class NullKernelAbstract<T> implements NullKernel<T>, Serializable, NullC
             ThreadFactoryUtil.addExecutor(threadFactoryName);
             taskList.setCurrentThreadFactoryName(threadFactoryName);
             linkLog.append("async->");
-            return    NullBuild.noEmpty(value);
+            NullTaskList.NullNode<Object> objectNullNode = NullBuild.noEmpty(value);
+            objectNullNode.async = true; //设置为异步
+            return objectNullNode;
 
         });
         return  NullBuild.busy(this);

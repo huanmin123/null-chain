@@ -2,6 +2,7 @@ package com.gitee.huanminabc.test.nullchain;
 
 
 import com.gitee.huanminabc.common.base.SerializeUtil;
+import com.gitee.huanminabc.common.multithreading.executor.SleepTools;
 import com.gitee.huanminabc.common.test.CodeTimeUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.NullChainCheckException;
@@ -55,9 +56,15 @@ public class ObjNullTest {
     }
     @Test
     public void of() {
-        UserEntity userEntity1 = Null.of(userEntity).get();
-        System.out.println(userEntity1);
+        NullChain<RoleEntity> map = Null.of(userEntity).map(UserEntity::getRoleData);
+        RoleEntity roleEntity = map.get();
+        System.out.println(roleEntity);
+
+        String s = map.map(RoleEntity::getRoleName).get();
+        System.out.println(s);
     }
+
+
 
     @Test
     public void ofStream() {
@@ -123,10 +130,20 @@ public class ObjNullTest {
     @SneakyThrows
     @Test
     public void of_ok01() {
-//        Null.of(userEntity).map(UserEntity::getAnInt).ifPresent(System.out::println);
 
-        Null.of(userEntity).async().map(UserEntity::getAnInt).ifPresent(System.out::println);
-        System.out.println("=============================");
+        NullChain<RoleEntity> map = Null.of(userEntity).async().then(()->{
+                SleepTools.second(1);
+        }).map(UserEntity::getRoleData);
+
+        map.ifPresent(System.out::println);
+
+        map.map(RoleEntity::getRoleName).ifPresent(System.out::println);
+        log.info("===================================");
+        SleepTools.second(2);
+//
+//
+//        Null.of(userEntity).async().map(UserEntity::getAnInt).ifPresent(System.out::println);
+//        System.out.println("=============================");
 
 //        Object str = "123";
 //        Null.of(str).type(String.class).map(String::length).ifPresent(System.out::println);
@@ -211,6 +228,7 @@ public class ObjNullTest {
     public void test2() throws NullChainCheckException {
         UserExtEntity userExtEntity = new UserExtEntity();
         userExtEntity.setId(1);
+        userExtEntity.setName("huanmin");
         Integer i = userExtEntity.map(UserExtEntity::getId).getSafe();
         System.out.println(i);
 
