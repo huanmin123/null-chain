@@ -8,7 +8,7 @@ import java.io.File;
 
 public  class TestUtil {
     public static String readFile(String fileName) {
-        String file = PathUtil.getCurrentProjectTestResourcesAbsoluteFile("nf/" + fileName);
+        String file = PathUtil.getCurrentProjectTestResourcesAbsolutePath("nf/" + fileName);
         return  FileReadUtil.readAllStr(new File(file));
     }
 }

@@ -1,12 +1,11 @@
 package com.gitee.huanminabc.nullchain.core.ext;
 
-import com.alibaba.fastjson2.annotation.JSONField;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.gitee.huanminabc.nullchain.Null;
-import com.gitee.huanminabc.nullchain.NullCheck;
+import com.gitee.huanminabc.nullchain.common.NullChainCheckException;
+import com.gitee.huanminabc.nullchain.common.NullCollect;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.core.NullFinality;
-import com.gitee.huanminabc.nullchain.common.*;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;

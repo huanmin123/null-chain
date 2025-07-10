@@ -1,6 +1,8 @@
 package com.gitee.huanminabc.test.nullchain;
 
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.gitee.huanminabc.common.base.SerializeUtil;
 import com.gitee.huanminabc.common.multithreading.executor.SleepTools;
 import com.gitee.huanminabc.common.test.CodeTimeUtil;
@@ -12,6 +14,7 @@ import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
 import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
 import com.gitee.huanminabc.nullchain.enums.TimeEnum;
+import com.gitee.huanminabc.nullchain.leaf.date.NullDate;
 import com.gitee.huanminabc.test.nullchain.entity.RoleEntity;
 import com.gitee.huanminabc.test.nullchain.entity.UserEntity;
 import com.gitee.huanminabc.test.nullchain.entity.UserExtEntity;
@@ -96,7 +99,6 @@ public class ObjNullTest {
 
     @Test
     public void ofJson() {
-//        = Null.ofDate(new Date()).
         NullChain<UserEntity> userEntityNullChain = Null.of(userEntity);
         HashMap<String, Object> stringObjectHashMap = Null.ofJson(userEntityNullChain).json().json(new HashMap<String, Object>()).get();
         System.out.println(stringObjectHashMap);
@@ -304,6 +306,9 @@ public class ObjNullTest {
 //
 //        System.out.println(time222);
 
+
+        NullDate<Integer> stringNullDate = Null.ofDate(20250615).dateOffset(DateOffsetEnum.START, TimeEnum.MONTHS);
+        stringNullDate.ifPresent(System.out::println);
 
     }
 

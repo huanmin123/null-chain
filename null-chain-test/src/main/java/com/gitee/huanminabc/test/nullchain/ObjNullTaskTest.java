@@ -47,9 +47,9 @@ public class ObjNullTaskTest {
 
     @Test
     public  void zipTask(){
-        String file1 = PathUtil.getCurrentProjectTestResourcesAbsoluteFile("nf/test.nf" );
-        String file2 = PathUtil.getCurrentProjectTestResourcesAbsoluteFile("nf/test1.nf" );
-        String file3 = PathUtil.getCurrentProjectTestResourcesAbsoluteFile("nf/test2.nf" );
+        String file1 = PathUtil.getCurrentProjectTestResourcesAbsolutePath("nf/test.nf" );
+        String file2 = PathUtil.getCurrentProjectTestResourcesAbsolutePath("nf/test1.nf" );
+        String file3 = PathUtil.getCurrentProjectTestResourcesAbsolutePath("nf/test2.nf" );
         byte[] bytes = ReadFileBytesUtil.readByte(new File(file1));
         byte[] bytes1 = ReadFileBytesUtil.readByte(new File(file2));
         byte[] bytes2 = ReadFileBytesUtil.readByte(new File(file3));
@@ -60,7 +60,7 @@ public class ObjNullTaskTest {
         map.put("nfzipdir/",null);
 //        Null.of(map).task(ZipToBytesByteTool.class).type(byte[].class).ifPresent(System.out::println);
 
-        String wFile = PathUtil.getCurrentProjectTestResourcesAbsoluteFile("test.zip" );
+        String wFile = PathUtil.getCurrentProjectTestResourcesAbsolutePath("test.zip" );
         Null.of(map).tool(ZipToBytesByteTool.class).tool(BytesToWriteFileTool.class,wFile).ifPresent(System.out::println);
     }
 
@@ -88,7 +88,7 @@ public class ObjNullTaskTest {
 
     @Test
     public  void nfFileTask(){
-        String file = PathUtil.getCurrentProjectTestResourcesAbsoluteFile("nf/test.nf" );
+        String file = PathUtil.getCurrentProjectTestResourcesAbsolutePath("nf/test.nf" );
         String a="123131";
         Null.of(a).nfTask(NullGroupNfTask.taskFile(file)).type(String.class).ifPresent(System.out::println);
     }
