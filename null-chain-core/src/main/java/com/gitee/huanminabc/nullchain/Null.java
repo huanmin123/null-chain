@@ -340,7 +340,7 @@ public class Null extends NullUtil {
                 return NullBuild.empty();
             }
             linkLog.append(" Null.ofStream->");
-            return NullBuild.noEmpty((S) stream);
+            return NullBuild.noEmpty((S) stream.filter(Null::non));
         });
         return NullBuild.busyStream(linkLog, nullTaskList);
     }
@@ -357,7 +357,7 @@ public class Null extends NullUtil {
                 return NullBuild.empty();
             }
             linkLog.append(" Null.toStream->");
-            return NullBuild.noEmpty((S) collection.stream());
+            return NullBuild.noEmpty((S) collection.stream().filter(Null::non));
         });
         return NullBuild.busyStream(linkLog, nullTaskList);
     }
@@ -371,7 +371,7 @@ public class Null extends NullUtil {
                 return NullBuild.empty();
             }
             linkLog.append(" Null.toStream->");
-            return NullBuild.noEmpty((S) collection.stream());
+            return NullBuild.noEmpty((S) collection.stream().filter(Null::non));
         });
         return NullBuild.busyStream(linkLog, nullTaskList);
 
@@ -386,7 +386,7 @@ public class Null extends NullUtil {
                 return NullBuild.empty();
             }
             linkLog.append(" Null.toStream->");
-            return NullBuild.noEmpty((nullChain.get()).stream());
+            return NullBuild.noEmpty((nullChain.get()).stream().filter(Null::non));
         });
         return NullBuild.busyStream(linkLog, nullTaskList);
     }
@@ -400,7 +400,7 @@ public class Null extends NullUtil {
                 return NullBuild.empty();
             }
             linkLog.append(" Null.toStream->");
-            return NullBuild.noEmpty( Arrays.stream(nullChain.get()));
+            return NullBuild.noEmpty( Arrays.stream(nullChain.get()).filter(Null::non));
         });
         return NullBuild.busyStream(linkLog, nullTaskList);
     }
@@ -415,7 +415,6 @@ public class Null extends NullUtil {
                 return NullBuild.empty();
             }
             linkLog.append(" Null.ofCalc->");
-            NullCollect collect = new NullCollect();
             return NullBuild.noEmpty(BigDecimal.valueOf(n.doubleValue()));
         });
         return NullBuild.busyCalc(linkLog, nullTaskList);

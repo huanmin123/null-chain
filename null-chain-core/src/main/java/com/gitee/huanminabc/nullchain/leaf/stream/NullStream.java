@@ -62,6 +62,7 @@ public interface NullStream<T > extends NullKernel<T> {
 
     //聚合
     NullChain<T> reduce(BinaryOperator<T> accumulator);
+    NullChain<T>reduce(T identity, BinaryOperator<T> accumulator);
 
     NullChain<Long> count();
 

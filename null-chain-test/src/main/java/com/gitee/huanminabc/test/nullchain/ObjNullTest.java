@@ -40,7 +40,7 @@ public class ObjNullTest {
     public void before() {
         userEntity.setId(1);
         userEntity.setName("huanmin");
-        userEntity.setAge(33);
+//        userEntity.setAge(33);
         userEntity.setDate(new Date());
         userEntity.setAnInt(123);
 
@@ -82,6 +82,15 @@ public class ObjNullTest {
                 .get();
         System.out.println(roleEntities);
         System.out.println("===================================");
+
+//        Integer i = Null.ofStream(userEntity.getList()).map(UserEntity::getAge).reduce(0, Integer::sum).get();
+
+        Integer totalAge = userEntity.getList().stream()
+                .filter(Objects::nonNull)                   // 先过滤掉null对象
+                .map(UserEntity::getAge)
+//                .filter(Objects::nonNull)                   // 再过滤掉age为null的
+                .reduce(0, Integer::sum);
+
     }
 
     @Test

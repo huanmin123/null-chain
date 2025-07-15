@@ -331,7 +331,12 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
             }
             Optional reduce;
             try {
-                reduce = ((Stream) preValue).reduce(accumulator);
+                reduce = ((Stream) preValue).reduce((a,b)->{
+                    if (b == null) {
+                        return 0;
+                    }
+                    return accumulator.apply((T)a, (T)b);
+                });
             } catch (Exception e) {
                 linkLog.append("reduce? ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
@@ -341,6 +346,33 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
             }
             linkLog.append("reduce->");
             return NullBuild.noEmpty((T) reduce.get());
+        });
+        return  NullBuild.busy(this);
+    }
+
+    @Override
+    public NullChain<T> reduce(T identity, BinaryOperator<T> accumulator) {
+        this.taskList.add((preValue)->{
+            if (identity == null) {
+                throw new NullChainException(linkLog.append("reduce? ").append("identity must not be null").toString());
+            }
+            if (accumulator == null) {
+                throw new NullChainException(linkLog.append("reduce? ").append("accumulator must not be null").toString());
+            }
+            T reduce;
+            try {
+                reduce = (T) ((Stream) preValue).reduce(identity, (a, b) -> {;
+                    if (b == null) {
+                        return identity;
+                    }
+                    return accumulator.apply((T)a, (T)b);
+                });
+            } catch (Exception e) {
+                linkLog.append("reduce? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+            linkLog.append("reduce->");
+            return NullBuild.noEmpty(reduce);
         });
         return  NullBuild.busy(this);
     }
