@@ -1,6 +1,8 @@
 package com.gitee.huanminabc.nullchain;
 
 
+import com.gitee.huanminabc.common.multithreading.executor.ThreadFactoryUtil;
+import com.gitee.huanminabc.nullchain.common.*;
 import com.gitee.huanminabc.nullchain.core.NullChainBase;
 import com.gitee.huanminabc.nullchain.leaf.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.core.NullChain;
@@ -9,10 +11,6 @@ import com.gitee.huanminabc.nullchain.leaf.date.NullDate;
 import com.gitee.huanminabc.nullchain.leaf.http.OkHttp;
 import com.gitee.huanminabc.nullchain.leaf.json.NullJson;
 import com.gitee.huanminabc.nullchain.leaf.stream.NullStream;
-import com.gitee.huanminabc.nullchain.common.NullBuild;
-import com.gitee.huanminabc.nullchain.common.NullCollect;
-import com.gitee.huanminabc.nullchain.common.NullTaskList;
-import com.gitee.huanminabc.nullchain.common.NullUtil;
 import com.gitee.huanminabc.nullchain.vessel.*;
 
 import java.math.BigDecimal;
@@ -506,6 +504,35 @@ public class Null extends NullUtil {
         });
         return NullBuild.busyHttp(httpName, url, linkLog, nullTaskList);
 
+    }
+
+
+
+    //同步转异步
+    public static <T> NullChain<T> async() {
+        NullTaskList nullTaskList = new NullTaskList();
+        StringBuilder linkLog = new StringBuilder();
+        nullTaskList.add((value)->{
+            linkLog.append("async->");
+            NullTaskList.NullNode<Object> objectNullNode = NullBuild.noEmpty(value);
+            objectNullNode.async= true; //设置为异步
+            return objectNullNode;
+        });
+        return NullBuild.busy(linkLog, nullTaskList);
+    }
+    //带线程池的同步转异步
+    public static <T> NullChain<T> async(String threadFactoryName) throws NullChainException {
+        NullTaskList nullTaskList = new NullTaskList();
+        StringBuilder linkLog = new StringBuilder();
+        nullTaskList.add((value)->{
+            ThreadFactoryUtil.addExecutor(threadFactoryName);
+            nullTaskList.setCurrentThreadFactoryName(threadFactoryName);
+            linkLog.append("async->");
+            NullTaskList.NullNode<Object> objectNullNode = NullBuild.noEmpty(value);
+            objectNullNode.async = true; //设置为异步
+            return objectNullNode;
+        });
+        return NullBuild.busy(linkLog, nullTaskList);
     }
 
 

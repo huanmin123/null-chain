@@ -4,6 +4,7 @@ package com.gitee.huanminabc.test.nullchain;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.gitee.huanminabc.common.base.SerializeUtil;
+import com.gitee.huanminabc.common.exception.BizException;
 import com.gitee.huanminabc.common.multithreading.executor.SleepTools;
 import com.gitee.huanminabc.common.test.CodeTimeUtil;
 import com.gitee.huanminabc.nullchain.Null;
@@ -57,6 +58,17 @@ public class ObjNullTest {
         userEntityList.add(null);
         userEntity.setList(userEntityList);
     }
+    @Test
+    public void async() {
+
+        Null.async("111").then(()->{
+            SleepTools.second(1);
+            System.out.println("12131231312");
+        }).except(BizException::new);
+        System.out.println("1231312313");
+        SleepTools.second(3);
+    }
+
     @Test
     public void of() {
         NullChain<RoleEntity> map = Null.of(userEntity).map(UserEntity::getRoleData);

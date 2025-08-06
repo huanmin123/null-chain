@@ -125,7 +125,7 @@ public class NullTaskList implements Serializable {
             chain = task1;
         }
         lastResult = chain;
-        return chain;
+        return chain!=null?chain: new NullNode<>();
     }
 
     //运行任务返回结果  如果调用方支持异步那么开启异步之后的节点将脱离主线程  比如ifPresent
