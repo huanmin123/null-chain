@@ -505,35 +505,4 @@ public class Null extends NullUtil {
         return NullBuild.busyHttp(httpName, url, linkLog, nullTaskList);
 
     }
-
-
-
-    //同步转异步
-    public static <T> NullChain<T> async() {
-        NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
-        nullTaskList.add((value)->{
-            linkLog.append("async->");
-            NullTaskList.NullNode<Object> objectNullNode = NullBuild.noEmpty(value);
-            objectNullNode.async= true; //设置为异步
-            return objectNullNode;
-        });
-        return NullBuild.busy(linkLog, nullTaskList);
-    }
-    //带线程池的同步转异步
-    public static <T> NullChain<T> async(String threadFactoryName) throws NullChainException {
-        NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
-        nullTaskList.add((value)->{
-            ThreadFactoryUtil.addExecutor(threadFactoryName);
-            nullTaskList.setCurrentThreadFactoryName(threadFactoryName);
-            linkLog.append("async->");
-            NullTaskList.NullNode<Object> objectNullNode = NullBuild.noEmpty(value);
-            objectNullNode.async = true; //设置为异步
-            return objectNullNode;
-        });
-        return NullBuild.busy(linkLog, nullTaskList);
-    }
-
-
 }

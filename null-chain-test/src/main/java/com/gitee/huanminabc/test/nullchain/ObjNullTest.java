@@ -58,16 +58,6 @@ public class ObjNullTest {
         userEntityList.add(null);
         userEntity.setList(userEntityList);
     }
-    @Test
-    public void async() {
-
-        Null.async("111").then(()->{
-            SleepTools.second(1);
-            System.out.println("12131231312");
-        }).except(BizException::new);
-        System.out.println("1231312313");
-        SleepTools.second(3);
-    }
 
     @Test
     public void of() {
