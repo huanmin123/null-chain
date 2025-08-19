@@ -1,6 +1,9 @@
 package com.gitee.huanminabc.nullchain.vessel;
 
 import com.gitee.huanminabc.nullchain.Null;
+import com.gitee.huanminabc.nullchain.common.NullBuild;
+import com.gitee.huanminabc.nullchain.common.NullTaskList;
+import com.gitee.huanminabc.nullchain.core.NullChain;
 
 import java.util.*;
 
@@ -15,8 +18,22 @@ public class NullSuperList<T> implements NullList<T> {
     }
 
     @Override
-    public T get(int index) {
-        return list.get(index);
+    public NullChain<T> get(int index) {
+        NullTaskList nullTaskList = new NullTaskList();
+        StringBuilder linkLog = new StringBuilder();
+        nullTaskList.add((__) -> {
+            if (index < 0 || index >= list.size()) {
+                linkLog.append("NullSuperList.get? index out of bounds");
+                return null;
+            }
+            T element = list.get(index);
+            if (Null.is(element)) {
+                linkLog.append("NullSuperList.get? element is null");
+                return null;
+            }
+            return NullBuild.noEmpty(element);
+        });
+        return NullBuild.busy(linkLog, nullTaskList);
     }
 
     @Override
@@ -132,8 +149,23 @@ public class NullSuperList<T> implements NullList<T> {
     }
 
     @Override
-    public T remove(int index) {
-        return list.remove(index);
+    public NullChain<T> remove(int index) {
+        NullTaskList nullTaskList = new NullTaskList();
+        StringBuilder linkLog = new StringBuilder();
+        nullTaskList.add((__) -> {
+            if (index < 0 || index >= list.size()) {
+                linkLog.append("NullSuperList.remove? index out of bounds");
+                return null;
+            }
+            T element = list.get(index);
+            if (Null.is(element)) {
+                linkLog.append("NullSuperList.remove? element is null");
+                return null;
+            }
+            list.remove(index);
+            return NullBuild.noEmpty(element);
+        });
+        return NullBuild.busy(linkLog, nullTaskList);
     }
 
     @Override
@@ -193,3 +225,4 @@ public class NullSuperList<T> implements NullList<T> {
     }
 
 }
+

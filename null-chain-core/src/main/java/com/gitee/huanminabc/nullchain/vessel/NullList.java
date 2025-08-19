@@ -1,5 +1,7 @@
 package com.gitee.huanminabc.nullchain.vessel;
 
+import com.gitee.huanminabc.nullchain.core.NullChain;
+
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
@@ -31,9 +33,9 @@ public interface NullList<T> extends NullCollection<T>  {
     }
 
 
-    T get(int index);
+    NullChain<T> get(int index);
 
-    T remove(int index);
+    NullChain<T> remove(int index);
 
     void add(int index, T element);
 
