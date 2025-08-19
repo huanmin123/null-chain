@@ -268,7 +268,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
             if (roundingMode == null) {
                 throw new NullChainException(linkLog.append("round? ").append("roundingMode不能是空").toString());
             }
-            BigDecimal round = ((BigDecimal)preValue).setScale(0, roundingMode);
+            BigDecimal round = ((BigDecimal)preValue).setScale(newScale, roundingMode);
             linkLog.append("round->");
             return NullBuild.noEmpty(round);
 
