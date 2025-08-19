@@ -29,7 +29,7 @@ public class InjectNullContext implements ApplicationListener<ContextRefreshedEv
        log.info("NullSpringConfig init");
         ApplicationContext applicationContext = event.getApplicationContext();
         //获取所有的NULL注解
-        Map<String, Object> beansWithAnnotation = applicationContext.getBeansWithAnnotation(NullSpring.class);
+        Map<String, Object> beansWithAnnotation = applicationContext.getBeansWithAnnotation(NullLabel.class);
         for (Map.Entry<String, Object> entry : beansWithAnnotation.entrySet()) {
             Object bean = entry.getValue();
             if (bean instanceof NullTool) {
