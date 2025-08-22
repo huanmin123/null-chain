@@ -14,8 +14,7 @@ import com.gitee.huanminabc.nullchain.leaf.http.OkHttpBase;
 import com.gitee.huanminabc.nullchain.leaf.http.OkHttp;
 import com.gitee.huanminabc.nullchain.leaf.json.NullJson;
 import com.gitee.huanminabc.nullchain.leaf.json.NullJsonBase;
-import com.gitee.huanminabc.nullchain.leaf.stream.NullStream;
-import com.gitee.huanminabc.nullchain.leaf.stream.NullStreamBase;
+import com.gitee.huanminabc.nullchain.leaf.stream.*;
 import com.gitee.huanminabc.nullchain.task.NullTask;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
 import com.gitee.huanminabc.nullchain.vessel.NullMap;
@@ -81,11 +80,25 @@ public class NullBuild {
     public static NullCalculate busyCalc(NullKernelAbstract o) {
         return (NullCalculate) o;
     }
+
     public static NullStream busyStream(NullKernelAbstract o) {
         return (NullStream) o;
     }
 
 
+
+    public static <T> NullIntStream busyIntStream(NullKernelAbstract<T> o) {
+        return  new NullIntStreamBase( o.linkLog, o.taskList);
+    }
+
+    public static <T> NullLongStream busyLongStream(NullKernelAbstract<T> o) {
+        return new NullLongStreamBase(o.linkLog, o.taskList);
+    }
+
+
+    public static <T> NullDoubleStream busyDoubleStream(NullKernelAbstract<T> o) {
+        return new NullDoubleStreamBase(o.linkLog, o.taskList);
+    }
 
     public static <T> NullDate<T> busyDate(StringBuilder linkLog, NullTaskList nullTaskList) {
         return new NullDateBase<>(linkLog, nullTaskList);
@@ -128,4 +141,5 @@ public class NullBuild {
         }
         return nullChains;
     }
+
 }

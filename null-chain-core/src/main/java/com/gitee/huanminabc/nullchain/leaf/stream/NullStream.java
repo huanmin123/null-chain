@@ -3,14 +3,10 @@ import com.gitee.huanminabc.nullchain.common.NullKernel;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
-import com.gitee.huanminabc.nullchain.common.function.NullFun2;
 import com.gitee.huanminabc.nullchain.common.function.NullPredicate;
 
 import java.util.Comparator;
-import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.function.*;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
@@ -29,7 +25,14 @@ public interface NullStream<T > extends NullKernel<T> {
      //映射
     <R> NullStream<R> map(NullFun<? super T, ? extends R> mapper);
 
-    <R> NullStream<R> map2(NullFun2<NullChain<T>, ? super T, ? extends R> function);
+    //mapToInt
+    NullIntStream mapToInt(NullFun<? super T, ? extends Integer> mapper);
+
+    //mapToLong
+    NullLongStream mapToLong(NullFun<? super T, ? extends Long> mapper);
+
+    //mapToDouble
+    NullDoubleStream mapToDouble(NullFun<? super T, ? extends Double> mapper);
 
     //过滤
     NullStream<T> filter(NullPredicate<? super T> predicate);
@@ -48,35 +51,39 @@ public interface NullStream<T > extends NullKernel<T> {
 
     NullStream<T> then(NullConsumer2<NullChain<T>, ? super T> function);
 
-    //流合并
-  <R> NullStream<R> flatStream(Function<? super T, ? extends NullStream<? extends R>> mapper);
+    //流展开 (扁平化)
+  <R> NullStream<R> flatMap(Function<? super T, ? extends NullStream<? extends R>> mapper);
 
-    //Collectors.xxx 一些常用的收集器
-    <R, A> NullChain<R> collect(Collector<? super T, A, R> collector);
-
-    NullChain<T> max(Comparator<? super T> comparator);
 
     NullChain<T> findFirst();
 
     NullChain<T> findAny();
 
     //聚合
-    NullChain<T> reduce(BinaryOperator<T> accumulator);
-    NullChain<T>reduce(T identity, BinaryOperator<T> accumulator);
+    NullChain<T>  reduce(BinaryOperator<T> accumulator);
+    NullChain<T>  reduce(T identity, BinaryOperator<T> accumulator);
 
-    NullChain<Long> count();
+    NullChain<T> max(Comparator<? super T> comparator);
 
     NullChain<T> min(Comparator<? super T> comparator);
 
-    NullChain<Boolean> allMatch(Predicate<? super T> predicate);
 
-    NullChain<Boolean> anyMatch(Predicate<? super T> predicate);
 
-    NullChain<Boolean> noneMatch(Predicate<? super T> predicate);
 
     void forEach(Consumer<? super T> action);
 
 
+    Long count();
+
+
+    Boolean allMatch(Predicate<? super T> predicate);
+
+    Boolean anyMatch(Predicate<? super T> predicate);
+
+    Boolean noneMatch(Predicate<? super T> predicate);
+
+    //Collectors.xxx 一些常用的收集器
+    <R, A> R collect(Collector<? super T, A, R> collector);
 
 
 

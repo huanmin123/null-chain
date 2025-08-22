@@ -16,6 +16,7 @@ import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
 import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
 import com.gitee.huanminabc.nullchain.enums.TimeEnum;
 import com.gitee.huanminabc.nullchain.leaf.date.NullDate;
+import com.gitee.huanminabc.nullchain.leaf.stream.NullIntStream;
 import com.gitee.huanminabc.test.nullchain.entity.RoleEntity;
 import com.gitee.huanminabc.test.nullchain.entity.UserEntity;
 import com.gitee.huanminabc.test.nullchain.entity.UserExtEntity;
@@ -50,7 +51,7 @@ public class ObjNullTest {
         roleEntity.setRoleName("admin");
         roleEntity.setRoleDescription("1234");
         roleEntity.setRoleCreationTime(new Date());
-        userEntity.setRoleData(roleEntity);
+//        userEntity.setRoleData(roleEntity);
 
         List<UserEntity> userEntityList = new ArrayList<>();
         userEntityList.add(userEntity);
@@ -74,24 +75,26 @@ public class ObjNullTest {
     @Test
     public void ofStream() {
         NullChain<List<UserEntity>> listNullChain = Null.of(userEntity).map(UserEntity::getList);
-
         List<RoleEntity> roleEntities = Null.ofStream(listNullChain)
                 .parallel()
                 .filter(Null::non)
                 .map(UserEntity::getRoleData)
                 .sorted(Comparator.comparing(RoleEntity::getRoleName))
-                .collect(Collectors.toList())
-                .get();
+                .collect(Collectors.toList());
         System.out.println(roleEntities);
-        System.out.println("===================================");
+//        System.out.println("===================================");
+//
+//        Integer i = Null.ofStream(userEntity.getList()).map(UserEntity::getAge).reduce(Integer::sum).get();
 
-//        Integer i = Null.ofStream(userEntity.getList()).map(UserEntity::getAge).reduce(0, Integer::sum).get();
-
-        Integer totalAge = userEntity.getList().stream()
-                .filter(Objects::nonNull)                   // 先过滤掉null对象
-                .map(UserEntity::getAge)
-//                .filter(Objects::nonNull)                   // 再过滤掉age为null的
-                .reduce(0, Integer::sum);
+//        Integer totalAge = userEntity.getList().stream()
+//                .filter(Objects::nonNull)                   // 先过滤掉null对象
+//                .map(UserEntity::getAge)
+////                .filter(Objects::nonNull)                   // 再过滤掉age为null的
+//                .reduce(0, Integer::sum);
+//
+//
+//        int nullIntStream = Null.ofStream(userEntity.getList()).mapToInt(UserEntity::getAge).sum();
+//        System.out.println(nullIntStream); //0
 
     }
 

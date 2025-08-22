@@ -39,7 +39,7 @@ public class ObjNullTaskTest {
     public  void task3()  {
         String a="123131";
         NullGroupTask nullGroupTask = NullGroupTask.buildGroup(
-                NullGroupTask.task(TestTask.class.getName(),true),
+                NullGroupTask.task(TestTask.class.getName(),"123213"),
                 NullGroupTask.task(Test2Task.class.getName())
         );
         Null.of(a).task(nullGroupTask).ifPresent(System.out::println);
