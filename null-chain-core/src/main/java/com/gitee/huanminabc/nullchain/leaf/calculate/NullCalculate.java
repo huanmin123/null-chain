@@ -2,7 +2,7 @@ package com.gitee.huanminabc.nullchain.leaf.calculate;
 
 import com.gitee.huanminabc.nullchain.common.NullKernel;
 import com.gitee.huanminabc.nullchain.core.NullChain;
-import com.gitee.huanminabc.nullchain.common.function.NullFun;
+import java.util.function.Function;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -57,5 +57,5 @@ public interface NullCalculate<T extends BigDecimal> extends  NullKernel<T> {
     //默认保留2位 并且 四舍五入
     NullCalculate<T> round();
 
-    <V extends Number> NullChain<V> map(NullFun<BigDecimal, V> pickValue);
+    <V extends Number> NullChain<V> map(Function<BigDecimal, V> pickValue);
 }

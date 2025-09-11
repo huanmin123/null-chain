@@ -2,13 +2,8 @@ package com.gitee.huanminabc.nullchain.leaf.stream;
 
 import com.gitee.huanminabc.nullchain.common.NullKernelAbstract;
 import com.gitee.huanminabc.nullchain.common.NullTaskList;
-import com.gitee.huanminabc.nullchain.common.function.NullFun;
-import com.gitee.huanminabc.nullchain.common.NullChainException;
-import com.gitee.huanminabc.nullchain.common.NullReflectionKit;
-import com.gitee.huanminabc.nullchain.common.NullBuild;
 
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 public class NullIntStreamBase  extends NullKernelAbstract<Integer>  implements NullIntStream {
     public NullIntStreamBase(StringBuilder linkLog, NullTaskList taskList) {

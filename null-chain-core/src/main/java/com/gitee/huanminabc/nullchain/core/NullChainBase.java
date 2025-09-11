@@ -1,24 +1,14 @@
 package com.gitee.huanminabc.nullchain.core;
 
-import com.gitee.huanminabc.common.multithreading.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.*;
 import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
-import com.gitee.huanminabc.nullchain.common.function.NullFun;
+import java.util.function.Function;
 import com.gitee.huanminabc.nullchain.common.function.NullFun2;
-import com.gitee.huanminabc.nullchain.language.NfMain;
-import com.gitee.huanminabc.nullchain.task.NullTask;
-import com.gitee.huanminabc.nullchain.task.NullTaskFactory;
 import com.gitee.huanminabc.nullchain.common.NullReflectionKit;
-import com.gitee.huanminabc.nullchain.vessel.NullMap;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -35,7 +25,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
     }
 
     @Override
-    public <U> NullChain<T> of(NullFun<? super T, ? extends U> function) {
+    public <U> NullChain<T> of(Function<? super T, ? extends U> function) {
         this.taskList.add((value)->{
             if (function == null) {
                 throw new NullChainException(linkLog.append("of? 传参不能为空").toString());
@@ -57,13 +47,13 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
     }
 
     @Override
-    public NullChain<T> ifGo(NullFun<? super T, Boolean> function) {
+    public NullChain<T> ifGo(Predicate<? super T> predicate) {
         this.taskList.add((value)->{
-            if (function == null) {
+            if (predicate == null) {
                 throw new NullChainException(linkLog.append("ifGo? 传参不能为空").toString());
             }
             try {
-                Boolean apply = function.apply((T)value);
+                boolean apply = predicate.test((T)value);
                 if (!apply) {
                     linkLog.append("ifGo?");
                     return NullBuild.empty();
@@ -79,7 +69,29 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
     }
 
     @Override
-    public <U> NullChain<T> isNull(NullFun<? super T, ? extends U> function) {
+    public NullChain<T> ifNeGo(Predicate<? super T> predicate) {
+        this.taskList.add((value)->{
+            if (predicate == null) {
+                throw new NullChainException(linkLog.append("ifNeGo? 传参不能为空").toString());
+            }
+            try {
+                boolean apply = predicate.test((T)value);
+                if (apply) {
+                    linkLog.append("ifNeGo?");
+                    return NullBuild.empty();
+                }
+                linkLog.append("ifNeGo->");
+                return NullBuild.noEmpty(value);
+            } catch (Exception e) {
+                linkLog.append("ifNeGo? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+        });
+        return  NullBuild.busy(this);
+    }
+
+    @Override
+    public <U> NullChain<T> isNull(Function<? super T, ? extends U> function) {
         this.taskList.add((value) -> {
             if (value == null) {
                 return NullBuild.empty();
@@ -107,14 +119,14 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
 
     @SafeVarargs
     @Override
-    public final <U> NullChain<T> ofAny(NullFun<? super T, ? extends U>... function) {
+    public final <U> NullChain<T> ofAny(Function<? super T, ? extends U>... function) {
         this.taskList.add((value)->{
             if (Null.is(function)) {
                 throw new NullChainException(linkLog.append("ofAny? 传参不能为空").toString());
             }
             try {
                 for (int i = 0; i < function.length; i++) {
-                    NullFun<? super T, ? extends U> nullFun = function[i];
+                    Function<? super T, ? extends U> nullFun = function[i];
                     U apply = nullFun.apply((T)value);
                     if (Null.is(apply)) {
                         linkLog.append("ofAny? 第").append(i + 1).append("个");
@@ -192,7 +204,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
 
 
     @Override
-    public <U> NullChain<U> map(NullFun<? super T, ? extends U> function) {
+    public <U> NullChain<U> map(Function<? super T, ? extends U> function) {
         this.taskList.add((value)->{
             if (function == null) {
                 throw new NullChainException(linkLog.append("map? 传参不能为空").toString());
@@ -240,7 +252,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
 
 
     @Override
-    public <U> NullChain<U> flatChain(NullFun<? super T, ? extends NullChain<U>> function) {
+    public <U> NullChain<U> flatChain(Function<? super T, ? extends NullChain<U>> function) {
         this.taskList.add((value)->{
             if (function == null) {
                 throw new NullChainException(linkLog.append("flatChain? 传参不能为空").toString());
@@ -263,7 +275,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
     }
 
     @Override
-    public <U> NullChain<U> flatOptional(NullFun<? super T, ? extends Optional<U>> function) {
+    public <U> NullChain<U> flatOptional(Function<? super T, ? extends Optional<U>> function) {
         this.taskList.add((value)->{
             if (function == null) {
                 throw new NullChainException(linkLog.append("flatOptional? 传参不能为空").toString());

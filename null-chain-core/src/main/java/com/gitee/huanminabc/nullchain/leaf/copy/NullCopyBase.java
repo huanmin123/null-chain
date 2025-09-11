@@ -4,8 +4,7 @@ import com.gitee.huanminabc.common.reflect.BeanCopyUtil;
 import com.gitee.huanminabc.common.reflect.LambdaUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.*;
-import com.gitee.huanminabc.nullchain.common.function.NullFun;
-import com.gitee.huanminabc.nullchain.core.NullChain;
+import java.util.function.Function;
 import com.gitee.huanminabc.nullchain.core.NullChainBase;
 import lombok.extern.slf4j.Slf4j;
 
@@ -52,18 +51,18 @@ public class NullCopyBase<T> extends NullChainBase<T> implements  NullCopy<T> {
 
     @SafeVarargs
     @Override
-    public final <U> NullCopy<T> pick(NullFun<? super T, ? extends U>... mapper) {
+    public final <U> NullCopy<T> pick(Function<? super T, ? extends U>... mapper) {
         this.taskList.add((value)->{
             if (Null.is(mapper)) {
                 throw new NullChainException(linkLog.append("pick? 传参不能为空").toString());
             }
             try {
                 T object = (T) value.getClass().newInstance();
-                for (NullFun<? super T, ? extends U> nullFun : mapper) {
-                    U apply = nullFun.apply((T)value);
+                for (Function<? super T, ? extends U> function : mapper) {
+                    U apply = function.apply((T)value);
                     //跳过空值
                     if (Null.non(apply)) {
-                        String field = LambdaUtil.getFieldName(nullFun);
+                        String field = LambdaUtil.getFieldName(function);
                         //添加set方法
                         String firstLetter = field.substring(0, 1).toUpperCase();    //将属性的首字母转换为大写
                         String setMethodName = "set" + firstLetter + field.substring(1);

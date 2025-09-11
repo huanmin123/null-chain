@@ -1,12 +1,14 @@
 package com.gitee.huanminabc.nullchain.leaf.stream;
+
 import com.gitee.huanminabc.nullchain.common.NullKernel;
-import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
-import com.gitee.huanminabc.nullchain.common.function.NullFun;
-import com.gitee.huanminabc.nullchain.common.function.NullPredicate;
+import java.util.function.Function;
+import com.gitee.huanminabc.nullchain.core.NullChain;
 
 import java.util.Comparator;
-import java.util.function.*;
+import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
@@ -23,19 +25,19 @@ public interface NullStream<T > extends NullKernel<T> {
     NullStream<T> parallel();
 
      //映射
-    <R> NullStream<R> map(NullFun<? super T, ? extends R> mapper);
+    <R> NullStream<R> map(Function<? super T, ? extends R> mapper);
 
     //mapToInt
-    NullIntStream mapToInt(NullFun<? super T, ? extends Integer> mapper);
+    NullIntStream mapToInt(Function<? super T, ? extends Integer> mapper);
 
     //mapToLong
-    NullLongStream mapToLong(NullFun<? super T, ? extends Long> mapper);
+    NullLongStream mapToLong(Function<? super T, ? extends Long> mapper);
 
     //mapToDouble
-    NullDoubleStream mapToDouble(NullFun<? super T, ? extends Double> mapper);
+    NullDoubleStream mapToDouble(Function<? super T, ? extends Double> mapper);
 
     //过滤
-    NullStream<T> filter(NullPredicate<? super T> predicate);
+    NullStream<T> filter(Predicate<? super T> predicate);
     //排序
     NullStream<T> sorted();
     //排序
@@ -52,7 +54,7 @@ public interface NullStream<T > extends NullKernel<T> {
     NullStream<T> then(NullConsumer2<NullChain<T>, ? super T> function);
 
     //流展开 (扁平化)
-  <R> NullStream<R> flatMap(Function<? super T, ? extends NullStream<? extends R>> mapper);
+  <R> NullStream<R> flatMap(java.util.function.Function<? super T, ? extends NullStream<? extends R>> mapper);
 
 
     NullChain<T> findFirst();
