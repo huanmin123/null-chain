@@ -79,29 +79,6 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
     }
 
     @Override
-    public NullChain<T> filter(Predicate<? super T> predicate) {
-        this.taskList.add((value)->{
-            if (predicate == null) {
-                throw new NullChainException(linkLog.append("filter? 传参不能为空").toString());
-            }
-            try {
-                boolean test = predicate.test((T)value);
-                if (!test) {
-                    linkLog.append("filter?");
-                    return NullBuild.empty();
-                }
-                linkLog.append("filter->");
-                return NullBuild.noEmpty(value);
-            } catch (Exception e) {
-                linkLog.append("filter? ");
-                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-            }
-        });
-        return  NullBuild.busy(this);
-    }
-
-
-    @Override
     public <U> NullChain<T> isNull(NullFun<? super T, ? extends U> function) {
         this.taskList.add((value) -> {
             if (value == null) {
