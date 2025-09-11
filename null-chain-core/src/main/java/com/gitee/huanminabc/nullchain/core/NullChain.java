@@ -10,6 +10,7 @@ import com.gitee.huanminabc.nullchain.vessel.NullMap;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -38,6 +39,13 @@ public interface NullChain<T> extends NullConvert<T> {
      * 用于决定是否还需要继续执行,或者改变终结节点的结果,   返回true那么就继续执行, 返回false那么就返回空链
      */
      NullChain<T> ifGo(NullFun<? super T, Boolean> function);
+
+    /**
+     * 过滤器, 返回true继续执行, 返回false返回空链
+     * @param predicate
+     * @return
+     */
+     NullChain<T> filter(Predicate<? super T> predicate);
 
     /**
      * 如果是空继续往下走, 但是不会用到这个值 , 也不会出现空指针, 只是一种并且的补充

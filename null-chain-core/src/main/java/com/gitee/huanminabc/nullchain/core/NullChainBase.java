@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -77,8 +78,27 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
         return  NullBuild.busy(this);
     }
 
-
-
+    @Override
+    public NullChain<T> filter(Predicate<? super T> predicate) {
+        this.taskList.add((value)->{
+            if (predicate == null) {
+                throw new NullChainException(linkLog.append("filter? 传参不能为空").toString());
+            }
+            try {
+                boolean test = predicate.test((T)value);
+                if (!test) {
+                    linkLog.append("filter?");
+                    return NullBuild.empty();
+                }
+                linkLog.append("filter->");
+                return NullBuild.noEmpty(value);
+            } catch (Exception e) {
+                linkLog.append("filter? ");
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+        });
+        return  NullBuild.busy(this);
+    }
 
 
     @Override
