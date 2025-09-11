@@ -55,10 +55,13 @@ public interface NullFinality<T>  extends NullKernel<T>, Serializable {
     T orElseNull() ;
 
     /**
-     * @param defaultValue 如果上一个任务是null那么给一个默认值
+     * @param defaultValue 如果上一个任务是null那么给一个默认值  , 默认值不能是空字符串和null
      */
     T orElse(T defaultValue);
 
+    /**
+     * @param defaultValue 如果上一个任务是null那么给一个默认值  , 默认值不能是空字符串和null
+     */
     T orElse(Supplier<T> defaultValue);
 
     /**
