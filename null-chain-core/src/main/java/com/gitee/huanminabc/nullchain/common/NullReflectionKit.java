@@ -38,11 +38,6 @@ import java.lang.reflect.Method;
  * @see ClassIdentifyUtil 类识别工具
  * @see FieldUtil 字段工具
  */
- * </p>
- *
- * @author Caratacus
- * @since 2016-09-22
- */
 @Slf4j
 public class NullReflectionKit {
 
