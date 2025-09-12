@@ -10,6 +10,27 @@ import com.gitee.huanminabc.nullchain.core.NullFinality;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+/**
+ * Null终结操作扩展接口 - 提供终结操作的扩展功能
+ * 
+ * <p>该接口扩展了NullFinality接口，提供了额外的终结操作功能。
+ * 通过默认方法实现，为终结操作提供更丰富的功能支持。</p>
+ * 
+ * <h3>主要功能：</h3>
+ * <ul>
+ *   <li>终结操作扩展：提供额外的终结操作方法</li>
+ *   <li>值获取：支持多种值获取方式</li>
+ *   <li>异常处理：提供异常安全的获取方式</li>
+ *   <li>空值安全：所有操作都处理null值情况</li>
+ * </ul>
+ * 
+ * @param <T> 终结操作的值的类型
+ * @author huanmin
+ * @since 1.0.0
+ * @version 1.1.1
+ * @see NullFinality 终结操作接口
+ * @see NullKernelExt 内核扩展接口
+ */
 @SuppressWarnings("unchecked")
 public interface NullFinalityExt<T> extends NullFinality<T>,NullKernelExt<T> {
 

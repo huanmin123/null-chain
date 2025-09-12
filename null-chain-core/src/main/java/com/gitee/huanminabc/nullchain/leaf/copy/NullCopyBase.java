@@ -10,10 +10,13 @@ import com.gitee.huanminabc.nullchain.core.NullChainBase;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * @description:
- * @author: huanmin
- * @create: 2025-05-28 13:39
- **/
+ * Null复制操作基础实现类
+ * 
+ * @param <T> 复制值的类型
+ * @author huanmin
+ * @since 1.0.0
+ * @version 1.1.1
+ */
 @Slf4j
 public class NullCopyBase<T> extends NullChainBase<T> implements  NullCopy<T> {
     public NullCopyBase(StringBuilder linkLog, NullTaskList taskList) {

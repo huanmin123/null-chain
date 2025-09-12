@@ -19,6 +19,37 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Null字节码工具类 - 提供字节码操作的工具功能
+ * 
+ * <p>该类提供了字节码操作的工具功能，基于ByteBuddy框架实现动态类生成和字节码操作。
+ * 通过字节码技术，为Null链操作提供动态性和高性能。</p>
+ * 
+ * <h3>主要功能：</h3>
+ * <ul>
+ *   <li>动态类生成：动态生成类定义</li>
+ *   <li>字节码操作：操作字节码结构</li>
+ *   <li>类加载：动态加载生成的类</li>
+ *   <li>接口实现：动态实现接口</li>
+ *   <li>方法拦截：拦截和修改方法调用</li>
+ * </ul>
+ * 
+ * <h3>设计特点：</h3>
+ * <ul>
+ *   <li>字节码技术：基于ByteBuddy框架</li>
+ *   <li>动态性：支持运行时动态生成</li>
+ *   <li>高性能：字节码级别的性能优化</li>
+ *   <li>类型安全：通过类型检查保证安全性</li>
+ * </ul>
+ * 
+ * @author huanmin
+ * @since 1.0.0
+ * @version 1.1.1
+ * @see ByteBuddy ByteBuddy框架
+ * @see NullCheck 空值检查接口
+ * @see NullExt 扩展接口
+ */
+
 public class NullByteBuddy {
     public static final String EMPTY_MEMBER_NAME = "$NULL_MEMBER_EMPTY$"; //空成员变量名
     //用于缓存空对象

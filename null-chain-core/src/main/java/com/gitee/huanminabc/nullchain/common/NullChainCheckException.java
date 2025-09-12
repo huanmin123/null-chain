@@ -3,8 +3,31 @@ package com.gitee.huanminabc.nullchain.common;
 import lombok.extern.slf4j.Slf4j;
 
 /**
+ * Null链检查异常类 - 提供链式操作的检查异常
+ * 
+ * <p>该类提供了链式操作的检查异常，继承自Exception，用于处理链式操作过程中的检查异常。
+ * 通过专门的检查异常，为Null链操作提供清晰的异常处理机制。</p>
+ * 
+ * <h3>主要功能：</h3>
+ * <ul>
+ *   <li>检查异常：提供链式操作的检查异常</li>
+ *   <li>异常信息：提供详细的异常信息</li>
+ *   <li>异常处理：支持异常的处理和传播</li>
+ *   <li>日志记录：支持异常日志记录</li>
+ * </ul>
+ * 
+ * <h3>设计特点：</h3>
+ * <ul>
+ *   <li>检查异常：继承自Exception的检查异常</li>
+ *   <li>信息丰富：提供详细的异常信息</li>
+ *   <li>日志支持：支持日志记录</li>
+ *   <li>异常传播：支持异常的传播和处理</li>
+ * </ul>
+ * 
  * @author huanmin
- * @date 2023/11/21
+ * @since 1.0.0
+ * @version 1.1.1
+ * @see Exception 异常基类
  */
 @Slf4j
 public class NullChainCheckException extends Exception {

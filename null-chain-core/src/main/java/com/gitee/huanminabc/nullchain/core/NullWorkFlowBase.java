@@ -19,6 +19,14 @@ import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
+/**
+ * Null工作流基础实现类
+ * 
+ * @param <T> 工作流处理的值的类型
+ * @author huanmin
+ * @since 1.0.0
+ * @version 1.1.1
+ */
 @Slf4j
 public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWorkFlow<T> {
 

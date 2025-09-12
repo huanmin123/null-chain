@@ -11,10 +11,37 @@ import java.time.*;
 import java.util.Date;
 
 /**
- * 只兼容Date,LocalDate,LocalDateTime,10或13位时间戳(数值或字符串)
- *
+ * Null日期格式化工具类 - 提供日期格式化的工具功能
+ * 
+ * <p>该类提供了日期格式化的工具功能，支持Date、LocalDate、LocalDateTime、10或13位时间戳(数值或字符串)等格式。
+ * 通过统一的日期格式化接口，为Null链操作提供便捷的日期处理能力。</p>
+ * 
+ * <h3>主要功能：</h3>
+ * <ul>
+ *   <li>日期格式化：格式化各种日期类型</li>
+ *   <li>时间戳处理：处理10位和13位时间戳</li>
+ *   <li>类型转换：在不同日期类型间转换</li>
+ *   <li>格式验证：验证日期格式的正确性</li>
+ *   <li>时区处理：处理时区相关的日期操作</li>
+ * </ul>
+ * 
+ * <h3>设计特点：</h3>
+ * <ul>
+ *   <li>多格式支持：支持多种日期格式</li>
+ *   <li>类型安全：通过类型检查保证安全性</li>
+ *   <li>异常处理：完善的异常处理机制</li>
+ *   <li>性能优化：提供高效的日期处理</li>
+ * </ul>
+ * 
  * @author huanmin
- * @date 2024/11/22
+ * @since 1.0.0
+ * @version 1.1.1
+ * @see Date 日期类
+ * @see LocalDate 本地日期类
+ * @see LocalDateTime 本地日期时间类
+ * @see DateFormatEnum 日期格式枚举
+ * @see DateOffsetEnum 日期偏移枚举
+ * @see TimeEnum 时间枚举
  */
 public class NullDateFormat {
 

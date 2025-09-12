@@ -9,6 +9,27 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+
+/**
+ * Null链扩展接口 - 提供链式操作的扩展功能
+ * 
+ * <p>该接口扩展了NullChain接口，提供了额外的链式操作功能。
+ * 通过默认方法实现，为链式操作提供更丰富的功能支持。</p>
+ * 
+ * <h3>主要功能：</h3>
+ * <ul>
+ *   <li>链式操作扩展：提供额外的链式操作方法</li>
+ *   <li>类型转换：支持类型转换操作</li>
+ *   <li>空值安全：所有操作都处理null值情况</li>
+ * </ul>
+ * 
+ * @param <T> 链中值的类型
+ * @author huanmin
+ * @since 1.0.0
+ * @version 1.1.1
+ * @see NullChain 链式操作接口
+ * @see NullConvertExt 转换扩展接口
+ */
 @SuppressWarnings("unchecked")
 public interface NullChainExt<T> extends NullChain<T>, NullConvertExt<T> {
     @Override

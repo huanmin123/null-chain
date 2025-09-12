@@ -16,36 +16,12 @@ import java.util.function.Predicate;
 import java.util.stream.*;
 
 /**
- * Null流操作基础类 - 提供空值安全的流式操作
- * 
- * <p>该类提供了对Java Stream API的空值安全封装，支持各种流操作如map、filter、reduce等。
- * 所有操作都是空值安全的，遇到null值会优雅处理而不会抛出异常。</p>
- * 
- * <h3>核心功能：</h3>
- * <ul>
- *   <li>流转换：map、flatMap等转换操作</li>
- *   <li>流过滤：filter、distinct等过滤操作</li>
- *   <li>流排序：sorted排序操作</li>
- *   <li>流限制：limit、skip等限制操作</li>
- *   <li>流聚合：reduce、collect等聚合操作</li>
- *   <li>流匹配：allMatch、anyMatch、noneMatch等匹配操作</li>
- *   <li>并行流：parallel并行处理支持</li>
- * </ul>
- * 
- * <h3>设计特点：</h3>
- * <ul>
- *   <li>空值安全：所有操作都处理null值情况</li>
- *   <li>链式调用：支持流畅的链式编程风格</li>
- *   <li>类型安全：通过泛型保证类型安全</li>
- *   <li>性能优化：延迟执行和短路操作</li>
- * </ul>
+ * Null流操作基础实现类
  * 
  * @param <T> 流中元素的类型
  * @author huanmin
  * @since 1.0.0
  * @version 1.1.1
- * @see NullStream 流操作接口
- * @see NullKernelAbstract 内核抽象基类
  */
 public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStream<T> {
     public NullStreamBase(StringBuilder linkLog, NullTaskList taskList) {

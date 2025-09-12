@@ -8,12 +8,12 @@ import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
 import com.gitee.huanminabc.nullchain.enums.TimeEnum;
 
 /**
- * 简要描述
- *
- * @Author: huanmin
- * @Date: 2025/5/28 00:25
- * @Version: 1.0
- * @Description: 文件作用详细描述....
+ * Null日期操作基础实现类
+ * 
+ * @param <T> 日期值的类型
+ * @author huanmin
+ * @since 1.0.0
+ * @version 1.1.1
  */
 public class NullDateBase<T> extends NullChainBase<T> implements  NullDate<T>  {
 

@@ -7,12 +7,23 @@ import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.core.NullChainBase;
 
 /**
- * 简要描述
- *
- * @Author: mac
- * @Date: 2025/5/29 19:38
- * @Version: 1.0
- * @Description: 文件作用详细描述....
+ * Null内核扩展接口 - 提供内核操作的扩展功能
+ * 
+ * <p>该接口扩展了NullKernel接口，提供了额外的内核操作功能。
+ * 通过默认方法实现，为内核操作提供更丰富的功能支持。</p>
+ * 
+ * <h3>主要功能：</h3>
+ * <ul>
+ *   <li>内核操作扩展：提供额外的内核操作方法</li>
+ *   <li>异步执行：支持异步执行功能</li>
+ *   <li>空值安全：所有操作都处理null值情况</li>
+ * </ul>
+ * 
+ * @param <T> 内核处理的值的类型
+ * @author huanmin
+ * @since 1.0.0
+ * @version 1.1.1
+ * @see NullKernel 内核接口
  */
 public interface NullKernelExt<T>  extends NullKernel<T>, NullCheck {
 

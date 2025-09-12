@@ -12,11 +12,33 @@ import java.nio.file.Files;
 import java.util.Arrays;
 
 /**
- * @program: java-huanmin-utils
- * @description: 组合任务参数
- * @author: huanmin
- * @create: 2025-02-10 10:25
- **/
+ * Null组合NF任务类 - 提供组合NF任务的参数管理功能
+ * 
+ * <p>该类提供了组合NF任务的参数管理功能，支持将多个NF任务组合成一个任务组进行执行。
+ * 通过NF任务组合机制，为复杂的业务流程提供灵活的任务组织能力。</p>
+ * 
+ * <h3>主要功能：</h3>
+ * <ul>
+ *   <li>NF任务组合：将多个NF任务组合成一个任务组</li>
+ *   <li>参数管理：管理NF任务组的参数信息</li>
+ *   <li>任务信息：提供NF任务信息的管理</li>
+ *   <li>批量执行：支持批量NF任务执行</li>
+ * </ul>
+ * 
+ * <h3>设计特点：</h3>
+ * <ul>
+ *   <li>NF任务组合：支持NF任务组合功能</li>
+ *   <li>参数管理：提供统一的参数管理</li>
+ *   <li>灵活配置：支持灵活的NF任务配置</li>
+ *   <li>批量处理：支持批量NF任务处理</li>
+ * </ul>
+ * 
+ * @author huanmin
+ * @since 1.0.0
+ * @version 1.1.1
+ * @see NullGroupTask 组合任务类
+ * @see NullTaskInfo 任务信息类
+ */
 @Data
 public class NullGroupNfTask {
     NullTaskInfo[] list;

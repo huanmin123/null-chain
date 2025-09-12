@@ -19,6 +19,43 @@ import com.gitee.huanminabc.nullchain.leaf.stream.*;
 import lombok.extern.slf4j.Slf4j;
 
 /**
+ * Null构建器 - 提供Null链的构建功能
+ * 
+ * <p>该类提供了构建各种Null链实例的工厂方法，包括核心链、计算链、复制链、日期链、HTTP链、JSON链和流链等。
+ * 通过统一的构建接口，为开发者提供便捷的链式操作入口。</p>
+ * 
+ * <h3>主要功能：</h3>
+ * <ul>
+ *   <li>核心链构建：构建基础的Null链实例</li>
+ *   <li>计算链构建：构建数值计算链实例</li>
+ *   <li>复制链构建：构建对象复制链实例</li>
+ *   <li>日期链构建：构建日期处理链实例</li>
+ *   <li>HTTP链构建：构建HTTP请求链实例</li>
+ *   <li>JSON链构建：构建JSON处理链实例</li>
+ *   <li>流链构建：构建流处理链实例</li>
+ * </ul>
+ * 
+ * <h3>设计特点：</h3>
+ * <ul>
+ *   <li>工厂模式：提供统一的构建接口</li>
+ *   <li>类型安全：通过泛型保证类型安全</li>
+ *   <li>空值安全：所有构建的链都支持空值安全操作</li>
+ *   <li>链式调用：支持链式编程风格</li>
+ * </ul>
+ * 
+ * @author huanmin
+ * @since 1.0.0
+ * @version 1.1.1
+ * @see NullChain 核心链接口
+ * @see NullCalculate 计算链接口
+ * @see NullCopy 复制链接口
+ * @see NullDate 日期链接口
+ * @see OkHttp HTTP链接口
+ * @see NullJson JSON链接口
+ * @see NullStream 流链接口
+ */
+
+/**
  * @author huanmin
  * @date 2024/1/11
  */

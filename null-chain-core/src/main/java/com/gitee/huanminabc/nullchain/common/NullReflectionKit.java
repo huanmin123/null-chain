@@ -1,11 +1,5 @@
 package com.gitee.huanminabc.nullchain.common;
 
-/**
- * @Description TODO
- * @Author huanmin
- * @Date 2024/4/28 下午5:17
- */
-
 import com.gitee.huanminabc.common.reflect.ClassIdentifyUtil;
 import com.gitee.huanminabc.common.reflect.FieldUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -16,8 +10,34 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * <p>
- * 反射工具类
+ * Null反射工具类 - 提供反射操作的工具功能
+ * 
+ * <p>该类提供了反射操作的工具功能，支持动态调用方法、访问字段、创建实例等反射操作。
+ * 通过反射机制，为Null链操作提供动态性和灵活性。</p>
+ * 
+ * <h3>主要功能：</h3>
+ * <ul>
+ *   <li>方法调用：动态调用对象的方法</li>
+ *   <li>字段访问：动态访问对象的字段</li>
+ *   <li>实例创建：动态创建对象实例</li>
+ *   <li>类型检查：检查对象类型和继承关系</li>
+ *   <li>数组操作：动态操作数组对象</li>
+ * </ul>
+ * 
+ * <h3>设计特点：</h3>
+ * <ul>
+ *   <li>反射支持：提供完整的反射操作支持</li>
+ *   <li>异常处理：完善的异常处理机制</li>
+ *   <li>类型安全：通过类型检查保证安全性</li>
+ *   <li>性能优化：提供高效的反射操作</li>
+ * </ul>
+ * 
+ * @author huanmin
+ * @since 1.0.0
+ * @version 1.1.1
+ * @see ClassIdentifyUtil 类识别工具
+ * @see FieldUtil 字段工具
+ */
  * </p>
  *
  * @author Caratacus

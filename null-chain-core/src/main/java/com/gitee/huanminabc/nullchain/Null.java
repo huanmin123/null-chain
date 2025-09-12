@@ -195,18 +195,18 @@ public class Null extends NullUtil {
 
     //将Stream转为NullChain
     public static <S> NullStream<S> ofStream(Stream<S> stream) {
-        return ofStreamInternal(stream, OF_STREAM_Q, OF_STREAM_ARROW);
+        return ofStreamInternal(stream, OF_STREAM_ARROW);
     }
 
 
 
     //将Collection转为NullStream
     public static <S> NullStream<S> ofStream(Collection<S> collection) {
-        return ofStreamInternal(collection, TO_STREAM_Q, TO_STREAM_ARROW);
+        return ofStreamInternal(collection, TO_STREAM_ARROW);
     }
 
     public static <S> NullStream<S> ofStream(NullCollection<S> collection) {
-        return ofStreamInternal(collection, TO_STREAM_Q, TO_STREAM_ARROW);
+        return ofStreamInternal(collection, TO_STREAM_ARROW);
     }
 
     public static <T> NullStream<T> ofStream(NullChain<? extends Collection<T>> nullChain) {
@@ -308,15 +308,14 @@ public class Null extends NullUtil {
 
 
     @SuppressWarnings("unchecked")
-    static <S> NullStream<S> ofStreamInternal(Object source, String nullLog, String okLog) {
+    static <S> NullStream<S> ofStreamInternal(Object source, String okLog) {
         NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
         nullTaskList.add((__) -> {
-            if (Null.is(source)) {
-                linkLog.append(nullLog);
-                return NullBuild.empty();
-            }
             linkLog.append(okLog);
+            if (Null.is(source)) {
+                return NullBuild.noEmpty((Stream.empty()));
+            }
             Stream<S> stream;
             if (source instanceof Stream) {
                 stream = ((Stream<S>) source).filter(Null::non);
@@ -336,11 +335,10 @@ public class Null extends NullUtil {
         NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
         nullTaskList.add((__) -> {
-            if (Null.is(nullChain)) {
-                linkLog.append(TO_STREAM_Q);
-                return NullBuild.empty();
-            }
             linkLog.append(TO_STREAM_ARROW);
+            if (Null.is(nullChain)) {
+                return NullBuild.noEmpty((Stream.empty()));
+            }
             return NullBuild.noEmpty((nullChain.get()).stream().filter(Null::non));
         });
         return NullBuild.busyStream(linkLog, nullTaskList);
@@ -350,11 +348,10 @@ public class Null extends NullUtil {
         NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder();
         nullTaskList.add((__) -> {
-            if (Null.is(nullChain)) {
-                linkLog.append(TO_STREAM_Q);
-                return NullBuild.empty();
-            }
             linkLog.append(TO_STREAM_ARROW);
+            if (Null.is(nullChain)) {
+                return NullBuild.noEmpty((Stream.empty()));
+            }
             return NullBuild.noEmpty(Arrays.stream(nullChain.get()).filter(Null::non));
         });
         return NullBuild.busyStream(linkLog, nullTaskList);

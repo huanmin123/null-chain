@@ -18,10 +18,34 @@ import java.io.Serializable;
 import java.util.function.Supplier;
 
 /**
- * 接口返回数据格式
- *
+ * Null结果封装类 - 提供统一的接口返回数据格式
+ * 
+ * <p>该类提供了统一的接口返回数据格式，支持成功和失败两种状态的结果封装。
+ * 通过标准化的返回格式，为API接口提供一致的数据结构。</p>
+ * 
+ * <h3>主要功能：</h3>
+ * <ul>
+ *   <li>结果封装：封装接口返回的结果数据</li>
+ *   <li>状态管理：管理成功和失败状态</li>
+ *   <li>消息处理：提供错误消息和成功消息</li>
+ *   <li>链路追踪：支持链路ID追踪</li>
+ *   <li>JSON序列化：支持JSON序列化和反序列化</li>
+ * </ul>
+ * 
+ * <h3>设计特点：</h3>
+ * <ul>
+ *   <li>类型安全：通过泛型保证类型安全</li>
+ *   <li>序列化支持：支持JSON序列化</li>
+ *   <li>链路追踪：支持链路ID追踪</li>
+ *   <li>状态管理：提供清晰的状态管理</li>
+ * </ul>
+ * 
+ * @param <T> 结果数据的类型
  * @author huanmin
- * @date 2024/11/26
+ * @since 1.0.0
+ * @version 1.1.1
+ * @see Serializable 序列化接口
+ * @see ResponseStatusEnum 响应状态枚举
  */
 @Slf4j
 @Data

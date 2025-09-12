@@ -43,11 +43,9 @@ public final class NullLog {
     public static final String OF_COPY_Q = " Null.ofCopy?";
     public static final String OF_COPY_ARROW = " Null.ofCopy->";
 
-    public static final String OF_STREAM_Q = " Null.ofStream?";
     public static final String OF_STREAM_ARROW = " Null.ofStream->";
     public static final String OF_STREAM_UNSUPPORTED_SOURCE = "ofStream? Unsupported source type";
 
-    public static final String TO_STREAM_Q = " Null.toStream?";
     public static final String TO_STREAM_ARROW = " Null.toStream->";
 
     public static final String OF_HTTP_Q = " Null.ofHttp?";

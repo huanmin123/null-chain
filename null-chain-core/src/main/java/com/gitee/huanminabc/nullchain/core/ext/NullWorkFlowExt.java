@@ -9,6 +9,27 @@ import com.gitee.huanminabc.nullchain.task.NullTask;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
 import com.gitee.huanminabc.nullchain.vessel.NullMap;
 
+/**
+ * Null工作流扩展接口 - 提供工作流操作的扩展功能
+ * 
+ * <p>该接口扩展了NullWorkFlow接口，提供了额外的工作流操作功能。
+ * 通过默认方法实现，为工作流操作提供更丰富的功能支持。</p>
+ * 
+ * <h3>主要功能：</h3>
+ * <ul>
+ *   <li>工作流操作扩展：提供额外的工作流操作方法</li>
+ *   <li>工具调用：支持自定义工具类的调用</li>
+ *   <li>任务执行：支持自定义任务的执行</li>
+ *   <li>空值安全：所有操作都处理null值情况</li>
+ * </ul>
+ * 
+ * @param <T> 工作流处理的值的类型
+ * @author huanmin
+ * @since 1.0.0
+ * @version 1.1.1
+ * @see NullWorkFlow 工作流接口
+ * @see NullFinalityExt 终结操作扩展接口
+ */
 public interface NullWorkFlowExt<T> extends NullWorkFlow<T>,  NullFinalityExt<T>{
 
     @Override

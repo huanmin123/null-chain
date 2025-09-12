@@ -111,44 +111,209 @@ public interface NullChain<T> extends NullConvert<T> {
     NullChain<T> ifNeGo(Predicate<? super T> function);
 
     /**
-     * 如果是空继续往下走, 但是不会用到这个值 , 也不会出现空指针, 只是一种并且的补充
-     * 比如 一个对象内 a b c 都不是空 并且 d是空 那么才满足条件 , 但是在实际处理的时候不会用到d , 只是一种逻辑上的处理
-     * 这个是有歧义的和of 是一种互补关系
+     * 空值检查操作 - 如果检查的值为空则继续执行
+     * 
+     * <p>该方法用于检查指定字段是否为空，如果为空则继续执行后续操作。
+     * 这是一个逻辑补充操作，不会改变当前值，只是用于条件判断。</p>
+     * 
+     * <p><strong>使用场景：</strong>当需要确保对象的多个字段都不为空时，
+     * 可以使用此方法进行空值检查，但不会使用检查的值。</p>
+     * 
+     * @param <U> 检查字段的类型
+     * @param function 字段访问函数
+     * @return 新的Null链，如果检查的字段为空则继续执行
+     * 
+     * @example
+     * <pre>{@code
+     * // 确保用户的所有关键字段都不为空
+     * String result = Null.of(user)
+     *     .isNull(User::getName)     // 检查姓名是否为空
+     *     .isNull(User::getEmail)    // 检查邮箱是否为空
+     *     .map(User::getProfile)     // 只有前面的节点满足条件才继续
+     *     .orElse("默认配置");
+     * }</pre>
      */
     <U> NullChain<T> isNull(Function<? super T, ? extends U> function);
 
 
     /**
-     * 在上一个任务不是空的情况下执行,不改变对象类型不改变对象内容, 就是一个空白节点无状态的不影响链路的数据
+     * 执行操作但不改变值 - 空白节点操作
+     * 
+     * <p>该方法用于执行某些操作但不改变当前值，相当于在链中添加一个空白节点。
+     * 适用于需要在链中执行副作用操作（如日志记录、缓存更新等）的场景。</p>
+     * 
+     * @param function 要执行的操作
+     * @return 新的Null链，值保持不变
+     * 
+     * @example
+     * <pre>{@code
+     * Null.of(user)
+     *     .then(() -> log.info("处理用户数据"))  // 记录日志但不改变值
+     *     .map(User::getName)
+     *     .orElse("未知用户");
+     * }</pre>
      */
-
     NullChain<T> then(Runnable function);
 
+    /**
+     * 执行操作但不改变值 - 带参数的操作
+     * 
+     * <p>该方法用于执行某些操作但不改变当前值，操作可以访问当前值。
+     * 适用于需要在链中执行副作用操作（如日志记录、缓存更新等）的场景。</p>
+     * 
+     * @param function 要执行的操作，可以访问当前值
+     * @return 新的Null链，值保持不变
+     * 
+     * @example
+     * <pre>{@code
+     * Null.of(user)
+     *     .then(u -> log.info("处理用户: {}", u.getName()))  // 记录用户信息
+     *     .map(User::getName)
+     *     .orElse("未知用户");
+     * }</pre>
+     */
     NullChain<T> then(Consumer<? super T> function);
 
+    /**
+     * 执行操作但不改变值 - 带链和参数的操作
+     * 
+     * <p>该方法用于执行某些操作但不改变当前值，操作可以访问当前链和值。
+     * 适用于需要在链中执行复杂副作用操作的场景。</p>
+     * 
+     * @param function 要执行的操作，可以访问当前链和值
+     * @return 新的Null链，值保持不变
+     * 
+     * @example
+     * <pre>{@code
+     * Null.of(user)
+     *     .then2((chain, u) -> {
+     *         log.info("处理用户: {}", u.getName());
+     *         // 可以访问链的上下文信息
+     *     })
+     *     .map(User::getName)
+     *     .orElse("未知用户");
+     * }</pre>
+     */
     NullChain<T> then2(NullConsumer2<NullChain<T>, ? super T> function);
 
     /**
-     * 获取上一个任务的内容,如果上一个任务为空,那么就返回空链
+     * 值映射操作 - 将当前值转换为新值
+     * 
+     * <p>该方法用于将当前值通过映射函数转换为新的值。如果当前值为空，
+     * 则返回空链，不会执行映射操作。</p>
+     * 
+     * @param <U> 映射后的值的类型
+     * @param function 映射函数
+     * @return 包含映射结果的Null链
+     * 
+     * @example
+     * <pre>{@code
+     * String name = Null.of(user)
+     *     .map(User::getName)        // 将User对象映射为String
+     *     .map(String::toUpperCase)  // 将字符串转换为大写
+     *     .orElse("未知用户");
+     * }</pre>
      */
     <U> NullChain<U> map(Function<? super T, ? extends U> function);
 
+    /**
+     * 值映射操作 - 带链上下文的映射
+     * 
+     * <p>该方法用于将当前值通过映射函数转换为新的值，映射函数可以访问当前链的上下文。
+     * 如果当前值为空，则返回空链，不会执行映射操作。</p>
+     * 
+     * @param <U> 映射后的值的类型
+     * @param function 映射函数，可以访问当前链和值
+     * @return 包含映射结果的Null链
+     * 
+     * @example
+     * <pre>{@code
+     * String result = Null.of(user)
+     *     .map2((chain, u) -> {
+     *         // 可以访问链的上下文信息
+     *         return u.getName() + "_processed";
+     *     })
+     *     .orElse("未知用户");
+     * }</pre>
+     */
     <U> NullChain<U> map2(NullFun2<NullChain<T>, ? super T, ? extends U> function);
 
-
     /**
-     * 上一个任务的内容返回的是NullChain<?>  那么就返回 ?  这样就可以继续操作了 , 通俗来说就是解包
+     * 扁平化链操作 - 解包嵌套的NullChain
+     * 
+     * <p>该方法用于处理返回NullChain的映射函数，将嵌套的NullChain解包为单层结构。
+     * 如果当前值为空，则返回空链，不会执行映射操作。</p>
+     * 
+     * @param <U> 解包后的值的类型
+     * @param function 返回NullChain的映射函数
+     * @return 解包后的Null链
+     * 
+     * @example
+     * <pre>{@code
+     * String result = Null.of(user)
+     *     .flatChain(u -> Null.of(u.getProfile())  // 返回NullChain<String>
+     *         .map(Profile::getDescription))
+     *     .orElse("无描述");
+     * }</pre>
      */
     <U> NullChain<U> flatChain(Function<? super T, ? extends NullChain<U>> function);
 
+    /**
+     * 扁平化Optional操作 - 解包Optional值
+     * 
+     * <p>该方法用于处理返回Optional的映射函数，将Optional解包为直接值。
+     * 如果当前值为空或Optional为空，则返回空链。</p>
+     * 
+     * @param <U> 解包后的值的类型
+     * @param function 返回Optional的映射函数
+     * @return 解包后的Null链
+     * 
+     * @example
+     * <pre>{@code
+     * String result = Null.of(user)
+     *     .flatOptional(u -> u.getProfile()
+     *         .map(Profile::getDescription))  // 返回Optional<String>
+     *     .orElse("无描述");
+     * }</pre>
+     */
     <U> NullChain<U> flatOptional(Function<? super T, ? extends Optional<U>> function);
 
-
     /**
-     * 如果上一个任务为空,那么就执行supplier返回新的任务,如果不为空,那么就返回当前任务
+     * 默认值操作 - 使用Supplier提供默认值
+     * 
+     * <p>该方法用于在当前值为空时提供默认值。如果当前值不为空，
+     * 则返回当前链；如果当前值为空，则执行Supplier获取默认值。</p>
+     * 
+     * @param supplier 默认值提供者
+     * @return 包含当前值或默认值的Null链
+     * 
+     * @example
+     * <pre>{@code
+     * String result = Null.of(user)
+     *     .map(User::getName)
+     *     .or(() -> "默认用户名")  // 如果用户名为空，使用默认值
+     *     .orElse("未知用户");
+     * }</pre>
      */
     NullChain<T> or(Supplier<? extends T> supplier);
 
+    /**
+     * 默认值操作 - 使用固定值作为默认值
+     * 
+     * <p>该方法用于在当前值为空时提供固定的默认值。如果当前值不为空，
+     * 则返回当前链；如果当前值为空，则使用提供的默认值。</p>
+     * 
+     * @param defaultValue 默认值
+     * @return 包含当前值或默认值的Null链
+     * 
+     * @example
+     * <pre>{@code
+     * String result = Null.of(user)
+     *     .map(User::getName)
+     *     .or("默认用户名")  // 如果用户名为空，使用默认值
+     *     .orElse("未知用户");
+     * }</pre>
+     */
     NullChain<T> or(T defaultValue);
 
 

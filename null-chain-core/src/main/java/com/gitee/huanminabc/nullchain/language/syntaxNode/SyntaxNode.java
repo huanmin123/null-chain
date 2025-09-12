@@ -5,10 +5,30 @@ import com.gitee.huanminabc.nullchain.language.token.Token;
 
 import java.util.List;
 
-//需要继承SyntaxNodeAbs来使用
 /**
+ * 语法节点接口 - 定义语法节点的基本结构
+ * 
+ * <p>该接口定义了语法节点的基本结构，用于构建语法树。
+ * 需要继承SyntaxNodeAbs来使用。</p>
+ * 
+ * <h3>主要功能：</h3>
+ * <ul>
+ *   <li>语法节点：定义语法节点的基本结构</li>
+ *   <li>类型获取：获取语法节点的类型</li>
+ *   <li>上下文处理：处理语法节点的上下文</li>
+ * </ul>
+ * 
+ * <h3>使用场景：</h3>
+ * <ul>
+ *   <li>构建语法树</li>
+ *   <li>语法分析</li>
+ *   <li>语言处理</li>
+ * </ul>
+ * 
  * @author huanmin
- * @date 2024/11/22
+ * @since 1.0.0
+ * @version 1.1.1
+ * @see SyntaxNodeAbs 语法节点抽象类
  */
 public interface SyntaxNode {
     SyntaxNodeType getType();

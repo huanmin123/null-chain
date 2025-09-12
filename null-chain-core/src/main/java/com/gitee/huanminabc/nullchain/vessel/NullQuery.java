@@ -8,8 +8,33 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
- * 请参考{@link Queue}
- * @param <T>
+ * Null队列接口 - 提供空值安全的队列操作功能
+ * 
+ * <p>该接口提供了对Java Queue接口的空值安全封装，支持队列的各种操作如添加、删除、获取等。
+ * 所有操作都是空值安全的，遇到null值会优雅处理而不会抛出异常。</p>
+ * 
+ * <h3>主要功能：</h3>
+ * <ul>
+ *   <li>队列操作：支持队列的先进先出操作</li>
+ *   <li>阻塞操作：支持阻塞队列的阻塞操作</li>
+ *   <li>优先级操作：支持优先级队列的优先级操作</li>
+ *   <li>工厂方法：提供多种Queue实现的创建方法</li>
+ * </ul>
+ * 
+ * <h3>设计特点：</h3>
+ * <ul>
+ *   <li>空值安全：所有操作都处理null值情况</li>
+ *   <li>类型安全：通过泛型保证类型安全</li>
+ *   <li>链式调用：支持流畅的链式编程风格</li>
+ *   <li>多种实现：支持PriorityQueue、ConcurrentLinkedQueue、BlockingQueue等</li>
+ * </ul>
+ * 
+ * @param <T> 队列元素的类型
+ * @author huanmin
+ * @since 1.0.0
+ * @version 1.1.1
+ * @see Queue Java队列接口
+ * @see NullCollection 空值安全集合接口
  */
 public interface NullQuery<T> extends NullCollection<T> {
 

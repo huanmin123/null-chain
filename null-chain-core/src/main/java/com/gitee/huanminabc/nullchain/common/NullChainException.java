@@ -5,8 +5,34 @@ import lombok.extern.slf4j.Slf4j;
 import java.lang.reflect.Field;
 
 /**
+ * Null链运行时异常类 - 提供链式操作的运行时异常
+ * 
+ * <p>该类提供了链式操作的运行时异常，继承自RuntimeException，用于处理链式操作过程中的运行时异常。
+ * 通过专门的运行时异常，为Null链操作提供灵活的异常处理机制。</p>
+ * 
+ * <h3>主要功能：</h3>
+ * <ul>
+ *   <li>运行时异常：提供链式操作的运行时异常</li>
+ *   <li>异常信息：提供详细的异常信息</li>
+ *   <li>异常处理：支持异常的处理和传播</li>
+ *   <li>日志记录：支持异常日志记录</li>
+ *   <li>字段处理：支持异常字段的处理</li>
+ * </ul>
+ * 
+ * <h3>设计特点：</h3>
+ * <ul>
+ *   <li>运行时异常：继承自RuntimeException的运行时异常</li>
+ *   <li>信息丰富：提供详细的异常信息</li>
+ *   <li>日志支持：支持日志记录</li>
+ *   <li>字段处理：支持异常字段的处理</li>
+ *   <li>异常传播：支持异常的传播和处理</li>
+ * </ul>
+ * 
  * @author huanmin
- * @date 2023/11/21
+ * @since 1.0.0
+ * @version 1.1.1
+ * @see RuntimeException 运行时异常基类
+ * @see FieldUtil 字段工具
  */
 @Slf4j
 public class NullChainException extends RuntimeException {

@@ -15,34 +15,12 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
- * Null链基础实现类 - 提供空值安全的链式操作实现
- * 
- * <p>这是NullChain接口的默认实现类，提供了完整的链式操作功能。
- * 该类负责管理任务列表和执行链式操作，确保空值安全。</p>
- * 
- * <h3>核心功能：</h3>
- * <ul>
- *   <li>条件判断和分支处理</li>
- *   <li>值映射和转换</li>
- *   <li>类型转换和检查</li>
- *   <li>链式操作管理</li>
- *   <li>异常处理和日志记录</li>
- * </ul>
- * 
- * <h3>设计特点：</h3>
- * <ul>
- *   <li>延迟执行：操作不会立即执行，而是在最终获取结果时执行</li>
- *   <li>空值安全：任何操作遇到null都会优雅处理</li>
- *   <li>链式调用：支持流畅的链式编程风格</li>
- *   <li>日志追踪：完整的操作日志记录</li>
- * </ul>
+ * Null链基础实现类
  * 
  * @param <T> 链中值的类型
  * @author huanmin
  * @since 1.0.0
  * @version 1.1.1
- * @see NullChain 链式操作接口
- * @see NullConvertBase 转换操作基类
  */
 @Slf4j
 public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T> {
