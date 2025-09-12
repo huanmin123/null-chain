@@ -4,6 +4,7 @@ import com.gitee.huanminabc.common.reflect.BeanCopyUtil;
 import com.gitee.huanminabc.common.reflect.LambdaUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.*;
+import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 import java.util.function.Function;
 import com.gitee.huanminabc.nullchain.core.NullChainBase;
 import lombok.extern.slf4j.Slf4j;
@@ -25,10 +26,10 @@ public class NullCopyBase<T> extends NullChainBase<T> implements  NullCopy<T> {
     public NullCopy<T> copy() {
         this.taskList.add((value)->{
             try {
-                linkLog.append("copy->");
+                linkLog.append(COPY_ARROW);
                 return NullBuild.noEmpty(BeanCopyUtil.copy(value));
             } catch (Exception e) {
-                linkLog.append("copy? ");
+                linkLog.append(COPY_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         });
@@ -39,10 +40,10 @@ public class NullCopyBase<T> extends NullChainBase<T> implements  NullCopy<T> {
     public NullCopy<T> deepCopy() {
         this.taskList.add((value)->{
             try {
-                linkLog.append("deepCopy->");
+                linkLog.append(DEEP_COPY_ARROW);
                 return NullBuild.noEmpty(BeanCopyUtil.deepCopy(value));
             } catch (Exception e) {
-                linkLog.append("deepCopy? ");
+                linkLog.append(DEEP_COPY_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         });
@@ -54,7 +55,7 @@ public class NullCopyBase<T> extends NullChainBase<T> implements  NullCopy<T> {
     public final <U> NullCopy<T> pick(Function<? super T, ? extends U>... mapper) {
         this.taskList.add((value)->{
             if (Null.is(mapper)) {
-                throw new NullChainException(linkLog.append("pick? 传参不能为空").toString());
+                throw new NullChainException(linkLog.append(PICK_PARAM_NULL).toString());
             }
             try {
                 T object = (T) value.getClass().newInstance();
@@ -70,10 +71,10 @@ public class NullCopyBase<T> extends NullChainBase<T> implements  NullCopy<T> {
                         object.getClass().getMethod(setMethodName, apply.getClass()).invoke(object, apply);
                     }
                 }
-                linkLog.append("pick->");
+                linkLog.append(PICK_ARROW);
                 return NullBuild.noEmpty(object);
             } catch (Exception e) {
-                linkLog.append("pick? ");
+                linkLog.append(PICK_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         });

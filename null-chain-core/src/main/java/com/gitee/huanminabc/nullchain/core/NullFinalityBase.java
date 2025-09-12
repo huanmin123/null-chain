@@ -3,6 +3,7 @@ package com.gitee.huanminabc.nullchain.core;
 
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.*;
+import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 import com.gitee.huanminabc.nullchain.common.NullReflectionKit;
 
 import java.util.function.Consumer;
@@ -55,13 +56,13 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
         taskList.runTaskAll((nullChainBase) -> {
             if (!nullChainBase.isNull) {
                 if (action == null) {
-                    linkLog.append("...ifPresent? ");
+                    linkLog.append(IF_PRESENT_Q);
                     throw new NullChainException(linkLog.toString());
                 }
                 try {
                     action.accept((T) nullChainBase.value);
                 } catch (Exception e) {
-                    linkLog.append("...ifPresent? ");
+                    linkLog.append(IF_PRESENT_Q);
                     throw NullReflectionKit.addRunErrorMessage(e, linkLog);
                 }
             }
@@ -74,24 +75,24 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
         taskList.runTaskAll((nullChainBase) -> {
             if (!nullChainBase.isNull) {
                 if (action == null) {
-                    linkLog.append("...ifPresentOrElse-action? ");
+                    linkLog.append(IF_PRESENT_OR_ELSE_ACTION_Q);
                     throw new NullChainException(linkLog.toString());
                 }
                 try {
                     action.accept((T) nullChainBase.value);
                 } catch (Exception e) {
-                    linkLog.append("...ifPresentOrElse-action? ");
+                    linkLog.append(IF_PRESENT_OR_ELSE_ACTION_Q);
                     throw NullReflectionKit.addRunErrorMessage(e, linkLog);
                 }
             } else {
                 if (emptyAction == null) {
-                    linkLog.append("...ifPresentOrElse-emptyAction? ");
+                    linkLog.append(IF_PRESENT_OR_ELSE_EMPTY_ACTION_Q);
                     throw new NullChainException(linkLog.toString());
                 }
                 try {
                     emptyAction.run();
                 } catch (Exception e) {
-                    linkLog.append("...ifPresentOrElse-emptyAction? ");
+                    linkLog.append(IF_PRESENT_OR_ELSE_EMPTY_ACTION_Q);
                     throw NullReflectionKit.addRunErrorMessage(e, linkLog);
                 }
             }
@@ -106,7 +107,7 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
                 return;
             }
             if (consumer == null) {
-                throw new NullChainException(linkLog.append("...capture? 参数不能为空").toString());
+                throw new NullChainException(linkLog.append(CAPTURE_PARAM_NULL).toString());
             }
         },consumer);
     }
@@ -119,14 +120,14 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
             return (T) nullChainBase.value;
         } else {
             if (exceptionSupplier == null) {
-                linkLog.append("...getSafe? 异常处理器不能为空");
+                linkLog.append(GET_SAFE_EXCEPTION_NULL);
                 throw new NullChainException(linkLog.toString());
             }
             X x;
             try {
                 x = exceptionSupplier.get();
             } catch (Exception e) {
-                linkLog.append("...getSafe? ");
+                linkLog.append(GET_SAFE_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
             throw NullReflectionKit.orThrowable(x, linkLog);
@@ -177,7 +178,7 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
         }
         //判断defaultValue
         if (Null.is(defaultValue)) {
-            linkLog.append("...orElse? 默认值不能是空的");
+            linkLog.append(OR_ELSE_DEFAULT_NULL);
             throw new NullChainException(linkLog.toString());
         }
         return defaultValue;
@@ -190,18 +191,18 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
             return (T) nullChainBase.value;
         }
         if (defaultValue == null) {
-            linkLog.append("...orElse? 默认值不能为空");
+            linkLog.append(OR_ELSE_SUPPLIER_NULL);
             throw new NullChainException(linkLog.toString());
         }
         T t;
         try {
             t = defaultValue.get();
         } catch (Exception e) {
-            linkLog.append("...orElse? ");
+            linkLog.append(OR_ELSE_Q);
             throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
         if (Null.is(t)) {
-            linkLog.append("orElse? 默认值不能是空的");
+            linkLog.append(OR_ELSE_DEFAULT_NULL);
             throw new NullChainException(linkLog.toString());
         }
         return t;

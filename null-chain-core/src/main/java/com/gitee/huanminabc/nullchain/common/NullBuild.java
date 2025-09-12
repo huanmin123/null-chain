@@ -15,9 +15,7 @@ import com.gitee.huanminabc.nullchain.leaf.http.OkHttp;
 import com.gitee.huanminabc.nullchain.leaf.json.NullJson;
 import com.gitee.huanminabc.nullchain.leaf.json.NullJsonBase;
 import com.gitee.huanminabc.nullchain.leaf.stream.*;
-import com.gitee.huanminabc.nullchain.task.NullTask;
-import com.gitee.huanminabc.nullchain.tool.NullTool;
-import com.gitee.huanminabc.nullchain.vessel.NullMap;
+// import cleanup: removed unused imports
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -58,31 +56,37 @@ public class NullBuild {
 
 
     //因为在不同的leaf中转化为NullChain需要 , 这样做统一的兼容
-    public static <T> NullChain<T> busy(NullKernelAbstract o) {
+    @SuppressWarnings("unchecked")
+    public static <X> NullChain<X> busy(NullKernelAbstract<?> o) {
         if (o instanceof NullChainBase) {
-            return (NullChain) o;
+            return (NullChain<X>) o;
         }
         return new NullChainBase<>(o.linkLog, o.taskList);
     }
 
-    public static <T> NullDate busyDate(NullKernelAbstract o) {
-        return (NullDate) o;
+    @SuppressWarnings("unchecked")
+    public static <X> NullDate<X> busyDate(NullKernelAbstract<?> o) {
+        return (NullDate<X>) o;
     }
 
-    public static NullJson busyJson(NullKernelAbstract o) {
-        return (NullJson) o;
+    @SuppressWarnings("unchecked")
+    public static <X> NullJson<X> busyJson(NullKernelAbstract<?> o) {
+        return (NullJson<X>) o;
     }
 
-    public static NullCopy busyCopy(NullKernelAbstract o) {
-        return (NullCopy) o;
+    @SuppressWarnings("unchecked")
+    public static <X> NullCopy<X> busyCopy(NullKernelAbstract<?> o) {
+        return (NullCopy<X>) o;
     }
 
-    public static NullCalculate busyCalc(NullKernelAbstract o) {
-        return (NullCalculate) o;
+    @SuppressWarnings("unchecked")
+    public static <X extends java.math.BigDecimal> NullCalculate<X> busyCalc(NullKernelAbstract<?> o) {
+        return (NullCalculate<X>) o;
     }
 
-    public static NullStream busyStream(NullKernelAbstract o) {
-        return (NullStream) o;
+    @SuppressWarnings("unchecked")
+    public static <X> NullStream<X> busyStream(NullKernelAbstract<?> o) {
+        return (NullStream<X>) o;
     }
 
 
@@ -108,8 +112,8 @@ public class NullBuild {
         return new NullJsonBase<T>(linkLog, nullTaskList);
     }
 
-    public static NullCalculate busyCalc(StringBuilder linkLog, NullTaskList nullTaskList) {
-        return new NullCalculateBase(linkLog, nullTaskList);
+    public static <T extends java.math.BigDecimal> NullCalculate<T> busyCalc(StringBuilder linkLog, NullTaskList nullTaskList) {
+        return new NullCalculateBase<T>(linkLog, nullTaskList);
     }
 
     public static <T> NullCopy<T> busyCopy(StringBuilder linkLog, NullTaskList nullTaskList) {
@@ -119,18 +123,19 @@ public class NullBuild {
         return new NullStreamBase<T>(linkLog, nullTaskList);
     }
 
-    public static OkHttp busyHttp(String url, StringBuilder linkLog, NullTaskList nullTaskList) {
-        return new OkHttpBase(url,linkLog, nullTaskList);
+    public static <T> OkHttp<T> busyHttp(String url, StringBuilder linkLog, NullTaskList nullTaskList) {
+        return new OkHttpBase<T>(url,linkLog, nullTaskList);
     }
-    public static OkHttp busyHttp(String httpName, String url, StringBuilder linkLog, NullTaskList nullTaskList) {
-        return new OkHttpBase(httpName,url,linkLog, nullTaskList);
+    public static <T> OkHttp<T> busyHttp(String httpName, String url, StringBuilder linkLog, NullTaskList nullTaskList) {
+        return new OkHttpBase<T>(httpName,url,linkLog, nullTaskList);
     }
 
 
 
     //将数组转换为空链
+    @SuppressWarnings("unchecked")
     public static <T> NullChain<T>[] arrayToNullChain(T[] ts) {
-        NullChain[] nullChains = new NullChain[ts.length];
+        NullChain<T>[] nullChains = new NullChain[ts.length];
         for (int i = 0; i < ts.length; i++) {
             T t = ts[i];
             if (Null.is(t)) {

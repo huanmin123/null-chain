@@ -5,6 +5,7 @@ import com.gitee.huanminabc.nullchain.common.*;
 import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
 import java.util.function.Function;
 import com.gitee.huanminabc.nullchain.core.NullChain;
+import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
@@ -15,11 +16,37 @@ import java.util.function.Predicate;
 import java.util.stream.*;
 
 /**
- * @program: java-huanmin-utils
- * @description:
- * @author: huanmin
- * @create: 2025-02-21 17:49
- **/
+ * Null流操作基础类 - 提供空值安全的流式操作
+ * 
+ * <p>该类提供了对Java Stream API的空值安全封装，支持各种流操作如map、filter、reduce等。
+ * 所有操作都是空值安全的，遇到null值会优雅处理而不会抛出异常。</p>
+ * 
+ * <h3>核心功能：</h3>
+ * <ul>
+ *   <li>流转换：map、flatMap等转换操作</li>
+ *   <li>流过滤：filter、distinct等过滤操作</li>
+ *   <li>流排序：sorted排序操作</li>
+ *   <li>流限制：limit、skip等限制操作</li>
+ *   <li>流聚合：reduce、collect等聚合操作</li>
+ *   <li>流匹配：allMatch、anyMatch、noneMatch等匹配操作</li>
+ *   <li>并行流：parallel并行处理支持</li>
+ * </ul>
+ * 
+ * <h3>设计特点：</h3>
+ * <ul>
+ *   <li>空值安全：所有操作都处理null值情况</li>
+ *   <li>链式调用：支持流畅的链式编程风格</li>
+ *   <li>类型安全：通过泛型保证类型安全</li>
+ *   <li>性能优化：延迟执行和短路操作</li>
+ * </ul>
+ * 
+ * @param <T> 流中元素的类型
+ * @author huanmin
+ * @since 1.0.0
+ * @version 1.1.1
+ * @see NullStream 流操作接口
+ * @see NullKernelAbstract 内核抽象基类
+ */
 public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStream<T> {
     public NullStreamBase(StringBuilder linkLog, NullTaskList taskList) {
         super(linkLog, taskList);
@@ -29,7 +56,7 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     public NullStream<T> parallel() {
         this.taskList.add((value) -> {
             if (!(value instanceof Stream)) {
-                throw new NullChainException(linkLog.append("parallel? ").append("value must be a Stream").toString());
+                throw new NullChainException(linkLog.append(STREAM_PARALLEL_VALUE_NOT_STREAM).toString());
             }
             T parallel = (T) ((Stream) value).parallel();
             return NullBuild.noEmpty(parallel);
@@ -43,7 +70,7 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
         this.taskList.add((value) -> {
 
             if (mapper == null) {
-                throw new NullChainException(linkLog.append("map? ").append("mapper must not be null").toString());
+                throw new NullChainException(linkLog.append(STREAM_MAP_Q).append("mapper must not be null").toString());
             }
             R stream;
             try {
@@ -53,10 +80,10 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
                     return apply != null;
                 }).map(mapper);
             } catch (Exception e) {
-                linkLog.append("map? ");
+                linkLog.append(STREAM_MAP_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            linkLog.append("map->");
+            linkLog.append(STREAM_MAP_ARROW);
             return NullBuild.noEmpty(stream);
         });
         return NullBuild.busyStream(this);
@@ -67,7 +94,7 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     public NullIntStream mapToInt(Function<? super T, ? extends Integer> mapper) {
         this.taskList.add((value) -> {
             if (mapper == null) {
-                throw new NullChainException(linkLog.append("mapToInt? ").append("mapper must not be null").toString());
+                throw new NullChainException(linkLog.append(STREAM_MAP_TO_INT_Q).append("mapper must not be null").toString());
             }
             IntStream stream;
             try {
@@ -77,10 +104,10 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
                     return apply == null ? 0 : apply;
                 });
             } catch (Exception e) {
-                linkLog.append("mapToInt? ");
+                linkLog.append(STREAM_MAP_TO_INT_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            linkLog.append("mapToInt->");
+            linkLog.append(STREAM_MAP_TO_INT_ARROW);
             return NullBuild.noEmpty(stream);
         });
         return NullBuild.busyIntStream(this);
@@ -90,7 +117,7 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     public NullLongStream mapToLong(Function<? super T, ? extends Long> mapper) {
         this.taskList.add((value) -> {
             if (mapper == null) {
-                throw new NullChainException(linkLog.append("mapToLong? ").append("mapper must not be null").toString());
+                throw new NullChainException(linkLog.append(STREAM_MAP_TO_LONG_Q).append("mapper must not be null").toString());
             }
             LongStream stream;
             try {
@@ -100,10 +127,10 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
                     return apply == null ? 0L : apply;
                 });
             } catch (Exception e) {
-                linkLog.append("mapToLong? ");
+                linkLog.append(STREAM_MAP_TO_LONG_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            linkLog.append("mapToLong->");
+            linkLog.append(STREAM_MAP_TO_LONG_ARROW);
             return NullBuild.noEmpty(stream);
         });
         return NullBuild.busyLongStream(this);
@@ -113,7 +140,7 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     public NullDoubleStream mapToDouble(Function<? super T, ? extends Double> mapper) {
         this.taskList.add((value) -> {
             if (mapper == null) {
-                throw new NullChainException(linkLog.append("mapToDouble? ").append("mapper must not be null").toString());
+                throw new NullChainException(linkLog.append(STREAM_MAP_TO_DOUBLE_Q).append("mapper must not be null").toString());
             }
             DoubleStream stream;
             try {
@@ -123,10 +150,10 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
                     return apply == null ? 0.0 : apply;
                 });
             } catch (Exception e) {
-                linkLog.append("mapToDouble? ");
+                linkLog.append(STREAM_MAP_TO_DOUBLE_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            linkLog.append("mapToDouble->");
+            linkLog.append(STREAM_MAP_TO_DOUBLE_ARROW);
             return NullBuild.noEmpty(stream);
         });
         return NullBuild.busyDoubleStream(this);
@@ -137,16 +164,16 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     public NullStream<T> filter(Predicate<? super T> predicate) {
         this.taskList.add((value) -> {
             if (predicate == null) {
-                throw new NullChainException(linkLog.append("filter? ").append("predicate must not be null").toString());
+                throw new NullChainException(linkLog.append(STREAM_FILTER_Q).append("predicate must not be null").toString());
             }
             T stream;
             try {
                 stream = (T) ((Stream) value).filter(predicate);
             } catch (Exception e) {
-                linkLog.append("filter? ");
+                linkLog.append(STREAM_FILTER_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            linkLog.append("filter->");
+            linkLog.append(STREAM_FILTER_ARROW);
             return NullBuild.noEmpty(stream);
         });
         return NullBuild.busyStream(this);
@@ -159,10 +186,10 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
             try {
                 stream = (T) ((Stream) value).sorted();
             } catch (Exception e) {
-                linkLog.append("sorted? ");
+                linkLog.append(STREAM_SORTED_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            linkLog.append("sorted->");
+            linkLog.append(STREAM_SORTED_ARROW);
             return NullBuild.noEmpty(stream);
         });
         return NullBuild.busyStream(this);
@@ -175,10 +202,10 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
             try {
                 stream = (T) ((Stream) value).sorted(comparator);
             } catch (Exception e) {
-                linkLog.append("sorted? ");
+                linkLog.append(STREAM_SORTED_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            linkLog.append("sorted->");
+            linkLog.append(STREAM_SORTED_ARROW);
             return NullBuild.noEmpty(stream);
         });
         return NullBuild.busyStream(this);
@@ -192,10 +219,10 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
             try {
                 stream = (T) ((Stream) value).distinct();
             } catch (Exception e) {
-                linkLog.append("distinct? ");
+                linkLog.append(STREAM_DISTINCT_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            linkLog.append("distinct->");
+            linkLog.append(STREAM_DISTINCT_ARROW);
             return NullBuild.noEmpty(stream);
         });
         return NullBuild.busyStream(this);
@@ -205,16 +232,16 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     public NullStream<T> limit(long maxSize) {
         this.taskList.add((value) -> {
             if (maxSize < 0) {
-                throw new NullChainException(linkLog.append("limit? ").append("maxSize must be greater than 0").toString());
+                throw new NullChainException(linkLog.append(STREAM_LIMIT_Q).append("maxSize must be greater than 0").toString());
             }
             T stream;
             try {
                 stream = (T) ((Stream) value).limit(maxSize);
             } catch (Exception e) {
-                linkLog.append("limit? ");
+                linkLog.append(STREAM_LIMIT_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            linkLog.append("limit->");
+            linkLog.append(STREAM_LIMIT_ARROW);
             return NullBuild.noEmpty(stream);
         });
         return NullBuild.busyStream(this);
@@ -224,16 +251,16 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     public NullStream<T> skip(long n) {
         this.taskList.add((value) -> {
             if (n < 0) {
-                throw new NullChainException(linkLog.append("skip? ").append("n must be greater than 0").toString());
+                throw new NullChainException(linkLog.append(STREAM_SKIP_Q).append("n must be greater than 0").toString());
             }
             T stream;
             try {
                 stream = (T) ((Stream) value).skip(n);
             } catch (Exception e) {
-                linkLog.append("skip? ");
+                linkLog.append(STREAM_SKIP_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            linkLog.append("skip->");
+            linkLog.append(STREAM_SKIP_ARROW);
             return NullBuild.noEmpty(stream);
         });
         return NullBuild.busyStream(this);
@@ -243,16 +270,16 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     public NullStream<T> then(Consumer<? super T> action) {
         this.taskList.add((value) -> {
             if (action == null) {
-                throw new NullChainException(linkLog.append("then? ").append("action must not be null").toString());
+                throw new NullChainException(linkLog.append(STREAM_THEN_Q).append("action must not be null").toString());
             }
             T stream;
             try {
                 stream = (T) ((Stream) value).peek(action);
             } catch (Exception e) {
-                linkLog.append("then? ");
+                linkLog.append(STREAM_THEN_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            linkLog.append("then->");
+            linkLog.append(STREAM_THEN_ARROW);
             return NullBuild.noEmpty(stream);
         });
         return NullBuild.busyStream(this);
@@ -262,7 +289,7 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     public NullStream<T> then(NullConsumer2<NullChain<T>, ? super T> function) {
         this.taskList.add((value) -> {
             if (function == null) {
-                throw new NullChainException(linkLog.append("then? ").append("action must not be null").toString());
+                throw new NullChainException(linkLog.append(STREAM_THEN_Q).append("action must not be null").toString());
             }
             T stream;
             try {
@@ -270,10 +297,10 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
                     function.accept((NullChain) Null.of(data), (T) data);
                 });
             } catch (Exception e) {
-                linkLog.append("then? ");
+                linkLog.append(STREAM_THEN_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            linkLog.append("then->");
+            linkLog.append(STREAM_THEN_ARROW);
             return NullBuild.noEmpty(stream);
         });
         return NullBuild.busyStream(this);
@@ -283,16 +310,16 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     public <R> NullStream<R> flatMap(java.util.function.Function<? super T, ? extends NullStream<? extends R>> mapper) {
         this.taskList.add((value) -> {
             if (mapper == null) {
-                throw new NullChainException(linkLog.append("flatMap? ").append("mapper must not be null").toString());
+                throw new NullChainException(linkLog.append(STREAM_FLATMAP_Q).append("mapper must not be null").toString());
             }
             R stream;
             try {
                 stream = (R) ((Stream) value).flatMap(mapper);
             } catch (Exception e) {
-                linkLog.append("flatMap? ");
+                linkLog.append(STREAM_FLATMAP_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            linkLog.append("flatMap->");
+            linkLog.append(STREAM_FLATMAP_ARROW);
             return NullBuild.noEmpty(stream);
         });
         return NullBuild.busyStream(this);
@@ -301,7 +328,7 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     @Override
     public <R, A> R collect(Collector<? super T, A, R> collector) {
         if (collector == null) {
-            throw new NullChainException(linkLog.append("collect? ").append("collector must not be null").toString());
+            throw new NullChainException(linkLog.append(STREAM_COLLECT_COLLECTOR_NULL).toString());
         }
         NullTaskList.NullNode<Object> objectNullNode = taskList.runTaskAll();
         if (objectNullNode.isNull) {
@@ -312,7 +339,7 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
         try {
             result = preValue.collect(collector);
         } catch (Exception e) {
-            linkLog.append("collect? ");
+            linkLog.append(STREAM_COLLECT_Q);
             throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
         return result;
@@ -322,19 +349,19 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     public NullChain<T> max(Comparator<? super T> comparator) {
         this.taskList.add((preValue) -> {
             if (comparator == null) {
-                throw new NullChainException(linkLog.append("max? ").append("comparator must not be null").toString());
+                throw new NullChainException(linkLog.append(STREAM_MAX_Q).append("comparator must not be null").toString());
             }
             Optional max;
             try {
                 max = ((Stream) preValue).max(comparator);
             } catch (Exception e) {
-                linkLog.append("max? ");
+                linkLog.append(STREAM_MAX_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
             if (!max.isPresent()) {
                 return NullBuild.empty();
             }
-            linkLog.append("max->");
+            linkLog.append(STREAM_MAX_ARROW);
             return NullBuild.noEmpty((T) max.get());
         });
         return NullBuild.busy(this);
@@ -347,13 +374,13 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
             try {
                 first = ((Stream) preValue).findFirst();
             } catch (Exception e) {
-                linkLog.append("findFirst? ");
+                linkLog.append(STREAM_FIND_FIRST_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
             if (!first.isPresent()) {
                 return NullBuild.empty();
             }
-            linkLog.append("findFirst->");
+            linkLog.append(STREAM_FIND_FIRST_ARROW);
             return NullBuild.noEmpty((T) first.get());
         });
         return NullBuild.busy(this);
@@ -366,13 +393,13 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
             try {
                 any = ((Stream) preValue).findAny();
             } catch (Exception e) {
-                linkLog.append("findAny? ");
+                linkLog.append(STREAM_FIND_ANY_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
             if (!any.isPresent()) {
                 return NullBuild.empty();
             }
-            linkLog.append("findAny->");
+            linkLog.append(STREAM_FIND_ANY_ARROW);
             return NullBuild.noEmpty((T) any.get());
         });
         return NullBuild.busy(this);
@@ -382,7 +409,7 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     public NullChain<T> reduce(BinaryOperator<T> accumulator) {
         this.taskList.add((preValue) -> {
             if (accumulator == null) {
-                throw new NullChainException(linkLog.append("reduce? ").append("accumulator must not be null").toString());
+                throw new NullChainException(linkLog.append(STREAM_REDUCE_Q).append("accumulator must not be null").toString());
             }
             Optional reduce;
             try {
@@ -416,13 +443,13 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
                     return accumulator.apply((T) a, (T) b);
                 });
             } catch (Exception e) {
-                linkLog.append("reduce? ");
+                linkLog.append(STREAM_REDUCE_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
             if (!reduce.isPresent()) {
                 return NullBuild.empty();
             }
-            linkLog.append("reduce->");
+            linkLog.append(STREAM_REDUCE_ARROW);
             return NullBuild.noEmpty((T) reduce.get());
         });
         return NullBuild.busy(this);
@@ -432,10 +459,10 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     public NullChain<T> reduce(T identity, BinaryOperator<T> accumulator) {
         this.taskList.add((preValue) -> {
             if (identity == null) {
-                throw new NullChainException(linkLog.append("reduce? ").append("identity must not be null").toString());
+                throw new NullChainException(linkLog.append(STREAM_REDUCE_Q).append("identity must not be null").toString());
             }
             if (accumulator == null) {
-                throw new NullChainException(linkLog.append("reduce? ").append("accumulator must not be null").toString());
+                throw new NullChainException(linkLog.append(STREAM_REDUCE_Q).append("accumulator must not be null").toString());
             }
             T reduce;
             try {
@@ -447,10 +474,10 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
                     return accumulator.apply((T) a, (T) b);
                 });
             } catch (Exception e) {
-                linkLog.append("reduce? ");
+                linkLog.append(STREAM_REDUCE_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
-            linkLog.append("reduce->");
+            linkLog.append(STREAM_REDUCE_ARROW);
             return NullBuild.noEmpty(reduce);
         });
         return NullBuild.busy(this);
@@ -471,19 +498,19 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     public NullChain<T> min(Comparator<? super T> comparator) {
         this.taskList.add((preValue) -> {
             if (comparator == null) {
-                throw new NullChainException(linkLog.append("min? ").append("comparator must not be null").toString());
+                throw new NullChainException(linkLog.append(STREAM_MIN_Q).append("comparator must not be null").toString());
             }
             Optional<T> min;
             try {
                 min = ((Stream) preValue).min(comparator);
             } catch (Exception e) {
-                linkLog.append("min? ");
+                linkLog.append(STREAM_MIN_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
             if (!min.isPresent()) {
                 return NullBuild.empty();
             }
-            linkLog.append("min->");
+            linkLog.append(STREAM_MIN_ARROW);
             return NullBuild.noEmpty(min.get());
         });
         return NullBuild.busy(this);
@@ -496,16 +523,16 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
             return false;
         }
         if (predicate == null) {
-            throw new NullChainException(linkLog.append("allMatch? ").append("predicate must not be null").toString());
+            throw new NullChainException(linkLog.append(STREAM_ALL_MATCH_Q).append("predicate must not be null").toString());
         }
         boolean stream;
         try {
             stream = ((Stream) objectNullNode.value).allMatch(predicate);
         } catch (Exception e) {
-            linkLog.append("allMatch? ");
+            linkLog.append(STREAM_ALL_MATCH_Q);
             throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
-        linkLog.append("allMatch->");
+        linkLog.append(STREAM_ALL_MATCH_ARROW);
         return stream;
     }
 
@@ -516,16 +543,16 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
             return false;
         }
         if (predicate == null) {
-            throw new NullChainException(linkLog.append("anyMatch? ").append("predicate must not be null").toString());
+            throw new NullChainException(linkLog.append(STREAM_ANY_MATCH_Q).append("predicate must not be null").toString());
         }
         boolean stream;
         try {
             stream = ((Stream) objectNullNode.value).anyMatch(predicate);
         } catch (Exception e) {
-            linkLog.append("anyMatch? ");
+            linkLog.append(STREAM_ANY_MATCH_Q);
             throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
-        linkLog.append("anyMatch->");
+        linkLog.append(STREAM_ANY_MATCH_ARROW);
         return stream;
     }
 
@@ -536,16 +563,16 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
             return true; //如果是空链那么默认返回true
         }
         if (predicate == null) {
-            throw new NullChainException(linkLog.append("noneMatch? ").append("predicate must not be null").toString());
+            throw new NullChainException(linkLog.append(STREAM_NONE_MATCH_Q).append("predicate must not be null").toString());
         }
         boolean stream;
         try {
             stream = ((Stream) objectNullNode.value).noneMatch(predicate);
         } catch (Exception e) {
-            linkLog.append("noneMatch? ");
+            linkLog.append(STREAM_NONE_MATCH_Q);
             throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
-        linkLog.append("noneMatch->");
+        linkLog.append(STREAM_NONE_MATCH_ARROW);
         return stream;
     }
 
@@ -553,7 +580,7 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     public void forEach(Consumer<? super T> action) {
         taskList.runTaskAll((nullChainBase) -> {
             if (action == null) {
-                linkLog.append("forEach? ").append("action must not be null");
+                linkLog.append(STREAM_FOR_EACH_Q).append("action must not be null");
                 throw new NullChainException(linkLog.toString());
             }
             try {
@@ -561,7 +588,7 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
                     ((Stream) nullChainBase.value).forEach(action);
                 }
             } catch (Exception e) {
-                linkLog.append("forEach? ");
+                linkLog.append(STREAM_FOR_EACH_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, null);

@@ -11,6 +11,7 @@ import com.gitee.huanminabc.nullchain.tool.NullToolFactory;
 import com.gitee.huanminabc.nullchain.common.NullReflectionKit;
 import com.gitee.huanminabc.nullchain.vessel.NullMap;
 import lombok.extern.slf4j.Slf4j;
+import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -36,20 +37,20 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
             NullTool<T, R> tool1 = NullToolFactory.getTool(tool);
             //如果不存在注册器
             if (tool1 == null) {
-                throw new NullChainException(linkLog.append("tool? ").append(tool.getName()).append(" 不存在的转换器").toString());
+                throw new NullChainException(linkLog.append(TOOL_Q).append(tool.getName()).append(" 不存在的转换器").toString());
             }
             try {
                 R run = toolRun((T) value, tool1, linkLog, params);
                 if (Null.is(run)) {
-                    linkLog.append("tool? ");
+                    linkLog.append(TOOL_Q);
                     return NullBuild.empty();
                 }
-                linkLog.append("tool->");
+                linkLog.append(TOOL_ARROW);
                 return NullBuild.noEmpty(run);
             } catch (NullChainCheckException e) {
                 throw new NullChainException(e);
             } catch (Exception e) {
-                linkLog.append("tool? ").append(tool1.getClass().getName()).append(" 失败: ");
+                linkLog.append(TOOL_Q).append(tool1.getClass().getName()).append(" 失败: ");
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         });
@@ -68,7 +69,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
             @Override
             public NullTaskList.NullNode nodeTask(Object preValue) throws RuntimeException {
                 if (task == null) {
-                    throw new NullChainException(linkLog.append("task? 传参不能为空").toString());
+                    throw new NullChainException(linkLog.append(TASK_Q).append("传参不能为空").toString());
                 }
                 Object o = __task__(preValue,task.getName(), params);
                 return NullBuild.noEmpty((R) o);
@@ -90,7 +91,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
             @Override
             public NullTaskList.NullNode nodeTask(Object preValue) throws RuntimeException {
                 if (Null.is(classPath)) {
-                    throw new NullChainException(linkLog.append("task? 传参不能为空").toString());
+                    throw new NullChainException(linkLog.append(TASK_Q).append("传参不能为空").toString());
                 }
                 Object o = __task__(preValue,classPath, params);
                 return NullBuild.noEmpty(o);
@@ -113,7 +114,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
             @Override
             public NullTaskList.NullNode nodeTask(Object preValue) throws RuntimeException {
                 if (Null.isAny(nullGroupTask, ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME)) {
-                    throw new NullChainException(linkLog.append("task? 传参不能为空").toString());
+                    throw new NullChainException(linkLog.append(TASK_Q).append("传参不能为空").toString());
                 }
                 return __task__(preValue,nullGroupTask, ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME);
             }
@@ -132,7 +133,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
             @Override
             public NullTaskList.NullNode nodeTask(Object preValue) throws RuntimeException {
                 if (Null.isAny(nullGroupTask, threadFactoryName)) {
-                    throw new NullChainException(linkLog.append("task? 传参不能为空").toString());
+                    throw new NullChainException(linkLog.append(TASK_Q).append("传参不能为空").toString());
                 }
                 return __task__(preValue,nullGroupTask, threadFactoryName);
             }
@@ -164,25 +165,25 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
             @Override
             public NullTaskList.NullNode  nodeTask(Object preValue) throws RuntimeException {
                 if (Null.isAny(nullTaskInfo, threadFactoryName)) {
-                    linkLog.append("nfTask? 传参不能为空");
+                    linkLog.append(NFTASK_Q).append("传参不能为空");
                     throw new NullChainException(linkLog.toString());
                 }
                 //脚本内容不能是空
                 if (Null.is(nullTaskInfo.getNfContext())) {
-                    linkLog.append("nfTask? 脚本内容不能为空");
+                    linkLog.append(NFTASK_Q).append("脚本内容不能为空");
                     throw new NullChainException(linkLog.toString());
                 }
 
                 try {
                     Object o = __nfTask__(preValue,nullTaskInfo.getNfContext(), threadFactoryName, nullTaskInfo.getLogger(), nullTaskInfo.getParams());
                     if (Null.is(o)) {
-                        linkLog.append("nfTask? ");
+                        linkLog.append(NFTASK_Q);
                         return NullBuild.empty();
                     }
-                    linkLog.append("nfTask->");
+                    linkLog.append(NFTASK_ARROW);
                     return NullBuild.noEmpty(o);
                 } catch (Exception e) {
-                    linkLog.append("nfTask? ");
+                    linkLog.append(NFTASK_Q);
                     throw NullReflectionKit.addRunErrorMessage(e, linkLog);
                 }
             }
@@ -203,7 +204,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
             @Override
             public NullTaskList.NullNode  nodeTask(Object preValue) throws RuntimeException {
                 if (Null.isAny(nullGroupNfTask, threadFactoryName)) {
-                    linkLog.append("nfTasks? 传参不能为空");
+                    linkLog.append(NFTASKS_Q).append("传参不能为空");
                     throw new NullChainException(linkLog.toString());
                 }
                 ThreadPoolExecutor executor = ThreadFactoryUtil.getExecutor(threadFactoryName);
@@ -211,7 +212,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
                 //脚本内容不能是空
                 for (NullGroupNfTask.NullTaskInfo nullTaskInfo : list) {
                     if (Null.is(nullTaskInfo.getNfContext())) {
-                        linkLog.append("nfTasks? 脚本内容不能为空");
+                        linkLog.append(NFTASKS_Q).append("脚本内容不能为空");
                         throw new NullChainException(linkLog.toString());
                     }
                 }
@@ -230,7 +231,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
                         } catch (Exception e) {
                             nullChainException.setMessage(stackTrace, linkLog.toString());
                             e.addSuppressed(nullChainException);
-                            log.error("{}task? {}多任务脚本并发执行失败", linkLog, nullTaskInfo.getKey(), e);
+                            log.error("{}{}{}多任务脚本并发执行失败", linkLog, TASK_Q, nullTaskInfo.getKey(), e);
                         }
                     });
                     futures.add(submit);
@@ -243,7 +244,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
 
                     }
                 }
-                linkLog.append("task->");
+                linkLog.append(TASK_ARROW);
                 return NullBuild.noEmpty(nullChainMap);
             }
         });
@@ -259,7 +260,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
         NullGroupTask.NullTaskInfo[] list = nullGroupTask.getList();
         for (NullGroupTask.NullTaskInfo nullTaskInfo : list) {
             if (Null.is(nullTaskInfo.getTaskName())) {
-                linkLog.append("task? 任务名不能为空");
+                linkLog.append(TASK_Q).append("任务名不能为空");
                 throw new NullChainException(linkLog.toString());
             }
         }
@@ -283,7 +284,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
                 } catch (Exception e) {
                     nullChainException.setMessage(stackTrace, linkLog.toString());
                     e.addSuppressed(nullChainException);
-                    log.error("{}task? {}多任务并发执行失败", linkLog, taskName, e);
+                    log.error("{}{}{}多任务并发执行失败", linkLog, TASK_Q, taskName, e);
                 }
             });
             futures.add(submit);
@@ -296,7 +297,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
 
             }
         }
-        linkLog.append("task->");
+        linkLog.append(TASK_ARROW);
         return NullBuild.noEmpty(nullChainMap);
     }
 
@@ -306,15 +307,15 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
         try {
             Object run = taskRun((T)preValue, nullTask, linkLog, params);
             if (Null.is(run)) {
-                linkLog.append("task? ");
+                linkLog.append(TASK_Q);
                 return NullBuild.empty();
             }
-            linkLog.append("task->");
+            linkLog.append(TASK_ARROW);
             return run;
         } catch (NullChainCheckException e) {
             throw new NullChainException(e);
         } catch (Exception e) {
-            linkLog.append("task? ");
+            linkLog.append(TASK_Q);
             throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
     }
@@ -327,13 +328,13 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
                 Class<?> aClass1 = Class.forName(taskName);
                 //判断是否是NULLTask的子类
                 if (!NullTask.class.isAssignableFrom(aClass1)) {
-                    throw new NullChainException(linkLog.append("task? ").append(taskName).append(" 不是NullTask的子类").toString());
+                    throw new NullChainException(linkLog.append(TASK_Q).append(taskName).append(" 不是NullTask的子类").toString());
                 }
                 //注入到任务工厂
                 NullTaskFactory.registerTask((Class<? extends NullTask>) aClass1);
                 nullTask = NullTaskFactory.getTask(taskName);
             } catch (ClassNotFoundException e) {
-                throw new NullChainException(linkLog.append("task? ").append(taskName).append(" 任务不存在").toString());
+                throw new NullChainException(linkLog.append(TASK_Q).append(taskName).append(" 任务不存在").toString());
             }
         }
         return nullTask;
@@ -361,18 +362,18 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
                 nullType.checkType(objects, map);
             }
         } catch (Exception e) {
-            throw new NullChainCheckException(e, linkLog.append("task? ").append(nullTask.getClass().getName()).append(" 任务参数校验失败").toString());
+            throw new NullChainCheckException(e, linkLog.append(TASK_Q).append(nullTask.getClass().getName()).append(TASK_PARAM_VALIDATION_FAILED).toString());
         }
         NullChain<Object>[] nullChains = NullBuild.arrayToNullChain(objects);
         try {
             nullTask.init(value, nullChains, map);
         } catch (Exception e) {
-            throw new NullChainCheckException(e, linkLog.append("task? ").append(nullTask.getClass().getName()).append(" 初始化失败: ").toString());
+            throw new NullChainCheckException(e, linkLog.append(TASK_Q).append(nullTask.getClass().getName()).append(TASK_INIT_FAILED).toString());
         }
         try {
             return nullTask.run(value, nullChains, map);
         } catch (Exception e) {
-            throw new NullChainCheckException(e, linkLog.append("task? ").append(nullTask.getClass().getName()).append(" 运行失败: ").toString());
+            throw new NullChainCheckException(e, linkLog.append(TASK_Q).append(nullTask.getClass().getName()).append(TASK_RUN_FAILED).toString());
         }
     }
 
@@ -386,18 +387,18 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
                 nullType.checkType(objects, map);
             }
         } catch (Exception e) {
-            throw new NullChainCheckException(e, linkLog.append("tool? ").append(nullTool.getClass().getName()).append(" 工具参数校验失败").toString());
+            throw new NullChainCheckException(e, linkLog.append(TOOL_Q).append(nullTool.getClass().getName()).append(TOOL_PARAM_VALIDATION_FAILED).toString());
         }
         NullChain<Object>[] nullChains = NullBuild.arrayToNullChain(objects);
         try {
             nullTool.init(value, nullChains, map);
         } catch (Exception e) {
-            throw new NullChainCheckException(e, linkLog.append("tool? ").append(nullTool.getClass().getName()).append(" 初始化失败: ").toString());
+            throw new NullChainCheckException(e, linkLog.append(TOOL_Q).append(nullTool.getClass().getName()).append(TOOL_INIT_FAILED).toString());
         }
         try {
             return nullTool.run(value, nullChains, map);
         } catch (Exception e) {
-            throw new NullChainCheckException(e, linkLog.append("tool? ").append(nullTool.getClass().getName()).append(" 运行失败: ").toString());
+            throw new NullChainCheckException(e, linkLog.append(TOOL_Q).append(nullTool.getClass().getName()).append(TOOL_RUN_FAILED).toString());
         }
 
     }

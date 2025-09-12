@@ -5,6 +5,7 @@ import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
 import com.gitee.huanminabc.nullchain.common.NullTaskList;
+import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 
 import java.util.Collection;
 import java.util.Deque;
@@ -58,11 +59,11 @@ public class NullSuperDeque<T> implements NullDeque<T> {
         nullTaskList.add((__) -> {
             T poll = queue.poll();
             if (Null.is(poll)) {
-                linkLog.append("NullSuperDeque.poll?");
+                linkLog.append(NULL_SUPER_DEQUE_POLL_Q);
                 return NullBuild.empty();
             }
 
-            linkLog.append("NullSuperDeque.poll->");
+            linkLog.append(NULL_SUPER_DEQUE_POLL_ARROW);
             return NullBuild.noEmpty(poll);
         });
         return NullBuild.busy(linkLog, nullTaskList);
@@ -82,11 +83,11 @@ public class NullSuperDeque<T> implements NullDeque<T> {
         nullTaskList.add((__) -> {
             T peek = queue.peek();
             if (Null.is(peek)) {
-                linkLog.append("NullSuperDeque.peek?");
+                linkLog.append(NULL_SUPER_DEQUE_PEEK_Q);
                 return NullBuild.empty();
             }
 
-            linkLog.append("NullSuperDeque.peek->");
+            linkLog.append(NULL_SUPER_DEQUE_PEEK_ARROW);
             return NullBuild.noEmpty(peek);
         });
         return NullBuild.busy(linkLog, nullTaskList);
@@ -213,10 +214,10 @@ public class NullSuperDeque<T> implements NullDeque<T> {
         nullTaskList.add((__) -> {
             T pollFirst = queue.pollFirst();
             if (Null.is(pollFirst)) {
-                linkLog.append("NullSuperDeque.pollFirst?");
+                linkLog.append(NULL_SUPER_DEQUE_POLL_FIRST_Q);
                 return NullBuild.empty();
             }
-            linkLog.append("NullSuperDeque.pollFirst->");
+            linkLog.append(NULL_SUPER_DEQUE_POLL_FIRST_ARROW);
             return NullBuild.noEmpty(pollFirst);
         });
         return NullBuild.busy(linkLog, nullTaskList);
@@ -230,10 +231,10 @@ public class NullSuperDeque<T> implements NullDeque<T> {
         nullTaskList.add((__) -> {
             T pollLast = queue.pollLast();
             if (Null.is(pollLast)) {
-                linkLog.append("NullSuperDeque.pollLast?");
+                linkLog.append(NULL_SUPER_DEQUE_POLL_LAST_Q);
                 return NullBuild.empty();
             }
-            linkLog.append("NullSuperDeque.pollLast->");
+            linkLog.append(NULL_SUPER_DEQUE_POLL_LAST_ARROW);
             return NullBuild.noEmpty(pollLast);
         });
         return NullBuild.busy(linkLog, nullTaskList);
@@ -257,10 +258,10 @@ public class NullSuperDeque<T> implements NullDeque<T> {
         nullTaskList.add((__) -> {
             T peekFirst = queue.peekFirst();
             if (Null.is(peekFirst)) {
-                linkLog.append("NullSuperDeque.peekFirst?");
+                linkLog.append(NULL_SUPER_DEQUE_PEEK_FIRST_Q);
                 return NullBuild.empty();
             }
-            linkLog.append("NullSuperDeque.peekFirst->");
+            linkLog.append(NULL_SUPER_DEQUE_PEEK_FIRST_ARROW);
             return NullBuild.noEmpty(peekFirst);
         });
         return NullBuild.busy(linkLog, nullTaskList);
@@ -273,10 +274,10 @@ public class NullSuperDeque<T> implements NullDeque<T> {
         nullTaskList.add((__) -> {
             T peekLast = queue.peekLast();
             if (Null.is(peekLast)) {
-                linkLog.append("NullSuperDeque.peekLast?");
+                linkLog.append(NULL_SUPER_DEQUE_PEEK_LAST_Q);
                 return NullBuild.empty();
             }
-            linkLog.append("NullSuperDeque.peekLast->");
+            linkLog.append(NULL_SUPER_DEQUE_PEEK_LAST_ARROW);
             return NullBuild.noEmpty(peekLast);
         });
         return NullBuild.busy(linkLog, nullTaskList);

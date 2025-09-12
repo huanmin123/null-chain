@@ -17,17 +17,53 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 
 /**
- * @description:
- * @author: huanmin
- * @create: 2025-05-26 14:22
- **/
+ * Null任务列表 - 管理链式操作的任务队列
+ * 
+ * <p>该类负责管理Null链中的所有操作任务，支持同步和异步执行。
+ * 它维护了一个任务队列，按照链式调用的顺序执行任务，确保空值安全。</p>
+ * 
+ * <h3>核心功能：</h3>
+ * <ul>
+ *   <li>任务队列管理：维护链式操作的任务列表</li>
+ *   <li>同步执行：按顺序执行所有任务</li>
+ *   <li>异步执行：支持异步任务执行</li>
+ *   <li>空值处理：自动处理空值情况</li>
+ *   <li>异常处理：捕获和处理执行过程中的异常</li>
+ *   <li>结果收集：支持结果收集功能</li>
+ * </ul>
+ * 
+ * <h3>设计特点：</h3>
+ * <ul>
+ *   <li>延迟执行：任务不会立即执行，而是在需要时执行</li>
+ *   <li>短路执行：遇到空值时停止后续任务执行</li>
+ *   <li>线程安全：支持多线程环境下的异步操作</li>
+ *   <li>内存优化：避免不必要的任务执行</li>
+ * </ul>
+ * 
+ * @author huanmin
+ * @since 1.0.0
+ * @version 1.1.1
+ * @see NullNode 任务节点类
+ * @see NullTaskFun 任务函数接口
+ * @see Serializable 序列化接口
+ */
 @Slf4j
 public class NullTaskList implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Null任务节点 - 表示任务执行的结果
+     * 
+     * <p>该类封装了任务执行的结果，包括值本身和是否为空的状态。
+     * 它用于在任务链中传递执行结果，确保空值安全。</p>
+     * 
+     * @param <T> 节点值的类型
+     */
     public static class NullNode<T> implements Serializable {
         private static final long serialVersionUID = 1L;
-        public boolean isNull; //true 为null ,false 不为null
+        
+        /** 是否为空值，true表示值为null，false表示值不为null */
+        public boolean isNull;
         public T value;//当前任务的值
         //是否异步 true 开始异步 false 没有开启(默认)
         public boolean async = false;

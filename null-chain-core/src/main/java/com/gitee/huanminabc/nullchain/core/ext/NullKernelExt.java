@@ -2,6 +2,7 @@ package com.gitee.huanminabc.nullchain.core.ext;
 
 import com.gitee.huanminabc.nullchain.NullCheck;
 import com.gitee.huanminabc.nullchain.common.*;
+import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.core.NullChainBase;
 
@@ -39,10 +40,10 @@ public interface NullKernelExt<T>  extends NullKernel<T>, NullCheck {
         nullTaskList.add((__) -> {
             boolean empty = isEmpty();
             if (empty) {
-                linkLog.append("NullExt?");
+                linkLog.append(NULL_EXT_Q);
                 return NullBuild.empty();
             }
-            linkLog.append(" NullExt.");
+            linkLog.append(NULL_EXT_DOT);
             return NullBuild.noEmpty((T) this);
         });
         return NullBuild.busy(linkLog, nullTaskList);

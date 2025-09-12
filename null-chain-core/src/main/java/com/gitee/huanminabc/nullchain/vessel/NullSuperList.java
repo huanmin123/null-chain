@@ -4,6 +4,7 @@ import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullTaskList;
 import com.gitee.huanminabc.nullchain.core.NullChain;
+import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 
 import java.util.*;
 
@@ -23,12 +24,12 @@ public class NullSuperList<T> implements NullList<T> {
         StringBuilder linkLog = new StringBuilder();
         nullTaskList.add((__) -> {
             if (index < 0 || index >= list.size()) {
-                linkLog.append("NullSuperList.get? index out of bounds");
+                linkLog.append(NULL_SUPER_LIST_GET_INDEX_OUT_OF_BOUNDS);
                 return null;
             }
             T element = list.get(index);
             if (Null.is(element)) {
-                linkLog.append("NullSuperList.get? element is null");
+                linkLog.append(NULL_SUPER_LIST_GET_ELEMENT_NULL);
                 return null;
             }
             return NullBuild.noEmpty(element);
@@ -154,12 +155,12 @@ public class NullSuperList<T> implements NullList<T> {
         StringBuilder linkLog = new StringBuilder();
         nullTaskList.add((__) -> {
             if (index < 0 || index >= list.size()) {
-                linkLog.append("NullSuperList.remove? index out of bounds");
+                linkLog.append(NULL_SUPER_LIST_REMOVE_INDEX_OUT_OF_BOUNDS);
                 return null;
             }
             T element = list.get(index);
             if (Null.is(element)) {
-                linkLog.append("NullSuperList.remove? element is null");
+                linkLog.append(NULL_SUPER_LIST_REMOVE_ELEMENT_NULL);
                 return null;
             }
             list.remove(index);

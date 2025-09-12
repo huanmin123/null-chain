@@ -2,6 +2,7 @@ package com.gitee.huanminabc.nullchain.vessel;
 
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.core.NullChain;
+import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
 import com.gitee.huanminabc.nullchain.common.NullTaskList;
@@ -55,10 +56,10 @@ public class NullSuperQuery<T> implements NullQuery<T> {
         nullTaskList.add((__) -> {
             T poll = queue.poll();
             if (Null.is(poll)) {
-                linkLog.append("NullSuperQuery.poll?");
+                linkLog.append(NULL_SUPER_QUERY_POLL_Q);
                 return NullBuild.empty();
             }
-            linkLog.append("NullSuperQuery.poll->");
+            linkLog.append(NULL_SUPER_QUERY_POLL_ARROW);
             return NullBuild.noEmpty(poll);
         });
         return NullBuild.busy(linkLog, nullTaskList);
@@ -77,10 +78,10 @@ public class NullSuperQuery<T> implements NullQuery<T> {
         nullTaskList.add((__) -> {
             T peek = queue.peek();
             if (Null.is(peek)) {
-                linkLog.append("NullSuperQuery.peek?");
+                linkLog.append(NULL_SUPER_QUERY_PEEK_Q);
                 return NullBuild.empty();
             }
-            linkLog.append("NullSuperQuery.peek->");
+            linkLog.append(NULL_SUPER_QUERY_PEEK_ARROW);
             return NullBuild.noEmpty(peek);
         });
         return NullBuild.busy(linkLog, nullTaskList);

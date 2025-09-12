@@ -2,6 +2,7 @@ package com.gitee.huanminabc.nullchain.leaf.date;
 
 import com.gitee.huanminabc.nullchain.common.*;
 import com.gitee.huanminabc.nullchain.core.NullChainBase;
+import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
 import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
 import com.gitee.huanminabc.nullchain.enums.TimeEnum;
@@ -29,14 +30,14 @@ public class NullDateBase<T> extends NullChainBase<T> implements  NullDate<T>  {
             try {
                 string = NullDateFormat.toString(value, dateFormatEnum);
             } catch (Exception e) {
-                linkLog.append("dateFormat? ").append(value).append(" to ").append(dateFormatEnum.getValue()).append(" 失败:").append(e.getMessage());
+                linkLog.append(DATE_FORMAT_Q).append(value).append(" to ").append(dateFormatEnum.getValue()).append(" 失败:").append(e.getMessage());
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
             if (string == null) {
-                linkLog.append("dateFormat? 转换时间格式失败数据格式不正确");
+                linkLog.append(DATE_FORMAT_Q).append("转换时间格式失败数据格式不正确");
                 throw new NullChainException(linkLog.toString());
             }
-            linkLog.append("dateFormat->");
+            linkLog.append(DATE_FORMAT_ARROW);
             return NullBuild.noEmpty(string);
         });
         return  NullBuild.busyDate(this);
@@ -49,14 +50,14 @@ public class NullDateBase<T> extends NullChainBase<T> implements  NullDate<T>  {
             try {
                 t = NullDateFormat.dateOffset((T)value, offsetEnum, num, timeEnum);
             } catch (Exception e) {
-                linkLog.append("dateOffset? ").append(value).append(" 偏移时间失败:").append(e.getMessage());
+                linkLog.append(DATE_OFFSET_Q).append(value).append(" 偏移时间失败:").append(e.getMessage());
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
             if (t == null) {
-                linkLog.append("dateOffset? 偏移时间失败数据格式不正确");
+                linkLog.append(DATE_OFFSET_Q).append("偏移时间失败数据格式不正确");
                 throw new NullChainException(linkLog.toString());
             }
-            linkLog.append("dateOffset->");
+            linkLog.append(DATE_OFFSET_ARROW);
             return NullBuild.noEmpty(t);
         });
         return  NullBuild.busyDate(this);
@@ -74,14 +75,14 @@ public class NullDateBase<T> extends NullChainBase<T> implements  NullDate<T>  {
             try {
                 compare = NullDateFormat.dateCompare(value, date);
             } catch (Exception e) {
-                linkLog.append("dateCompare? ").append(value).append(" 比较时间失败:").append(e.getMessage());
+                linkLog.append(DATE_COMPARE_Q).append(value).append(" 比较时间失败:").append(e.getMessage());
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
             if (compare == null) {
-                linkLog.append("dateCompare? 比较时间失败数据格式不正确");
+                linkLog.append(DATE_COMPARE_Q).append("比较时间失败数据格式不正确");
                 throw new NullChainException(linkLog.toString());
             }
-            linkLog.append("dateCompare->");
+            linkLog.append(DATE_COMPARE_ARROW);
             return NullBuild.noEmpty(compare);
         });
         return  NullBuild.busyDate(this);

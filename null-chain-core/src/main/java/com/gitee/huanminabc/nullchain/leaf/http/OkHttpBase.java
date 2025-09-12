@@ -5,6 +5,7 @@ import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.*;
 import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
 import lombok.extern.slf4j.Slf4j;
+import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -50,7 +51,7 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
     //设置连接超时时间(建议比系统最大超时时间低一些,比如rpc设置的15s断开,那么这里设置14s)
     public OkHttp connectTimeout(long time, TimeUnit timeUnit) {
         this.taskList.add((value)->{
-            linkLog.append("connectTimeout->");
+            linkLog.append(HTTP_CONNECT_TIMEOUT_ARROW);
             okHttpClient = okHttpClient.newBuilder().connectTimeout(time, timeUnit).build();
             return  NullBuild.noEmpty(value);
         });
@@ -60,7 +61,7 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
     //设置写入超时时间(一般不调整)
     public OkHttp writeTimeout(long time, TimeUnit timeUnit) {
         this.taskList.add((value)->{
-            linkLog.append("writeTimeout->");
+            linkLog.append(HTTP_WRITE_TIMEOUT_ARROW);
             okHttpClient = okHttpClient.newBuilder().writeTimeout(time, timeUnit).build();
             return  NullBuild.noEmpty(value);
         });
@@ -70,7 +71,7 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
     //设置读取超时时间(一般不调整)
     public OkHttp readTimeout(long time, TimeUnit timeUnit) {
         this.taskList.add((value)->{
-            linkLog.append("readTimeout->");
+            linkLog.append(HTTP_READ_TIMEOUT_ARROW);
             okHttpClient = okHttpClient.newBuilder().readTimeout(time, timeUnit).build();
             return  NullBuild.noEmpty(value);
         });
@@ -82,7 +83,7 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
     //Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 8080));
     public OkHttp proxy(Proxy proxy) {
         this.taskList.add((value)->{
-            linkLog.append("proxy->");
+            linkLog.append(HTTP_PROXY_ARROW);
             okHttpClient = okHttpClient.newBuilder().proxy(proxy).build();
             return  NullBuild.noEmpty(value);
         });
@@ -93,7 +94,7 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
     //new ConnectionPool(500, 10, TimeUnit.MINUTES)
     private OkHttp connectionPool(ConnectionPool connectionPool) {
         this.taskList.add((value)->{
-            linkLog.append("connectionPool->");
+            linkLog.append(HTTP_CONNECTION_POOL_ARROW);
             okHttpClient = okHttpClient.newBuilder().connectionPool(connectionPool).build();
             return  NullBuild.noEmpty(value);
         });
@@ -110,7 +111,7 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
      */
     public OkHttp addHeader(String key, String value) {
         this.taskList.add((preValue)->{
-            linkLog.append("addHeader->");
+            linkLog.append(HTTP_ADD_HEADER_ARROW);
             if (headerMap == null) {
                 headerMap = new LinkedHashMap<>(16);
             }
@@ -127,9 +128,9 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
             try {
                 StringBuilder valueToUrl = OkHttpBuild.valueToUrl(url, preValue);
                 request.url(valueToUrl.toString());
-                linkLog.append("get->");
+                linkLog.append(HTTP_GET_ARROW);
             } catch (Exception e) {
-                linkLog.append("get? ").append(e.getMessage());
+                linkLog.append(HTTP_GET_Q).append(e.getMessage());
                 throw new NullChainException(linkLog.toString());
             }
             return  NullBuild.noEmpty(preValue);
@@ -146,9 +147,9 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
             try {
                 RequestBody requestBody = OkHttpBuild.requestBodyHandel(type, preValue);
                 request = new Request.Builder().post(requestBody).url(url);
-                linkLog.append("post->");
+                linkLog.append(HTTP_POST_ARROW);
             } catch (Exception e) {
-                linkLog.append("post? ").append(e.getMessage());
+                linkLog.append(HTTP_POST_Q).append(e.getMessage());
                 throw new NullChainException(linkLog.toString());
             }
             return  NullBuild.noEmpty(preValue);
@@ -165,9 +166,9 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
             try {
                 RequestBody requestBody = OkHttpBuild.requestBodyHandel(type, preValue);
                 request = new Request.Builder().put(requestBody).url(url);
-                linkLog.append("put->");
+                linkLog.append(HTTP_PUT_ARROW);
             } catch (Exception e) {
-                linkLog.append("put? ").append(e.getMessage());
+                linkLog.append(HTTP_PUT_Q).append(e.getMessage());
                 throw new NullChainException(linkLog.toString());
             }
             return  NullBuild.noEmpty(preValue);
@@ -181,9 +182,9 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
                 request = new Request.Builder().delete();
                 StringBuilder valueToUrl = OkHttpBuild.valueToUrl(url, preValue);
                 request.url(valueToUrl.toString());
-                linkLog.append("del->");
+                linkLog.append(HTTP_DEL_ARROW);
             } catch (Exception e) {
-                linkLog.append("del? ").append(e.getMessage());
+                linkLog.append(HTTP_DEL_Q).append(e.getMessage());
                 throw new NullChainException(linkLog.toString());
             }
             return  NullBuild.noEmpty(preValue);
@@ -198,17 +199,17 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
     public NullChain<Boolean> downloadFile(String filePath) {
         this.taskList.add((__)->{
             if (Null.is(filePath)) {
-                linkLog.append("downloadFile? ").append("本地文件路径不能为空");
+                linkLog.append(HTTP_DOWNLOAD_FILE_PATH_NULL);
                 throw new NullChainException(linkLog.toString());
             }
 
             try {
                 OkHttpBuild.setHeader(headerMap, request);
                 boolean b = OkHttpBuild.downloadFile(url, filePath, okHttpClient, request);
-                linkLog.append("downloadFile->");
+                linkLog.append(HTTP_DOWNLOAD_FILE_ARROW);
                 return NullBuild.noEmpty(b);
             } catch (Exception e) {
-                linkLog.append("downloadFile? ").append(e.getMessage());
+                linkLog.append(HTTP_DOWNLOAD_FILE_Q).append(e.getMessage());
                 throw new NullChainException(linkLog.toString());
             }
         });
@@ -222,13 +223,13 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
                 OkHttpBuild.setHeader(headerMap, request);
                 byte[] bytes = OkHttpBuild.toBytes(url, okHttpClient, request);
                 if (bytes == null) {
-                    linkLog.append("toBytes? ").append("返回值为空");
+                    linkLog.append(HTTP_TO_BYTES_Q).append("返回值为空");
                     return NullBuild.empty();
                 }
-                linkLog.append("toBytes->");
+                linkLog.append(HTTP_TO_BYTES_ARROW);
                 return NullBuild.noEmpty(bytes);
             } catch (Exception e) {
-                linkLog.append("toBytes? ").append(e.getMessage());
+                linkLog.append(HTTP_TO_BYTES_Q).append(e.getMessage());
                 throw new NullChainException(linkLog.toString());
             }
         });
@@ -242,13 +243,13 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
                 OkHttpBuild.setHeader(headerMap, request);
                 InputStream inputStream = OkHttpBuild.toInputStream(url, okHttpClient, request);
                 if (inputStream == null) {
-                    linkLog.append("toInputStream? ").append("返回值为空");
+                    linkLog.append(HTTP_TO_INPUTSTREAM_Q).append("返回值为空");
                     return NullBuild.empty();
                 }
-                linkLog.append("toInputStream->");
+                linkLog.append(HTTP_TO_INPUTSTREAM_ARROW);
                 return NullBuild.noEmpty(inputStream);
             } catch (Exception e) {
-                linkLog.append("toInputStream? ").append(e.getMessage());
+                linkLog.append(HTTP_TO_INPUTSTREAM_Q).append(e.getMessage());
                 throw new NullChainException(linkLog.toString());
             }
         });
@@ -266,13 +267,13 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
                 OkHttpBuild.setHeader(headerMap, request);
                 String str = OkHttpBuild.toStr(url, okHttpClient, request);
                 if (Null.is(str)) {
-                    linkLog.append("toStr? ").append("返回值为空");
+                    linkLog.append(HTTP_TO_STR_Q).append("返回值为空");
                     return NullBuild.empty();
                 }
-                linkLog.append("toStr->");
+                linkLog.append(HTTP_TO_STR_ARROW);
                 return NullBuild.noEmpty(str);
             } catch (Exception e) {
-                linkLog.append("toStr? ").append(e.getMessage());
+                linkLog.append(HTTP_TO_STR_Q).append(e.getMessage());
                 throw new NullChainException(linkLog.toString());
             }
         });

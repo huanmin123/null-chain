@@ -2,6 +2,7 @@ package com.gitee.huanminabc.nullchain.common;
 
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.core.NullChain;
+import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -30,10 +31,10 @@ public class NullCollect implements Serializable {
         Object o = nullMap.get(t);
         nullTaskList.add((__) -> {
             if (Null.is(o)) {
-                linkLog.append("NullCollect.get?");
+                linkLog.append(NULL_COLLECT_GET_Q);
                 return NullBuild.empty();
             }
-            linkLog.append("NullCollect.get->");
+            linkLog.append(NULL_COLLECT_GET_ARROW);
             return NullBuild.noEmpty(o);
         });
         return NullBuild.busy(linkLog, nullTaskList);
