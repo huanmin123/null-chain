@@ -47,7 +47,7 @@ public class ObjNullTest {
         roleEntity.setRoleName("admin");
         roleEntity.setRoleDescription("1234");
         roleEntity.setRoleCreationTime(new Date());
-//        userEntity.setRoleData(roleEntity);
+        userEntity.setRoleData(roleEntity);
 
         List<UserEntity> userEntityList = new ArrayList<>();
         userEntityList.add(userEntity);
