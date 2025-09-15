@@ -1,7 +1,7 @@
 package com.gitee.huanminabc.nullchain.leaf.copy;
 
 import com.gitee.huanminabc.nullchain.common.NullKernel;
-import java.util.function.Function;
+import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 
 /**
@@ -92,6 +92,6 @@ public interface NullCopy<T> extends NullChain<T>  , NullKernel<T>{
      *     .orElse(new Object[0]);
      * }</pre>
      */
-    <U> NullCopy<T> pick(Function<? super T, ? extends U>... mapper);
+    <U> NullCopy<T> pick(NullFun<? super T, ? extends U>... mapper);
 
 }

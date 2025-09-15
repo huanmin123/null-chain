@@ -1,9 +1,9 @@
 package com.gitee.huanminabc.nullchain.leaf.calculate;
 
+import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.*;
 import static com.gitee.huanminabc.nullchain.common.NullLog.*;
-import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
@@ -286,7 +286,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
     }
 
     @Override
-    public <V extends Number> NullChain<V> map(Function<BigDecimal, V> pickValue) {
+    public <V extends Number> NullChain<V> map(NullFun<BigDecimal, V> pickValue) {
         this.taskList.add((preValue)->{
             if (pickValue == null) {
                 throw new NullChainException(linkLog.append(CALC_RESULT_PICK_VALUE_NULL).toString());

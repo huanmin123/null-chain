@@ -1,8 +1,8 @@
 package com.gitee.huanminabc.nullchain.core.ext;
 
+import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
-import java.util.function.Function;
 import com.gitee.huanminabc.nullchain.common.function.NullFun2;
 
 import java.util.Optional;
@@ -33,14 +33,14 @@ import java.util.function.Supplier;
 @SuppressWarnings("unchecked")
 public interface NullChainExt<T> extends NullChain<T>, NullConvertExt<T> {
     @Override
-    default <U> NullChain<T> of(Function<? super T, ? extends U> function) {
+    default <U> NullChain<T> of(NullFun<? super T, ? extends U> function) {
         NullChain<T> tNullChain = toNULL();
         return tNullChain.of(function);
     }
 
 
     @Override
-    default <U> NullChain<T> ofAny(Function<? super T, ? extends U>... function) {
+    default <U> NullChain<T> ofAny(NullFun<? super T, ? extends U>... function) {
         NullChain<T> tNullChain = toNULL();
         return tNullChain.ofAny(function);
     }
@@ -58,7 +58,7 @@ public interface NullChainExt<T> extends NullChain<T>, NullConvertExt<T> {
     }
 
     @Override
-    default <U> NullChain<T> isNull(Function<? super T, ? extends U> function){
+    default <U> NullChain<T> isNull(NullFun<? super T, ? extends U> function){
         NullChain<T> tNullChain = toNULL();
         return tNullChain.isNull(function);
     }
@@ -83,7 +83,7 @@ public interface NullChainExt<T> extends NullChain<T>, NullConvertExt<T> {
 
 
     @Override
-    default <U> NullChain<U> map(Function<? super T, ? extends U> function) {
+    default <U> NullChain<U> map(NullFun<? super T, ? extends U> function) {
         NullChain<T> tNullChain = toNULL();
         return tNullChain.map(function);
     }
@@ -96,13 +96,13 @@ public interface NullChainExt<T> extends NullChain<T>, NullConvertExt<T> {
 
 
     @Override
-    default <U> NullChain<U> flatChain(Function<? super T, ? extends NullChain<U>> function){
+    default <U> NullChain<U> flatChain(NullFun<? super T, ? extends NullChain<U>> function){
         NullChain<T> tNullChain = toNULL();
         return tNullChain.flatChain(function);
     }
 
     @Override
-    default <U> NullChain<U> flatOptional(Function<? super T, ? extends Optional<U>> function){
+    default <U> NullChain<U> flatOptional(NullFun<? super T, ? extends Optional<U>> function){
         NullChain<T> tNullChain = toNULL();
         return tNullChain.flatOptional(function);
     }

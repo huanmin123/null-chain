@@ -2,7 +2,7 @@ package com.gitee.huanminabc.nullchain.leaf.stream;
 
 import com.gitee.huanminabc.nullchain.common.NullKernel;
 import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
-import java.util.function.Function;
+import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 
 import java.util.Comparator;
@@ -64,7 +64,7 @@ public interface NullStream<T > extends NullKernel<T> {
      * @param mapper 映射函数
      * @return 映射后的流
      */
-    <R> NullStream<R> map(Function<? super T, ? extends R> mapper);
+    <R> NullStream<R> map(NullFun<? super T, ? extends R> mapper);
 
     /**
      * 映射为整数流
@@ -72,7 +72,7 @@ public interface NullStream<T > extends NullKernel<T> {
      * @param mapper 映射函数
      * @return 整数流
      */
-    NullIntStream mapToInt(Function<? super T, ? extends Integer> mapper);
+    NullIntStream mapToInt(NullFun<? super T, ? extends Integer> mapper);
 
     /**
      * 映射为长整型流
@@ -80,7 +80,7 @@ public interface NullStream<T > extends NullKernel<T> {
      * @param mapper 映射函数
      * @return 长整型流
      */
-    NullLongStream mapToLong(Function<? super T, ? extends Long> mapper);
+    NullLongStream mapToLong(NullFun<? super T, ? extends Long> mapper);
 
     /**
      * 映射为双精度流
@@ -88,7 +88,7 @@ public interface NullStream<T > extends NullKernel<T> {
      * @param mapper 映射函数
      * @return 双精度流
      */
-    NullDoubleStream mapToDouble(Function<? super T, ? extends Double> mapper);
+    NullDoubleStream mapToDouble(NullFun<? super T, ? extends Double> mapper);
 
     /**
      * 流过滤操作
@@ -141,7 +141,7 @@ public interface NullStream<T > extends NullKernel<T> {
     NullStream<T> then(NullConsumer2<NullChain<T>, ? super T> function);
 
     //流展开 (扁平化)
-  <R> NullStream<R> flatMap(java.util.function.Function<? super T, ? extends NullStream<? extends R>> mapper);
+  <R> NullStream<R> flatMap(NullFun<? super T, ? extends NullStream<? extends R>> mapper);
 
 
     NullChain<T> findFirst();

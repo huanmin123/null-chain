@@ -3,7 +3,7 @@ package com.gitee.huanminabc.nullchain.leaf.stream;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.*;
 import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
-import java.util.function.Function;
+import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 
@@ -42,7 +42,7 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     }
 
     @Override
-    public <R> NullStream<R> map(Function<? super T, ? extends R> mapper) {
+    public <R> NullStream<R> map(NullFun<? super T, ? extends R> mapper) {
         this.taskList.add((value) -> {
 
             if (mapper == null) {
@@ -67,7 +67,7 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
 
 
     @Override
-    public NullIntStream mapToInt(Function<? super T, ? extends Integer> mapper) {
+    public NullIntStream mapToInt(NullFun<? super T, ? extends Integer> mapper) {
         this.taskList.add((value) -> {
             if (mapper == null) {
                 throw new NullChainException(linkLog.append(STREAM_MAP_TO_INT_Q).append("mapper must not be null").toString());
@@ -90,7 +90,7 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     }
 
     @Override
-    public NullLongStream mapToLong(Function<? super T, ? extends Long> mapper) {
+    public NullLongStream mapToLong(NullFun<? super T, ? extends Long> mapper) {
         this.taskList.add((value) -> {
             if (mapper == null) {
                 throw new NullChainException(linkLog.append(STREAM_MAP_TO_LONG_Q).append("mapper must not be null").toString());
@@ -113,7 +113,7 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     }
 
     @Override
-    public NullDoubleStream mapToDouble(Function<? super T, ? extends Double> mapper) {
+    public NullDoubleStream mapToDouble(NullFun<? super T, ? extends Double> mapper) {
         this.taskList.add((value) -> {
             if (mapper == null) {
                 throw new NullChainException(linkLog.append(STREAM_MAP_TO_DOUBLE_Q).append("mapper must not be null").toString());
@@ -283,7 +283,7 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     }
 
     @Override
-    public <R> NullStream<R> flatMap(java.util.function.Function<? super T, ? extends NullStream<? extends R>> mapper) {
+    public <R> NullStream<R> flatMap(NullFun<? super T, ? extends NullStream<? extends R>> mapper) {
         this.taskList.add((value) -> {
             if (mapper == null) {
                 throw new NullChainException(linkLog.append(STREAM_FLATMAP_Q).append("mapper must not be null").toString());

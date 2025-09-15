@@ -1,8 +1,8 @@
 package com.gitee.huanminabc.nullchain.leaf.calculate;
 
 import com.gitee.huanminabc.nullchain.common.NullKernel;
+import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.core.NullChain;
-import java.util.function.Function;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -220,5 +220,5 @@ public interface NullCalculate<T extends BigDecimal> extends  NullKernel<T> {
      * @param <V> 目标数值类型，必须继承自Number
      * @return 新的链，包含映射后的结果
      */
-    <V extends Number> NullChain<V> map(Function<BigDecimal, V> pickValue);
+    <V extends Number> NullChain<V> map(NullFun<BigDecimal, V> pickValue);
 }
