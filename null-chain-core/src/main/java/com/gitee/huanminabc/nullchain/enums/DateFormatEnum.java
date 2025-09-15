@@ -19,6 +19,8 @@ public enum DateFormatEnum {
     DATETIME_PATTERN_END("yyyy-MM-dd '23:59:59'"),
 
 
+
+
     /**
      * 显示年月日时分秒，例如 2015-08-11 09:51:53.
      */
@@ -26,10 +28,24 @@ public enum DateFormatEnum {
 
 
     DATETIME_T_PATTERN("yyyy-MM-dd'T'HH:mm:ss.SSSX"),
+
+    /**
+     * 显示年月日时分秒，例如 2015-08-11 09:51:53.
+     */
+    MINUTE_PATTERN("yyyy-MM-dd HH:mm"),
+
+    HOUR_PATTERN("yyyy-MM-dd HH"),
+
     /**
      * 仅显示年月日，例如 2015-08-11.
      */
     DATE_PATTERN("yyyy-MM-dd"),
+
+    /**
+     * 仅显示年月,例如 2015-08
+     */
+    MONTH_PATTERN("yyyy-MM"),
+
 
     /**
      * 仅显示时分秒，例如 09:51:53.
@@ -37,9 +53,11 @@ public enum DateFormatEnum {
     TIME_PATTERN("HH:mm:ss"),
 
     /**
-     * 仅显示年月,例如 2015-08
+     * 仅显示时分, 例如 09:51
      */
-    MONTH_PATTERN("yyyy-MM"),
+    TIME_MINUTE_PATTERN("HH:mm"),
+
+
     /**
      * 显示年月日时分秒(无符号)，例如 20150811095153.
      */
@@ -74,9 +92,12 @@ public enum DateFormatEnum {
     private static final List<DateFormatEnum> datePatterns = Arrays.asList(
             DATETIME_PATTERN,
             DATETIME_T_PATTERN,
+            MINUTE_PATTERN,
+            HOUR_PATTERN,
             DATE_PATTERN,
             MONTH_PATTERN,
-            TIME_PATTERN
+            TIME_PATTERN,
+            TIME_MINUTE_PATTERN
     );
     private static final List<DateFormatEnum> numDatePatterns = Arrays.asList(
             NUM_DATETIME_PATTERN,

@@ -317,8 +317,14 @@ public class ObjNullTest {
 //        System.out.println(time222);
 
 
-        NullDate<Integer> stringNullDate = Null.ofDate(20250615).dateOffset(DateOffsetEnum.START, TimeEnum.MONTHS);
-        stringNullDate.ifPresent(System.out::println);
+//        NullDate<Integer> stringNullDate = Null.ofDate(20250615).dateOffset(DateOffsetEnum.START, TimeEnum.MONTHS);
+//        stringNullDate.ifPresent(System.out::println);
+
+        NullDate<Date> dateNullDate = Null.ofDate(new Date()).dateOffset(DateOffsetEnum.START, TimeEnum.HOURS);
+
+        Date dateStart = dateNullDate.get();
+
+        Date dateEnd = dateNullDate.dateOffset(DateOffsetEnum.SUB, 1, TimeEnum.HOURS).get();
 
     }
 
