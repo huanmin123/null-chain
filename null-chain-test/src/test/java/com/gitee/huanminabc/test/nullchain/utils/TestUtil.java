@@ -1,8 +1,8 @@
 package com.gitee.huanminabc.test.nullchain.utils;    //读取文件
 
 
-import com.gitee.huanminabc.common.file.FileReadUtil;
-import com.gitee.huanminabc.common.test.PathUtil;
+import com.gitee.huanminabc.jcommon.file.FileReadUtil;
+import com.gitee.huanminabc.jcommon.test.PathUtil;
 
 import java.io.File;
 

@@ -1,6 +1,6 @@
 package com.gitee.huanminabc.nullchain.common;
 
-import com.gitee.huanminabc.common.reflect.FieldUtil;
+import com.gitee.huanminabc.jcommon.reflect.FieldUtil;
 import lombok.extern.slf4j.Slf4j;
 import java.lang.reflect.Field;
 

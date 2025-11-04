@@ -38,8 +38,10 @@ public class ForSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
 
     @Override
     public boolean buildStatement(List<Token> tokens, List<SyntaxNode> syntaxNodeList) {
+        //优化：缓存size，避免在循环中重复调用
+        int tokensSize = tokens.size();
         // 遍历标记序列
-        for (int i = 0; i < tokens.size(); i++) {
+        for (int i = 0; i < tokensSize; i++) {
             Token token = tokens.get(i);
             if (token.type == TokenType.FOR) {
                 //记录结束下标, 用于截取和删除
@@ -72,7 +74,9 @@ public class ForSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         tokenList.remove(0);
         //一直找到第一个{+LINE_END
         int endIndex=0;
-        for (int i = 0; i < tokenList.size(); i++) {
+        //优化：缓存size，避免在循环中重复调用
+        int tokenListSize = tokenList.size();
+        for (int i = 0; i < tokenListSize; i++) {
             Token token = tokenList.get(i);
             if (token.type == TokenType.LBRACE && tokenList.get(i + 1).type == TokenType.LINE_END) {
                 endIndex = i;
@@ -94,7 +98,9 @@ public class ForSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         //DOT2前后必须是INTEGER
         //找到DOT2的位置
         int dot2Index = 0;
-        for (int i = 0; i < forTokens.size(); i++) {
+        //优化：缓存size，避免在循环中重复调用
+        int forTokensSize = forTokens.size();
+        for (int i = 0; i < forTokensSize; i++) {
             if (forTokens.get(i).type == TokenType.DOT2) {
                 dot2Index = i;
                 break;
@@ -157,8 +163,11 @@ public class ForSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         String end = ifValue.get(4).value;
         //保留当前作用域id
         String currentScopeId = context.getCurrentScopeId();
+        //优化：提前解析start和end，避免在循环中重复调用parseInt
+        int startInt = Integer.parseInt(start);
+        int endInt = Integer.parseInt(end);
         //循环
-        for (int j = Integer.parseInt(start); j <= Integer.parseInt(end); j++) {
+        for (int j = startInt; j <= endInt; j++) {
             //创建子作用域
             NfContextScope newScope = context.createChildScope(currentScopeId, NfContextScopeType.FOR);
             //将i的值赋值
@@ -185,8 +194,10 @@ public class ForSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         int endIndex = 0;
         //记录深度  每次遇到 LBRACE + LINE_END 深度+1, 遇到 RBRACE 深度-1
         int depth = 0;
+        //优化：缓存size，避免在循环中重复调用
+        int tokensSize = tokens.size();
         //遇到RBRACE + LINE_END结束
-        for (int j = i; j < tokens.size()-1; j++) {
+        for (int j = i; j < tokensSize - 1; j++) {
             if (tokens.get(j).type == TokenType.LBRACE && tokens.get(j + 1).type == TokenType.LINE_END) {
                 depth++;
             }
@@ -206,7 +217,9 @@ public class ForSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
     //打印for 的token
     private String printFor(List<Token> tokens) {
         StringBuilder sb = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
-        for (int i = 0; i < tokens.size(); i++) {
+        //优化：缓存size，避免在循环中重复调用
+        int tokensSize = tokens.size();
+        for (int i = 0; i < tokensSize; i++) {
             Token token = tokens.get(i);
             //遇到LINE_END换行
             if (token.type == TokenType.LINE_END) {

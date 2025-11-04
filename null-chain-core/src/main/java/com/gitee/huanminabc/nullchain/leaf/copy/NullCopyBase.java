@@ -1,7 +1,7 @@
 package com.gitee.huanminabc.nullchain.leaf.copy;
 
-import com.gitee.huanminabc.common.reflect.BeanCopyUtil;
-import com.gitee.huanminabc.common.reflect.LambdaUtil;
+import com.gitee.huanminabc.jcommon.reflect.BeanCopyUtil;
+import com.gitee.huanminabc.jcommon.reflect.LambdaUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.*;
 import static com.gitee.huanminabc.nullchain.common.NullLog.*;

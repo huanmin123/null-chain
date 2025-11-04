@@ -1,6 +1,6 @@
 package com.gitee.huanminabc.test.nullchain.nf;
 
-import com.gitee.huanminabc.common.test.CodeTimeUtil;
+import com.gitee.huanminabc.jcommon.test.CodeTimeUtil;
 import com.gitee.huanminabc.nullchain.language.NfRun;
 import com.gitee.huanminabc.nullchain.language.NfSynta;
 import com.gitee.huanminabc.nullchain.language.NfToken;

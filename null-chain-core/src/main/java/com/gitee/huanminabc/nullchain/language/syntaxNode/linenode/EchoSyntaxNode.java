@@ -41,14 +41,16 @@ public class EchoSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
 
     @Override
     public boolean buildStatement(List<Token> tokens,List<SyntaxNode> syntaxNodeList) {
+        //优化：缓存size，避免在循环中重复调用
+        int tokensSize = tokens.size();
         // 遍历标记序列
-        for (int i = 0; i < tokens.size(); i++) {
+        for (int i = 0; i < tokensSize; i++) {
             Token token = tokens.get(i);
             if (token.type == TokenType.ECHO) {
                 //记录结束下标, 用于截取和删除
                 int endIndex = 0;
                 //遇到LINE_END结束
-                for (int j = i; j < tokens.size(); j++) {
+                for (int j = i; j < tokensSize; j++) {
                     if (tokens.get(j).type == TokenType.LINE_END) {
                         endIndex = j;
                         break;

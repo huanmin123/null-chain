@@ -1,8 +1,8 @@
 package com.gitee.huanminabc.nullchain.common;
 
 
-import com.gitee.huanminabc.common.reflect.ClassIdentifyUtil;
-import com.gitee.huanminabc.common.str.StringUtil;
+import com.gitee.huanminabc.jcommon.reflect.ClassIdentifyUtil;
+import com.gitee.huanminabc.jcommon.str.StringUtil;
 import com.gitee.huanminabc.nullchain.NullCheck;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 

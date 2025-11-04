@@ -2,9 +2,9 @@ package com.gitee.huanminabc.nullchain.leaf.http;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.annotation.JSONField;
-import com.gitee.huanminabc.common.reflect.AnnotationUtil;
-import com.gitee.huanminabc.common.reflect.ClassIdentifyUtil;
-import com.gitee.huanminabc.common.reflect.FieldUtil;
+import com.gitee.huanminabc.jcommon.reflect.AnnotationUtil;
+import com.gitee.huanminabc.jcommon.reflect.ClassIdentifyUtil;
+import com.gitee.huanminabc.jcommon.reflect.FieldUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.common.function.NullHttpSupplierEx;

@@ -1,7 +1,7 @@
 package com.gitee.huanminabc.nullchain.common;
 
-import com.gitee.huanminabc.common.exception.StackTraceUtil;
-import com.gitee.huanminabc.common.multithreading.executor.ThreadFactoryUtil;
+import com.gitee.huanminabc.jcommon.exception.StackTraceUtil;
+import com.gitee.huanminabc.jcommon.multithreading.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.core.NullChainBase;
 import com.gitee.huanminabc.nullchain.common.function.NullTaskFun;
 import lombok.Getter;

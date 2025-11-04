@@ -1,7 +1,7 @@
 package com.gitee.huanminabc.nullchain.language;
 
-import com.gitee.huanminabc.common.multithreading.executor.ThreadFactoryUtil;
-import com.gitee.huanminabc.common.reflect.BeanCopyUtil;
+import com.gitee.huanminabc.jcommon.multithreading.executor.ThreadFactoryUtil;
+import com.gitee.huanminabc.jcommon.reflect.BeanCopyUtil;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScopeType;

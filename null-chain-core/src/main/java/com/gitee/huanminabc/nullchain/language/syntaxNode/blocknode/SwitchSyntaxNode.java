@@ -46,8 +46,10 @@ public class SwitchSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
     }
     @Override
     public  boolean buildStatement(List<Token> tokens, List<SyntaxNode> syntaxNodeList) {
+        //优化：缓存size，避免在循环中重复调用
+        int tokensSize = tokens.size();
         // 遍历标记序列
-        for (int i = 0; i < tokens.size(); i++) {
+        for (int i = 0; i < tokensSize; i++) {
             Token token = tokens.get(i);
             if (token.type == TokenType.SWITCH) {
                 //记录结束下标, 用于截取和删除
@@ -206,7 +208,9 @@ public class SwitchSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         List<Token> caseValue = new ArrayList();
         int endIndex2=0;
         //截取到换行
-        for (int i = 0; i < caseTokens.size(); i++) {
+        //优化：缓存size，避免在循环中重复调用
+        int caseTokensSize = caseTokens.size();
+        for (int i = 0; i < caseTokensSize; i++) {
             if (caseTokens.get(i).type == TokenType.LINE_END) {
                 endIndex2 = i+1;
                 break;
@@ -260,8 +264,10 @@ public class SwitchSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         int endIndex = 0;
         //记录深度  每次遇到 LBRACE + LINE_END 深度+1, 遇到 RBRACE 深度-1
         int depth = 0;
+        //优化：缓存size，避免在循环中重复调用
+        int tokensSize = tokens.size();
         //遇到RBRACE + LINE_END结束
-        for (int j = i; j < tokens.size()-1; j++) {
+        for (int j = i; j < tokensSize - 1; j++) {
             if (tokens.get(j).type == TokenType.LBRACE && tokens.get(j + 1).type == TokenType.LINE_END) {
                 depth++;
             }

@@ -1,9 +1,9 @@
 package com.gitee.huanminabc.test.nullchain;
 
 
-import com.gitee.huanminabc.common.multithreading.executor.SleepTools;
-import com.gitee.huanminabc.common.multithreading.executor.ThreadFactoryUtil;
-import com.gitee.huanminabc.common.test.CodeTimeUtil;
+import com.gitee.huanminabc.jcommon.multithreading.executor.SleepTools;
+import com.gitee.huanminabc.jcommon.multithreading.executor.ThreadFactoryUtil;
+import com.gitee.huanminabc.jcommon.test.CodeTimeUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.NullChainCheckException;
 import com.gitee.huanminabc.test.nullchain.entity.RoleEntity;

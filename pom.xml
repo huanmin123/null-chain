@@ -3,13 +3,43 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>
+        Null-Chain 是一个强大的空值安全链式编程框架，提供了类似 Optional 但功能更丰富的链式 API。通过 Null 链，可以优雅地处理可能为空的值，避免 NullPointerException。
+        🛡️ 空值安全：所有操作都是空值安全的，不会抛出 NullPointerException
+        🔗 链式调用：支持流畅的链式编程风格
+        🎯 类型安全：通过泛型保证类型安全
+        🚀 高性能：延迟执行和短路操作，性能优异
+        📦 模块化：提供多个模块，按需引入
+        🌐 Spring集成：完美集成 Spring Boot 生态
+        📝 完整日志：提供完整的操作日志追踪
+        🔄 异步支持：支持异步操作和并发处理
+    </description>
+    <url>https://gitee.com/huanminabc/null-chain</url>
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
 
-    <parent>
-        <groupId>com.gitee.huanminabc</groupId>
-        <artifactId>java-huanmin-utils</artifactId>
-        <version>1.1.1-RELEASE</version>
-    </parent>
+    <developers>
+        <developer>
+            <name>胡安民</name>
+            <email>3426154361@qq.com</email>
+            <organization>胡安民</organization>
+            <organizationUrl>https://gitee.com/huanminabc</organizationUrl>
+        </developer>
+    </developers>
 
+    <scm>
+        <connection>scm:git:git://https://gitee.com/huanminabc/null-chain.git</connection>
+        <developerConnection>scm:git:ssh://gitee.com:huanminabc/null-chain.git</developerConnection>
+        <url>https://gitee.com/huanminabc/null-chain/tree/master</url>
+    </scm>
+
+
+    <groupId>com.gitee.huanminabc</groupId>
     <artifactId>null-chain</artifactId>
     <version>1.1.1-RELEASE</version>
     <packaging>pom</packaging>
@@ -32,23 +62,61 @@
 
         <dependency>
             <groupId>com.gitee.huanminabc</groupId>
-            <artifactId>common</artifactId>
+            <artifactId>jcommon</artifactId>
+            <version>1.1.1-RELEASE</version>
         </dependency>
 
+
+
+        <dependency>
+            <groupId>dom4j</groupId>
+            <artifactId>dom4j</artifactId>
+            <version>1.6.1</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>1.2.7</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.7</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.8.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.34</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
 
-    <distributionManagement>
-        <repository>
-            <id>java-huanmin-utils</id>
-            <name>java-huanmin-utils</name>
-            <url>https://packages.aliyun.com/60df3fde4690c27532d3dd6c/maven/java-huanmin-utils</url>
-        </repository>
-    </distributionManagement>
 
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>0.9.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>central</publishingServerId>
+                </configuration>
+            </plugin>
+
             <!--普通打包,没有主入口和依赖第三方包-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -61,22 +129,76 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
                 <version>3.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
-<!--            &lt;!&ndash; Javadoc &ndash;&gt;-->
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-javadoc-plugin</artifactId>-->
-<!--                <version>3.2.0</version>-->
-<!--            </plugin>-->
+            <!-- Javadoc -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.6.0</version>
+                <configuration>
+                    <show>private</show>
+                    <nohelp>true</nohelp>
+                    <charset>UTF-8</charset>
+                    <encoding>UTF-8</encoding>
+                    <docencoding>UTF-8</docencoding>
+                    <failOnError>false</failOnError>
+                    <doclint>none</doclint>
+                    <additionalOptions>
+                        <additionalOptions>-Xdoclint:none</additionalOptions>
+                        <additionalJOption>-Xdoclint:none</additionalJOption>
+                    </additionalOptions>
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
 
-<!--            &lt;!&ndash; GPG &ndash;&gt;-->
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-gpg-plugin</artifactId>-->
-<!--                <version>1.6</version>-->
-<!--            </plugin>-->
+
+            <!-- GPG -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+
+                    <!-- 非敏感参数：密钥 ID 可配置在这里（如果不敏感） -->
+                    <keyname>34F3FE239781913FDCAE3211292467D62DFF5927</keyname>
+                    <!-- 敏感参数：通过外部变量引用，不在 pom 中硬编码 -->
+                    <passphrase>hu123456.</passphrase>
+                </configuration>
+            </plugin>
+
 
             <!--Compiler -->
             <plugin>
@@ -94,13 +216,6 @@
                     <!-- 使用属性控制，而非硬编码 true -->
                     <skip>${skipTests}</skip>
                 </configuration>
-            </plugin>
-
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>versions-maven-plugin</artifactId>
-                <version>2.7</version>
             </plugin>
 
         </plugins>

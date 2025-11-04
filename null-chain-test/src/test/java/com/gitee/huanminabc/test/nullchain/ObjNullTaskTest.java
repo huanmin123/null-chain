@@ -1,7 +1,7 @@
 package com.gitee.huanminabc.test.nullchain;
 
-import com.gitee.huanminabc.common.file.ReadFileBytesUtil;
-import com.gitee.huanminabc.common.test.PathUtil;
+import com.gitee.huanminabc.jcommon.file.ReadFileBytesUtil;
+import com.gitee.huanminabc.jcommon.test.PathUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.NullGroupNfTask;
 import com.gitee.huanminabc.nullchain.common.NullGroupTask;
