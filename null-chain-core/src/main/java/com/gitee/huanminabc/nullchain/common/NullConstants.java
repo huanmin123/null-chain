@@ -31,7 +31,7 @@ public final class NullConstants {
      * <p>默认值128可以避免大部分场景下的扩容操作，平衡内存使用和性能。
      * 如果链式操作日志较长，可以适当增加此值。</p>
      */
-    public static final int STRING_BUILDER_INITIAL_CAPACITY = 128;
+    public static final int STRING_BUILDER_INITIAL_CAPACITY = 64;
     
     /**
      * 占位符正则表达式Pattern，用于将消息模板中的占位符{}替换为%s
