@@ -4,6 +4,8 @@ import com.gitee.huanminabc.nullchain.common.NullKernelAbstract;
 import com.gitee.huanminabc.nullchain.common.NullTaskList;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 
+import java.io.Serializable;
+
 /**
  * Null任务函数式接口 - 提供任务执行的函数式操作
  * 
@@ -31,7 +33,7 @@ import com.gitee.huanminabc.nullchain.core.NullChain;
  * @see NullTaskList.NullNode 任务节点类
  */
 @FunctionalInterface
-public interface NullTaskFun<T> {
+public interface NullTaskFun<T>  extends Serializable {
     /**
      * 创建任务节点
      * 

@@ -58,6 +58,9 @@ public class ObjNullTest {
 
     @Test
     public void of() {
+
+        Object o = Null.empty().orElseNull();
+
         NullChain<RoleEntity> map = Null.of(userEntity).map(UserEntity::getRoleData);
         RoleEntity roleEntity = map.get();
         System.out.println(roleEntity);
@@ -66,6 +69,11 @@ public class ObjNullTest {
         System.out.println(s);
     }
 
+    @Test
+    public  void pick(){
+        //提取部分内容返回新的对象
+        Null.ofCopy(userEntity).pick(UserEntity::getName,UserEntity::getAge).ifPresent(System.out::println);
+    }
 
 
     @Test
@@ -257,6 +265,9 @@ public class ObjNullTest {
 
     @Test
     public void testeq() {
+
+
+
         String eqa = "123";
 //        boolean eq = Null.of(eqa).eq("123");
 //        System.out.println(eq);
@@ -317,8 +328,14 @@ public class ObjNullTest {
 //        System.out.println(time222);
 
 
-        NullDate<Integer> stringNullDate = Null.ofDate(20250615).dateOffset(DateOffsetEnum.START, TimeEnum.MONTHS);
-        stringNullDate.ifPresent(System.out::println);
+//        NullDate<Integer> stringNullDate = Null.ofDate(20250615).dateOffset(DateOffsetEnum.START, TimeEnum.MONTHS);
+//        stringNullDate.ifPresent(System.out::println);
+
+        NullDate<Date> dateNullDate = Null.ofDate(new Date()).dateOffset(DateOffsetEnum.START, TimeEnum.HOURS);
+
+        Date dateStart = dateNullDate.get();
+
+        Date dateEnd = dateNullDate.dateOffset(DateOffsetEnum.SUB, 1, TimeEnum.HOURS).get();
 
     }
 

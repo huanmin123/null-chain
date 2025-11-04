@@ -1,6 +1,7 @@
 package com.gitee.huanminabc.nullchain.common.function;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 /**
  * Null HTTP供应商异常接口 - 提供HTTP操作的供应商功能
@@ -28,7 +29,7 @@ import java.io.IOException;
  * @version 1.1.1
  */
 @FunctionalInterface
-public interface NullHttpSupplierEx<T> {
+public interface NullHttpSupplierEx<T> extends Serializable {
     /**
      * 获取值
      * 

@@ -4,7 +4,7 @@ import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.*;
 import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
-import java.util.function.Function;
+import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.common.function.NullFun2;
 import com.gitee.huanminabc.nullchain.common.NullReflectionKit;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
     }
 
     @Override
-    public <U> NullChain<T> of(Function<? super T, ? extends U> function) {
+    public <U> NullChain<T> of(NullFun<? super T, ? extends U> function) {
         this.taskList.add((value)->{
             if (function == null) {
                 throw new NullChainException(linkLog.append(CHAIN_OF_PARAM_NULL).toString());
@@ -96,7 +96,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
     }
 
     @Override
-    public <U> NullChain<T> isNull(Function<? super T, ? extends U> function) {
+    public <U> NullChain<T> isNull(NullFun<? super T, ? extends U> function) {
         this.taskList.add((value) -> {
             if (value == null) {
                 return NullBuild.empty();
@@ -124,14 +124,14 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
 
     @SafeVarargs
     @Override
-    public final <U> NullChain<T> ofAny(Function<? super T, ? extends U>... function) {
+    public final <U> NullChain<T> ofAny(NullFun<? super T, ? extends U>... function) {
         this.taskList.add((value)->{
             if (Null.is(function)) {
                 throw new NullChainException(linkLog.append(CHAIN_OFANY_PARAM_NULL).toString());
             }
             try {
                 for (int i = 0; i < function.length; i++) {
-                    Function<? super T, ? extends U> nullFun = function[i];
+                    NullFun<? super T, ? extends U> nullFun = function[i];
                     U apply = nullFun.apply((T)value);
                     if (Null.is(apply)) {
                         linkLog.append(CHAIN_OFANY_INDEX).append(i + 1).append("个");
@@ -209,7 +209,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
 
 
     @Override
-    public <U> NullChain<U> map(Function<? super T, ? extends U> function) {
+    public <U> NullChain<U> map(NullFun<? super T, ? extends U> function) {
         this.taskList.add((value)->{
             if (function == null) {
                 throw new NullChainException(linkLog.append(CHAIN_MAP_PARAM_NULL).toString());
@@ -257,7 +257,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
 
 
     @Override
-    public <U> NullChain<U> flatChain(Function<? super T, ? extends NullChain<U>> function) {
+    public <U> NullChain<U> flatChain(NullFun<? super T, ? extends NullChain<U>> function) {
         this.taskList.add((value)->{
             if (function == null) {
                 throw new NullChainException(linkLog.append(CHAIN_FLATCHAIN_PARAM_NULL).toString());
@@ -280,7 +280,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
     }
 
     @Override
-    public <U> NullChain<U> flatOptional(Function<? super T, ? extends Optional<U>> function) {
+    public <U> NullChain<U> flatOptional(NullFun<? super T, ? extends Optional<U>> function) {
         this.taskList.add((value)->{
             if (function == null) {
                 throw new NullChainException(linkLog.append(CHAIN_FLATOPTIONAL_PARAM_NULL).toString());

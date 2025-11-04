@@ -1,11 +1,11 @@
 package com.gitee.huanminabc.nullchain.core;
 
 import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
+import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.common.function.NullFun2;
 
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -58,7 +58,7 @@ public interface NullChain<T> extends NullConvert<T> {
      *     .orElse("UNKNOWN");
      * }</pre>
      */
-    <U> NullChain<T> of(Function<? super T, ? extends U> function);
+    <U> NullChain<T> of(NullFun<? super T, ? extends U> function);
 
     /**
      * 多条件判断操作 - 任意一个条件为空则返回空链
@@ -69,7 +69,7 @@ public interface NullChain<T> extends NullConvert<T> {
      * @param functions 条件函数数组
      * @return 新的Null链，如果任意条件为空则为空链
      */
-    <U> NullChain<T> ofAny(Function<? super T, ? extends U>... functions);
+    <U> NullChain<T> ofAny(NullFun<? super T, ? extends U>... functions);
 
 
     /**
@@ -133,7 +133,7 @@ public interface NullChain<T> extends NullConvert<T> {
      *     .orElse("默认配置");
      * }</pre>
      */
-    <U> NullChain<T> isNull(Function<? super T, ? extends U> function);
+    <U> NullChain<T> isNull(NullFun<? super T, ? extends U> function);
 
 
     /**
@@ -214,7 +214,7 @@ public interface NullChain<T> extends NullConvert<T> {
      *     .orElse("未知用户");
      * }</pre>
      */
-    <U> NullChain<U> map(Function<? super T, ? extends U> function);
+    <U> NullChain<U> map(NullFun<? super T, ? extends U> function);
 
     /**
      * 值映射操作 - 带链上下文的映射
@@ -256,7 +256,7 @@ public interface NullChain<T> extends NullConvert<T> {
      *     .orElse("无描述");
      * }</pre>
      */
-    <U> NullChain<U> flatChain(Function<? super T, ? extends NullChain<U>> function);
+    <U> NullChain<U> flatChain(NullFun<? super T, ? extends NullChain<U>> function);
 
     /**
      * 扁平化Optional操作 - 解包Optional值
@@ -276,7 +276,7 @@ public interface NullChain<T> extends NullConvert<T> {
      *     .orElse("无描述");
      * }</pre>
      */
-    <U> NullChain<U> flatOptional(Function<? super T, ? extends Optional<U>> function);
+    <U> NullChain<U> flatOptional(NullFun<? super T, ? extends Optional<U>> function);
 
     /**
      * 默认值操作 - 使用Supplier提供默认值
