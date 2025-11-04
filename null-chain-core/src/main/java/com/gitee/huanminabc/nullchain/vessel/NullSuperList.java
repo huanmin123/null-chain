@@ -2,6 +2,7 @@ package com.gitee.huanminabc.nullchain.vessel;
 
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
+import com.gitee.huanminabc.nullchain.common.NullConstants;
 import com.gitee.huanminabc.nullchain.common.NullTaskList;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import static com.gitee.huanminabc.nullchain.common.NullLog.*;
@@ -21,7 +22,7 @@ public class NullSuperList<T> implements NullList<T> {
     @Override
     public NullChain<T> get(int index) {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         nullTaskList.add((__) -> {
             if (index < 0 || index >= list.size()) {
                 linkLog.append(NULL_SUPER_LIST_GET_INDEX_OUT_OF_BOUNDS);
@@ -152,7 +153,7 @@ public class NullSuperList<T> implements NullList<T> {
     @Override
     public NullChain<T> remove(int index) {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         nullTaskList.add((__) -> {
             if (index < 0 || index >= list.size()) {
                 linkLog.append(NULL_SUPER_LIST_REMOVE_INDEX_OUT_OF_BOUNDS);

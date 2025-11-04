@@ -36,7 +36,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
 
     @Override
     public <R> NullChain<R> tool(Class<? extends NullTool<T, R>> tool) {
-        return tool(tool, new Object[]{});
+        return tool(tool, NullConstants.EMPTY_OBJECT_ARRAY);
     }
 
     @Override
@@ -355,14 +355,14 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
         NullMap<String, Object> mainSystemContext = NullMap.newHashMap();
         mainSystemContext.put("threadFactoryName", threadFactoryName);
         mainSystemContext.put("preValue", preValue);//上一个任务的值
-        mainSystemContext.put("params", params == null ? new Object[]{} : params);
+        mainSystemContext.put("params", params == null ? NullConstants.EMPTY_OBJECT_ARRAY : params);
         return NfMain.run(nfContext, logger, mainSystemContext);
     }
 
 
     private  < R> R taskRun(T value, NullTask<T, R> nullTask, StringBuilder linkLog, Object... params) throws NullChainCheckException {
         NullMap<String, Object> map = NullMap.newHashMap();
-        Object[] objects = params == null ? new Object[]{} : params;
+        Object[] objects = params == null ? NullConstants.EMPTY_OBJECT_ARRAY : params;
         //校验参数类型和长度
         NullType nullType = nullTask.checkTypeParams();
         try {
@@ -387,7 +387,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
 
     private  <R> R toolRun(T value, NullTool<T, R> nullTool, StringBuilder linkLog, Object... params) throws NullChainCheckException {
         NullMap<String, Object> map = NullMap.newHashMap();
-        Object[] objects = params == null ? new Object[]{} : params;
+        Object[] objects = params == null ? NullConstants.EMPTY_OBJECT_ARRAY : params;
         //校验参数类型和长度
         NullType nullType = nullTool.checkTypeParams();
         try {

@@ -85,9 +85,9 @@ public class NullTaskList implements Serializable {
     }
 
     public void add(NullTaskFun task) {
-        if (NullTaskFunAbs.class.isAssignableFrom(task.getClass())) {
-            NullTaskFunAbs taskAbs = (NullTaskFunAbs) task;
-            tasks.add(taskAbs);
+        // 优化：使用instanceof替代isAssignableFrom，性能更好
+        if (task instanceof NullTaskFunAbs) {
+            tasks.add((NullTaskFunAbs) task);
         } else {
             tasks.add(new NullTaskFunAbs() {
                 @Override
@@ -96,7 +96,6 @@ public class NullTaskList implements Serializable {
                 }
             });
         }
-
     }
 
 
@@ -137,7 +136,9 @@ public class NullTaskList implements Serializable {
             chain = task1;
         }
         lastResult = chain;
-        return chain!=null?chain: new NullNode<>();
+        //优化：如果chain为null，说明没有任何任务执行，返回预定义的空节点，但这里需要创建新对象
+        //注意：由于任务链可能为空且没有任务执行，返回新对象是必要的，保持原有逻辑
+        return chain != null ? chain : new NullNode<>();
     }
 
     //运行任务返回结果  如果调用方支持异步那么开启异步之后的节点将脱离主线程  比如ifPresent

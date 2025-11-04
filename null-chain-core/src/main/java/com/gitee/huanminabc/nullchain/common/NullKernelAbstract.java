@@ -43,13 +43,13 @@ public class NullKernelAbstract<T> implements NullKernel<T>, Serializable, NullC
         if (this.taskList == null) {
             this.taskList = new NullTaskList();
         }
-        this.linkLog = new StringBuilder();
+        this.linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
     }
 
 
 
     public NullKernelAbstract(){
-          this(new StringBuilder(),new NullTaskList());
+          this(new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY),new NullTaskList());
     }
 
     public NullKernelAbstract(StringBuilder linkLog, NullTaskList taskList) {
@@ -58,7 +58,7 @@ public class NullKernelAbstract<T> implements NullKernel<T>, Serializable, NullC
         }
         this.taskList = taskList;
         if (linkLog == null) {
-            linkLog = new StringBuilder();
+            linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         }
         if (linkLog.length() > 0 && this.linkLog != null) {
             this.linkLog.append(linkLog);

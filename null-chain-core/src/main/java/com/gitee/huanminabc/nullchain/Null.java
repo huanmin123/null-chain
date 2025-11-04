@@ -72,7 +72,7 @@ public class Null extends NullUtil {
      * @return 空的Null链，执行任何操作都会返回空值
      */
     public static <T> NullChain<T> empty() {
-        return new NullChainBase<>(new StringBuilder(), new NullTaskList());
+        return new NullChainBase<>(new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY), new NullTaskList());
     }
 
     /**
@@ -222,7 +222,7 @@ public class Null extends NullUtil {
 
     public static <N extends Number> NullCalculate<BigDecimal> ofCalc(N n) {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         nullTaskList.add((__) -> {
             if (Null.is(n)) {
                 linkLog.append(OF_CALC_Q);
@@ -236,7 +236,7 @@ public class Null extends NullUtil {
 
     public static <NUM extends Number> NullCalculate<BigDecimal> ofCalc(NullChain<NUM> nullChain) {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         nullTaskList.add((__) -> {
             if (Null.is(nullChain)) {
                 linkLog.append(OF_CALC_Q);
@@ -278,49 +278,63 @@ public class Null extends NullUtil {
         L build(StringBuilder linkLog, NullTaskList tasks);
     }
 
-    static <X, L> L ofLeaf(X value, String nullLog, String okLog, LeafBuilder<L> builder) {
+    /**
+     * 创建Leaf对象的通用辅助方法
+     * 
+     * @param valueSupplier 提供实际值的函数，如果为null或空则返回null
+     * @param nullLog 空值日志
+     * @param okLog 正常值日志
+     * @param builder 构建器
+     * @return 构建的Leaf对象
+     */
+    private static <X, L> L createLeaf(java.util.function.Supplier<X> valueSupplier, String nullLog, String okLog, LeafBuilder<L> builder) {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         nullTaskList.add((__) -> {
-            if (Null.is(value)) {
+            X actualValue = valueSupplier.get();
+            if (Null.is(actualValue)) {
                 linkLog.append(nullLog);
                 return NullBuild.empty();
             }
             linkLog.append(okLog);
-            return NullBuild.noEmpty(value);
+            return NullBuild.noEmpty(actualValue);
         });
         return builder.build(linkLog, nullTaskList);
     }
 
+    static <X, L> L ofLeaf(X value, String nullLog, String okLog, LeafBuilder<L> builder) {
+        // 快速路径：对于明显的null值，直接返回空链，避免创建对象
+        if (value == null) {
+            NullTaskList nullTaskList = new NullTaskList();
+            StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
+            linkLog.append(nullLog);
+            nullTaskList.add((__) -> NullBuild.empty());
+            return builder.build(linkLog, nullTaskList);
+        }
+        
+        return createLeaf(() -> value, nullLog, okLog, builder);
+    }
+
     static <X, L> L ofLeaf(NullChain<X> value, String nullLog, String okLog, LeafBuilder<L> builder) {
-        NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
-        nullTaskList.add((__) -> {
-            if (Null.is(value)) {
-                linkLog.append(nullLog);
-                return NullBuild.empty();
-            }
-            linkLog.append(okLog);
-            return NullBuild.noEmpty(value.get());
-        });
-        return builder.build(linkLog, nullTaskList);
+        return createLeaf(() -> Null.is(value) ? null : value.get(), nullLog, okLog, builder);
     }
 
 
     @SuppressWarnings("unchecked")
     static <S> NullStream<S> ofStreamInternal(Object source, String okLog) {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         nullTaskList.add((__) -> {
             linkLog.append(okLog);
             if (Null.is(source)) {
                 return NullBuild.noEmpty((Stream.empty()));
             }
             Stream<S> stream;
-            if (source instanceof Stream) {
-                stream = ((Stream<S>) source).filter(Null::non);
-            } else if (source instanceof Collection) {
+            // 优化：将最常用的Collection类型检查放在最前面，提升性能
+            if (source instanceof Collection) {
                 stream = ((Collection<S>) source).stream().filter(Null::non);
+            } else if (source instanceof Stream) {
+                stream = ((Stream<S>) source).filter(Null::non);
             } else if (source instanceof NullCollection) {
                 stream = ((NullCollection<S>) source).stream().filter(Null::non);
             } else {
@@ -333,7 +347,7 @@ public class Null extends NullUtil {
 
     static <T> NullStream<T> ofStreamInternalChain(NullChain<? extends Collection<T>> nullChain) {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         nullTaskList.add((__) -> {
             linkLog.append(TO_STREAM_ARROW);
             if (Null.is(nullChain)) {
@@ -346,7 +360,7 @@ public class Null extends NullUtil {
 
     static <T> NullStream<T> ofStreamInternalArray(NullChain<? extends T[]> nullChain) {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         nullTaskList.add((__) -> {
             linkLog.append(TO_STREAM_ARROW);
             if (Null.is(nullChain)) {
@@ -359,7 +373,7 @@ public class Null extends NullUtil {
 
     static <T> OkHttp<T> ofHttpInternal(String url, Object value) {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         nullTaskList.add((__) -> {
             if (value == null) {
                 if (Null.is(url)) {
@@ -382,7 +396,7 @@ public class Null extends NullUtil {
 
     static <T> OkHttp<T> ofHttpInternal(String httpName, String url, Object value) {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         nullTaskList.add((__) -> {
             if (Null.isAny(url, value)) {
                 linkLog.append(OF_HTTP_Q);
@@ -399,8 +413,17 @@ public class Null extends NullUtil {
 
 
     static <X> NullChain<X> ofInternal(X value) {
+        // 快速路径：对于明显的null值，直接返回空链，避免创建对象
+        if (value == null) {
+            NullTaskList nullTaskList = new NullTaskList();
+            StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
+            linkLog.append(OF_Q);
+            nullTaskList.add((__) -> NullBuild.empty());
+            return NullBuild.busy(linkLog, nullTaskList);
+        }
+        
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         nullTaskList.add((__) -> {
             if (Null.is(value)) {
                 linkLog.append(OF_Q);

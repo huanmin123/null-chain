@@ -74,18 +74,18 @@ public class NullReflectionKit {
         if (object == null) {
             return 0;
         }
+        Class<?> aClass = object.getClass();
         //如果是8大数据类型那么勇toString 返回的就是本身的长度
-        boolean primitiveOrWrapper = ClassIdentifyUtil.isPrimitiveOrWrapper(object.getClass());
+        boolean primitiveOrWrapper = ClassIdentifyUtil.isPrimitiveOrWrapper(aClass);
         if (primitiveOrWrapper){
             return object.toString().length();
         }
         //如果数数组返回数组的长度
-        if (object.getClass().isArray()) {
+        if (aClass.isArray()) {
             return Array.getLength(object);
         }
 
         //否则取内部的size或者length方法,如果都没有那么返回0
-        Class<?> aClass = object.getClass();
         Method sizeMethod = null;
         try {
             sizeMethod = aClass.getMethod("size");
@@ -98,7 +98,7 @@ public class NullReflectionKit {
         }
         try {
             Object invoke = sizeMethod.invoke(object);
-            if (invoke instanceof Integer||invoke instanceof Long) {
+            if (invoke instanceof Integer || invoke instanceof Long) {
                 return (int) invoke;
             }
         } catch (IllegalAccessException | InvocationTargetException e) {

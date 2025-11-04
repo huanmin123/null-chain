@@ -47,7 +47,7 @@ public interface NullKernelExt<T>  extends NullKernel<T>, NullCheck {
 
     default NullChain<T> toNULL() {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         nullTaskList.add((__) -> {
             boolean empty = isEmpty();
             if (empty) {

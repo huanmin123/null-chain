@@ -58,7 +58,7 @@ public class NullGroupNfTask {
 
         //获取参数
         public Object[] getParams() {
-            return params == null ? new Object[]{} : params;
+            return params == null ? NullConstants.EMPTY_OBJECT_ARRAY : params;
         }
     }
 
@@ -133,7 +133,7 @@ public class NullGroupNfTask {
             throw new NullChainException("NullGroupNfTask::readFileStrAll-> 文件不存在{}", file.getAbsolutePath());
         }
 
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         try (BufferedReader br =
                      new BufferedReader(new InputStreamReader(Files.newInputStream(file.toPath())));) {
             String lin;

@@ -1,5 +1,6 @@
 package com.gitee.huanminabc.nullchain.language.syntaxNode.linenode;
 
+import com.gitee.huanminabc.nullchain.common.NullConstants;
 import com.gitee.huanminabc.nullchain.language.NfCalculator;
 import com.gitee.huanminabc.nullchain.language.NfException;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
@@ -155,7 +156,7 @@ public class AssignSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
 
     //打印表达式
     private String printExp(List<Token> tokens) {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         //前3个是类型,变量名,赋值符号 需要空格
         for (int i = 0; i < 3; i++) {
             sb.append(tokens.get(i).value).append(" ");

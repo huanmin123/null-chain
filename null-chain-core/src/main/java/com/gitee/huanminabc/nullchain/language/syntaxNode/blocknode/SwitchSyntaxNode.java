@@ -1,5 +1,6 @@
 package com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode;
 
+import com.gitee.huanminabc.nullchain.common.NullConstants;
 import com.gitee.huanminabc.nullchain.language.NfException;
 import com.gitee.huanminabc.nullchain.language.NfSynta;
 import com.gitee.huanminabc.nullchain.language.NfToken;
@@ -305,7 +306,7 @@ public class SwitchSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
 
     //打印switch 的token
     private String printSwitch(List<Token> tokens) {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         sb.append("\n");
         for (Token token : tokens) {
             //遇到LINE_END换行

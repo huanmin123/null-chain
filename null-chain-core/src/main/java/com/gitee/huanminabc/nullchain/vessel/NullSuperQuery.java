@@ -5,6 +5,7 @@ import com.gitee.huanminabc.nullchain.core.NullChain;
 import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
+import com.gitee.huanminabc.nullchain.common.NullConstants;
 import com.gitee.huanminabc.nullchain.common.NullTaskList;
 
 import java.util.*;
@@ -52,7 +53,7 @@ public class NullSuperQuery<T> implements NullQuery<T> {
     @Override
     public  NullChain<T> poll() {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         nullTaskList.add((__) -> {
             T poll = queue.poll();
             if (Null.is(poll)) {
@@ -74,7 +75,7 @@ public class NullSuperQuery<T> implements NullQuery<T> {
     @Override
     public  NullChain<T> peek() {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         nullTaskList.add((__) -> {
             T peek = queue.peek();
             if (Null.is(peek)) {

@@ -44,11 +44,13 @@ public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConve
                 throw new NullChainException(linkLog.append(TYPE_Q).append(TYPE_CLASS_NULL).toString());
             }
             Class<?> aClass = uClass.getClass();
+            //优化：只调用一次getClass()，避免在else分支中重复调用
+            Class<?> valueClass = value != null ? value.getClass() : null;
             if (aClass.isInstance(value)) {
                 linkLog.append(TYPE_ARROW);
                 return NullBuild.noEmpty(aClass.cast(value));
             } else {
-                linkLog.append(TYPE_Q).append(TYPE_MISMATCH).append(value.getClass().getName()).append(" vs ").append(aClass.getName());
+                linkLog.append(TYPE_Q).append(TYPE_MISMATCH).append(valueClass != null ? valueClass.getName() : "null").append(" vs ").append(aClass.getName());
                 return NullBuild.empty();
             }
         });

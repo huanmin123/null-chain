@@ -1,5 +1,6 @@
 package com.gitee.huanminabc.nullchain.language.syntaxNode.linenode;
 
+import com.gitee.huanminabc.nullchain.common.NullConstants;
 import com.gitee.huanminabc.nullchain.language.NfException;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
@@ -87,7 +88,7 @@ public  class ImportSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {
         List<Token> value = syntaxNode.getValue();
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         for (Token token : value) {
             sb.append(token.value);
         }

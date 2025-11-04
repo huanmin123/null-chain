@@ -1,5 +1,6 @@
 package com.gitee.huanminabc.nullchain.language.syntaxNode.linenode;
 
+import com.gitee.huanminabc.nullchain.common.NullConstants;
 import com.gitee.huanminabc.nullchain.language.NfException;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
@@ -126,7 +127,7 @@ public class TaskSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         }
         //截取到as的位置
         List<Token> taskToken = new ArrayList(value.subList(0, asIndex));
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         for (Token token : taskToken) {
             sb.append(token.value);
         }

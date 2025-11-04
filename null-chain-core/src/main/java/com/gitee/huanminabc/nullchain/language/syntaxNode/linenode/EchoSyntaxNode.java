@@ -1,5 +1,6 @@
 package com.gitee.huanminabc.nullchain.language.syntaxNode.linenode;
 
+import com.gitee.huanminabc.nullchain.common.NullConstants;
 import com.gitee.huanminabc.nullchain.language.NfCalculator;
 import com.gitee.huanminabc.nullchain.language.NfException;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
@@ -101,8 +102,8 @@ public class EchoSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
 
 
     private  StringBuilder toPrint(List<Token> tokens,NfContext context,SyntaxNode syntaxNode){
-        StringBuilder sb = new StringBuilder();
-        StringBuilder exp= new StringBuilder();
+        StringBuilder sb = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
+        StringBuilder exp= new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         //目前打印只支持字符串和变量和常亮
         for (Token token : tokens) {
             switch (token.type){
@@ -127,7 +128,7 @@ public class EchoSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                     }
                     try {
                         Object arithmetic = NfCalculator.arithmetic(exp.toString(), context);
-                        exp = new StringBuilder();
+                        exp = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
                         sb.append(arithmetic);
                     } catch (Exception e) {
                         throw new NfException(e, "Line:{}, 表达式计算错误: {} , syntax: {}", syntaxNode.getLine(), exp, syntaxNode);

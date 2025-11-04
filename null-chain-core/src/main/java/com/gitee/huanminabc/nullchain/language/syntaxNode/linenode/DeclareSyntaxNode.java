@@ -1,5 +1,6 @@
 package com.gitee.huanminabc.nullchain.language.syntaxNode.linenode;
 
+import com.gitee.huanminabc.nullchain.common.NullConstants;
 import com.gitee.huanminabc.nullchain.language.NfException;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
@@ -109,7 +110,7 @@ public class DeclareSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
 
     //打印表达式
     private String printExp(List<Token> tokens) {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         //前2个是类型,变量名
         for (int i = 0; i < 2; i++) {
             sb.append(tokens.get(i).value).append(" ");

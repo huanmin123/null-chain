@@ -51,7 +51,7 @@ public class NullCollect implements Serializable {
     //获取内容
     public <T> NullChain<T> get(Class<T> t) {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         Object o = nullMap.get(t);
         nullTaskList.add((__) -> {
             if (Null.is(o)) {

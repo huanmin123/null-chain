@@ -1,5 +1,7 @@
 package com.gitee.huanminabc.nullchain.language.token;
 
+import com.gitee.huanminabc.nullchain.common.NullConstants;
+
 import java.util.List;
 /**
  * @author huanmin
@@ -8,7 +10,7 @@ import java.util.List;
 public class IdentifierToken {
     // 处理标识符、关键字和常量
     public static int identifier(String input, char currentChar, int i, List<Token> tokens, Integer line) {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         sb.append(currentChar);
         i++;
         while (i < input.length() && (Character.isLetterOrDigit(input.charAt(i)) || input.charAt(i) == '_')) {

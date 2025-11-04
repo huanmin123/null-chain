@@ -55,7 +55,7 @@ public class NullGroupTask {
 
         //获取参数
         public Object[] getParams() {
-            return params == null ? new Object[]{} : params;
+            return params == null ? NullConstants.EMPTY_OBJECT_ARRAY : params;
         }
     }
 

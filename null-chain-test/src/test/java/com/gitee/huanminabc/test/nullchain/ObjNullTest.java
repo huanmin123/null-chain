@@ -87,7 +87,7 @@ public class ObjNullTest {
 //                .map(UserEntity::getAge)
 ////                .filter(Objects::nonNull)                   // 再过滤掉age为null的
 //                .reduce(0, Integer::sum);
-//
+//`
 //
 //        int nullIntStream = Null.ofStream(userEntity.getList()).mapToInt(UserEntity::getAge).sum();
 //        System.out.println(nullIntStream); //0

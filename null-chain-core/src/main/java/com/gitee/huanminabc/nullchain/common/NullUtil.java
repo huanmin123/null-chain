@@ -44,7 +44,6 @@ import java.util.function.Supplier;
  */
 public class NullUtil {
 
-
     //判断不等于空并且如果是字符串类型那么也不能是空
     public static boolean is(Object o) {
         if (o == null) {
@@ -62,9 +61,10 @@ public class NullUtil {
             CharSequence str = (CharSequence) o;
             boolean blank = StringUtil.isEmpty(str);
             //如果不是空那么判断不能是null字符串,在有些情况下比如String.valueOf(null)返回的是null字符串，这会导致计算和显示的时候误解
+            //优化：先检查长度，如果长度不是4，可以快速跳过"null"字符串检查
             if (!blank && str instanceof String && str.length() == 4) {
-                //截取前4个字符,如果是null字符串那么就返回true
-                return "null".equalsIgnoreCase(((String) str).substring(0, 4));
+                //优化：如果长度已经是4，直接比较整个字符串，避免substring操作
+                return "null".equalsIgnoreCase((String) str);
             }
             return blank;
         }
@@ -88,7 +88,8 @@ public class NullUtil {
 
     //只要有一个为空就返回true
     public static boolean isAny(Object... o) {
-        if (is(o)) {
+        //优化：直接检查数组长度，避免调用完整的is()方法
+        if (o == null || o.length == 0) {
             return true;
         }
         for (Object o1 : o) {
@@ -101,7 +102,8 @@ public class NullUtil {
 
     //判断全部是空返回true,只要有一个不为空就返回false
     public static boolean isAll(Object... o) {
-        if (is(o)) {
+        //优化：直接检查数组长度，避免调用完整的is()方法
+        if (o == null) {
             return true;
         }
         for (Object o1 : o) {
@@ -120,7 +122,8 @@ public class NullUtil {
 
     //全部不为空返回true,只要有一个为空就返回false
     public static boolean nonAll(Object... o) {
-        if (is(o)) {
+        //优化：直接检查数组长度，避免调用完整的is()方法
+        if (o == null || o.length == 0) {
             return false;
         }
         for (Object o1 : o) {
@@ -142,11 +145,12 @@ public class NullUtil {
         }
         Object realValueA=a;
         Object realValueB=b;
-        if (NullKernelAbstract.class.isInstance(a)){
-            realValueA=((NullKernelAbstract)a).taskList.runTaskAll().value;
+        //优化：使用instanceof替代isInstance，性能更好
+        if (a instanceof NullKernelAbstract){
+            realValueA=((NullKernelAbstract<?>)a).taskList.runTaskAll().value;
         }
-        if (NullKernelAbstract.class.isInstance(b)){
-            realValueB=((NullKernelAbstract)b).taskList.runTaskAll().value;
+        if (b instanceof NullKernelAbstract){
+            realValueB=((NullKernelAbstract<?>)b).taskList.runTaskAll().value;
         }
         return realValueA == realValueB || realValueA.equals(realValueB);
     }
@@ -253,7 +257,8 @@ public class NullUtil {
             if (params == null || params.length == 0) {
                 throw new NullChainException(message);
             } else {
-                String format = String.format(message.replaceAll("\\{\\s*}", "%s"), params);
+                //优化：使用预编译的Pattern，避免每次调用时重新编译正则表达式
+                String format = String.format(NullConstants.PLACEHOLDER_PATTERN.matcher(message).replaceAll("%s"), params);
                 throw new NullChainException(format);
             }
         }

@@ -6,6 +6,7 @@ import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
+import com.gitee.huanminabc.nullchain.common.NullConstants;
 import com.gitee.huanminabc.nullchain.common.NullTaskList;
 
 import java.util.Collection;
@@ -74,7 +75,7 @@ public class NullSuperMap<K,V>  implements NullMap<K,V>{
     @Override
     public NullChain<V> get(K key) {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         
         nullTaskList.add((__) -> {
             if (Null.is(key)){
@@ -121,7 +122,7 @@ public class NullSuperMap<K,V>  implements NullMap<K,V>{
     @Override
     public NullChain<V> putIfAbsent(K key, V value) {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         nullTaskList.add((__) -> {
             if (Null.is(key) || Null.is(value)){
                 linkLog.append(NULL_SUPER_MAP_PUT_IF_ABSENT_Q);
@@ -141,7 +142,7 @@ public class NullSuperMap<K,V>  implements NullMap<K,V>{
     @Override
     public NullChain<V> computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         
         nullTaskList.add((__) -> {
             if (Null.is(key) || Objects.isNull(mappingFunction)){
@@ -162,7 +163,7 @@ public class NullSuperMap<K,V>  implements NullMap<K,V>{
     @Override
     public NullChain<V> computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         
         nullTaskList.add((__) -> {
             if (Null.is(key) || Objects.isNull(remappingFunction)){
@@ -183,7 +184,7 @@ public class NullSuperMap<K,V>  implements NullMap<K,V>{
     @Override
     public NullChain<V> compute(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         
         nullTaskList.add((__) -> {
             if (Null.is(key) ||Objects.isNull(remappingFunction)){
@@ -204,7 +205,7 @@ public class NullSuperMap<K,V>  implements NullMap<K,V>{
     @Override
     public NullChain<V> merge(K key, V value, BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         
         nullTaskList.add((__) -> {
             if (Null.is(key) || Null.is(value) ||Objects.isNull(remappingFunction)){

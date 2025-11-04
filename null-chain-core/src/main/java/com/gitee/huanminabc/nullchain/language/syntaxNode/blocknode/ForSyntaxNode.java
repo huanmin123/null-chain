@@ -1,5 +1,6 @@
 package com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode;
 
+import com.gitee.huanminabc.nullchain.common.NullConstants;
 import com.gitee.huanminabc.nullchain.language.NfException;
 import com.gitee.huanminabc.nullchain.language.NfSynta;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
@@ -204,7 +205,7 @@ public class ForSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
 
     //打印for 的token
     private String printFor(List<Token> tokens) {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         for (int i = 0; i < tokens.size(); i++) {
             Token token = tokens.get(i);
             //遇到LINE_END换行

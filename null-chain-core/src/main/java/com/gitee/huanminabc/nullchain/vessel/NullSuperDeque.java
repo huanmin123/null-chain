@@ -4,6 +4,7 @@ import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.NullBuild;
 import com.gitee.huanminabc.nullchain.common.NullCollect;
+import com.gitee.huanminabc.nullchain.common.NullConstants;
 import com.gitee.huanminabc.nullchain.common.NullTaskList;
 import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 
@@ -54,7 +55,7 @@ public class NullSuperDeque<T> implements NullDeque<T> {
     @Override
     public  NullChain<T> poll() {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
 
         nullTaskList.add((__) -> {
             T poll = queue.poll();
@@ -78,7 +79,7 @@ public class NullSuperDeque<T> implements NullDeque<T> {
     @Override
     public  NullChain<T> peek() {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
 
         nullTaskList.add((__) -> {
             T peek = queue.peek();
@@ -209,7 +210,7 @@ public class NullSuperDeque<T> implements NullDeque<T> {
     @Override
     public NullChain<T> pollFirst() {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
 
         nullTaskList.add((__) -> {
             T pollFirst = queue.pollFirst();
@@ -226,7 +227,7 @@ public class NullSuperDeque<T> implements NullDeque<T> {
     @Override
     public NullChain<T> pollLast() {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
 
         nullTaskList.add((__) -> {
             T pollLast = queue.pollLast();
@@ -253,7 +254,7 @@ public class NullSuperDeque<T> implements NullDeque<T> {
     @Override
     public NullChain<T> peekFirst() {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
 
         nullTaskList.add((__) -> {
             T peekFirst = queue.peekFirst();
@@ -270,7 +271,7 @@ public class NullSuperDeque<T> implements NullDeque<T> {
     @Override
     public NullChain<T> peekLast() {
         NullTaskList nullTaskList = new NullTaskList();
-        StringBuilder linkLog = new StringBuilder();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         nullTaskList.add((__) -> {
             T peekLast = queue.peekLast();
             if (Null.is(peekLast)) {
