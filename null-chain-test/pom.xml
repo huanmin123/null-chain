@@ -7,11 +7,11 @@
     <parent>
         <groupId>com.gitee.huanminabc</groupId>
         <artifactId>null-chain</artifactId>
-        <version>1.1.1-RELEASE</version>
+        <version>1.1.2-RELEASE</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>null-chain-test</artifactId>
-    <version>1.1.1-RELEASE</version>
+    <version>1.1.2-RELEASE</version>
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
@@ -22,7 +22,6 @@
         <dependency>
             <groupId>com.gitee.huanminabc</groupId>
             <artifactId>null-chain-work</artifactId>
-            <version>1.1.1-RELEASE</version>
         </dependency>
 
     </dependencies>
