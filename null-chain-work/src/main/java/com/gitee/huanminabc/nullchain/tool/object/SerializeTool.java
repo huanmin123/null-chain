@@ -1,10 +1,10 @@
 package com.gitee.huanminabc.nullchain.tool.object;
 
+import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.common.NullType;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
-import com.gitee.huanminabc.nullchain.vessel.NullMap;
 
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
@@ -31,11 +31,11 @@ public class SerializeTool implements NullTool<Serializable, byte[]> {
     }
 
     @Override
-    public byte[] run(Serializable preValue, NullChain<?>[] params, NullMap<String, Object> context) throws Exception {
+    public byte[] run(Serializable preValue, NullChain<?>[] params, Map<String, Object> context) throws Exception {
 
         //检查所有的子类是否实现了Serializable接口
         // 替换成你想要检查的类
-        if (context.get("open").type(Boolean.class).get()) {
+        if (Null.of(context.get("open")).type(Boolean.class).get()) {
             Class<?> outerClass = preValue.getClass();
             Class<?> aClass = areAllInnerClassesSerializable(outerClass);
             if (aClass != null) {

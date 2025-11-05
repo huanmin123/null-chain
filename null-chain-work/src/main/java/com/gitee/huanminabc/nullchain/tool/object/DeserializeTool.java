@@ -2,7 +2,7 @@ package com.gitee.huanminabc.nullchain.tool.object;
 
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
-import com.gitee.huanminabc.nullchain.vessel.NullMap;
+import java.util.Map;
 
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
@@ -17,7 +17,7 @@ import java.io.ObjectInputStream;
  */
 public class DeserializeTool implements NullTool<byte[],Object> {
     @Override
-    public Object run(byte[] preValue, NullChain<?>[] params, NullMap<String, Object> context) throws Exception {
+    public Object run(byte[] preValue, NullChain<?>[] params, Map<String, Object> context) throws Exception {
         // 反序列化
         ByteArrayInputStream arrayInputStream = new ByteArrayInputStream(preValue);
         ObjectInputStream ois = new ObjectInputStream(arrayInputStream);

@@ -20,7 +20,6 @@ import com.gitee.huanminabc.nullchain.language.token.TokenType;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
 import com.gitee.huanminabc.nullchain.task.NullTask;
 import com.gitee.huanminabc.nullchain.task.NullTaskFactory;
-import com.gitee.huanminabc.nullchain.vessel.NullMap;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -28,7 +27,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -226,7 +228,7 @@ public class RunSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                     }
                 }
             }
-            NullMap<String, Object> nullChainMap = NullMap.newConcurrentHashMap();
+            Map<String, Object> nullChainMap = new ConcurrentHashMap<>();
 
             //获取线程池名称
             NfVariableInfo threadFactory = mainScope.getVariable("threadFactoryName");
@@ -272,11 +274,12 @@ public class RunSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                     throw new NfException("Line:{}, 变量{}不存在 , syntax: {}", syntaxNode.getLine(), tokenVariate.value, syntaxNode);
                 }
                 Class<?> variableType = variable.getType();
-                //判断类型是否一致
-                if (!variableType.equals(nullChainMap.getClass())) {
+                //判断类型是否一致（使用isAssignableFrom支持类型兼容性，如Map接口和ConcurrentHashMap实现类）
+                if (!variableType.isAssignableFrom(nullChainMap.getClass())) {
                     throw new NfException("Line:{}, 变量 {} 值类型和声明的型不匹配 {} vs {} ,syntax:{}", syntaxNode.getLine(), tokenVariate.value, variableType, nullChainMap.getClass(), syntaxNode);
                 }
-                currentScope.addVariable(new NfVariableInfo(tokenVariate.value, nullChainMap, nullChainMap.getClass()));
+                //保持变量声明的类型（如果是接口类型，保持接口类型，而不是实际对象的类型）
+                currentScope.addVariable(new NfVariableInfo(tokenVariate.value, nullChainMap, variableType));
             }
         } else {
             NullNode<String, List<Object>> stringListNullNode = nullNodes.get(0);
@@ -303,11 +306,12 @@ public class RunSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                     throw new NfException("Line:{}, 变量{}不存在 , syntax: {}", syntaxNode.getLine(), tokenVariate.value, syntaxNode);
                 }
                 Class<?> variableType = variable.getType();
-                //判断类型是否一致
-                if (!variableType.equals(o.getClass())) {
+                //判断类型是否一致（使用isAssignableFrom支持类型兼容性）
+                if (!variableType.isAssignableFrom(o.getClass())) {
                     throw new NfException("Line:{}, 变量 {} 值类型和声明的型不匹配 {} vs {} , syntax: {}", syntaxNode.getLine(), tokenVariate.value, variableType, o.getClass(), syntaxNode);
                 }
-                currentScope.addVariable(new NfVariableInfo(tokenVariate.value, o, o.getClass()));
+                //保持变量声明的类型（如果是接口类型，保持接口类型，而不是实际对象的类型）
+                currentScope.addVariable(new NfVariableInfo(tokenVariate.value, o, variableType));
             }
         }
     }
@@ -318,7 +322,7 @@ public class RunSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         NfContextScope mainScope = context.getMainScope();
         //必然有值,不然就进不来这里
         NfVariableInfo preValue= mainScope.getVariable("preValue");
-        NullMap<String, Object> mainScopeMap = NullMap.newHashMap();
+        Map<String, Object> mainScopeMap = new HashMap<>();
         //函数的参数
         Object[] array = args.toArray();
         //校验参数类型和长度

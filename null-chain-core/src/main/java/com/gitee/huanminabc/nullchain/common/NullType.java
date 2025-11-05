@@ -1,7 +1,6 @@
 package com.gitee.huanminabc.nullchain.common;
 
 import com.gitee.huanminabc.nullchain.Null;
-import com.gitee.huanminabc.nullchain.vessel.NullMap;
 import lombok.Data;
 
 import java.util.*;
@@ -32,7 +31,6 @@ import java.util.*;
  * @since 1.0.0
  * @version 1.1.1
  * @see Null 空值处理入口
- * @see NullMap 空值安全Map
  */
 @Data
 public class NullType {
@@ -149,7 +147,7 @@ public class NullType {
 
 
     //类型校验器, 传入一个Object数组,校验是否符合类型, 返回true表示不符合类型
-    public void checkType(Object[] objects, NullMap<String, Object> context) {
+    public void checkType(Object[] objects, Map<String, Object> context) {
         if (types == null) {
             throw new NullChainException("types 不能为空");
         }

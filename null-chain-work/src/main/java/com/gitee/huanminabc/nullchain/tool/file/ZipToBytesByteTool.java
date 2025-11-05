@@ -4,7 +4,7 @@ package com.gitee.huanminabc.nullchain.tool.file;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
-import com.gitee.huanminabc.nullchain.vessel.NullMap;
+import java.util.Map;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Comparator;
@@ -23,7 +23,7 @@ import java.util.zip.ZipOutputStream;
 public class ZipToBytesByteTool implements NullTool<Map<String, byte[]>,byte[]> {
 
     @Override
-    public byte[] run(Map<String, byte[]> preValue, NullChain<?>[] params, NullMap<String, Object> context) throws Exception {
+    public byte[] run(Map<String, byte[]> preValue, NullChain<?>[] params, Map<String, Object> context) throws Exception {
         //按照文件的长度进行排序, 因为目录的需要先添加
         Set<String> fileNames = preValue.keySet();
         List<String> fileNamesSort = fileNames.stream().sorted(Comparator.comparingInt(String::length)).collect(Collectors.toList());

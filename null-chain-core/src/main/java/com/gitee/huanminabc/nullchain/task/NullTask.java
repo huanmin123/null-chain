@@ -2,7 +2,8 @@ package com.gitee.huanminabc.nullchain.task;
 
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.NullType;
-import com.gitee.huanminabc.nullchain.vessel.NullMap;
+
+import java.util.Map;
 /**
  * Null任务接口 - 定义自定义任务的执行规范
  * 
@@ -67,7 +68,7 @@ public interface NullTask<T,R> {
      * @param context 当前任务的上下文，不会传递到下一个任务
      * @throws Exception 初始化过程中的异常
      */
-    default void init(T preValue, NullChain<?>[] params, NullMap<String, Object> context) throws Exception {
+    default void init(T preValue, NullChain<?>[] params, Map<String, Object> context) throws Exception {
 
     }
 
@@ -84,7 +85,7 @@ public interface NullTask<T,R> {
      * @return 返回值会传递到下一个任务
      * @throws Exception 任务执行过程中的异常
      */
-    R run(T preValue, NullChain<?>[] params, NullMap<String,Object> context) throws Exception;
+    R run(T preValue, NullChain<?>[] params, Map<String,Object> context) throws Exception;
 
 
 }

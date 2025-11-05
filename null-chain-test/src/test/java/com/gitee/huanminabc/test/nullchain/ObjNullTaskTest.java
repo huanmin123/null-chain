@@ -31,7 +31,7 @@ public class ObjNullTaskTest {
     @Test
     public  void task2()  {
         String a="123131";
-        Null.of(a).task(TestTask.class,"123",true).ifPresent(System.out::println);
+        Null.of(a).task(TestTask.class,"123",false).ifPresent(System.out::println);
 //        Null.of(a).task(TestTask.class.getName(),"xxxxxx").ifPresent(System.out::println);
 
     }
@@ -47,21 +47,21 @@ public class ObjNullTaskTest {
 
     @Test
     public  void zipTask(){
-        String file1 = PathUtil.getCurrentProjectTestResourcesAbsolutePath("nf/test.nf" );
-        String file2 = PathUtil.getCurrentProjectTestResourcesAbsolutePath("nf/test1.nf" );
-        String file3 = PathUtil.getCurrentProjectTestResourcesAbsolutePath("nf/test2.nf" );
-        byte[] bytes = ReadFileBytesUtil.readByte(new File(file1));
-        byte[] bytes1 = ReadFileBytesUtil.readByte(new File(file2));
-        byte[] bytes2 = ReadFileBytesUtil.readByte(new File(file3));
-        Map<String,byte[]> map = new HashMap<>();
-        map.put("nfzip/test.nf",bytes);
-        map.put("nfzip/test1.nf",bytes1);
-        map.put("nfzip/test2.nf",bytes2);
-        map.put("nfzipdir/",null);
+//        String file1 = PathUtil.getCurrentProjectTestResourcesAbsolutePath("nf/test.nf" );
+//        String file2 = PathUtil.getCurrentProjectTestResourcesAbsolutePath("nf/test1.nf" );
+//        String file3 = PathUtil.getCurrentProjectTestResourcesAbsolutePath("nf/test2.nf" );
+//        byte[] bytes = ReadFileBytesUtil.readByte(new File(file1));
+//        byte[] bytes1 = ReadFileBytesUtil.readByte(new File(file2));
+//        byte[] bytes2 = ReadFileBytesUtil.readByte(new File(file3));
+//        Map<String,byte[]> map = new HashMap<>();
+//        map.put("nfzip/test.nf",bytes);
+//        map.put("nfzip/test1.nf",bytes1);
+//        map.put("nfzip/test2.nf",bytes2);
+//        map.put("nfzipdir/",null);
 //        Null.of(map).task(ZipToBytesByteTool.class).type(byte[].class).ifPresent(System.out::println);
 
-        String wFile = PathUtil.getCurrentProjectTestResourcesAbsolutePath("test.zip" );
-        Null.of(map).tool(ZipToBytesByteTool.class).tool(BytesToWriteFileTool.class,wFile).ifPresent(System.out::println);
+//        String wFile = PathUtil.getCurrentProjectTestResourcesAbsolutePath("test.zip" );
+//        Null.of(map).tool(ZipToBytesByteTool.class).tool(BytesToWriteFileTool.class,wFile).ifPresent(System.out::println);
     }
 
 

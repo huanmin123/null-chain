@@ -1,8 +1,6 @@
 package com.gitee.huanminabc.nullchain.language.internal;
 
 import com.gitee.huanminabc.nullchain.core.NullChain;
-import com.gitee.huanminabc.nullchain.vessel.NullSuperList;
-import com.gitee.huanminabc.nullchain.vessel.NullSuperMap;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -34,6 +32,8 @@ public class NfContext {
     public NfContext() {
         //创建默认的导入类型
         initDefaultImportType();
+        //初始化接口到默认实现类的映射
+        initInterfaceDefaultImplMap();
     }
 
     //key:是作用域的id, 当作用域结束时, 从map中移除
@@ -41,6 +41,8 @@ public class NfContext {
     //类型和类的全路径映射关系
     private Map<String, String> importMap = new HashMap<>();
     private Map<String, String> taskMap = new HashMap<>();
+    //接口类型到默认实现类的映射关系
+    private Map<Class<?>, Class<?>> interfaceDefaultImplMap = new HashMap<>();
 
     //获取类型的全路径
     public String getImportType(String type) {
@@ -208,14 +210,12 @@ public class NfContext {
         importMap.put("LikedList", LinkedList.class.getName());
         importMap.put("ArrayList", ArrayList.class.getName());
 
-        importMap.put("Map", HashMap.class.getName());
-        importMap.put("Set", HashSet.class.getName());
-        importMap.put("List", ArrayList.class.getName());
+        importMap.put("Map", Map.class.getName());
+        importMap.put("Set", Set.class.getName());
+        importMap.put("List", List.class.getName());
 
         importMap.put("CopyOnWriteArrayList", CopyOnWriteArrayList.class.getName());
         importMap.put("ConcurrentHashMap", ConcurrentHashMap.class.getName());
-        importMap.put("NullSuperMap", NullSuperMap.class.getName());
-        importMap.put("NullSuperList", NullSuperList.class.getName());
 
         //Date
         importMap.put("Date", Date.class.getName());
@@ -248,6 +248,28 @@ public class NfContext {
 
     }
 
+    //初始化接口到默认实现类的映射
+    private void initInterfaceDefaultImplMap() {
+        interfaceDefaultImplMap.put(Map.class, HashMap.class);
+        interfaceDefaultImplMap.put(List.class, ArrayList.class);
+        interfaceDefaultImplMap.put(Set.class, HashSet.class);
+    }
+
+    //获取接口的默认实现类
+    public Class<?> getInterfaceDefaultImpl(Class<?> interfaceType) {
+        return interfaceDefaultImplMap.get(interfaceType);
+    }
+
+    //添加接口到默认实现类的映射（允许扩展）
+    public void addInterfaceDefaultImpl(Class<?> interfaceType, Class<?> implType) {
+        if (!interfaceType.isInterface()) {
+            throw new IllegalArgumentException("第一个参数必须是接口类型: " + interfaceType.getName());
+        }
+        if (!interfaceType.isAssignableFrom(implType)) {
+            throw new IllegalArgumentException("实现类 " + implType.getName() + " 必须实现接口 " + interfaceType.getName());
+        }
+        interfaceDefaultImplMap.put(interfaceType, implType);
+    }
 
     //清理上下文,减轻gc的自己释放的压力
     public void clear() {
@@ -258,5 +280,9 @@ public class NfContext {
         importMap.clear();
         importMap = null;
         scopeMap = null;
+        if (interfaceDefaultImplMap != null) {
+            interfaceDefaultImplMap.clear();
+            interfaceDefaultImplMap = null;
+        }
     }
 }

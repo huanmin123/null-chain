@@ -4,7 +4,6 @@ import com.gitee.huanminabc.jcommon.encryption.HashUtil;
 import com.gitee.huanminabc.jcommon.file.FileReadUtil;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.token.Token;
-import com.gitee.huanminabc.nullchain.vessel.NullMap;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 
@@ -57,7 +56,7 @@ public class NfMain {
      * @param logger   日志
      * @param filePath 文件路径
      */
-    public static Object runLocal(String filePath, Logger logger, NullMap<String,Object> mainSystemContext) {
+    public static Object runLocal(String filePath, Logger logger, Map<String,Object> mainSystemContext) {
         File file = new File(filePath);
         if (!file.exists()) {
             throw new NfException(filePath + "文件不存在");
@@ -70,7 +69,7 @@ public class NfMain {
      * @param context 脚本内容
      * @param logger
      */
-    public static Object run(String context, Logger logger, NullMap<String,Object> mainSystemContext) {
+    public static Object run(String context, Logger logger, Map<String,Object> mainSystemContext) {
         //对内容进行md5
         String md5 = HashUtil.md5(context);
         //从缓存中获取语法节点

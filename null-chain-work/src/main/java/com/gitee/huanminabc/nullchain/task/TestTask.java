@@ -1,9 +1,11 @@
 package com.gitee.huanminabc.nullchain.task;
 
+import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.common.NullType;
-import com.gitee.huanminabc.nullchain.vessel.NullMap;
+
+import java.util.Map;
 /**
  * @program: java-huanmin-utils
  * @description:
@@ -18,19 +20,19 @@ public class TestTask implements NullTask<String,String> {
     }
 
     @Override
-    public void init(String preValue, NullChain<?>[] params,NullMap<String, Object> context) throws Exception {
+    public void init(String preValue, NullChain<?>[] params,Map<String, Object> context) throws Exception {
         //这里可以做一些在run之前的操作
     }
 
     @Override
-    public String run(String preValue, NullChain<?>[] params,NullMap<String, Object> context) throws Exception {
+    public String run(String preValue, NullChain<?>[] params,Map<String, Object> context) throws Exception {
         System.out.println("TestTask run :" + preValue);
 
-        context.get("str").type(String.class).ifPresent((str)->{
+        Null.of(context.get("str")).type(String.class).ifPresent((str)->{
             System.out.println("TestTask run str:" + str);
         });
 
-        context.get("error").type(Boolean.class).ifPresent((bool)-> {
+        Null.of(context.get("error")).type(Boolean.class).ifPresent((bool)-> {
             if (bool){
                 throw new NullChainException("TestTask run error");
             }

@@ -4,7 +4,8 @@ import com.gitee.huanminabc.nullchain.common.NullGroupNfTask;
 import com.gitee.huanminabc.nullchain.common.NullGroupTask;
 import com.gitee.huanminabc.nullchain.task.NullTask;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
-import com.gitee.huanminabc.nullchain.vessel.NullMap;
+
+import java.util.Map;
 
 
 /**
@@ -98,11 +99,11 @@ public interface NullWorkFlow<T> extends NullFinality<T> {
     /**
      * 多任务并发执行, 任务之间没有关联, 任务执行完毕后,会将结果合并  不支持同类型任务
      * @param nullGroupTask   任务组
-     * @return 返回的是一个NullMap<String, Object>  key是任务的taskClassName, value是任务的结果
+     * @return 返回的是一个Map<String, Object>  key是任务的taskClassName, value是任务的结果
      */
-    NullChain<NullMap<String, Object>> task(NullGroupTask nullGroupTask);
+    NullChain<Map<String, Object>> task(NullGroupTask nullGroupTask);
 
-    NullChain<NullMap<String, Object>> task( NullGroupTask nullGroupTask,String threadFactoryName);
+    NullChain<Map<String, Object>> task( NullGroupTask nullGroupTask,String threadFactoryName);
 
 
 
@@ -122,7 +123,7 @@ public interface NullWorkFlow<T> extends NullFinality<T> {
      * 多脚本同时并发执行
      * @param threadFactoryName 线程池名称
      * @param nullGroupNfTask 脚本组
-     * @return 返回的是一个NullMap<String, Object>  key是任务的taskClassName, value是脚本的结果
+     * @return 返回的是一个Map<String, Object>  key是任务的taskClassName, value是脚本的结果
      */
-    NullChain<NullMap<String, Object>> nfTasks(NullGroupNfTask nullGroupNfTask,String threadFactoryName);
+    NullChain<Map<String, Object>> nfTasks(NullGroupNfTask nullGroupNfTask,String threadFactoryName);
 }

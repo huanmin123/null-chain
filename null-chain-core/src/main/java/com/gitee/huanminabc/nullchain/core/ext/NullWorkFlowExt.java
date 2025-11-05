@@ -7,7 +7,8 @@ import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.core.NullWorkFlow;
 import com.gitee.huanminabc.nullchain.task.NullTask;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
-import com.gitee.huanminabc.nullchain.vessel.NullMap;
+
+import java.util.Map;
 
 /**
  * Null工作流扩展接口 - 提供工作流操作的扩展功能
@@ -59,13 +60,13 @@ public interface NullWorkFlowExt<T> extends NullWorkFlow<T>,  NullFinalityExt<T>
     }
 
     @Override
-    default NullChain<NullMap<String, Object>> task(NullGroupTask nullGroupTask){
+    default NullChain<Map<String, Object>> task(NullGroupTask nullGroupTask){
         NullChain<T> tNullChain = toNULL();
         return tNullChain.task(nullGroupTask);
     }
 
     @Override
-    default NullChain<NullMap<String, Object>> task( NullGroupTask nullGroupTask,String threadFactoryName){
+    default NullChain<Map<String, Object>> task( NullGroupTask nullGroupTask,String threadFactoryName){
         NullChain<T> tNullChain = toNULL();
         return tNullChain.task(nullGroupTask,threadFactoryName );
     }
@@ -89,7 +90,7 @@ public interface NullWorkFlowExt<T> extends NullWorkFlow<T>,  NullFinalityExt<T>
     }
 
     @Override
-    default NullChain<NullMap<String, Object>> nfTasks( NullGroupNfTask nullGroupNfTask,String threadFactoryName){
+    default NullChain<Map<String, Object>> nfTasks( NullGroupNfTask nullGroupNfTask,String threadFactoryName){
         NullChain<T> tNullChain = toNULL();
         return tNullChain.nfTasks( nullGroupNfTask,threadFactoryName);
     }

@@ -1,10 +1,10 @@
 
 //导入Java类型 , 常用的内置类型可以不用导入
-import com.gitee.huanminabc.nullchain.entity.UserEntity
+import com.gitee.huanminabc.test.nullchain.entity.UserEntity
 
 //导入任务, 起一个别名名这样后面操作任务的时候比较方便
-task com.gitee.huanminabc.nullchain.task.Test1Task as test1
-task com.gitee.huanminabc.nullchain.task.Test2Task as test2
+task com.gitee.huanminabc.test.nullchain.task.Test1Task as test1
+task com.gitee.huanminabc.test.nullchain.task.Test2Task as test2
 
 
 //定义变量
@@ -32,10 +32,16 @@ run test1( a ,b )  -> f:String
 //多任务并发, 任务1和任务2并发执行
 run test1( a ,b ) ,test2( a ,b )
 //绑定一个自定义变量
-run test1( a ,b ) ,test2( a ,b )  -> g:NullSuperMap
+run test1( a ,b ) ,test2( a ,b )  -> g:Map
 echo "打印并发任务:",g
 
 echo "测试打印: ","____","123:{c}",\t,c,\t,123,\n
+
+
+Map newMap = new
+newMap.put("a",a)
+newMap.put("b",b)
+echo "打印Map:",newMap
 
 
 

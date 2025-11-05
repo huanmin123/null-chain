@@ -1,10 +1,12 @@
 package com.gitee.huanminabc.nullchain.tool.file;
 
+import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.common.NullType;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
-import com.gitee.huanminabc.nullchain.vessel.NullMap;
+
+import java.util.Map;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -24,9 +26,9 @@ public class BytesToWriteFileTool implements NullTool<byte[], Boolean> {
     }
 
     @Override
-    public Boolean run(byte[] preValue, NullChain<?>[] params, NullMap<String, Object> context) throws Exception {
-        String path = context.get("path").type(String.class).get();
-        Boolean type = context.get("type").type(Boolean.class).get();
+    public Boolean run(byte[] preValue, NullChain<?>[] params, Map<String, Object> context) throws Exception {
+        String path = Null.of(context.get("path")).type(String.class).get();
+        Boolean type = Null.of(context.get("type")).type(Boolean.class).get();
         File file = new File(path);
         if (!file.exists()) {
             // 获取文件的父目录

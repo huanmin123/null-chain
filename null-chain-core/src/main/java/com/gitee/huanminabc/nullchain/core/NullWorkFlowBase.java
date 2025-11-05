@@ -9,8 +9,11 @@ import com.gitee.huanminabc.nullchain.task.NullTaskFactory;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
 import com.gitee.huanminabc.nullchain.tool.NullToolFactory;
 import com.gitee.huanminabc.nullchain.common.NullReflectionKit;
-import com.gitee.huanminabc.nullchain.vessel.NullMap;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 import org.slf4j.Logger;
 
@@ -111,7 +114,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
 
 
     @Override
-    public NullChain<NullMap<String, Object>> task(NullGroupTask nullGroupTask) {
+    public NullChain<Map<String, Object>> task(NullGroupTask nullGroupTask) {
 
         this.taskList.add(new NullTaskFunAbs() {
             @Override
@@ -131,7 +134,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
     }
 
     @Override
-    public NullChain<NullMap<String, Object>> task(NullGroupTask nullGroupTask, String threadFactoryName) {
+    public NullChain<Map<String, Object>> task(NullGroupTask nullGroupTask, String threadFactoryName) {
         this.taskList.add(new NullTaskFunAbs() {
             @Override
             public boolean isHeavyTask() {
@@ -202,7 +205,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
 
 
     @Override
-    public NullChain<NullMap<String, Object>> nfTasks(NullGroupNfTask nullGroupNfTask, String threadFactoryName) {
+    public NullChain<Map<String, Object>> nfTasks(NullGroupNfTask nullGroupNfTask, String threadFactoryName) {
         this.taskList.add(new NullTaskFunAbs() {
             @Override
             public boolean isHeavyTask() {
@@ -227,7 +230,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
                 NullChainException nullChainException = new NullChainException();
                 StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
                 List<Future<?>> futures = new ArrayList<>();
-                NullMap<String, Object> nullChainMap = NullMap.newConcurrentHashMap();
+                Map<String, Object> nullChainMap = new ConcurrentHashMap<>();
                 for (NullGroupNfTask.NullTaskInfo nullTaskInfo : list) {
                     Future<?> submit = executor.submit(() -> {
                         try {
@@ -260,10 +263,10 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
     }
 
 
-    private NullTaskList.NullNode <NullMap<String, Object>> __task__(Object preValue,NullGroupTask nullGroupTask, String threadFactoryName) {
+    private NullTaskList.NullNode <Map<String, Object>> __task__(Object preValue,NullGroupTask nullGroupTask, String threadFactoryName) {
 
         ThreadPoolExecutor executor = ThreadFactoryUtil.getExecutor(threadFactoryName);
-        NullMap<String, Object> nullChainMap = NullMap.newConcurrentHashMap();
+        Map<String, Object> nullChainMap = new ConcurrentHashMap<>();
         List<Future<?>> futures = new ArrayList<>();
         NullGroupTask.NullTaskInfo[] list = nullGroupTask.getList();
         for (NullGroupTask.NullTaskInfo nullTaskInfo : list) {
@@ -352,7 +355,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
     private Object __nfTask__(Object preValue,String nfContext, String threadFactoryName, Logger logger, Object[] params) {
         //校验线程池是否存在
         ThreadFactoryUtil.addExecutor(threadFactoryName);
-        NullMap<String, Object> mainSystemContext = NullMap.newHashMap();
+        Map<String, Object> mainSystemContext = new HashMap<>();
         mainSystemContext.put("threadFactoryName", threadFactoryName);
         mainSystemContext.put("preValue", preValue);//上一个任务的值
         mainSystemContext.put("params", params == null ? NullConstants.EMPTY_OBJECT_ARRAY : params);
@@ -361,7 +364,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
 
 
     private  < R> R taskRun(T value, NullTask<T, R> nullTask, StringBuilder linkLog, Object... params) throws NullChainCheckException {
-        NullMap<String, Object> map = NullMap.newHashMap();
+        Map<String, Object> map = new HashMap<>();
         Object[] objects = params == null ? NullConstants.EMPTY_OBJECT_ARRAY : params;
         //校验参数类型和长度
         NullType nullType = nullTask.checkTypeParams();
@@ -386,7 +389,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
     }
 
     private  <R> R toolRun(T value, NullTool<T, R> nullTool, StringBuilder linkLog, Object... params) throws NullChainCheckException {
-        NullMap<String, Object> map = NullMap.newHashMap();
+        Map<String, Object> map = new HashMap<>();
         Object[] objects = params == null ? NullConstants.EMPTY_OBJECT_ARRAY : params;
         //校验参数类型和长度
         NullType nullType = nullTool.checkTypeParams();

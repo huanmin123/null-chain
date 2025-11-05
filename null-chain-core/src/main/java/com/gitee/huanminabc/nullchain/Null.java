@@ -11,8 +11,6 @@ import com.gitee.huanminabc.nullchain.leaf.date.NullDate;
 import com.gitee.huanminabc.nullchain.leaf.http.OkHttp;
 import com.gitee.huanminabc.nullchain.leaf.json.NullJson;
 import com.gitee.huanminabc.nullchain.leaf.stream.NullStream;
-import com.gitee.huanminabc.nullchain.vessel.*;
-
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Stream;
@@ -109,9 +107,6 @@ public class Null extends NullUtil {
     }
 
 
-    public static <T> NullChain<NullCollection<T>> of(NullCollection<T> list) {
-        return ofInternal(list);
-    }
 
     public static <T> NullChain<Queue<T>> of(Queue<T> queue) {
         return ofInternal(queue);
@@ -120,31 +115,13 @@ public class Null extends NullUtil {
     public static <T> NullChain<Deque<T>> of(Deque<T> queue) {
         return ofInternal(queue);
     }
-
-    public static <T> NullChain<NullDeque<T>> of(NullDeque<T> queue) {
-        return ofInternal(queue);
-    }
-
-    public static <T> NullChain<NullQuery<T>> of(NullQuery<T> queue) {
-        return ofInternal(queue);
-    }
-
-
     public static <T> NullChain<Set<T>> of(Set<T> set) {
         return ofInternal(set);
     }
 
-    public static <T> NullChain<NullSet<T>> of(NullSet<T> set) {
-        return ofInternal(set);
-    }
 
 
     public static <T> NullChain<List<T>> of(List<T> list) {
-        return ofInternal(list);
-    }
-
-
-    public static <T> NullChain<NullList<T>> of(NullList<T> list) {
         return ofInternal(list);
     }
 
@@ -153,9 +130,6 @@ public class Null extends NullUtil {
         return ofInternal(map);
     }
 
-    public static <K, V> NullChain<NullMap<K, V>> of(NullMap<K, V> map) {
-        return ofInternal(map);
-    }
 
 
     //将Optional转为NullChain
@@ -202,10 +176,6 @@ public class Null extends NullUtil {
 
     //将Collection转为NullStream
     public static <S> NullStream<S> ofStream(Collection<S> collection) {
-        return ofStreamInternal(collection, TO_STREAM_ARROW);
-    }
-
-    public static <S> NullStream<S> ofStream(NullCollection<S> collection) {
         return ofStreamInternal(collection, TO_STREAM_ARROW);
     }
 
@@ -335,9 +305,7 @@ public class Null extends NullUtil {
                 stream = ((Collection<S>) source).stream().filter(Null::non);
             } else if (source instanceof Stream) {
                 stream = ((Stream<S>) source).filter(Null::non);
-            } else if (source instanceof NullCollection) {
-                stream = ((NullCollection<S>) source).stream().filter(Null::non);
-            } else {
+            }  else {
                 throw new NullChainException(linkLog.append(OF_STREAM_UNSUPPORTED_SOURCE).toString());
             }
             return NullBuild.noEmpty(stream);

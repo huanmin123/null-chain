@@ -21,7 +21,11 @@ import lombok.NoArgsConstructor;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 赋值表达式 例如: int a=1
@@ -120,12 +124,22 @@ public class AssignSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         if (expTokens.get(0).type == TokenType.NEW) {
             try {
                 //创建对象
-                Class<?> aClass = Class.forName(importType);
-                // 获取 HashMap 的无参构造函数
-                Constructor<?> constructor = aClass.getConstructor();
+                Class<?> declaredType = Class.forName(importType);
+                Class<?> actualType = declaredType;
+                
+                //如果声明的类型是接口，从上下文获取默认实现类
+                if (declaredType.isInterface()) {
+                    actualType = context.getInterfaceDefaultImpl(declaredType);
+                    if (actualType == null) {
+                        throw new NfException("Line:{} ,接口 {} 没有默认实现类，无法创建实例 , syntax: {}", token.line, importType, syntaxNode);
+                    }
+                }
+                
+                // 获取无参构造函数
+                Constructor<?> constructor = actualType.getConstructor();
                 Object o = constructor.newInstance();
-                //将对象放入上下文
-                currentScope.addVariable(new NfVariableInfo(varName, o, aClass));
+                //将对象放入上下文，类型保持为声明的接口类型，这样类型检查时可以支持所有实现类
+                currentScope.addVariable(new NfVariableInfo(varName, o, declaredType));
             } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException |
                      InvocationTargetException e) {
                 throw new NfException(e, "Line:{} ,创建{}对象失败 , syntax: {}", token.line , importType, syntaxNode);
@@ -140,12 +154,18 @@ public class AssignSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         } catch (Exception e) {
             throw new NfException(e, "Line:{} , syntax: {}", token.line , syntaxNode);
         }
-        //判断类型值和类型是否一致
-        if (!importType.equals(arithmetic.getClass().getName())) {
-            throw new NfException("Line:{} ,变量 {} 值类型和声明的型不匹配 {} vs {} ,syntax: {}", token.line ,varName, importType, arithmetic.getClass(), syntaxNode);
+        //判断类型值和类型是否一致（支持接口类型兼容性）
+        try {
+            Class<?> declaredType = Class.forName(importType);
+            Class<?> actualType = arithmetic.getClass();
+            if (!declaredType.isAssignableFrom(actualType)) {
+                throw new NfException("Line:{} ,变量 {} 值类型和声明的型不匹配 {} vs {} ,syntax: {}", token.line ,varName, importType, arithmetic.getClass(), syntaxNode);
+            }
+            //将计算的值放入上下文，类型保持为声明的类型（如果是接口，保持接口类型）
+            currentScope.addVariable(new NfVariableInfo(varName, arithmetic, declaredType));
+        } catch (ClassNotFoundException e) {
+            throw new NfException("Line:{} ,未找到类型 {} , syntax: {}", token.line, importType, syntaxNode);
         }
-        //将计算的值放入上下文
-        currentScope.addVariable(new NfVariableInfo(varName, arithmetic, arithmetic.getClass()));
     }
 
     @Override

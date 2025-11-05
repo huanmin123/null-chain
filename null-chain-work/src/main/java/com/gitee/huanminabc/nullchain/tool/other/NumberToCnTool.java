@@ -3,7 +3,7 @@ package com.gitee.huanminabc.nullchain.tool.other;
 import com.gitee.huanminabc.jcommon.base.NumberToCn;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
-import com.gitee.huanminabc.nullchain.vessel.NullMap;
+import java.util.Map;
 
 /**
  * @author huanmin
@@ -12,7 +12,7 @@ import com.gitee.huanminabc.nullchain.vessel.NullMap;
 public class NumberToCnTool implements NullTool<Integer,String> {
 
     @Override
-    public String run(Integer preValue, NullChain<?>[] params, NullMap<String, Object> context) throws Exception {
+    public String run(Integer preValue, NullChain<?>[] params, Map<String, Object> context) throws Exception {
         return NumberToCn.toChineseLower(preValue);
     }
 }
