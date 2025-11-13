@@ -30,7 +30,7 @@ public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConve
                 return NullBuild.noEmpty(uClass.cast(value));
             } else {
                 linkLog.append(TYPE_Q).append(TYPE_MISMATCH).append(value.getClass().getName()).append(" vs ").append(uClass.getName());
-                return NullBuild.empty();
+                throw new NullChainException(linkLog.toString());
             }
         });
         return  NullBuild.busy(this);
@@ -51,7 +51,7 @@ public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConve
                 return NullBuild.noEmpty(aClass.cast(value));
             } else {
                 linkLog.append(TYPE_Q).append(TYPE_MISMATCH).append(valueClass != null ? valueClass.getName() : "null").append(" vs ").append(aClass.getName());
-                return NullBuild.empty();
+                throw new NullChainException(linkLog.toString());
             }
         });
         return  NullBuild.busy(this);
