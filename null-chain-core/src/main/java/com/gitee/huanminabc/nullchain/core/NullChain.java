@@ -5,6 +5,7 @@ import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.common.function.NullFun2;
 
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -215,6 +216,27 @@ public interface NullChain<T> extends NullConvert<T> {
      * }</pre>
      */
     <U> NullChain<U> map(NullFun<? super T, ? extends U> function);
+
+
+    /**
+     * 值映射操作 - 带参数的映射
+     *
+     * <p>该方法用于将当前值通过映射函数转换为新的值，映射函数可以访问一个额外的参数。
+     * 如果当前值为空，则返回空链，不会执行映射操作。</p>
+     * @param <R> 映射后的值的类型
+     * @param <V> 参数的类型
+     * @param biFunction 映射函数，接受当前值和参数
+     * @param key 映射函数的参数值
+     * @return 包含映射结果的Null链
+     *
+     * @example
+     * <pre>{@code
+     *  Null.of( jsonObject.getJSONObject("result")).map(JSONObject::getString,"content").ifPresent(System.out::println);
+     *  Null.of(map).map(Map::get,"content").ifPresent(System.out::println);
+     *  Null.of( userEntity).map(UserEntity::getTest,"content").ifPresent(System.out::println);
+     * }</pre>
+     */
+     <R,V> NullChain<R> map(BiFunction<T, V, R> biFunction, V  key);
 
     /**
      * 值映射操作 - 带链上下文的映射

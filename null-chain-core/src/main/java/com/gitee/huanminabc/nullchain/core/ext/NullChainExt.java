@@ -6,6 +6,7 @@ import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
 import com.gitee.huanminabc.nullchain.common.function.NullFun2;
 
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -86,6 +87,10 @@ public interface NullChainExt<T> extends NullChain<T>, NullConvertExt<T> {
     default <U> NullChain<U> map(NullFun<? super T, ? extends U> function) {
         NullChain<T> tNullChain = toNULL();
         return tNullChain.map(function);
+    }
+    @Override
+    default <R,V> NullChain<R> map(BiFunction<T, V, R> biFunction, V  key){
+        return map(biFunction,key);
     }
 
     @Override

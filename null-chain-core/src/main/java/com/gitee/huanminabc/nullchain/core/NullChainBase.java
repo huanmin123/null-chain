@@ -1,5 +1,6 @@
 package com.gitee.huanminabc.nullchain.core;
 
+import com.gitee.huanminabc.jcommon.reflect.FieldUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.*;
 import static com.gitee.huanminabc.nullchain.common.NullLog.*;
@@ -7,9 +8,14 @@ import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.common.function.NullFun2;
 import com.gitee.huanminabc.nullchain.common.NullReflectionKit;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -225,6 +231,25 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
             } catch (Exception e) {
                 linkLog.append(CHAIN_MAP_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+        });
+        return  NullBuild.busy(this);
+
+    }
+    @Override
+    public < R, V> NullChain<R> map(BiFunction<T, V, R> biFunction, V key) {
+        this.taskList.add((value)->{
+            try {
+                R apply = biFunction.apply((T) value, key);
+                if (Null.is(apply)) {
+                    linkLog.append(CHAIN_MAP_Q);
+                    return NullBuild.empty();
+                }
+                linkLog.append(CHAIN_MAP_ARROW);
+                return NullBuild.noEmpty(apply);
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         });
         return  NullBuild.busy(this);

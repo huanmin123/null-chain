@@ -30,5 +30,11 @@ public class UserEntity implements Serializable {
     @JSONField(serialize = false)
     private List<UserEntity> list=new ArrayList<>();
 
+
+
+    public  String getTest(String str){
+        return str;
+    }
+
 }
 

@@ -1,6 +1,7 @@
 package com.gitee.huanminabc.test.nullchain;
 
 
+import com.alibaba.fastjson.JSONObject;
 import com.gitee.huanminabc.jcommon.base.SerializeUtil;
 import com.gitee.huanminabc.jcommon.multithreading.executor.SleepTools;
 import com.gitee.huanminabc.jcommon.test.CodeTimeUtil;
@@ -260,6 +261,26 @@ public class ObjNullTest {
         NullChain<String> map = userExtEntity.map(UserExtEntity::getName);
         NullResult<String> success1 = NullResult.success(map);
         System.out.println(success1.isNull());
+
+    }
+
+    @Test
+    public  void mapParams(){
+        JSONObject jsonObject=new JSONObject();
+        JSONObject jsonObject1 = new JSONObject();
+        jsonObject1.put("content","123");
+        jsonObject.put("result",jsonObject1);
+        JSONObject result = jsonObject.getJSONObject("result");
+        System.out.println(result);
+        Null.of( jsonObject.getJSONObject("result")).map(JSONObject::getString,"content").ifPresent(System.out::println);
+
+
+        Map<String,Object> map = new HashMap<>();
+        map.put("content","123");
+        Null.of( map).map(Map::get,"content").ifPresent(System.out::println);
+
+
+        Null.of( userEntity).map(UserEntity::getTest,"content").ifPresent(System.out::println);
 
     }
 
