@@ -23,6 +23,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -364,14 +365,14 @@ public class ObjNullTest {
     @SneakyThrows
     @Test
     public void dateCompare() {
-//        Date date = new Date();
-//        Date date1 = new Date(date.getTime() + 1000);
-//        Integer compare = Null.of(date).dateCompare(date1).getSafe();
-//        System.out.println(compare);
+        Date date = new Date();
+        Date date1 = new Date(date.getTime() + 1000);
+//        Integer compare = Null.ofDate(date).dateCompare(date1).getSafe();
+////        System.out.println(compare);
 //
-//        String date2 = "2025-01-01";
-//        Integer compare1 = Null.of(date2).dateCompare(date1).getSafe();
-//        System.out.println(compare1);
+        String date2 = "2025-12-24";
+        Integer compare1 = Null.ofDate(date2).dateCompare(LocalDate.now()).getSafe();
+        System.out.println(compare1);
 //
 //        LocalDate date3 = LocalDate.now();
 //        LocalDate date4 = LocalDate.now().plusDays(1);
