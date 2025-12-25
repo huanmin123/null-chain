@@ -18,10 +18,10 @@ import java.util.function.Consumer;
 
 /**
  * Null任务列表管理类
- * 
+ *
  * @author huanmin
- * @since 1.0.0
  * @version 1.1.1
+ * @since 1.0.0
  */
 @Slf4j
 public class NullTaskList implements Serializable {
@@ -29,16 +29,18 @@ public class NullTaskList implements Serializable {
 
     /**
      * Null任务节点 - 表示任务执行的结果
-     * 
+     *
      * <p>该类封装了任务执行的结果，包括值本身和是否为空的状态。
      * 它用于在任务链中传递执行结果，确保空值安全。</p>
-     * 
+     *
      * @param <T> 节点值的类型
      */
     public static class NullNode<T> implements Serializable {
         private static final long serialVersionUID = 1L;
-        
-        /** 是否为空值，true表示值为null，false表示值不为null */
+
+        /**
+         * 是否为空值，true表示值为null，false表示值不为null
+         */
         public boolean isNull;
         public T value;//当前任务的值
         //是否异步 true 开始异步 false 没有开启(默认)
@@ -66,7 +68,7 @@ public class NullTaskList implements Serializable {
     private transient NullCollect collect;
     private transient LinkedList<NullTaskFunAbs> tasks;
     protected NullNode lastResult; //最后一个任务的结果
-    CompletableFuture<NullNode> lastAsyncFuture ; //最后一个任务的异步结果
+    CompletableFuture<NullNode> lastAsyncFuture; //最后一个任务的异步结果
 
     @Setter
     protected String currentThreadFactoryName = ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME;
@@ -101,7 +103,7 @@ public class NullTaskList implements Serializable {
 
     //运行任务返回结果  (非异步的方法执行)
     public <T> NullNode<T> runTaskAll() {
-        if (tasks==null){
+        if (tasks == null) {
             tasks = new LinkedList<>();
         }
         if (lastResult != null && tasks.isEmpty()) {
@@ -143,13 +145,22 @@ public class NullTaskList implements Serializable {
 
     //运行任务返回结果  如果调用方支持异步那么开启异步之后的节点将脱离主线程  比如ifPresent
     public <T> void runTaskAll(Consumer<NullNode<T>> supplier, Consumer<Throwable> ex) {
-        if (tasks==null){
+        if (tasks == null) {
             tasks = new LinkedList<>();
         }
         if (lastResult != null && tasks.isEmpty()) {
             //如果最后一个任务不是异步那么直接执行
             if (lastAsyncFuture == null) {
-                supplier.accept(lastResult);
+                try {
+                    supplier.accept(lastResult);
+                } catch (Throwable e) {
+                    if (ex != null) {
+                        ex.accept(e);
+                        return;
+                    }else{
+                        throw e;
+                    }
+                }
             } else {
                 CompletableFuture<NullNode> nullChainBaseCompletableFuture = CompletableFuture.completedFuture(lastResult);
                 nullChainBaseCompletableFuture.thenComposeAsync((nullNode) -> {
@@ -193,12 +204,31 @@ public class NullTaskList implements Serializable {
         while (!tasks.isEmpty()) {
             NullTaskFunAbs poll = tasks.poll();
             if (completableFuture == null) {
-                NullNode task = poll.nodeTask(chain == null ? null : chain.value);
+                NullNode task;
+                try {
+                    task = poll.nodeTask(chain == null ? null : chain.value);
+                } catch (Throwable e) {
+                    if (ex != null) {
+                        ex.accept(e);
+                        return;
+                    } else {
+                        throw e;
+                    }
+                }
                 if (task.isNull) {
                     //向后取一个, 如果后面任务是遇到上一个任务是null那么就停止执行
                     NullTaskFunAbs lastPoll = tasks.peek();
                     if (lastPoll != null && lastPoll.preNullEnd()) {
-                        supplier.accept(task);
+                        try {
+                            supplier.accept(task);
+                        } catch (Throwable e) {
+                            if (ex != null) {
+                                ex.accept(e);
+                                return;
+                            } else {
+                                throw e;
+                            }
+                        }
                         return;
                     }
                 }

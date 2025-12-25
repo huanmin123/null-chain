@@ -251,7 +251,20 @@ public interface NullFinality<T>  extends NullKernel<T>, Serializable {
     /**
      * 抓取异常
      */
-    void except(Consumer<Throwable> consumer);
+    void capture(Consumer<Throwable> consumer);
+
+    /**
+     * 抓取异常 - 抛出带自定义消息的异常
+     *
+     * @example
+     * <pre>{@code
+     * Null.of(user)
+     *     .map(User::getName)
+     *     .except((e) -> System.out.println("发生异常：" + e.getMessage()),
+     *             "获取用户姓名时发生异常：用户{}", user.getId());
+     * }</pre>
+     */
+    void capture(Consumer<Throwable> consumer, String exceptionMessage, Object... args);
 
 
     /**

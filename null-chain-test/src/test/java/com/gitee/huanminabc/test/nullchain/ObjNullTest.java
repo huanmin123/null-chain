@@ -362,6 +362,25 @@ public class ObjNullTest {
 
     }
 
+    @Test
+    public void  capture(){
+        Null.of(1).map((da) -> {
+            throw new RuntimeException("123");
+        }).capture((e) -> {
+            System.out.println(e.getMessage());
+//            e.printStackTrace();
+        });
+
+        //异步场景
+        Null.of(1).async().map((da)->{
+            throw new RuntimeException("123");
+        }) .capture((e)->{
+            System.out.println(e.getMessage());
+//            e.printStackTrace();
+        });
+        SleepTools.second(2);
+    }
+
     @SneakyThrows
     @Test
     public void dateCompare() {
@@ -453,9 +472,6 @@ public class ObjNullTest {
 
     @Test
     public void ifGo() {
-        // 等价于  userEntity!=null && userEntity.getAge() != null && userEntity.getId() != null&&false
-        Null.of(userEntity).ofAny(UserEntity::getAge, UserEntity::getId).ifGo((data) -> false).ifPresent(System.out::println);
-
 //        userEntity.setAge(null);
 //        Null.of(userEntity).ofAny(UserEntity::getAge, UserEntity::getId).check(RuntimeException::new).
 //                ifPresent(System.out::println);

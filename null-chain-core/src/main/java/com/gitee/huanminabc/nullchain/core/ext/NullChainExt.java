@@ -31,7 +31,6 @@ import java.util.function.Supplier;
  * @see NullChain 链式操作接口
  * @see NullConvertExt 转换扩展接口
  */
-@SuppressWarnings("unchecked")
 public interface NullChainExt<T> extends NullChain<T>, NullConvertExt<T> {
     @Override
     default <U> NullChain<T> of(NullFun<? super T, ? extends U> function) {
@@ -84,7 +83,8 @@ public interface NullChainExt<T> extends NullChain<T>, NullConvertExt<T> {
     }
     @Override
     default <R,V> NullChain<R> map(BiFunction<T, V, R> biFunction, V  key){
-        return map(biFunction,key);
+        NullChain<T> tNullChain = toNULL();
+        return tNullChain.map(biFunction,key);
     }
 
     @Override

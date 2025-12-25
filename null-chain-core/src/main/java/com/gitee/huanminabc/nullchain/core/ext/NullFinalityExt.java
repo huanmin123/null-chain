@@ -31,7 +31,6 @@ import java.util.function.Supplier;
  * @see NullFinality 终结操作接口
  * @see NullKernelExt 内核扩展接口
  */
-@SuppressWarnings("unchecked")
 public interface NullFinalityExt<T> extends NullFinality<T>,NullKernelExt<T> {
 
 
@@ -81,76 +80,6 @@ public interface NullFinalityExt<T> extends NullFinality<T>,NullKernelExt<T> {
         return tNullChain.collect();
     }
 
-//
-//    @Override
-//    default <U extends T> boolean eq(U obj) {
-//        NullChain<T> tNullChain = toNULL();
-//        return tNullChain.eq(obj);
-//    }
-//
-//    @Override
-//    default <U extends T> boolean eqAny(U... b){
-//        NullChain<T> tNullChain = toNULL();
-//        return tNullChain.eqAny(b);
-//    }
-//
-//    @Override
-//    default <U extends T> boolean notEq(U obj){
-//        NullChain<T> tNullChain = toNULL();
-//        return tNullChain.notEq(obj);
-//    }
-//
-//    @Override
-//    default <U extends T> boolean notEqAll(U... b){
-//        NullChain<T> tNullChain = toNULL();
-//        return tNullChain.notEqAll(b);
-//    }
-//
-//    @Override
-//    default boolean logic(Function<T, Boolean> obj){
-//        NullChain<T> tNullChain = toNULL();
-//        return tNullChain.logic(obj);
-//    }
-//
-//    @Override
-//    default <U extends T> boolean inAny(U... obj) {
-//        NullChain<T> tNullChain = toNULL();
-//        return tNullChain.inAny(obj);
-//    }
-//
-//
-//
-//    @Override
-//    default <U extends T> boolean notIn(U... obj) {
-//        NullChain<T> tNullChain = toNULL();
-//        return tNullChain.notIn(obj);
-//    }
-//
-//    @Override
-//    default <C extends Comparable<T>> boolean le(C obj){
-//        NullChain<T> tNullChain = toNULL();
-//        return tNullChain.le(obj);
-//    }
-//
-//    @Override
-//    default <C extends Comparable<T>> boolean lt(C obj){
-//        NullChain<T> tNullChain = toNULL();
-//        return tNullChain.lt(obj);
-//    }
-//
-//    @Override
-//    default <C extends Comparable<T>> boolean ge(C obj){
-//        NullChain<T> tNullChain = toNULL();
-//        return tNullChain.ge(obj);
-//    }
-//
-//    @Override
-//    default <C extends Comparable<T>> boolean gt(C obj){
-//        NullChain<T> tNullChain = toNULL();
-//        return tNullChain.gt(obj);
-//    }
-
-
     @Override
     default void ifPresent(Consumer<? super T> action) {
         NullChain<T> tNullChain = toNULL();
@@ -165,9 +94,14 @@ public interface NullFinalityExt<T> extends NullFinality<T>,NullKernelExt<T> {
     }
 
     @Override
-    default void except(Consumer<Throwable> consumer) {
+    default void capture(Consumer<Throwable> consumer) {
         NullChain<T> tNullChain = toNULL();
-        tNullChain.except(consumer);
+        tNullChain.capture(consumer);
+    }
+    @Override
+    default void capture(Consumer<Throwable> consumer, String exceptionMessage, Object... args) {
+        NullChain<T> tNullChain = toNULL();
+        tNullChain.capture(consumer, exceptionMessage, args);
     }
 
     @Override

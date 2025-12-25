@@ -247,46 +247,6 @@ public final class NullLog {
     // kernel abstract
     public static final String SERIALIZE_NULL_VALUE = "{} 序列化时发现值是空的";
 
-    // vessel deque
-    public static final String NULL_SUPER_DEQUE_POLL_Q = "NullSuperDeque.poll?";
-    public static final String NULL_SUPER_DEQUE_POLL_ARROW = "NullSuperDeque.poll->";
-    public static final String NULL_SUPER_DEQUE_PEEK_Q = "NullSuperDeque.peek?";
-    public static final String NULL_SUPER_DEQUE_PEEK_ARROW = "NullSuperDeque.peek->";
-    public static final String NULL_SUPER_DEQUE_POLL_FIRST_Q = "NullSuperDeque.pollFirst?";
-    public static final String NULL_SUPER_DEQUE_POLL_FIRST_ARROW = "NullSuperDeque.pollFirst->";
-    public static final String NULL_SUPER_DEQUE_POLL_LAST_Q = "NullSuperDeque.pollLast?";
-    public static final String NULL_SUPER_DEQUE_POLL_LAST_ARROW = "NullSuperDeque.pollLast->";
-    public static final String NULL_SUPER_DEQUE_PEEK_FIRST_Q = "NullSuperDeque.peekFirst?";
-    public static final String NULL_SUPER_DEQUE_PEEK_FIRST_ARROW = "NullSuperDeque.peekFirst->";
-    public static final String NULL_SUPER_DEQUE_PEEK_LAST_Q = "NullSuperDeque.peekLast?";
-    public static final String NULL_SUPER_DEQUE_PEEK_LAST_ARROW = "NullSuperDeque.peekLast->";
-
-    // vessel list
-    public static final String NULL_SUPER_LIST_GET_INDEX_OUT_OF_BOUNDS = "NullSuperList.get? index out of bounds";
-    public static final String NULL_SUPER_LIST_GET_ELEMENT_NULL = "NullSuperList.get? element is null";
-    public static final String NULL_SUPER_LIST_REMOVE_INDEX_OUT_OF_BOUNDS = "NullSuperList.remove? index out of bounds";
-    public static final String NULL_SUPER_LIST_REMOVE_ELEMENT_NULL = "NullSuperList.remove? element is null";
-
-    // vessel map
-    public static final String NULL_SUPER_MAP_GET_Q = "NullSuperMap.get?";
-    public static final String NULL_SUPER_MAP_GET_ARROW = "NullSuperMap.get->";
-    public static final String NULL_SUPER_MAP_PUT_IF_ABSENT_Q = "NullSuperMap.putIfAbsent?";
-    public static final String NULL_SUPER_MAP_PUT_IF_ABSENT_ARROW = "NullSuperMap.putIfAbsent->";
-    public static final String NULL_SUPER_MAP_COMPUTE_IF_ABSENT_Q = "NullSuperMap.computeIfAbsent?";
-    public static final String NULL_SUPER_MAP_COMPUTE_IF_ABSENT_ARROW = "NullSuperMap.computeIfAbsent->";
-    public static final String NULL_SUPER_MAP_COMPUTE_IF_PRESENT_Q = "NullSuperMap.computeIfPresent?";
-    public static final String NULL_SUPER_MAP_COMPUTE_IF_PRESENT_ARROW = "NullSuperMap.computeIfPresent->";
-    public static final String NULL_SUPER_MAP_COMPUTE_Q = "NullSuperMap.compute?";
-    public static final String NULL_SUPER_MAP_COMPUTE_ARROW = "NullSuperMap.compute->";
-    public static final String NULL_SUPER_MAP_MERGE_Q = "NullSuperMap.merge?";
-    public static final String NULL_SUPER_MAP_MERGE_ARROW = "NullSuperMap.merge->";
-
-    // vessel query
-    public static final String NULL_SUPER_QUERY_POLL_Q = "NullSuperQuery.poll?";
-    public static final String NULL_SUPER_QUERY_POLL_ARROW = "NullSuperQuery.poll->";
-    public static final String NULL_SUPER_QUERY_PEEK_Q = "NullSuperQuery.peek?";
-    public static final String NULL_SUPER_QUERY_PEEK_ARROW = "NullSuperQuery.peek->";
-
     // kernel
     public static final String ASYNC_ARROW = "async->";
 }
