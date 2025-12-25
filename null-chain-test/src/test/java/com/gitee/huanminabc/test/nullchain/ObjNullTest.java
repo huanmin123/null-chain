@@ -371,9 +371,23 @@ public class ObjNullTest {
 //            e.printStackTrace();
         });
 
+        Null.of(1).map((da) -> {
+            return null;
+        }).capture((e) -> {
+            System.out.println(e.getMessage());
+//            e.printStackTrace();
+        });
+
         //异步场景
         Null.of(1).async().map((da)->{
             throw new RuntimeException("123");
+        }) .capture((e)->{
+            System.out.println(e.getMessage());
+//            e.printStackTrace();
+        });
+
+        Null.of(1).async().map((da)->{
+            return null;
         }) .capture((e)->{
             System.out.println(e.getMessage());
 //            e.printStackTrace();
