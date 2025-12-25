@@ -115,7 +115,7 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
                 throw new NullChainException(linkLog.append(CAPTURE_PARAM_NULL).toString());
             }
             //内部异常了
-            consumer.accept(new NullChainException(e,linkLog.append(" ").append(e.getMessage()).toString()));
+            consumer.accept(new NullChainException(e, linkLog.append(" ").append(e.getMessage()).toString()));
         });
     }
 
@@ -125,20 +125,20 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
      * <p>当链式操作的结果为空时，使用自定义异常消息创建异常并传递给消费者处理。
      * 异常消息支持格式化，可以使用 {} 作为占位符，通过 args 参数填充。</p>
      *
-     * @param consumer         异常消费者，用于处理捕获的异常
+     * @param exceptionClass   异常类，必须是 RuntimeException 的子类
      * @param exceptionMessage 异常消息模板，支持 {} 占位符
      * @param args             异常消息参数，用于填充占位符
-     * Null.of(user)
-     *     .map(User::getName)
-     *     .except((e) -> System.out.println("发生异常：" + e.getMessage()),
-     *             "获取用户姓名时发生异常：用户{}", user.getId());
-     * }</pre>
+     *                         Null.of(user)
+     *                         .map(User::getName)
+     *                         .except((e) -> System.out.println("发生异常：" + e.getMessage()),
+     *                         "获取用户姓名时发生异常：用户{}", user.getId());
+     *                         }</pre>
      */
     @Override
-    public void capture(Consumer<Throwable> consumer, String exceptionMessage, Object... args) {
+    public void doThrow(Class<? extends RuntimeException> exceptionClass, String exceptionMessage, Object... args) {
         taskList.runTaskAll((nullChainBase) -> {
             // 如果值不为空，检查 consumer 是否为 null
-            if (consumer == null) {
+            if (exceptionClass == null) {
                 throw new NullChainException(linkLog.append(CAPTURE_PARAM_NULL).toString());
             }
             if (nullChainBase.isNull) {
@@ -151,16 +151,16 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
                     linkLog.append(" ").append(exceptionMessage);
                 }
                 // 创建异常并传递给 consumer
-                consumer.accept(new NullChainException(linkLog.toString()));
+                throw NullReflectionKit.addRunErrorMessage(exceptionClass, Thread.currentThread().getStackTrace(), linkLog);
             }
 
         }, (e) -> {
-            if (consumer == null) {
+            if (exceptionClass == null) {
                 throw new NullChainException(linkLog.append(CAPTURE_PARAM_NULL).toString());
             }
             String format = String.format(exceptionMessage.replaceAll("\\{\\s*}", "%s"), args);
             //内部异常了
-            consumer.accept(new NullChainException(e,linkLog.append(" ").append(format).toString()));
+            throw NullReflectionKit.addRunErrorMessage(exceptionClass,e.getStackTrace(), linkLog.append(" ").append(format));
         });
     }
 
@@ -220,7 +220,6 @@ public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFi
         taskList.runTaskAll();
         return taskList.getCollect();
     }
-
 
     @Override
     public T orElse(T defaultValue) {

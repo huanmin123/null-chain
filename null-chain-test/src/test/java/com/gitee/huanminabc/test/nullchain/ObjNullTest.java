@@ -3,6 +3,7 @@ package com.gitee.huanminabc.test.nullchain;
 
 import com.alibaba.fastjson.JSONObject;
 import com.gitee.huanminabc.jcommon.base.SerializeUtil;
+import com.gitee.huanminabc.jcommon.exception.BizException;
 import com.gitee.huanminabc.jcommon.multithreading.executor.SleepTools;
 import com.gitee.huanminabc.jcommon.test.CodeTimeUtil;
 import com.gitee.huanminabc.nullchain.Null;
@@ -26,7 +27,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @Author huanmin
@@ -364,35 +364,35 @@ public class ObjNullTest {
 
     @Test
     public void  capture(){
-        Null.of(1).map((da) -> {
-            throw new RuntimeException("123");
-        }).capture((e) -> {
-            System.out.println(e.getMessage());
-//            e.printStackTrace();
-        });
+//        Null.of(1).map((da) -> {
+//            throw new RuntimeException("123");
+//        }).capture((e) -> {
+//            System.out.println(e.getMessage());
+////            e.printStackTrace();
+//        });
+        try {
+            Null.of(1).map((da) -> {
+                throw new RuntimeException("123");
+            }).doThrow(BizException.class, "null值异常:{}",123);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        Null.of(1).map((da) -> {
-            return null;
-        }).capture((e) -> {
-            System.out.println(e.getMessage());
-//            e.printStackTrace();
-        });
-
-        //异步场景
-        Null.of(1).async().map((da)->{
-            throw new RuntimeException("123");
-        }) .capture((e)->{
-            System.out.println(e.getMessage());
-//            e.printStackTrace();
-        });
-
-        Null.of(1).async().map((da)->{
-            return null;
-        }) .capture((e)->{
-            System.out.println(e.getMessage());
-//            e.printStackTrace();
-        });
-        SleepTools.second(2);
+//        //异步场景
+//        Null.of(1).async().map((da)->{
+//            throw new RuntimeException("123");
+//        }) .capture((e)->{
+//            System.out.println(e.getMessage());
+////            e.printStackTrace();
+//        });
+//
+//        Null.of(1).async().map((da)->{
+//            return null;
+//        }) .capture((e)->{
+//            System.out.println(e.getMessage());
+////            e.printStackTrace();
+//        });
+//        SleepTools.second(2);
     }
 
     @SneakyThrows
@@ -452,6 +452,7 @@ public class ObjNullTest {
         NullCollect mapCollect1 = Null.of(userEntity).map(UserEntity::getRoleData).collect();
         RoleEntity roleEntity = mapCollect1.get(RoleEntity.class).get("roleEntity is null:{}", userEntity);
         System.out.println(roleEntity);
+
     }
 
     @Test

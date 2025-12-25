@@ -99,9 +99,9 @@ public interface NullFinalityExt<T> extends NullFinality<T>,NullKernelExt<T> {
         tNullChain.capture(consumer);
     }
     @Override
-    default void capture(Consumer<Throwable> consumer, String exceptionMessage, Object... args) {
+    default void doThrow(Class<? extends RuntimeException> exceptionClass, String exceptionMessage, Object... args) {
         NullChain<T> tNullChain = toNULL();
-        tNullChain.capture(consumer, exceptionMessage, args);
+        tNullChain.doThrow(exceptionClass, exceptionMessage, args);
     }
 
     @Override

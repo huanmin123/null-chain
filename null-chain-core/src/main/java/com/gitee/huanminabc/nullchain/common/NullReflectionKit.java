@@ -1,6 +1,7 @@
 package com.gitee.huanminabc.nullchain.common;
 
 import com.gitee.huanminabc.jcommon.reflect.ClassIdentifyUtil;
+import com.gitee.huanminabc.jcommon.reflect.ClassUtil;
 import com.gitee.huanminabc.jcommon.reflect.FieldUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,13 +46,13 @@ public class NullReflectionKit {
     public  static  <X extends RuntimeException> X orRuntimeException(X exception, StringBuilder linkLog) throws X {
         //反射取出来最顶级的detailMessage,把链路信息放进去
         Class<? extends Throwable> aClass = exception.getClass();
-        updateDetailMessage(exception, linkLog, aClass);
+        updateDetailMessage(exception, linkLog);
         return exception;
     }
     public  static  <X extends Throwable> X orThrowable(X exception, StringBuilder linkLog) throws X {
         //反射取出来最顶级的detailMessage,把链路信息放进去
         Class<? extends Throwable> aClass = exception.getClass();
-        updateDetailMessage(exception, linkLog, aClass);
+        updateDetailMessage(exception, linkLog);
         return exception;
     }
 
@@ -59,15 +60,22 @@ public class NullReflectionKit {
 
     public  static  <X extends Throwable> NullChainException addRunErrorMessage(X exception, StringBuilder linkLog)  {
         //反射取出来最顶级的detailMessage,把链路信息放进去
-        Class<? extends Throwable> aClass = exception.getClass();
-        updateDetailMessage(exception, linkLog, aClass);
+        updateDetailMessage(exception, linkLog);
         //必须是NullChainException,如果不是就包装成NullChainException返回, 在空链中基本不会出现这种情况,但是为了保险起见拦一道
         if (!(exception instanceof NullChainException)) {
             return new NullChainException(exception);
         }
         return (NullChainException) exception;
     }
-
+    public  static  <X extends RuntimeException> X addRunErrorMessage(Class<? extends RuntimeException> exceptionClass, StackTraceElement[]  stackTraceElements, StringBuilder linkLog)  {
+        RuntimeException runtimeException = ClassUtil.newInstance(exceptionClass);
+        if (stackTraceElements!=null){
+            runtimeException.setStackTrace(stackTraceElements);
+        }
+        //反射取出来最顶级的detailMessage,把链路信息放进去
+        updateDetailMessage(runtimeException, linkLog);
+         return (X) runtimeException;
+    }
 
     //反射获取对象内部size 或者length 调用公共的方法就行, 如果没有就返回0
     public static int getSize(Object object) {
@@ -112,8 +120,8 @@ public class NullReflectionKit {
 
 
 
-    private static <X extends Throwable> void updateDetailMessage(X exception, StringBuilder linkLog, Class<? extends Throwable> aClass) {
-        Field detailMessage = FieldUtil.getField(aClass,"detailMessage");
+    private static  void updateDetailMessage(Throwable exception, StringBuilder linkLog) {
+        Field detailMessage = FieldUtil.getField(exception.getClass(),"detailMessage");
         if (detailMessage != null) {
             detailMessage.setAccessible(true);
             try {
