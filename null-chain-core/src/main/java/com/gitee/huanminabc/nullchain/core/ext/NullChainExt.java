@@ -41,12 +41,6 @@ public interface NullChainExt<T> extends NullChain<T>, NullConvertExt<T> {
 
 
     @Override
-    default <U> NullChain<T> ofAny(NullFun<? super T, ? extends U>... function) {
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.ofAny(function);
-    }
-
-    @Override
     default NullChain<T> ifGo(Predicate<? super T> predicate){
         NullChain<T> tNullChain = toNULL();
         return tNullChain.ifGo(predicate);

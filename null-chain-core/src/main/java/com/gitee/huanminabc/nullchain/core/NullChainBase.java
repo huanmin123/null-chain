@@ -128,33 +128,6 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
 
 
 
-    @SafeVarargs
-    @Override
-    public final <U> NullChain<T> ofAny(NullFun<? super T, ? extends U>... function) {
-        this.taskList.add((value)->{
-            if (Null.is(function)) {
-                throw new NullChainException(linkLog.append(CHAIN_OFANY_PARAM_NULL).toString());
-            }
-            try {
-                for (int i = 0; i < function.length; i++) {
-                    NullFun<? super T, ? extends U> nullFun = function[i];
-                    U apply = nullFun.apply((T)value);
-                    if (Null.is(apply)) {
-                        linkLog.append(CHAIN_OFANY_INDEX).append(i + 1).append("个");
-                        return NullBuild.empty();
-                    }
-                }
-            } catch (Exception e) {
-                linkLog.append(CHAIN_OFANY_Q);
-                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-            }
-            linkLog.append(CHAIN_OFANY_ARROW);
-            return NullBuild.noEmpty(value);
-
-        });
-        return  NullBuild.busy(this);
-    }
-
 
     @Override
     public NullChain<T> then(Runnable function) {

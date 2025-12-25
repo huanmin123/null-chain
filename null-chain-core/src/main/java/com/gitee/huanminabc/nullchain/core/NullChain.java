@@ -61,17 +61,6 @@ public interface NullChain<T> extends NullConvert<T> {
      */
     <U> NullChain<T> of(NullFun<? super T, ? extends U> function);
 
-    /**
-     * 多条件判断操作 - 任意一个条件为空则返回空链
-     * 
-     * <p>该方法接受多个条件函数，如果其中任意一个返回null或空值，
-     * 则整个链会变为空链。</p>
-     * 
-     * @param functions 条件函数数组
-     * @return 新的Null链，如果任意条件为空则为空链
-     */
-    <U> NullChain<T> ofAny(NullFun<? super T, ? extends U>... functions);
-
 
     /**
      * 条件分支操作 - 根据条件决定是否继续执行
