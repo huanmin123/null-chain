@@ -14,7 +14,6 @@ import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
 import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
 import com.gitee.huanminabc.nullchain.enums.TimeEnum;
-import com.gitee.huanminabc.nullchain.leaf.date.NullDate;
 import com.gitee.huanminabc.test.nullchain.entity.RoleEntity;
 import com.gitee.huanminabc.test.nullchain.entity.UserEntity;
 import com.gitee.huanminabc.test.nullchain.entity.UserExtEntity;
@@ -75,7 +74,7 @@ public class ObjNullTest {
     @Test
     public  void pick(){
         //提取部分内容返回新的对象
-        Null.ofCopy(userEntity).pick(UserEntity::getName,UserEntity::getAge).ifPresent(System.out::println);
+        Null.of(userEntity).pick(UserEntity::getName,UserEntity::getAge).ifPresent(System.out::println);
     }
 
 
@@ -114,17 +113,17 @@ public class ObjNullTest {
 
     @Test
     public void ofDate() {
-        String s = Null.ofDate(new Date()).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).get();
+        String s = Null.of(new Date()).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).get();
         System.out.println(s);
 
-        String s1 = Null.ofDate(new Date()).dateOffset(DateOffsetEnum.START, 1, TimeEnum.MONTHS).dateFormat(DateFormatEnum.DATETIME_PATTERN).get();
+        String s1 = Null.of(new Date()).dateOffset(DateOffsetEnum.START, 1, TimeEnum.MONTHS).dateFormat(DateFormatEnum.DATETIME_PATTERN).get();
         System.out.println(s1);
-        String s2 = Null.ofDate(new Date()).dateOffset(DateOffsetEnum.END, 1, TimeEnum.MONTHS).dateFormat(DateFormatEnum.DATETIME_PATTERN).get();
+        String s2 = Null.of(new Date()).dateOffset(DateOffsetEnum.END, 1, TimeEnum.MONTHS).dateFormat(DateFormatEnum.DATETIME_PATTERN).get();
         System.out.println(s2);
 
-        String s3 = Null.ofDate(new Date()).dateOffset(DateOffsetEnum.ADD, 4, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).get();
+        String s3 = Null.of(new Date()).dateOffset(DateOffsetEnum.ADD, 4, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).get();
         System.out.println(s3);
-        Long l = Null.ofDate("2025-12-27").dateBetween("2025-12-31", TimeEnum.SECONDS).get();
+        Long l = Null.of("2025-12-27").dateBetween("2025-12-31", TimeEnum.SECONDS).get();
         System.out.println(l);
 
     }
@@ -132,7 +131,7 @@ public class ObjNullTest {
     @Test
     public void ofJson() {
         NullChain<UserEntity> userEntityNullChain = Null.of(userEntity);
-        HashMap<String, Object> stringObjectHashMap = Null.ofJson(userEntityNullChain).json().json(new HashMap<String, Object>()).get();
+        HashMap<String, Object> stringObjectHashMap = Null.of(userEntityNullChain).json().json(new HashMap<String, Object>()).get();
         System.out.println(stringObjectHashMap);
     }
 
@@ -362,10 +361,10 @@ public class ObjNullTest {
 //        System.out.println(time222);
 
 
-//        NullDate<Integer> stringNullDate = Null.ofDate(20250615).dateOffset(DateOffsetEnum.START, TimeEnum.MONTHS);
+//        NullChain<Integer> stringNullDate = Null.of(20250615).dateOffset(DateOffsetEnum.START, TimeEnum.MONTHS);
 //        stringNullDate.ifPresent(System.out::println);
 
-        NullDate<Date> dateNullDate = Null.ofDate(new Date()).dateOffset(DateOffsetEnum.START, TimeEnum.HOURS);
+        NullChain<Date> dateNullDate = Null.of(new Date()).dateOffset(DateOffsetEnum.START, TimeEnum.HOURS);
 
         Date dateStart = dateNullDate.get();
 
@@ -415,7 +414,7 @@ public class ObjNullTest {
 ////        System.out.println(compare);
 //
         String date2 = "2025-12-24";
-        Integer compare1 = Null.ofDate(date2).dateCompare(LocalDate.now()).getSafe();
+        Integer compare1 = Null.of(date2).dateCompare(LocalDate.now()).getSafe();
         System.out.println(compare1);
 //
 //        LocalDate date3 = LocalDate.now();

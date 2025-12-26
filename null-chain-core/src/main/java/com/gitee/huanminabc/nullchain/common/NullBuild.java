@@ -6,14 +6,8 @@ import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.core.NullChainBase;
 import com.gitee.huanminabc.nullchain.leaf.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.leaf.calculate.NullCalculateBase;
-import com.gitee.huanminabc.nullchain.leaf.copy.NullCopy;
-import com.gitee.huanminabc.nullchain.leaf.copy.NullCopyBase;
-import com.gitee.huanminabc.nullchain.leaf.date.NullDate;
-import com.gitee.huanminabc.nullchain.leaf.date.NullDateBase;
 import com.gitee.huanminabc.nullchain.leaf.http.OkHttpBase;
 import com.gitee.huanminabc.nullchain.leaf.http.OkHttp;
-import com.gitee.huanminabc.nullchain.leaf.json.NullJson;
-import com.gitee.huanminabc.nullchain.leaf.json.NullJsonBase;
 import com.gitee.huanminabc.nullchain.leaf.stream.*;
 import com.gitee.huanminabc.nullchain.leaf.check.NullCheck;
 import com.gitee.huanminabc.nullchain.leaf.check.NullCheckBase;
@@ -32,10 +26,7 @@ import java.util.List;
  * <ul>
  *   <li>核心链构建：构建基础的Null链实例</li>
  *   <li>计算链构建：构建数值计算链实例</li>
- *   <li>复制链构建：构建对象复制链实例</li>
- *   <li>日期链构建：构建日期处理链实例</li>
  *   <li>HTTP链构建：构建HTTP请求链实例</li>
- *   <li>JSON链构建：构建JSON处理链实例</li>
  *   <li>流链构建：构建流处理链实例</li>
  * </ul>
  * 
@@ -52,10 +43,7 @@ import java.util.List;
  * @version 1.1.1
  * @see NullChain 核心链接口
  * @see NullCalculate 计算链接口
- * @see NullCopy 复制链接口
- * @see NullDate 日期链接口
  * @see OkHttp HTTP链接口
- * @see NullJson JSON链接口
  * @see NullStream 流链接口
  */
 
@@ -105,20 +93,6 @@ public class NullBuild {
         return new NullChainBase<>(o.linkLog, o.taskList);
     }
 
-    @SuppressWarnings("unchecked")
-    public static <X> NullDate<X> busyDate(NullKernelAbstract<?> o) {
-        return (NullDate<X>) o;
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <X> NullJson<X> busyJson(NullKernelAbstract<?> o) {
-        return (NullJson<X>) o;
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <X> NullCopy<X> busyCopy(NullKernelAbstract<?> o) {
-        return (NullCopy<X>) o;
-    }
 
     @SuppressWarnings("unchecked")
     public static <X extends java.math.BigDecimal> NullCalculate<X> busyCalc(NullKernelAbstract<?> o) {
@@ -150,21 +124,11 @@ public class NullBuild {
         return new NullDoubleStreamBase(o.linkLog, o.taskList);
     }
 
-    public static <T> NullDate<T> busyDate(StringBuilder linkLog, NullTaskList nullTaskList) {
-        return new NullDateBase<>(linkLog, nullTaskList);
-    }
-
-    public static <T> NullJson<T> busyJson(StringBuilder linkLog, NullTaskList nullTaskList) {
-        return new NullJsonBase<T>(linkLog, nullTaskList);
-    }
 
     public static <T extends java.math.BigDecimal> NullCalculate<T> busyCalc(StringBuilder linkLog, NullTaskList nullTaskList) {
         return new NullCalculateBase<T>(linkLog, nullTaskList);
     }
 
-    public static <T> NullCopy<T> busyCopy(StringBuilder linkLog, NullTaskList nullTaskList) {
-        return new NullCopyBase<T>(linkLog, nullTaskList);
-    }
     public static <T> NullStream<T> busyStream(StringBuilder linkLog, NullTaskList nullTaskList) {
         return new NullStreamBase<T>(linkLog, nullTaskList);
     }

@@ -8,10 +8,7 @@ import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 import com.gitee.huanminabc.nullchain.leaf.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.leaf.check.NullCheckBase;
-import com.gitee.huanminabc.nullchain.leaf.copy.NullCopy;
-import com.gitee.huanminabc.nullchain.leaf.date.NullDate;
 import com.gitee.huanminabc.nullchain.leaf.http.OkHttp;
-import com.gitee.huanminabc.nullchain.leaf.json.NullJson;
 import com.gitee.huanminabc.nullchain.leaf.stream.NullStream;
 import com.gitee.huanminabc.nullchain.leaf.check.NullCheck;
 import java.math.BigDecimal;
@@ -146,29 +143,6 @@ public class Null extends NullUtil {
     }
 
 
-    public static <T> NullDate<T> ofDate(T value) {
-        return ofLeaf(value, OF_DATE_Q, OF_DATE_ARROW, NullBuild::busyDate);
-    }
-
-    public static <T> NullDate<T> ofDate(NullChain<T> value) {
-        return ofLeaf(value, OF_DATE_Q, OF_DATE_ARROW, NullBuild::busyDate);
-    }
-
-    public static <T> NullJson<T> ofJson(T value) {
-        return ofLeaf(value, OF_JSON_Q, OF_JSON_ARROW, NullBuild::busyJson);
-    }
-
-    public static <T> NullJson<T> ofJson(NullChain<T> value) {
-        return ofLeaf(value, OF_JSON_Q, OF_JSON_ARROW, NullBuild::busyJson);
-    }
-
-    public static <T> NullCopy<T> ofCopy(T value) {
-        return ofLeaf(value, OF_COPY_Q, OF_COPY_ARROW, NullBuild::busyCopy);
-    }
-
-    public static <T> NullCopy<T> ofCopy(NullChain<T> value) {
-        return ofLeaf(value, OF_COPY_Q, OF_COPY_ARROW, NullBuild::busyCopy);
-    }
 
     /**
      * 创建多级判空工具
