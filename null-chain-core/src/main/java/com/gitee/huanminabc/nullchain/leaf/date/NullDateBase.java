@@ -88,4 +88,24 @@ public class NullDateBase<T> extends NullChainBase<T> implements  NullDate<T>  {
         return  NullBuild.busyDate(this);
     }
 
+    @Override
+    public NullDate<Long> dateBetween(Object date, TimeEnum timeEnum) {
+        this.taskList.add((value)->{
+            Long between;
+            try {
+                between = NullDateFormat.dateBetween(value, date, timeEnum);
+            } catch (Exception e) {
+                linkLog.append(DATE_BETWEEN_Q).append(value).append(" 计算日期间隔失败:").append(e.getMessage());
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+            if (between == null) {
+                linkLog.append(DATE_BETWEEN_Q).append("计算日期间隔失败数据格式不正确");
+                throw new NullChainException(linkLog.toString());
+            }
+            linkLog.append(DATE_BETWEEN_ARROW);
+            return NullBuild.noEmpty(between);
+        });
+        return  NullBuild.busyDate(this);
+    }
+
 }

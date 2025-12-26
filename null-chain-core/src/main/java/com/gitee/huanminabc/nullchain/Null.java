@@ -7,11 +7,13 @@ import com.gitee.huanminabc.nullchain.core.NullChainBase;
 import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 import com.gitee.huanminabc.nullchain.leaf.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.core.NullChain;
+import com.gitee.huanminabc.nullchain.leaf.check.NullCheckBase;
 import com.gitee.huanminabc.nullchain.leaf.copy.NullCopy;
 import com.gitee.huanminabc.nullchain.leaf.date.NullDate;
 import com.gitee.huanminabc.nullchain.leaf.http.OkHttp;
 import com.gitee.huanminabc.nullchain.leaf.json.NullJson;
 import com.gitee.huanminabc.nullchain.leaf.stream.NullStream;
+import com.gitee.huanminabc.nullchain.leaf.check.NullCheck;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Stream;
@@ -166,6 +168,49 @@ public class Null extends NullUtil {
 
     public static <T> NullCopy<T> ofCopy(NullChain<T> value) {
         return ofLeaf(value, OF_COPY_Q, OF_COPY_ARROW, NullBuild::busyCopy);
+    }
+
+    /**
+     * 创建多级判空工具
+     * 
+     * <p>该方法用于创建多级判空工具，与 `NullChain.of()` 不同，该工具会**全部判定一遍**所有节点，
+     * 收集所有为空的节点信息，然后统一处理。</p>
+     * 
+     * @param <T> 检查对象的类型
+     * @param value 要检查的对象
+     * @return 多级判空工具实例
+     * 
+     * @example
+     * <pre>{@code
+     * Null.ofCheck(user)
+     *     .isNull(User::getId, "用户ID为空")
+     *     .isNull(User::getName, "用户名为空")
+     *     .isNull(User::getEmail, "邮箱为空")
+     *     .doThrow(IllegalArgumentException.class);
+     * }</pre>
+     */
+    public static <T> NullCheck<T> ofCheck(T value) {
+
+        NullTaskList nullTaskList = new NullTaskList();
+        StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
+        List<NullCheckBase.NullCheckNode> nullCheckNodes = new ArrayList<>();
+        nullTaskList.add((__) -> {
+            NullCheckBase.NullCheckNode node = new NullCheckBase.NullCheckNode();
+            if (Null.is(value)) {
+                linkLog.append(OF_CHECK_Q);
+                node.setNull( true);
+                node.setPath(OF_CHECK);
+                nullCheckNodes.add(node);
+                return NullBuild.empty();
+            }
+            linkLog.append(OF_CHECK_ARROW);
+            node.setNull(false);
+            node.setPath(OF_CHECK);
+            nullCheckNodes.add(node);
+            return NullBuild.noEmpty(value);
+        });
+        return NullBuild.busyCheck(linkLog, nullTaskList,nullCheckNodes);
+
     }
 
 

@@ -116,6 +116,17 @@ public class ObjNullTest {
     public void ofDate() {
         String s = Null.ofDate(new Date()).dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).get();
         System.out.println(s);
+
+        String s1 = Null.ofDate(new Date()).dateOffset(DateOffsetEnum.START, 1, TimeEnum.MONTHS).dateFormat(DateFormatEnum.DATETIME_PATTERN).get();
+        System.out.println(s1);
+        String s2 = Null.ofDate(new Date()).dateOffset(DateOffsetEnum.END, 1, TimeEnum.MONTHS).dateFormat(DateFormatEnum.DATETIME_PATTERN).get();
+        System.out.println(s2);
+
+        String s3 = Null.ofDate(new Date()).dateOffset(DateOffsetEnum.ADD, 4, TimeEnum.DAYS).dateFormat(DateFormatEnum.DATETIME_PATTERN).get();
+        System.out.println(s3);
+        Long l = Null.ofDate("2025-12-27").dateBetween("2025-12-31", TimeEnum.SECONDS).get();
+        System.out.println(l);
+
     }
 
     @Test

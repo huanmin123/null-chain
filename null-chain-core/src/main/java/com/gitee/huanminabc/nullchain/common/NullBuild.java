@@ -15,8 +15,12 @@ import com.gitee.huanminabc.nullchain.leaf.http.OkHttp;
 import com.gitee.huanminabc.nullchain.leaf.json.NullJson;
 import com.gitee.huanminabc.nullchain.leaf.json.NullJsonBase;
 import com.gitee.huanminabc.nullchain.leaf.stream.*;
+import com.gitee.huanminabc.nullchain.leaf.check.NullCheck;
+import com.gitee.huanminabc.nullchain.leaf.check.NullCheckBase;
 // import cleanup: removed unused imports
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
 
 /**
  * Null构建器 - 提供Null链的构建功能
@@ -126,6 +130,11 @@ public class NullBuild {
         return (NullStream<X>) o;
     }
 
+    @SuppressWarnings("unchecked")
+    public static <X> NullCheck<X> busyCheck(NullKernelAbstract<?> o) {
+        return (NullCheck<X>) o;
+    }
+
 
 
     public static <T> NullIntStream busyIntStream(NullKernelAbstract<T> o) {
@@ -165,6 +174,10 @@ public class NullBuild {
     }
     public static <T> OkHttp<T> busyHttp(String httpName, String url, StringBuilder linkLog, NullTaskList nullTaskList) {
         return new OkHttpBase<T>(httpName,url,linkLog, nullTaskList);
+    }
+
+    public static <T> NullCheck<T> busyCheck(StringBuilder linkLog, NullTaskList nullTaskList, List<NullCheckBase.NullCheckNode> list) {
+        return new NullCheckBase<T>(linkLog, nullTaskList, list);
     }
 
 

@@ -79,6 +79,8 @@ public final class NullLog {
     public static final String DATE_OFFSET_ARROW = "dateOffset->";
     public static final String DATE_COMPARE_Q = "dateCompare? ";
     public static final String DATE_COMPARE_ARROW = "dateCompare->";
+    public static final String DATE_BETWEEN_Q = "dateBetween? ";
+    public static final String DATE_BETWEEN_ARROW = "dateBetween->";
 
     // stream leaf
     public static final String STREAM_MAP_Q = "map? ";
@@ -249,4 +251,16 @@ public final class NullLog {
 
     // kernel
     public static final String ASYNC_ARROW = "async->";
+
+    // check leaf
+    public static final String OF_CHECK = "Null.ofCheck";
+    public static final String OF_CHECK_Q = "Null.ofCheck?";
+    public static final String OF_CHECK_ARROW = "Null.ofCheck->";
+    public static final String CHECK_ISNULL_Q = "isNull?";
+    public static final String CHECK_ISNULL_ARROW = "isNull->";
+    public static final String CHECK_ISNULL_PARAM_NULL = "isNull? 传参不能为空";
+    public static final String CHECK_MAP_Q = "map?";
+    public static final String CHECK_MAP_ARROW = "map->";
+    public static final String CHECK_MAP_PARAM_NULL = "map? 传参不能为空";
+    public static final String CHECK_DOTHROW_PARAM_NULL = "doThrow? 异常类型不能为空";
 }
