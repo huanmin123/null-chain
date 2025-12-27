@@ -39,13 +39,15 @@
 
 ### 参考
 - [最佳实践](./12-最佳实践.md) - 使用建议和常见问题
+- [版本更新记录](./CHANGELOG.md) - 查看版本更新历史
 
 ---
 
 ## 版本信息
 
 - **当前版本**：v1.1.3-RELEASE
-- **JDK要求**：JDK 8 及以上
+- **JDK要求**：JDK 8 及以上（已测试 JDK 8~25）
+- **版本更新记录**：[CHANGELOG.md](./CHANGELOG.md)
 - **项目地址**：https://gitee.com/huanminabc/null-chain
 - **详细文档**：https://www.yuque.com/huanmin-4bkaa/fxm661/fou8lvfycyppbpog
 
