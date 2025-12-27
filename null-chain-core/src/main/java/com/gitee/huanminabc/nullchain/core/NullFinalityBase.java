@@ -160,7 +160,7 @@ public class NullFinalityBase<T> extends NullKernelAsyncAbstract<T> implements N
             }
             String format = String.format(exceptionMessage.replaceAll("\\{\\s*}", "%s"), args);
             //内部异常了
-            throw NullReflectionKit.addRunErrorMessage(exceptionClass,e.getStackTrace(), linkLog.append(" ").append(format));
+            throw NullReflectionKit.addRunErrorMessage(exceptionClass, e.getStackTrace(), linkLog.append(" ").append(format));
         });
     }
 
@@ -228,7 +228,7 @@ public class NullFinalityBase<T> extends NullKernelAsyncAbstract<T> implements N
             return (T) nullChainBase.value;
         }
         //判断defaultValue
-        if (Null.is(defaultValue)) {
+        if (defaultValue == null) {
             linkLog.append(OR_ELSE_DEFAULT_NULL);
             throw new NullChainException(linkLog.toString());
         }
@@ -252,7 +252,7 @@ public class NullFinalityBase<T> extends NullKernelAsyncAbstract<T> implements N
             linkLog.append(OR_ELSE_Q);
             throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
-        if (Null.is(t)) {
+        if (t == null) {
             linkLog.append(OR_ELSE_DEFAULT_NULL);
             throw new NullChainException(linkLog.toString());
         }

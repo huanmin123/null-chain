@@ -13,10 +13,10 @@ import java.util.function.Supplier;
 
 /**
  * Null工具类 - 提供各种类型的空值判断功能
- * 
+ *
  * <p>该类提供了判断各种类型是否为空的功能，包括基本类型、集合类型、Map类型、数组类型等。
  * 通过统一的空值判断接口，为开发者提供便捷的空值检查能力。</p>
- * 
+ *
  * <h3>主要功能：</h3>
  * <ul>
  *   <li>基本类型判断：判断基本类型是否为空</li>
@@ -26,7 +26,7 @@ import java.util.function.Supplier;
  *   <li>日期判断：判断日期类型是否为空</li>
  *   <li>对象判断：判断任意对象是否为空</li>
  * </ul>
- * 
+ *
  * <h3>设计特点：</h3>
  * <ul>
  *   <li>类型安全：通过泛型保证类型安全</li>
@@ -34,12 +34,12 @@ import java.util.function.Supplier;
  *   <li>全面覆盖：支持各种类型的空值判断</li>
  *   <li>性能优化：提供高效的判断算法</li>
  * </ul>
- * 
+ *
  * @author 胡安民
- * @since 1.0.0
  * @version 1.1.1
  * @see NullCheck 空值检查接口
  * @see NullChain 链式操作接口
+ * @since 1.0.0
  */
 public class NullUtil {
 
@@ -144,14 +144,14 @@ public class NullUtil {
         if (a == b) {
             return true; //如果是同一个对象那么必然相等
         }
-        Object realValueA=a;
-        Object realValueB=b;
+        Object realValueA = a;
+        Object realValueB = b;
         //优化：使用instanceof替代isInstance，性能更好
-        if (a instanceof NullKernelAbstract){
-            realValueA=((NullKernelAbstract)a).taskList.runTaskAll().value;
+        if (a instanceof NullKernelAbstract) {
+            realValueA = ((NullKernelAbstract) a).taskList.runTaskAll().value;
         }
-        if (b instanceof NullKernelAbstract){
-            realValueB=((NullKernelAbstract)b).taskList.runTaskAll().value;
+        if (b instanceof NullKernelAbstract) {
+            realValueB = ((NullKernelAbstract) b).taskList.runTaskAll().value;
         }
         return realValueA == realValueB || realValueA.equals(realValueB);
     }
@@ -190,29 +190,10 @@ public class NullUtil {
     }
 
 
-    //如果是空那么返回null ,请type和obj的类型一致否则返回的是null
-    public static <T> T orElseNull(Object obj, Class<T> type) {
-        if (is(obj)) {
-            return null;
-        }
-        if (type.isInstance(obj)) {
-            return type.cast(obj);
-        }
-        return null;
-    }
-
-    public static <T> T orElseNull(T obj) {
-        if (is(obj)) {
-            return null;
-        }
-        return obj;
-    }
-
-    //判断对象是否为空,如果为空返回默认值 , 默认值不允许为空
+    //判断对象是否为空,如果为空返回默认值 , 默认值不允许为null
     public static <T> T orElse(T obj, T defaultValue) {
         if (is(obj)) {
-            //如果默认值也是空那么就返回异常
-            if (is(defaultValue)) {
+            if (defaultValue == null) {
                 throw new NullChainException("默认值不能是空");
             }
             return defaultValue;
@@ -226,7 +207,7 @@ public class NullUtil {
                 throw new NullChainException("默认值参数不能为空");
             }
             T t = defaultValue.get();
-            if (is(t)) {
+            if (t == null) {
                 throw new NullChainException("默认值不能是空");
             }
             return t;
@@ -245,8 +226,11 @@ public class NullUtil {
         }
         return obj;
     }
+    public static <T> T orThrow(T obj, String message, Object... params)  {
+         return orThrow(obj, ()->new NullChainException(message, params));
+    }
 
-    //一般搭配NULLExt使用, 如果不能保证对象的变量不为空那么就先使用这个方法拦截一下
+    //如果是空那么直接抛出异常
     public static void checkNull(Object obj) {
         if (obj == null) {
             throw new NullChainException();
@@ -265,9 +249,9 @@ public class NullUtil {
         }
     }
 
-    public static void checkNull(Object obj, Supplier<String> message) {
+    public static <X extends Throwable>  void checkNull(Object obj,  Supplier<? extends X> exceptionSupplier) throws X{
         if (obj == null) {
-            throw new NullChainException(message.get());
+            throw exceptionSupplier.get();
         }
     }
 

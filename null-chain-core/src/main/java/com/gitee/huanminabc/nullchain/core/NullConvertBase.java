@@ -76,6 +76,14 @@ public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConve
                 linkLog.append(JSON_ARROW);
                 return NullBuild.noEmpty(value.toString());
             }
+            //如果是NullChain那么需要取出来内容
+            if (value instanceof NullChain) {
+                value = ((NullChain<?>) value).orElseNull();
+                if (value == null) {
+                    linkLog.append(JSON_Q);
+                    return NullBuild.empty();
+                }
+            }
             try {
                 String json = JSON.toJSONString(value);
                 //[]{}[{}] 都是空的

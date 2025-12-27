@@ -213,37 +213,6 @@ public class NullUtilTest {
         assertFalse(Null.notEqAll("test", "test1", "test"));
     }
 
-    // ========== orElseNull() 方法测试 ==========
-
-    @Test
-    public void testOrElseNullWithType() {
-        String result = Null.orElseNull("test", String.class);
-        assertEquals("test", result);
-    }
-
-    @Test
-    public void testOrElseNullWithNull() {
-        String result = Null.orElseNull(null, String.class);
-        assertNull(result);
-    }
-
-    @Test
-    public void testOrElseNullWithWrongType() {
-        String result = Null.orElseNull(123, String.class);
-        assertNull(result);
-    }
-
-    @Test
-    public void testOrElseNullWithoutType() {
-        String result = Null.orElseNull("test");
-        assertEquals("test", result);
-    }
-
-    @Test
-    public void testOrElseNullWithoutTypeWithNull() {
-        String result = Null.orElseNull((String) null);
-        assertNull(result);
-    }
 
     // ========== orElse() 方法测试 ==========
 
@@ -341,7 +310,7 @@ public class NullUtilTest {
     @Test
     public void testCheckNullWithSupplier() {
         assertThrows(NullChainException.class, () -> {
-            Null.checkNull(null, () -> "参数不能为空");
+            Null.checkNull(null,  () -> new RuntimeException( "参数不能为空"));
         });
     }
 

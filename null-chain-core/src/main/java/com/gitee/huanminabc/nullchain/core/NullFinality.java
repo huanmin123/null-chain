@@ -162,10 +162,9 @@ public interface NullFinality<T> extends NullKernel<T>, Serializable {
     /**
      * 获取值或返回默认值
      *
-     * <p>该方法用于获取链式操作的最终结果。如果上一个任务的结果为空，
-     * 则返回提供的默认值。默认值不能是空字符串或null。</p>
+     * <p>该方法用于获取链式操作的最终结果。如果上一个任务的结果为空，则返回提供的默认值</p>
      *
-     * @param defaultValue 默认值
+     * @param defaultValue 默认值 不能是null否则会报错, 支持空字符串, 如果想要返回null可以使用orElseNull
      * @return 上一个任务的结果值，如果为空则返回默认值
      * @example <pre>{@code
      * String name = Null.of(user)
@@ -178,10 +177,9 @@ public interface NullFinality<T> extends NullKernel<T>, Serializable {
     /**
      * 获取值或返回默认值（通过Supplier提供）
      *
-     * <p>该方法用于获取链式操作的最终结果。如果上一个任务的结果为空，
-     * 则执行Supplier获取默认值。默认值不能是空字符串或null。</p>
+     * <p>该方法用于获取链式操作的最终结果。如果上一个任务的结果为空，则执行Supplier获取默认值</p>
      *
-     * @param defaultValue 默认值提供者
+     * @param defaultValue 默认值提供者,  不能是null否则会报错, 支持空字符串, 如果想要返回null可以使用orElseNull
      * @return 上一个任务的结果值，如果为空则返回默认值
      * @example <pre>{@code
      * String name = Null.of(user)

@@ -114,7 +114,7 @@ public class SSETestDemo {
      * 测试JSON格式SSE接口（带终止条件） node sse-server.js  {@see  null-chain-test/src/test/resources/sse-server.js}
      * 在接收到3条消息后主动终止流，验证终止功能是否正常工作。</p>
      */
-    @Test
+//    @Test
     public void testJsonSSE() throws InterruptedException {
         // 使用CountDownLatch来等待终止完成
         CountDownLatch latch = new CountDownLatch(1);
