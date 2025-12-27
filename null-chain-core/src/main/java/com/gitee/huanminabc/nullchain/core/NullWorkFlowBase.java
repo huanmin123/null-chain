@@ -288,14 +288,10 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
                         return;
                     }
                     nullChainMap.put(taskName, run);
-                } catch (NullChainCheckException e) {
-                    nullChainException.setMessage(stackTrace, linkLog.toString());
+                }catch (Exception e) {
+                    nullChainException.setMessage(stackTrace, "{}{}", linkLog, TASK_Q);
                     e.addSuppressed(nullChainException);
-                    log.error("", e);
-                } catch (Exception e) {
-                    nullChainException.setMessage(stackTrace, linkLog.toString());
-                    e.addSuppressed(nullChainException);
-                    log.error("{}{}{}多任务并发执行失败", linkLog, TASK_Q, taskName, e);
+                    log.error("{}{}多任务并发执行失败:{}", linkLog, TASK_Q, taskName, e);
                 }
             });
             futures.add(submit);
@@ -323,10 +319,8 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
             }
             linkLog.append(TASK_ARROW);
             return run;
-        } catch (NullChainCheckException e) {
-            throw new NullChainException(e);
-        } catch (Exception e) {
-            linkLog.append(TASK_Q);
+        }  catch (Exception e) {
+            linkLog.append(TASK_Q).append(TASK_IN);
             throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
     }
@@ -363,7 +357,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
     }
 
 
-    private  < R> R taskRun(T value, NullTask<T, R> nullTask, StringBuilder linkLog, Object... params) throws NullChainCheckException {
+    private  < R> R taskRun(T value, NullTask<T, R> nullTask, StringBuilder linkLog, Object... params) throws Exception {
         Map<String, Object> map = new HashMap<>();
         Object[] objects = params == null ? NullConstants.EMPTY_OBJECT_ARRAY : params;
         //校验参数类型和长度
@@ -376,16 +370,8 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
             throw new NullChainCheckException(e, linkLog.append(TASK_Q).append(nullTask.getClass().getName()).append(TASK_PARAM_VALIDATION_FAILED).toString());
         }
         NullChain<Object>[] nullChains = NullBuild.arrayToNullChain(objects);
-        try {
-            nullTask.init(value, nullChains, map);
-        } catch (Exception e) {
-            throw new NullChainCheckException(e, linkLog.append(TASK_Q).append(nullTask.getClass().getName()).append(TASK_INIT_FAILED).toString());
-        }
-        try {
-            return nullTask.run(value, nullChains, map);
-        } catch (Exception e) {
-            throw new NullChainCheckException(e, linkLog.append(TASK_Q).append(nullTask.getClass().getName()).append(TASK_RUN_FAILED).toString());
-        }
+        nullTask.init(value, nullChains, map);
+        return nullTask.run(value, nullChains, map);
     }
 
     private  <R> R toolRun(T value, NullTool<T, R> nullTool, StringBuilder linkLog, Object... params) throws NullChainCheckException {

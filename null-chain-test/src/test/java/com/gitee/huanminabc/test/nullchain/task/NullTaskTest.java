@@ -43,7 +43,7 @@ public class NullTaskTest {
     public void testTaskGroup() {
         String input = "123131";
         NullGroupTask nullGroupTask = NullGroupTask.buildGroup(
-                NullGroupTask.task(TestTask.class.getName(), "123213"),
+                NullGroupTask.task(TestTask.class.getName(), "123213",true),
                 NullGroupTask.task(Test2Task.class.getName())
         );
         
@@ -124,7 +124,7 @@ public class NullTaskTest {
     public void testTaskWithParams() {
         String input = "test";
         String result = Null.of(input)
-                .task(TestTask.class, "param1", 123, true)
+                .task(TestTask.class, "param1", false)
                 .get();
         assertNotNull(result);
     }

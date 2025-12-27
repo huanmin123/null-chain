@@ -31,17 +31,9 @@ public final class NullLog {
      */
     private NullLog() {}
 
+
     public static final String OF_Q = " Null.of?";
     public static final String OF_ARROW = " Null.of->";
-
-    public static final String OF_DATE_Q = " Null.ofDate?";
-    public static final String OF_DATE_ARROW = " Null.ofDate->";
-
-    public static final String OF_JSON_Q = " Null.ofJson?";
-    public static final String OF_JSON_ARROW = " Null.ofJson->";
-
-    public static final String OF_COPY_Q = " Null.ofCopy?";
-    public static final String OF_COPY_ARROW = " Null.ofCopy->";
 
     public static final String OF_STREAM_ARROW = " Null.ofStream->";
     public static final String OF_STREAM_UNSUPPORTED_SOURCE = "ofStream? Unsupported source type";
@@ -61,11 +53,10 @@ public final class NullLog {
     public static final String TOOL_INIT_FAILED = " 初始化失败: ";
     public static final String TOOL_RUN_FAILED = " 运行失败: ";
 
+    public static final String TASK_IN = ">>";
     public static final String TASK_Q = "task? ";
     public static final String TASK_ARROW = "task->";
     public static final String TASK_PARAM_VALIDATION_FAILED = " 任务参数校验失败";
-    public static final String TASK_INIT_FAILED = " 初始化失败: ";
-    public static final String TASK_RUN_FAILED = " 运行失败: ";
 
     public static final String NFTASK_Q = "nfTask? ";
     public static final String NFTASK_ARROW = "nfTask->";
