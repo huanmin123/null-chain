@@ -1,6 +1,7 @@
 package com.gitee.huanminabc.test.nullchain.leaf.date;
 
 import com.gitee.huanminabc.nullchain.Null;
+import com.gitee.huanminabc.nullchain.common.NullChainCheckException;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
 import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
@@ -103,7 +104,7 @@ public class NullDateTest {
     }
 
     @Test
-    public void testDateBetweenWithLocalDate() throws com.gitee.huanminabc.nullchain.common.NullChainCheckException {
+    public void testDateBetweenWithLocalDate() throws NullChainCheckException {
         LocalDate date1 = LocalDate.of(2025, 12, 24);
         LocalDate date2 = LocalDate.now();
         Integer compare = Null.of(date1)
@@ -115,7 +116,7 @@ public class NullDateTest {
     // ========== dateCompare() 方法测试 ==========
 
     @Test
-    public void testDateCompare() throws com.gitee.huanminabc.nullchain.common.NullChainCheckException {
+    public void testDateCompare() throws NullChainCheckException {
         // 比较两个日期
         String dateStr = "2025-12-24";
         Integer compare = Null.of(dateStr)
@@ -126,7 +127,7 @@ public class NullDateTest {
 
     @Test
     public void testDateCompareWithNull() {
-        assertThrows(com.gitee.huanminabc.nullchain.common.NullChainCheckException.class, () -> {
+        assertThrows(NullChainCheckException.class, () -> {
             Null.of((String) null)
                     .dateCompare(LocalDate.now())
                     .getSafe();

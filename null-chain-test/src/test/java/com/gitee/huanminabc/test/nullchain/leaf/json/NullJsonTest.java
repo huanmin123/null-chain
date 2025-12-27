@@ -1,6 +1,7 @@
 package com.gitee.huanminabc.test.nullchain.leaf.json;
 
 import com.gitee.huanminabc.nullchain.Null;
+import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.test.nullchain.entity.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,7 @@ public class NullJsonTest {
 
     @Test
     public void testJson() {
-        com.gitee.huanminabc.nullchain.core.NullChain<UserEntity> userEntityChain = Null.of(userEntity);
+        NullChain<UserEntity> userEntityChain = Null.of(userEntity);
         HashMap<String, Object> result = Null.of(userEntityChain)
                 .json()
                 .json(new HashMap<String, Object>())

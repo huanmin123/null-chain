@@ -3,9 +3,11 @@ package com.gitee.huanminabc.test.nullchain.core;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.NullChainCheckException;
 import com.gitee.huanminabc.nullchain.common.NullChainException;
+import com.gitee.huanminabc.nullchain.common.NullCollect;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.test.nullchain.entity.RoleEntity;
 import com.gitee.huanminabc.test.nullchain.entity.UserEntity;
+import com.gitee.huanminabc.test.nullchain.entity.UserExtEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -414,6 +416,79 @@ public class NullChainTest {
     }
 
     @Test
+    public void testPeekWithException() {
+        // peek 中抛出异常应该传播
+        assertThrows(RuntimeException.class, () -> {
+            Null.of(userEntity)
+                    .map(UserEntity::getRoleData)
+                    .peek((data) -> {
+                        data.setRoleName("default");
+                        throw new RuntimeException("测试主动异常");
+                    })
+                    .get();
+        });
+    }
+
+    @Test
+    public void testGetWithNullValue() {
+        // 当链中值为 null 时，get() 应该抛异常
+        userEntity.setRoleData(null);
+        assertThrows(NullChainException.class, () -> {
+            Null.of(userEntity)
+                    .map(UserEntity::getRoleData)
+                    .map(RoleEntity::getRoleName)
+                    .get();
+        });
+    }
+
+    @Test
+    public void testGetWithCustomException() {
+        // get() 方法支持自定义异常构造器
+        userEntity.getRoleData().setRoleName(null);
+        assertThrows(RuntimeException.class, () -> {
+            Null.of(userEntity)
+                    .map(UserEntity::getRoleData)
+                    .map(RoleEntity::getRoleName)
+                    .get(RuntimeException::new);
+        });
+    }
+
+    @Test
+    public void testComplexChainWithNullField() throws NullChainCheckException {
+        // 测试复杂链式调用中字段为 null 的情况
+        userEntity.getRoleData().setRoleName(null);
+        
+        // 使用 of() 检查字段，如果为 null 则返回默认值
+        UserEntity result = Null.of(userEntity)
+                .map((data) -> {
+                    data.getRoleData().setRoleName(null);
+                    return data;
+                })
+                .of(UserEntity::getRoleData)
+                .orElse(new UserEntity());
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testComplexChainWithNullFieldGetSafe() {
+        // 测试复杂链式调用中使用 getSafe() 的情况
+        userEntity.getRoleData().setRoleName(null);
+        
+        assertThrows(NullChainCheckException.class, () -> {
+            Null.of(userEntity)
+                    .map((data) -> {
+                        data.getRoleData().setRoleName(null);
+                        return data;
+                    })
+                    .of(UserEntity::getRoleData)
+                    .map(UserEntity::getRoleData)
+                    .of(RoleEntity::getRoleName)
+                    .map(RoleEntity::getRoleName)
+                    .getSafe();
+        });
+    }
+
+    @Test
     public void testOfWithNullFunction() {
         assertThrows(NullChainException.class, () -> {
             Null.of(userEntity)
@@ -488,7 +563,7 @@ public class NullChainTest {
 
     @Test
     public void testCollect() {
-        com.gitee.huanminabc.nullchain.common.NullCollect collect = Null.of(userEntity)
+        NullCollect collect = Null.of(userEntity)
                 .map(UserEntity::getRoleData)
                 .collect();
         
@@ -504,7 +579,7 @@ public class NullChainTest {
     @Test
     public void testCollectWithNull() {
         userEntity.setRoleData(null);
-        com.gitee.huanminabc.nullchain.common.NullCollect collect = Null.of(userEntity)
+        NullCollect collect = Null.of(userEntity)
                 .map(UserEntity::getRoleData)
                 .collect();
         
@@ -512,7 +587,7 @@ public class NullChainTest {
         assertTrue(roleEntityChain.is());
         
         // 使用 get 方法带消息参数
-        assertThrows(com.gitee.huanminabc.nullchain.common.NullChainException.class, () -> {
+        assertThrows(NullChainException.class, () -> {
             collect.get(RoleEntity.class).get("roleEntity is null");
         });
     }
@@ -521,24 +596,22 @@ public class NullChainTest {
 
     @Test
     public void testOrEmpty() {
-        com.gitee.huanminabc.test.nullchain.entity.UserExtEntity empty = Null.orEmpty(null, 
-            com.gitee.huanminabc.test.nullchain.entity.UserExtEntity.class);
+        UserExtEntity empty = Null.orEmpty(null, UserExtEntity.class);
         assertNotNull(empty);
         assertTrue(empty.is());
     }
 
     @Test
     public void testOrEmptyWithValue() {
-        com.gitee.huanminabc.test.nullchain.entity.UserExtEntity entity = 
-            new com.gitee.huanminabc.test.nullchain.entity.UserExtEntity();
+        UserExtEntity entity = new UserExtEntity();
         entity.setId(1);
         entity.setName("test");
         
-        com.gitee.huanminabc.test.nullchain.entity.UserExtEntity result = 
-            Null.orEmpty(entity, com.gitee.huanminabc.test.nullchain.entity.UserExtEntity.class);
+        UserExtEntity result = Null.orEmpty(entity, UserExtEntity.class);
         assertNotNull(result);
         assertFalse(result.is());
         assertEquals(Integer.valueOf(1), result.getId());
+        assertEquals("test", result.getName());
     }
 
     // ========== length() 方法测试 ==========
@@ -610,11 +683,10 @@ public class NullChainTest {
         
         // 异步执行，立即返回
         assertFalse(executed[0]);
-        
-        // 等待异步执行完成
-        Thread.sleep(200);
-        
+        //这个方法才是真的执行了
         chain.ifPresent(r -> result[0] = r.getRoleName());
+        // 等待异步执行完成
+        Thread.sleep(300);
         assertTrue(executed[0]);
         assertEquals("admin", result[0]);
     }
