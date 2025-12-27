@@ -14,6 +14,7 @@
         🌐 Spring集成：完美集成 Spring Boot 生态
         📝 完整日志：提供完整的操作日志追踪
         🔄 异步支持：支持异步操作和并发处理
+        🔧 支持JDK8~25 经过全面测试
     </description>
     <url>https://gitee.com/huanminabc/null-chain</url>
     <licenses>
