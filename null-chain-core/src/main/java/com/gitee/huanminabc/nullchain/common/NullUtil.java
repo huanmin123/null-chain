@@ -230,6 +230,18 @@ public class NullUtil {
          return orThrow(obj, ()->new NullChainException(message, params));
     }
 
+    // 在一些情况下，需要将一个对象转换为指定类型的对象 , 比如Map的value取的时候如果不是空需要转换为指定的对象,如果是空那么就返回空
+    // 为啥返回空呢? 在一些操作中，如果字段是空那么就不会被使用
+    public static <T> T orElseNull(Object obj, Class<T> type) {
+        if (obj == null) {
+            return null;
+        }
+        if (type.isInstance(obj)) {
+            return type.cast(obj);
+        }
+        return null;
+    }
+
     //如果是空那么直接抛出异常
     public static void checkNull(Object obj) {
         if (obj == null) {
