@@ -49,8 +49,6 @@
 - **JDK要求**：JDK 8 及以上（已测试 JDK 8~25）
 - **版本更新记录**：[CHANGELOG.md](./CHANGELOG.md)
 - **项目地址**：https://gitee.com/huanminabc/null-chain
-- **详细文档**：https://www.yuque.com/huanmin-4bkaa/fxm661/fou8lvfycyppbpog
-
 ---
 
 ## 贡献
