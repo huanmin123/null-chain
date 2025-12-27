@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
+import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.stream.*;
 
@@ -241,7 +242,7 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     }
 
     @Override
-    public NullStream<T> then(Consumer<? super T> action) {
+    public NullStream<T> peek(Consumer<? super T> action) {
         this.taskList.add((value) -> {
             if (action == null) {
                 throw new NullChainException(linkLog.append(STREAM_THEN_Q).append("action must not be null").toString());
@@ -277,6 +278,108 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
             return NullBuild.noEmpty(stream);
         });
         return NullBuild.busyStream(this);
+    }
+
+    @Override
+    public NullIntStream flatMapToInt(NullFun<? super T, ? extends NullIntStream> mapper) {
+        this.taskList.add((value) -> {
+            if (mapper == null) {
+                throw new NullChainException(linkLog.append(STREAM_FLATMAP_TO_INT_Q).append("mapper must not be null").toString());
+            }
+            IntStream stream;
+            try {
+                stream = ((Stream) value).flatMapToInt((data) -> {
+                    NullIntStream nullIntStream = mapper.apply((T) data);
+                    if (nullIntStream == null) {
+                        return IntStream.empty();
+                    }
+                    // 将 NullIntStream 转换为 NullIntStreamBase 以访问 taskList
+                    if (nullIntStream instanceof NullIntStreamBase) {
+                        NullIntStreamBase base = (NullIntStreamBase) nullIntStream;
+                        NullTaskList.NullNode<Object> node = base.taskList.runTaskAll();
+                        if (node.isNull) {
+                            return IntStream.empty();
+                        }
+                        return  node.value;
+                    }
+                    return IntStream.empty();
+                });
+            } catch (Exception e) {
+                linkLog.append(STREAM_FLATMAP_TO_INT_Q);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+            linkLog.append(STREAM_FLATMAP_TO_INT_ARROW);
+            return NullBuild.noEmpty(stream);
+        });
+        return NullBuild.busyIntStream(this);
+    }
+
+    @Override
+    public NullLongStream flatMapToLong(NullFun<? super T, ? extends NullLongStream> mapper) {
+        this.taskList.add((value) -> {
+            if (mapper == null) {
+                throw new NullChainException(linkLog.append(STREAM_FLATMAP_TO_LONG_Q).append("mapper must not be null").toString());
+            }
+            LongStream stream;
+            try {
+                stream = ((Stream) value).flatMapToLong((data) -> {
+                    NullLongStream nullLongStream = mapper.apply((T) data);
+                    if (nullLongStream == null) {
+                        return LongStream.empty();
+                    }
+                    // 将 NullLongStream 转换为 NullLongStreamBase 以访问 taskList
+                    if (nullLongStream instanceof NullLongStreamBase) {
+                        NullLongStreamBase base = (NullLongStreamBase) nullLongStream;
+                        NullTaskList.NullNode<Object> node = base.taskList.runTaskAll();
+                        if (node.isNull) {
+                            return LongStream.empty();
+                        }
+                        return  node.value;
+                    }
+                    return LongStream.empty();
+                });
+            } catch (Exception e) {
+                linkLog.append(STREAM_FLATMAP_TO_LONG_Q);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+            linkLog.append(STREAM_FLATMAP_TO_LONG_ARROW);
+            return NullBuild.noEmpty(stream);
+        });
+        return NullBuild.busyLongStream(this);
+    }
+
+    @Override
+    public NullDoubleStream flatMapToDouble(NullFun<? super T, ? extends NullDoubleStream> mapper) {
+        this.taskList.add((value) -> {
+            if (mapper == null) {
+                throw new NullChainException(linkLog.append(STREAM_FLATMAP_TO_DOUBLE_Q).append("mapper must not be null").toString());
+            }
+            DoubleStream stream;
+            try {
+                stream = ((Stream) value).flatMapToDouble((data) -> {
+                    NullDoubleStream nullDoubleStream = mapper.apply((T) data);
+                    if (nullDoubleStream == null) {
+                        return DoubleStream.empty();
+                    }
+                    // 将 NullDoubleStream 转换为 NullDoubleStreamBase 以访问 taskList
+                    if (nullDoubleStream instanceof NullDoubleStreamBase) {
+                        NullDoubleStreamBase base = (NullDoubleStreamBase) nullDoubleStream;
+                        NullTaskList.NullNode<Object> node = base.taskList.runTaskAll();
+                        if (node.isNull) {
+                            return DoubleStream.empty();
+                        }
+                        return  node.value;
+                    }
+                    return DoubleStream.empty();
+                });
+            } catch (Exception e) {
+                linkLog.append(STREAM_FLATMAP_TO_DOUBLE_Q);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+            linkLog.append(STREAM_FLATMAP_TO_DOUBLE_ARROW);
+            return NullBuild.noEmpty(stream);
+        });
+        return NullBuild.busyDoubleStream(this);
     }
 
     @Override
@@ -582,5 +685,44 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         }, null);
+    }
+
+    @Override
+    public Object[] toArray() {
+        NullTaskList.NullNode<Object> objectNullNode = taskList.runTaskAll();
+        if (objectNullNode.isNull) {
+            return new Object[0];
+        }
+        Stream<T> preValue = (Stream<T>) objectNullNode.value;
+        Object[] result;
+        try {
+            result = preValue.toArray();
+        } catch (Exception e) {
+            linkLog.append(STREAM_TO_ARRAY_Q);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+        }
+        linkLog.append(STREAM_TO_ARRAY_ARROW);
+        return result;
+    }
+
+    @Override
+    public <A> A[] toArray(IntFunction<A[]> generator) {
+        if (generator == null) {
+            throw new NullChainException(linkLog.append(STREAM_TO_ARRAY_Q).append("generator must not be null").toString());
+        }
+        NullTaskList.NullNode<Object> objectNullNode = taskList.runTaskAll();
+        if (objectNullNode.isNull) {
+            return generator.apply(0);
+        }
+        Stream<T> preValue = (Stream<T>) objectNullNode.value;
+        A[] result;
+        try {
+            result = preValue.toArray(generator);
+        } catch (Exception e) {
+            linkLog.append(STREAM_TO_ARRAY_Q);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+        }
+        linkLog.append(STREAM_TO_ARRAY_ARROW);
+        return result;
     }
 }

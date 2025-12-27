@@ -2,8 +2,6 @@ package com.gitee.huanminabc.nullchain.core.ext;
 
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.core.NullChain;
-import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
-import com.gitee.huanminabc.nullchain.common.function.NullFun2;
 
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -63,18 +61,10 @@ public interface NullChainExt<T> extends NullChain<T>, NullConvertExt<T> {
         return tNullChain.then(function);
     }
     @Override
-    default NullChain<T> then(Consumer<? super T> function) {
+    default NullChain<T> peek(Consumer<? super T> function) {
         NullChain<T> tNullChain = toNULL();
-        return tNullChain.then(function);
+        return tNullChain.peek(function);
     }
-
-    @Override
-    default   NullChain<T> then2(NullConsumer2<NullChain<T>, ? super T> function){
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.then2(function);
-    }
-
-
 
     @Override
     default <U> NullChain<U> map(NullFun<? super T, ? extends U> function) {
@@ -87,11 +77,7 @@ public interface NullChainExt<T> extends NullChain<T>, NullConvertExt<T> {
         return tNullChain.map(biFunction,key);
     }
 
-    @Override
-    default <U> NullChain<U> map2(NullFun2<NullChain<T>, ? super T, ? extends U> function) {
-        NullChain<T> tNullChain = toNULL();
-        return tNullChain.map2(function);
-    }
+
 
 
     @Override

@@ -13,6 +13,7 @@ import com.gitee.huanminabc.nullchain.leaf.stream.NullStream;
 import com.gitee.huanminabc.nullchain.leaf.check.NullCheck;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -281,7 +282,7 @@ public class Null extends NullUtil {
      * @param builder 构建器
      * @return 构建的Leaf对象
      */
-    private static <X, L> L createLeaf(java.util.function.Supplier<X> valueSupplier, String nullLog, String okLog, LeafBuilder<L> builder) {
+    private static <X, L> L createLeaf(Supplier<X> valueSupplier, String nullLog, String okLog, LeafBuilder<L> builder) {
         NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         nullTaskList.add((__) -> {

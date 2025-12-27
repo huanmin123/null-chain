@@ -1,4 +1,4 @@
-package com.gitee.huanminabc.test.nullchain;
+package com.gitee.huanminabc.test.nullchain.tool;
 
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.NullChainCheckException;
@@ -19,6 +19,14 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Null 工具类测试
+ * 
+ * 测试各种工具类的使用
+ * 
+ * @author huanmin
+ * @since 1.1.2
+ */
 public class NullTooltTest {
     UserEntity userEntity = new UserEntity();
     List<UserEntity> userEntityList = Arrays.asList(userEntity);
@@ -72,7 +80,7 @@ public class NullTooltTest {
     public  void StrToWriteFileToolTest()  {
 
         //入参和出参都一致
-        UserEntity userEntity = new UserEntity();
+//        UserEntity userEntity = new UserEntity();
 //        Null.of(userEntity).task(ObjFillTask.class).ifPresent(System.out::println);
 
         //入参和出参都不一致 出参需要指定类型
@@ -89,3 +97,4 @@ public class NullTooltTest {
         Null.of(bytes1).tool(DeserializeTool.class).type(UserEntity.class).ifPresent(System.out::println);
     }
 }
+

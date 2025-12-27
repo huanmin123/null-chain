@@ -2,6 +2,9 @@ package com.gitee.huanminabc.nullchain.leaf.stream;
 
 import com.gitee.huanminabc.nullchain.common.NullKernel;
 
+import java.util.function.DoubleFunction;
+import java.util.function.DoubleUnaryOperator;
+
 /**
  * Null双精度流操作接口 - 提供空值安全的双精度流聚合功能
  * 
@@ -119,4 +122,60 @@ public interface NullDoubleStream extends NullKernel<Double> {
      * }</pre>
      */
     double average();
+
+    /**
+     * 映射操作 - 将双精度流中的每个元素映射为另一个双精度数
+     * 
+     * <p>该方法用于对双精度流中的每个元素进行映射转换。
+     * 如果映射函数返回null，该元素会被过滤掉。</p>
+     * 
+     * @param mapper 映射函数
+     * @return 映射后的双精度流
+     * 
+     * @example
+     * <pre>{@code
+     * NullDoubleStream stream = Null.of(Arrays.asList(1.1, 2.2, 3.3))
+     *     .stream()
+     *     .mapToDouble(Double::doubleValue)
+     *     .map(x -> x * 2);  // 将每个元素乘以2
+     * }</pre>
+     */
+    NullDoubleStream map(DoubleUnaryOperator mapper);
+
+    /**
+     * 扁平化映射操作 - 将双精度流中的每个元素映射为一个双精度流，然后扁平化
+     * 
+     * <p>该方法用于对双精度流中的每个元素进行扁平化映射转换。
+     * 如果映射函数返回null或空流，该元素会被过滤掉。</p>
+     * 
+     * @param mapper 映射函数，将每个双精度数映射为一个双精度流
+     * @return 扁平化后的双精度流
+     * 
+     * @example
+     * <pre>{@code
+     * NullDoubleStream stream = Null.of(Arrays.asList(1.1, 2.2, 3.3))
+     *     .stream()
+     *     .mapToDouble(Double::doubleValue)
+     *     .flatMap(x -> Null.of(Arrays.asList(x, x * 2)).stream().mapToDouble(Double::doubleValue));
+     * }</pre>
+     */
+    NullDoubleStream flatMap(DoubleFunction<? extends NullDoubleStream> mapper);
+
+    /**
+     * 装箱操作 - 将双精度流转换为包装类型流
+     * 
+     * <p>该方法用于将双精度流中的每个double值装箱为Double对象。
+     * 如果流为空，会返回一个空的流。</p>
+     * 
+     * @return 包含Double对象的流
+     * 
+     * @example
+     * <pre>{@code
+     * NullStream<Double> stream = Null.of(Arrays.asList(1.1, 2.2, 3.3))
+     *     .stream()
+     *     .mapToDouble(Double::doubleValue)
+     *     .boxed();  // 将double流转换为Double流
+     * }</pre>
+     */
+    NullStream<Double> boxed();
 }

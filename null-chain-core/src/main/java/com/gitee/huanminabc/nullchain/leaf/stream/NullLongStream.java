@@ -1,5 +1,8 @@
 package com.gitee.huanminabc.nullchain.leaf.stream;
 
+import java.util.function.LongFunction;
+import java.util.function.LongUnaryOperator;
+
 /**
  * Null长整数流操作接口 - 提供空值安全的长整数流聚合功能
  * 
@@ -116,4 +119,60 @@ public interface NullLongStream {
      * }</pre>
      */
     double average();
+
+    /**
+     * 映射操作 - 将长整数流中的每个元素映射为另一个长整数
+     * 
+     * <p>该方法用于对长整数流中的每个元素进行映射转换。
+     * 如果映射函数返回null，该元素会被过滤掉。</p>
+     * 
+     * @param mapper 映射函数
+     * @return 映射后的长整数流
+     * 
+     * @example
+     * <pre>{@code
+     * NullLongStream stream = Null.of(Arrays.asList(1L, 2L, 3L))
+     *     .stream()
+     *     .mapToLong(Long::longValue)
+     *     .map(x -> x * 2);  // 将每个元素乘以2
+     * }</pre>
+     */
+    NullLongStream map(LongUnaryOperator mapper);
+
+    /**
+     * 扁平化映射操作 - 将长整数流中的每个元素映射为一个长整数流，然后扁平化
+     * 
+     * <p>该方法用于对长整数流中的每个元素进行扁平化映射转换。
+     * 如果映射函数返回null或空流，该元素会被过滤掉。</p>
+     * 
+     * @param mapper 映射函数，将每个长整数映射为一个长整数流
+     * @return 扁平化后的长整数流
+     * 
+     * @example
+     * <pre>{@code
+     * NullLongStream stream = Null.of(Arrays.asList(1L, 2L, 3L))
+     *     .stream()
+     *     .mapToLong(Long::longValue)
+     *     .flatMap(x -> Null.of(Arrays.asList(x, x * 2)).stream().mapToLong(Long::longValue));
+     * }</pre>
+     */
+    NullLongStream flatMap(LongFunction<? extends NullLongStream> mapper);
+
+    /**
+     * 装箱操作 - 将长整数流转换为包装类型流
+     * 
+     * <p>该方法用于将长整数流中的每个long值装箱为Long对象。
+     * 如果流为空，会返回一个空的流。</p>
+     * 
+     * @return 包含Long对象的流
+     * 
+     * @example
+     * <pre>{@code
+     * NullStream<Long> stream = Null.of(Arrays.asList(1L, 2L, 3L))
+     *     .stream()
+     *     .mapToLong(Long::longValue)
+     *     .boxed();  // 将long流转换为Long流
+     * }</pre>
+     */
+    NullStream<Long> boxed();
 }

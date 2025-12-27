@@ -2,6 +2,9 @@ package com.gitee.huanminabc.nullchain.leaf.stream;
 
 import com.gitee.huanminabc.nullchain.common.NullKernel;
 
+import java.util.function.IntFunction;
+import java.util.function.IntUnaryOperator;
+
 /**
  * Null整数流操作接口 - 提供空值安全的整数流聚合功能
  * 
@@ -119,4 +122,60 @@ public interface NullIntStream  extends NullKernel<Integer> {
      * }</pre>
      */
     double average();
+
+    /**
+     * 映射操作 - 将整数流中的每个元素映射为另一个整数
+     * 
+     * <p>该方法用于对整数流中的每个元素进行映射转换。
+     * 如果映射函数返回null，该元素会被过滤掉。</p>
+     * 
+     * @param mapper 映射函数
+     * @return 映射后的整数流
+     * 
+     * @example
+     * <pre>{@code
+     * NullIntStream stream = Null.of(Arrays.asList(1, 2, 3))
+     *     .stream()
+     *     .mapToInt(Integer::intValue)
+     *     .map(x -> x * 2);  // 将每个元素乘以2
+     * }</pre>
+     */
+    NullIntStream map(IntUnaryOperator mapper);
+
+    /**
+     * 扁平化映射操作 - 将整数流中的每个元素映射为一个整数流，然后扁平化
+     * 
+     * <p>该方法用于对整数流中的每个元素进行扁平化映射转换。
+     * 如果映射函数返回null或空流，该元素会被过滤掉。</p>
+     * 
+     * @param mapper 映射函数，将每个整数映射为一个整数流
+     * @return 扁平化后的整数流
+     * 
+     * @example
+     * <pre>{@code
+     * NullIntStream stream = Null.of(Arrays.asList(1, 2, 3))
+     *     .stream()
+     *     .mapToInt(Integer::intValue)
+     *     .flatMap(x -> Null.of(Arrays.asList(x, x * 2)).stream().mapToInt(Integer::intValue));
+     * }</pre>
+     */
+    NullIntStream flatMap(IntFunction<? extends NullIntStream> mapper);
+
+    /**
+     * 装箱操作 - 将整数流转换为包装类型流
+     * 
+     * <p>该方法用于将整数流中的每个int值装箱为Integer对象。
+     * 如果流为空，会返回一个空的流。</p>
+     * 
+     * @return 包含Integer对象的流
+     * 
+     * @example
+     * <pre>{@code
+     * NullStream<Integer> stream = Null.of(Arrays.asList(1, 2, 3))
+     *     .stream()
+     *     .mapToInt(Integer::intValue)
+     *     .boxed();  // 将int流转换为Integer流
+     * }</pre>
+     */
+    NullStream<Integer> boxed();
 }

@@ -148,7 +148,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
     }
 
     @Override
-    public NullChain<T> then(Consumer<? super T> function) {
+    public NullChain<T> peek(Consumer<? super T> function) {
         this.taskList.add((value)->{
             if (function == null) {
                 throw new NullChainException(linkLog.append(CHAIN_THEN_PARAM_NULL).toString());
@@ -159,26 +159,6 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
                 return NullBuild.noEmpty(value);
             } catch (Exception e) {
                 linkLog.append(CHAIN_THEN_Q);
-                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-            }
-        });
-        return  NullBuild.busy(this);
-
-    }
-
-    @Override
-    public NullChain<T> then2(NullConsumer2<NullChain<T>, ? super T> function) {
-        this.taskList.add((value)->{
-            T valueT = (T) value;
-            if (function == null) {
-                throw new NullChainException(linkLog.append(CHAIN_THEN2_PARAM_NULL).toString());
-            }
-            try {
-                function.accept(Null.of(valueT), valueT);
-                linkLog.append(CHAIN_THEN2_ARROW);
-                return NullBuild.noEmpty(value);
-            } catch (Exception e) {
-                linkLog.append(CHAIN_THEN2_Q);
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         });
@@ -229,29 +209,7 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
 
     }
 
-    @Override
-    public <U> NullChain<U> map2(NullFun2<NullChain<T>, ? super T, ? extends U> function) {
-        this.taskList.add((value)->{
-            T value1 = (T) value;
-            if (function == null) {
-                throw new NullChainException(linkLog.append(CHAIN_MAP2_PARAM_NULL).toString());
-            }
-            try {
-                U apply = function.apply(Null.of(value1), value1);
-                if (Null.is(apply)) {
-                    linkLog.append(CHAIN_MAP2_Q);
-                    return NullBuild.empty();
-                }
-                linkLog.append(CHAIN_MAP2_ARROW);
-                return NullBuild.noEmpty(apply);
-            } catch (Exception e) {
-                linkLog.append(CHAIN_MAP2_Q);
-                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-            }
-        });
-        return  NullBuild.busy(this);
 
-    }
 
 
     @Override

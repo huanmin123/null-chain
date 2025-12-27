@@ -25,7 +25,7 @@ public class NullKernelAbstract<T> implements NullKernel<T>, Serializable, NullC
     protected transient StringBuilder linkLog;
 
     //任务队列
-    protected  NullTaskList taskList;
+    public   NullTaskList taskList;
 
     //如果序列化的时候发现value是null,那么就不序列化,避免不必要的无用空值传递
     private void writeObject(ObjectOutputStream out) throws IOException {

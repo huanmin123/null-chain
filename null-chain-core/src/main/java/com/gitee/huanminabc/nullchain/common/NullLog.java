@@ -130,6 +130,28 @@ public final class NullLog {
 
     public static final String STREAM_TO_SET_Q = "toSet? ";
     public static final String STREAM_TO_SET_ARROW = "toSet->";
+    public static final String STREAM_TO_ARRAY_Q = "toArray? ";
+    public static final String STREAM_TO_ARRAY_ARROW = "toArray->";
+    public static final String STREAM_FLATMAP_TO_INT_Q = "flatMapToInt? ";
+    public static final String STREAM_FLATMAP_TO_INT_ARROW = "flatMapToInt->";
+    public static final String STREAM_FLATMAP_TO_LONG_Q = "flatMapToLong? ";
+    public static final String STREAM_FLATMAP_TO_LONG_ARROW = "flatMapToLong->";
+    public static final String STREAM_FLATMAP_TO_DOUBLE_Q = "flatMapToDouble? ";
+    public static final String STREAM_FLATMAP_TO_DOUBLE_ARROW = "flatMapToDouble->";
+    public static final String STREAM_INT_MAP_Q = "intMap? ";
+    public static final String STREAM_INT_MAP_ARROW = "intMap->";
+    public static final String STREAM_INT_FLATMAP_Q = "intFlatMap? ";
+    public static final String STREAM_INT_FLATMAP_ARROW = "intFlatMap->";
+    public static final String STREAM_LONG_MAP_Q = "longMap? ";
+    public static final String STREAM_LONG_MAP_ARROW = "longMap->";
+    public static final String STREAM_LONG_FLATMAP_Q = "longFlatMap? ";
+    public static final String STREAM_LONG_FLATMAP_ARROW = "longFlatMap->";
+    public static final String STREAM_DOUBLE_MAP_Q = "doubleMap? ";
+    public static final String STREAM_DOUBLE_MAP_ARROW = "doubleMap->";
+    public static final String STREAM_DOUBLE_FLATMAP_Q = "doubleFlatMap? ";
+    public static final String STREAM_DOUBLE_FLATMAP_ARROW = "doubleFlatMap->";
+    public static final String STREAM_BOXED_Q = "boxed? ";
+    public static final String STREAM_BOXED_ARROW = "boxed->";
 
     public static final String STREAM_PARALLEL_VALUE_NOT_STREAM = "parallel? value must be a Stream";
     public static final String STREAM_COLLECT_COLLECTOR_NULL = "collect? collector must not be null";

@@ -13,6 +13,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 简要描述
@@ -59,7 +60,7 @@ public class SerializeTool implements NullTool<Serializable, byte[]> {
         Class<?>[] declaredClasses = outerClass.getDeclaredClasses();
         //将数据结构转换为Map<String, Class<?>>
         Map<String, Class<?>> map = Arrays.stream(declaredClasses)
-                .collect(java.util.stream.Collectors.toMap(Class::getName, clazz -> clazz));
+                .collect(Collectors.toMap(Class::getName, clazz -> clazz));
 
         Field[] declaredFields = outerClass.getDeclaredFields();
         for (Field declaredField : declaredFields) {

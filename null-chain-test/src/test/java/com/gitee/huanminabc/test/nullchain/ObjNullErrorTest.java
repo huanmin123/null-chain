@@ -33,12 +33,12 @@ public class ObjNullErrorTest {
     }
     @Test
     public void of_error1()  {
-       Null.of(userEntity).map(UserEntity::getRoleData).then((data) -> {
+       Null.of(userEntity).map(UserEntity::getRoleData).peek((data) -> {
             data.setRoleName("default");
             throw new RuntimeException("测试主动异常");
 //            return data;
         }).ifPresent(System.out::println);
-        Null.of(userEntity).map(UserEntity::getRoleData).then((data) -> {
+        Null.of(userEntity).map(UserEntity::getRoleData).peek((data) -> {
             data.setRoleName("default");
             throw new RuntimeException("测试主动异常");
 //            return data;

@@ -1,16 +1,15 @@
 package com.gitee.huanminabc.nullchain.leaf.stream;
 
 import com.gitee.huanminabc.nullchain.common.NullKernel;
-import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
+import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
@@ -139,12 +138,35 @@ public interface NullStream<T > extends NullKernel<T> {
      */
     NullStream<T> skip(long n);
 
-    NullStream<T> then(Consumer<? super T> action);
+    NullStream<T> peek(Consumer<? super T> action);
 
 
     //流展开 (扁平化)
   <R> NullStream<R> flatMap(NullFun<? super T, ? extends NullStream<? extends R>> mapper);
 
+    /**
+     * 扁平化映射为整数流
+     * 
+     * @param mapper 映射函数，将每个元素映射为一个整数流
+     * @return 扁平化后的整数流
+     */
+    NullIntStream flatMapToInt(NullFun<? super T, ? extends NullIntStream> mapper);
+
+    /**
+     * 扁平化映射为长整型流
+     * 
+     * @param mapper 映射函数，将每个元素映射为一个长整型流
+     * @return 扁平化后的长整型流
+     */
+    NullLongStream flatMapToLong(NullFun<? super T, ? extends NullLongStream> mapper);
+
+    /**
+     * 扁平化映射为双精度流
+     * 
+     * @param mapper 映射函数，将每个元素映射为一个双精度流
+     * @return 扁平化后的双精度流
+     */
+    NullDoubleStream flatMapToDouble(NullFun<? super T, ? extends NullDoubleStream> mapper);
 
     NullChain<T> findFirst();
 
@@ -209,5 +231,41 @@ public interface NullStream<T > extends NullKernel<T> {
      * }</pre>
      */
     Set<T> toSet();
+
+    /**
+     * 将流收集为数组
+     * 
+     * <p>该方法将流中的所有元素收集到一个Object数组中。
+     * 如果流为空或包含null值，会返回一个空数组。</p>
+     * 
+     * @return 包含流中所有元素的Object数组
+     * 
+     * @example
+     * <pre>{@code
+     * Object[] array = Null.of(Arrays.asList("a", "b", "c"))
+     *     .stream()
+     *     .toArray();  // 返回包含["a", "b", "c"]的Object数组
+     * }</pre>
+     */
+    Object[] toArray();
+
+    /**
+     * 将流收集为指定类型的数组
+     * 
+     * <p>该方法将流中的所有元素收集到一个指定类型的数组中。
+     * 如果流为空或包含null值，会返回一个空数组。</p>
+     * 
+     * @param <A> 数组元素类型
+     * @param generator 数组生成器函数
+     * @return 包含流中所有元素的指定类型数组
+     * 
+     * @example
+     * <pre>{@code
+     * String[] array = Null.of(Arrays.asList("a", "b", "c"))
+     *     .stream()
+     *     .toArray(String[]::new);  // 返回包含["a", "b", "c"]的String数组
+     * }</pre>
+     */
+    <A> A[] toArray(IntFunction<A[]> generator);
 
 }

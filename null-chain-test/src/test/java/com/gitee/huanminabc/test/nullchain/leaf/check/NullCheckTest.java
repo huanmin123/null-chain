@@ -1,4 +1,4 @@
-package com.gitee.huanminabc.test.nullchain;
+package com.gitee.huanminabc.test.nullchain.leaf.check;
 
 import com.gitee.huanminabc.jcommon.exception.BizException;
 import com.gitee.huanminabc.nullchain.Null;

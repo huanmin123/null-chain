@@ -1,8 +1,6 @@
 package com.gitee.huanminabc.nullchain.core;
 
-import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
-import com.gitee.huanminabc.nullchain.common.function.NullFun2;
 
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -162,29 +160,8 @@ public interface NullChain<T> extends NullConvert<T> {
      *     .orElse("未知用户");
      * }</pre>
      */
-    NullChain<T> then(Consumer<? super T> function);
+    NullChain<T> peek(Consumer<? super T> function);
 
-    /**
-     * 执行操作但不改变值 - 带链和参数的操作
-     * 
-     * <p>该方法用于执行某些操作但不改变当前值，操作可以访问当前链和值。
-     * 适用于需要在链中执行复杂副作用操作的场景。</p>
-     * 
-     * @param function 要执行的操作，可以访问当前链和值
-     * @return 新的Null链，值保持不变
-     * 
-     * @example
-     * <pre>{@code
-     * Null.of(user)
-     *     .then2((chain, u) -> {
-     *         log.info("处理用户: {}", u.getName());
-     *         // 可以访问链的上下文信息
-     *     })
-     *     .map(User::getName)
-     *     .orElse("未知用户");
-     * }</pre>
-     */
-    NullChain<T> then2(NullConsumer2<NullChain<T>, ? super T> function);
 
     /**
      * 值映射操作 - 将当前值转换为新值
@@ -227,27 +204,6 @@ public interface NullChain<T> extends NullConvert<T> {
      */
      <R,V> NullChain<R> map(BiFunction<T, V, R> biFunction, V  key);
 
-    /**
-     * 值映射操作 - 带链上下文的映射
-     * 
-     * <p>该方法用于将当前值通过映射函数转换为新的值，映射函数可以访问当前链的上下文。
-     * 如果当前值为空，则返回空链，不会执行映射操作。</p>
-     * 
-     * @param <U> 映射后的值的类型
-     * @param function 映射函数，可以访问当前链和值
-     * @return 包含映射结果的Null链
-     * 
-     * @example
-     * <pre>{@code
-     * String result = Null.of(user)
-     *     .map2((chain, u) -> {
-     *         // 可以访问链的上下文信息
-     *         return u.getName() + "_processed";
-     *     })
-     *     .orElse("未知用户");
-     * }</pre>
-     */
-    <U> NullChain<U> map2(NullFun2<NullChain<T>, ? super T, ? extends U> function);
 
     /**
      * 扁平化链操作 - 解包嵌套的NullChain
