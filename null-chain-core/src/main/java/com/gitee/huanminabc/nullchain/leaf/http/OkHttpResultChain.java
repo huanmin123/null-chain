@@ -103,7 +103,7 @@ public interface OkHttpResultChain {
      *     .orElse("请求失败");
      * }</pre>
      */
-    NullChain<String> toJson();
+    NullChain<String> toSTR();
 
     /**
      * 获取返回的字符串并转换为指定类型的对象
@@ -123,7 +123,7 @@ public interface OkHttpResultChain {
      *     .orElseNull();
      * }</pre>
      */
-    <R> NullChain<R> toJson(Class<R> clazz);
+    <R> NullChain<R> toFromJson(Class<R> clazz);
 
 
     /**

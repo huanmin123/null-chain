@@ -106,7 +106,7 @@ public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConve
     }
 
     @Override
-    public <U> NullChain<U> json(Class<U> uClass) {
+    public <U> NullChain<U> fromJson(Class<U> uClass) {
         this.taskList.add((value)->{
             if (uClass == null) {
                 throw new NullChainException(linkLog.append(JSON_Q).append(uClass).append(" 不是字符串").toString());
@@ -130,8 +130,8 @@ public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConve
 
     @Override
     @SuppressWarnings("unchecked")
-    public <U> NullChain<U> json(U uClass) {
-        return json((Class<U>) uClass.getClass());
+    public <U> NullChain<U> fromJson(U uClass) {
+        return fromJson((Class<U>) uClass.getClass());
     }
 
     @Override

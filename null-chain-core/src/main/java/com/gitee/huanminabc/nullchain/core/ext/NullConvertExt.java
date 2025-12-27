@@ -2,9 +2,7 @@ package com.gitee.huanminabc.nullchain.core.ext;
 
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.core.NullChain;
-import com.gitee.huanminabc.nullchain.core.NullChainBase;
 import com.gitee.huanminabc.nullchain.core.NullConvert;
-import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
 import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
 import com.gitee.huanminabc.nullchain.enums.TimeEnum;
@@ -97,15 +95,15 @@ public interface NullConvertExt<T> extends NullConvert<T>, NullWorkFlowExt<T> {
     }
 
     @Override
-    default <U> NullChain<U> json(U uClass) {
+    default <U> NullChain<U> fromJson(U uClass) {
         NullChain<T> tNullChain = toNULL();
-        return tNullChain.json(uClass);
+        return tNullChain.fromJson(uClass);
     }
 
     @Override
-    default <U> NullChain<U> json(Class<U> uClass) {
+    default <U> NullChain<U> fromJson(Class<U> uClass) {
         NullChain<T> tNullChain = toNULL();
-        return tNullChain.json(uClass);
+        return tNullChain.fromJson(uClass);
     }
 
     @Override

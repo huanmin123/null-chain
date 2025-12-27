@@ -35,7 +35,7 @@ public class NullJsonTest {
         NullChain<UserEntity> userEntityChain = Null.of(userEntity);
         HashMap<String, Object> result = Null.of(userEntityChain)
                 .json()
-                .json(new HashMap<String, Object>())
+                .fromJson(new HashMap<String, Object>())
                 .get();
         
         assertNotNull(result);
@@ -48,7 +48,7 @@ public class NullJsonTest {
     public void testJsonWithNull() {
         HashMap<String, Object> result = Null.of((UserEntity) null)
                 .json()
-                .json(new HashMap<String, Object>())
+                .fromJson(new HashMap<String, Object>())
                 .orElse(new HashMap<>());
         
         assertNotNull(result);

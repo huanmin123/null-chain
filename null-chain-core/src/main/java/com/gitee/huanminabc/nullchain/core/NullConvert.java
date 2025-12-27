@@ -119,11 +119,11 @@ public interface NullConvert<T> extends NullWorkFlow<T> {
      * @example
      * <pre>{@code
      * User user = Null.of(jsonString)
-     *     .json(User.class)  // 将JSON字符串转换为User对象
+     *     .fromJson(User.class)  // 将JSON字符串转换为User对象
      *     .orElse(new User());
      * }</pre>
      */
-    <U> NullChain<U> json(Class<U> uClass);
+    <U> NullChain<U> fromJson(Class<U> uClass);
 
     /**
      * JSON转对象操作 - 将JSON字符串转换为指定类型的对象（通过实例推断类型）
@@ -138,11 +138,11 @@ public interface NullConvert<T> extends NullWorkFlow<T> {
      * @example
      * <pre>{@code
      * User user = Null.of(jsonString)
-     *     .json(new User())  // 通过User实例推断类型
+     *     .fromJson(new User())  // 通过User实例推断类型
      *     .orElse(new User());
      * }</pre>
      */
-    <U> NullChain<U> json(U uClass);
+    <U> NullChain<U> fromJson(U uClass);
 
     /**
      * 日期格式化操作 - 将日期转换为指定格式的字符串

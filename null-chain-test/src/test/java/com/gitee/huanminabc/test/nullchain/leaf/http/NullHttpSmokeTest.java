@@ -1,7 +1,6 @@
 package com.gitee.huanminabc.test.nullchain.leaf.http;
 
 import com.gitee.huanminabc.nullchain.Null;
-import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
 import lombok.Data;
 import org.junit.jupiter.api.Assertions;
@@ -95,7 +94,7 @@ public class NullHttpSmokeTest {
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .readTimeout(10, TimeUnit.SECONDS)
                 .get()
-                .toJson()
+                .toSTR()
                 .orElseNull();
 
         assertNotNull(response, "GET 请求响应不应该为空");
@@ -115,7 +114,7 @@ public class NullHttpSmokeTest {
 
         String response = Null.ofHttp(HTTPBIN_BASE_URL + "/get", params)
                 .get()
-                .toJson()
+                .toSTR()
                 .orElseNull();
 
         assertNotNull(response, "GET 请求响应不应该为空");
@@ -138,7 +137,7 @@ public class NullHttpSmokeTest {
 
         String response = Null.ofHttp(HTTPBIN_BASE_URL + "/post", body)
                 .post(OkHttpPostEnum.JSON)
-                .toJson()
+                .toSTR()
                 .orElseNull();
 
         assertNotNull(response, "POST 请求响应不应该为空");
@@ -160,7 +159,7 @@ public class NullHttpSmokeTest {
 
         String response = Null.ofHttp(HTTPBIN_BASE_URL + "/post", formData)
                 .post(OkHttpPostEnum.FORM)
-                .toJson()
+                .toSTR()
                 .orElseNull();
 
         assertNotNull(response, "POST 请求响应不应该为空");
@@ -182,7 +181,7 @@ public class NullHttpSmokeTest {
 
         String response = Null.ofHttp(HTTPBIN_BASE_URL + "/put", body)
                 .put(OkHttpPostEnum.JSON)
-                .toJson()
+                .toSTR()
                 .orElseNull();
 
         assertNotNull(response, "PUT 请求响应不应该为空");
@@ -202,7 +201,7 @@ public class NullHttpSmokeTest {
 
         String response = Null.ofHttp(HTTPBIN_BASE_URL + "/delete", params)
                 .del()
-                .toJson()
+                .toSTR()
                 .orElseNull();
 
         assertNotNull(response, "DELETE 请求响应不应该为空");
@@ -221,7 +220,7 @@ public class NullHttpSmokeTest {
                 .addHeader("X-Request-ID", "12345")
                 .addHeader("User-Agent", "NullChain-Test/1.0")
                 .get()
-                .toJson()
+                .toSTR()
                 .orElseNull();
 
         assertNotNull(response, "请求响应不应该为空");
@@ -242,7 +241,7 @@ public class NullHttpSmokeTest {
         String response = Null.ofHttp(HTTPBIN_BASE_URL + "/cookies/set")
                 .addHeader("Cookie", "session=abc123; user=test")
                 .get()
-                .toJson()
+                .toSTR()
                 .orElseNull();
 
         assertNotNull(response, "请求响应不应该为空");
@@ -256,7 +255,7 @@ public class NullHttpSmokeTest {
         String response = Null.ofHttp(HTTPBIN_BASE_URL + "/cookies")
                 .addHeader("Cookie", "session=abc123; user=testuser")
                 .get()
-                .toJson()
+                .toSTR()
                 .orElseNull();
 
         assertNotNull(response, "请求响应不应该为空");
@@ -284,7 +283,7 @@ public class NullHttpSmokeTest {
 
         String response = Null.ofHttp(HTTPBIN_BASE_URL + "/post", formData)
                 .post(OkHttpPostEnum.FILE)
-                .toJson()
+                .toSTR()
                 .orElseNull();
 
         assertNotNull(response, "文件上传响应不应该为空");
@@ -308,7 +307,7 @@ public class NullHttpSmokeTest {
                 .readTimeout(5, TimeUnit.SECONDS)
                 .writeTimeout(5, TimeUnit.SECONDS)
                 .get()
-                .toJson()
+                .toSTR()
                 .orElseNull();
 
         assertNotNull(response, "请求响应不应该为空");
@@ -384,7 +383,7 @@ public class NullHttpSmokeTest {
         assertDoesNotThrow(() -> {
             String response200 = Null.ofHttp(HTTPBIN_BASE_URL + "/status/200")
                     .get()
-                    .toJson()
+                    .toSTR()
                     .orElseNull();
             // 200 状态码可能返回空响应体，这是正常的
         });
@@ -393,7 +392,7 @@ public class NullHttpSmokeTest {
         assertDoesNotThrow(() -> {
             Null.ofHttp(HTTPBIN_BASE_URL + "/status/404")
                     .get()
-                    .toJson()
+                    .toSTR()
                     .orElseNull();
             // 404 可能返回空或错误信息，这里只验证不抛异常
         });
@@ -417,7 +416,7 @@ public class NullHttpSmokeTest {
                 .addHeader("X-Request-Source", "NullChain-Test")
                 .addHeader("Content-Type", "application/json")
                 .post(OkHttpPostEnum.JSON)
-                .toJson()
+                .toSTR()
                 .orElseNull();
 
         assertNotNull(response, "完整请求流程的响应不应该为空");
@@ -464,7 +463,7 @@ public class NullHttpSmokeTest {
         // httpbin的/redirect/1会重定向到/get
         String response = Null.ofHttp(HTTPBIN_BASE_URL + "/redirect/1")
                 .get()
-                .toJson()
+                .toSTR()
                 .orElseNull();
 
         assertNotNull(response, "重定向请求响应不应该为空");
@@ -482,7 +481,7 @@ public class NullHttpSmokeTest {
         assertDoesNotThrow(() -> {
             Null.ofHttp(HTTPBIN_BASE_URL + "/status/500")
                     .get()
-                    .toJson()
+                    .toSTR()
                     .orElseNull();
         });
 
@@ -490,7 +489,7 @@ public class NullHttpSmokeTest {
         assertDoesNotThrow(() -> {
             Null.ofHttp(HTTPBIN_BASE_URL + "/status/503")
                     .get()
-                    .toJson()
+                    .toSTR()
                     .orElseNull();
         });
 
@@ -498,7 +497,7 @@ public class NullHttpSmokeTest {
         assertDoesNotThrow(() -> {
             Null.ofHttp(HTTPBIN_BASE_URL + "/status/201")
                     .get()
-                    .toJson()
+                    .toSTR()
                     .orElseNull();
         });
     }
@@ -513,7 +512,7 @@ public class NullHttpSmokeTest {
         // httpbin的/status/204返回空响应体
         String response = Null.ofHttp(HTTPBIN_BASE_URL + "/status/204")
                 .get()
-                .toJson()
+                .toSTR()
                 .orElseNull();
 
         // 204 No Content 可能返回null或空字符串，都是正常的
@@ -543,7 +542,7 @@ public class NullHttpSmokeTest {
 
         String response = Null.ofHttp(HTTPBIN_BASE_URL + "/post", formData)
                 .post(OkHttpPostEnum.FILE)
-                .toJson()
+                .toSTR()
                 .orElseNull();
 
         assertNotNull(response, "大文件上传响应不应该为空");
@@ -580,7 +579,7 @@ public class NullHttpSmokeTest {
 
             String response = Null.ofHttp(HTTPBIN_BASE_URL + "/post", formData)
                     .post(OkHttpPostEnum.FILE)
-                    .toJson()
+                    .toSTR()
                     .orElseNull();
 
             assertNotNull(response, "多文件上传响应不应该为空");
@@ -605,7 +604,7 @@ public class NullHttpSmokeTest {
         // 使用Void.TYPE作为value，表示没有请求体
         String response = Null.ofHttp("test-custom-client", HTTPBIN_BASE_URL + "/get", Void.TYPE)
                 .get()
-                .toJson()
+                .toSTR()
                 .orElseNull();
 
         assertNotNull(response, "自定义HttpClient请求响应不应该为空");
@@ -637,7 +636,7 @@ public class NullHttpSmokeTest {
 
         String response = Null.ofHttp(HTTPBIN_BASE_URL + "/post", complexBody)
                 .post(OkHttpPostEnum.JSON)
-                .toJson()
+                .toSTR()
                 .orElseNull();
 
         assertNotNull(response, "复杂JSON请求响应不应该为空");
@@ -660,7 +659,7 @@ public class NullHttpSmokeTest {
 
         String response = Null.ofHttp(HTTPBIN_BASE_URL + "/get", params)
                 .get()
-                .toJson()
+                .toSTR()
                 .orElseNull();
 
         assertNotNull(response, "URL参数编码请求响应不应该为空");
@@ -684,7 +683,7 @@ public class NullHttpSmokeTest {
                         .connectTimeout(1, TimeUnit.SECONDS)
                         .readTimeout(1, TimeUnit.SECONDS)
                         .get()
-                        .toJson()
+                        .toSTR()
                         .orElseNull();
             } catch (Exception e) {
                 // 超时异常是预期的，这里只验证不会导致测试框架崩溃
@@ -704,7 +703,7 @@ public class NullHttpSmokeTest {
                 .retryCount(5)           // 设置重试5次
                 .retryInterval(200)      // 设置重试间隔200毫秒
                 .get()
-                .toJson()
+                .toSTR()
                 .orElseNull();
 
         assertNotNull(response, "配置重试后的请求响应不应该为空");
@@ -719,7 +718,7 @@ public class NullHttpSmokeTest {
         String response = Null.ofHttp(HTTPBIN_BASE_URL + "/get")
                 .retryCount(0)           // 设置不重试
                 .get()
-                .toJson()
+                .toSTR()
                 .orElseNull();
 
         assertNotNull(response, "不重试配置的请求响应不应该为空");
@@ -741,7 +740,7 @@ public class NullHttpSmokeTest {
                 .retryInterval(100)      // 设置重试间隔100毫秒
                 .addHeader("X-Test", "Retry")
                 .get()
-                .toJson()
+                .toSTR()
                 .orElseNull();
 
         assertNotNull(response, "组合配置的请求响应不应该为空");
@@ -761,7 +760,7 @@ public class NullHttpSmokeTest {
 
         HttpBinPostResponse response = Null.ofHttp(HTTPBIN_BASE_URL + "/get")
                 .get()
-                .toJson(HttpBinPostResponse.class)
+                .toFromJson(HttpBinPostResponse.class)
                 .orElseNull();
 
         assertNotNull(response, "转换后的对象不应该为空");
@@ -791,7 +790,7 @@ public class NullHttpSmokeTest {
 
         HttpBinPostResponse response = Null.ofHttp(HTTPBIN_BASE_URL + "/post", user)
                 .post(OkHttpPostEnum.JSON)
-                .toJson(HttpBinPostResponse.class)
+                .toFromJson(HttpBinPostResponse.class)
                 .orElseNull();
 
         assertNotNull(response, "转换后的对象不应该为空");

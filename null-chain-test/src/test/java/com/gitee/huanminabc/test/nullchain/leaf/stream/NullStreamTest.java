@@ -55,6 +55,7 @@ public class NullStreamTest {
 
     @Test
     public void testToArrayWithIntegerArray() {
+
         List<Integer> data = Arrays.asList(1, 2, 3, 4, 5);
         Integer[] array = Null.ofStream(data).toArray(Integer[]::new);
         

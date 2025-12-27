@@ -335,7 +335,7 @@ public class OkHttpBase<T> extends NullKernelAbstract implements  OkHttp<T> {
      *
      * @return 包含字符串的Null链
      */
-    public NullChain<String> toJson() {
+    public NullChain<String> toSTR() {
         this.taskList.add((__)->{
             try {
                 OkHttpBuild.setHeader(headerMap, request);
@@ -361,7 +361,7 @@ public class OkHttpBase<T> extends NullKernelAbstract implements  OkHttp<T> {
      * @param clazz 目标类型的Class对象
      * @return 包含目标类型对象的Null链
      */
-    public <R> NullChain<R> toJson(Class<R> clazz) {
+    public <R> NullChain<R> toFromJson(Class<R> clazz) {
         this.taskList.add((__)->{
             try {
                 OkHttpBuild.setHeader(headerMap, request);
