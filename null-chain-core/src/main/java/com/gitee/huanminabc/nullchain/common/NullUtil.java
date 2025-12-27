@@ -6,10 +6,9 @@ import com.gitee.huanminabc.jcommon.str.StringUtil;
 import com.gitee.huanminabc.nullchain.NullCheck;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 
+import java.lang.reflect.Array;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
@@ -76,8 +75,10 @@ public class NullUtil {
         if (o instanceof Map) {
             return ((Map<?, ?>) o).isEmpty();
         }
-        if (o instanceof Object[]) {
-            return ((Object[]) o).length == 0;
+        // 数组类型判断：包括基本类型数组（byte[]、int[]等）、包装类型数组（Byte[]、Integer[]等）和对象数组（Object[]、String[]等）
+        // 使用反射方式统一处理所有类型的数组，避免遗漏基本类型数组和包装类型数组
+        if (o.getClass().isArray()) {
+            return Array.getLength(o) == 0;
         }
         if (o instanceof NullCheck) {
             return ((NullCheck) o).isEmpty();

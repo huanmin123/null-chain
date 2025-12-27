@@ -25,7 +25,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -335,23 +338,33 @@ public class NullTooltTest {
     // ========== 错误处理测试 ==========
 
     @Test
-    public void testReadFileToStrWithNonExistentFile() {
+    public void testReadFileToStrWithNonExistentFile() throws IOException {
         String nonExistentFile = PathUtil.getCurrentProjectTestResourcesAbsolutePath("non_existent.txt");
+        //创建
+        if (!Files.exists(Paths.get(nonExistentFile))) {
+            Files.createFile(Paths.get(nonExistentFile));
+        }
         assertThrows(NullChainCheckException.class, () -> {
             Null.of(nonExistentFile)
                     .tool(ReadFileToStrTool.class)
                     .getSafe();
         });
+        Files.delete(Paths.get(nonExistentFile));
     }
 
     @Test
-    public void testReadFileToBytesWithNonExistentFile() {
+    public void testReadFileToBytesWithNonExistentFile() throws IOException {
         String nonExistentFile = PathUtil.getCurrentProjectTestResourcesAbsolutePath("non_existent.txt");
+        //创建
+        if (!Files.exists(Paths.get(nonExistentFile))) {
+            Files.createFile(Paths.get(nonExistentFile));
+        }
         assertThrows(NullChainCheckException.class, () -> {
             Null.of(nonExistentFile)
                     .tool(ReadFileToBytesTool.class)
                     .getSafe();
         });
+        Files.delete(Paths.get(nonExistentFile));
     }
 
     @Test

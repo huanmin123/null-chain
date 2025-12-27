@@ -56,8 +56,59 @@ public class NullUtilTest {
 
     @Test
     public void testIsWithArray() {
+        // 对象数组测试
         assertTrue(Null.is(new String[0]));
         assertFalse(Null.is(new String[]{"a", "b"}));
+        
+        // 基本类型数组测试 - 修复空数组判断问题
+        assertTrue(Null.is(new byte[0]));
+        assertFalse(Null.is(new byte[]{1, 2, 3}));
+        
+        assertTrue(Null.is(new int[0]));
+        assertFalse(Null.is(new int[]{1, 2, 3}));
+        
+        assertTrue(Null.is(new long[0]));
+        assertFalse(Null.is(new long[]{1L, 2L, 3L}));
+        
+        assertTrue(Null.is(new short[0]));
+        assertFalse(Null.is(new short[]{1, 2, 3}));
+        
+        assertTrue(Null.is(new float[0]));
+        assertFalse(Null.is(new float[]{1.0f, 2.0f, 3.0f}));
+        
+        assertTrue(Null.is(new double[0]));
+        assertFalse(Null.is(new double[]{1.0, 2.0, 3.0}));
+        
+        assertTrue(Null.is(new char[0]));
+        assertFalse(Null.is(new char[]{'a', 'b', 'c'}));
+        
+        assertTrue(Null.is(new boolean[0]));
+        assertFalse(Null.is(new boolean[]{true, false}));
+        
+        // 包装类型数组测试 - 验证包装类型数组也能正确判断
+        assertTrue(Null.is(new Byte[0]));
+        assertFalse(Null.is(new Byte[]{1, 2, 3}));
+        
+        assertTrue(Null.is(new Integer[0]));
+        assertFalse(Null.is(new Integer[]{1, 2, 3}));
+        
+        assertTrue(Null.is(new Long[0]));
+        assertFalse(Null.is(new Long[]{1L, 2L, 3L}));
+        
+        assertTrue(Null.is(new Short[0]));
+        assertFalse(Null.is(new Short[]{1, 2, 3}));
+        
+        assertTrue(Null.is(new Float[0]));
+        assertFalse(Null.is(new Float[]{1.0f, 2.0f, 3.0f}));
+        
+        assertTrue(Null.is(new Double[0]));
+        assertFalse(Null.is(new Double[]{1.0, 2.0, 3.0}));
+        
+        assertTrue(Null.is(new Character[0]));
+        assertFalse(Null.is(new Character[]{'a', 'b', 'c'}));
+        
+        assertTrue(Null.is(new Boolean[0]));
+        assertFalse(Null.is(new Boolean[]{true, false}));
     }
 
     // ========== isAny() 方法测试 ==========
