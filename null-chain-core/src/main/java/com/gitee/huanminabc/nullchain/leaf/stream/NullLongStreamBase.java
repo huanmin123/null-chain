@@ -1,10 +1,7 @@
 package com.gitee.huanminabc.nullchain.leaf.stream;
 
-import com.gitee.huanminabc.nullchain.common.NullBuild;
-import com.gitee.huanminabc.nullchain.common.NullChainException;
-import com.gitee.huanminabc.nullchain.common.NullKernelAbstract;
-import com.gitee.huanminabc.nullchain.common.NullReflectionKit;
-import com.gitee.huanminabc.nullchain.common.NullTaskList;
+import com.gitee.huanminabc.nullchain.common.*;
+
 import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 
 import java.util.function.LongFunction;
@@ -12,7 +9,7 @@ import java.util.function.LongUnaryOperator;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
-public class NullLongStreamBase extends NullKernelAbstract<Long> implements NullLongStream {
+public class NullLongStreamBase extends NullKernelAsyncAbstract<Long> implements NullLongStream {
     public NullLongStreamBase(StringBuilder linkLog, NullTaskList taskList) {
         super(linkLog, taskList);
     }

@@ -29,6 +29,6 @@ import com.gitee.huanminabc.nullchain.common.NullKernel;
  * @see NullKernel 内核接口
  * @see OkHttpConfigChain HTTP配置链接口
  */
-public interface OkHttp<T> extends  NullKernel<T>, OkHttpConfigChain {
+public interface OkHttp<T> extends  OkHttpConfigChain {
 
 }

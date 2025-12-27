@@ -192,6 +192,8 @@ public final class NullLog {
     public static final String HTTP_TO_INPUTSTREAM_Q = "toInputStream? ";
     public static final String HTTP_TO_STR_ARROW = "toStr->";
     public static final String HTTP_TO_STR_Q = "toStr? ";
+    public static final String HTTP_TO_SSE_ARROW = "toSSE->";
+    public static final String HTTP_TO_SSE_Q = "toSSE? ";
 
     // core chain base
     public static final String CHAIN_OF_Q = "of?";

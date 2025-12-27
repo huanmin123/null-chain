@@ -148,10 +148,10 @@ public class NullUtil {
         Object realValueB=b;
         //优化：使用instanceof替代isInstance，性能更好
         if (a instanceof NullKernelAbstract){
-            realValueA=((NullKernelAbstract<?>)a).taskList.runTaskAll().value;
+            realValueA=((NullKernelAbstract)a).taskList.runTaskAll().value;
         }
         if (b instanceof NullKernelAbstract){
-            realValueB=((NullKernelAbstract<?>)b).taskList.runTaskAll().value;
+            realValueB=((NullKernelAbstract)b).taskList.runTaskAll().value;
         }
         return realValueA == realValueB || realValueA.equals(realValueB);
     }

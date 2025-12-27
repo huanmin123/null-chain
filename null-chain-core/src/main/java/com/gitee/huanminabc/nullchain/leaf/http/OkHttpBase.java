@@ -1,11 +1,15 @@
 package com.gitee.huanminabc.nullchain.leaf.http;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.gitee.huanminabc.jcommon.multithreading.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.jcommon.str.StringUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.*;
 import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
+import com.gitee.huanminabc.nullchain.leaf.http.sse.DataDecoder;
+import com.gitee.huanminabc.nullchain.leaf.http.sse.SSEEventListener;
 import lombok.extern.slf4j.Slf4j;
 import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 import okhttp3.ConnectionPool;
@@ -24,7 +28,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2024/11/30
  */
 @Slf4j
-public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
+public class OkHttpBase<T> extends NullKernelAbstract implements  OkHttp<T> {
     public static final String DEFAULT_THREAD_FACTORY_NAME = "$$$--NULL_DEFAULT_OKHTTP_SYNC--$$$";
     private OkHttpClient okHttpClient;
     private Map<String, String> headerMap;
@@ -167,6 +171,18 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
         return this;
     }
 
+    @Override
+    public OkHttp async() {
+        NullKernelAsyncAbstract.async(linkLog,taskList);
+        return this;
+    }
+
+    @Override
+    public OkHttp async(String threadFactoryName) {
+        NullKernelAsyncAbstract.async(linkLog,taskList,threadFactoryName);
+        return this;
+    }
+
 
     public OkHttp get() {
         this.taskList.add((preValue)->{
@@ -245,64 +261,73 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
      * @param filePath 下载内容存储的路径
      * @return true表示下载成功，false表示下载失败
      */
-    public boolean downloadFile(String filePath) {
-        if (StringUtil.isEmpty(filePath)) {
-            linkLog.append(HTTP_DOWNLOAD_FILE_PATH_NULL);
-            throw new NullChainException(linkLog.toString());
-        }
+    public NullChain<Boolean> downloadFile(String filePath) {
+        this.taskList.add((__)->{
+            if (StringUtil.isEmpty(filePath)) {
+                linkLog.append(HTTP_DOWNLOAD_FILE_PATH_NULL);
+                throw new NullChainException(linkLog.toString());
+            }
+            try {
+                OkHttpBuild.setHeader(headerMap, request);
+                boolean result = OkHttpBuild.downloadFile(url, filePath, okHttpClient, request, retryCount, retryInterval);
+                linkLog.append(HTTP_DOWNLOAD_FILE_ARROW);
+                return NullBuild.noEmpty(result);
+            } catch (Exception e) {
+                linkLog.append(HTTP_DOWNLOAD_FILE_Q).append(e.getMessage());
+                throw new NullChainException(linkLog.toString());
+            }
+        });
+        return NullBuild.busy(linkLog, taskList);
 
-        try {
-            OkHttpBuild.setHeader(headerMap, request);
-            boolean result = OkHttpBuild.downloadFile(url, filePath, okHttpClient, request, retryCount, retryInterval);
-            linkLog.append(HTTP_DOWNLOAD_FILE_ARROW);
-            return result;
-        } catch (Exception e) {
-            linkLog.append(HTTP_DOWNLOAD_FILE_Q).append(e.getMessage());
-            throw new NullChainException(linkLog.toString());
-        }
     }
 
     /**
      * 获取返回的字节数组
      * 
-     * @return 字节数组，如果响应为空则返回空数组（长度为0）
+     * @return 包含字节数组的Null链，如果响应为空则返回空链
      */
-    public byte[] toBytes() {
-        try {
-            OkHttpBuild.setHeader(headerMap, request);
-            byte[] bytes = OkHttpBuild.toBytes(url, okHttpClient, request, retryCount, retryInterval);
-            if (bytes == null) {
-                linkLog.append(HTTP_TO_BYTES_ARROW).append("(empty)");
-                return new byte[0];
+    public NullChain<byte[]> toBytes() {
+        this.taskList.add((__)->{
+            try {
+                OkHttpBuild.setHeader(headerMap, request);
+                byte[] bytes = OkHttpBuild.toBytes(url, okHttpClient, request, retryCount, retryInterval);
+                if (bytes == null) {
+                    linkLog.append(HTTP_TO_BYTES_ARROW).append("(empty)");
+                    return NullBuild.empty();
+                }
+                linkLog.append(HTTP_TO_BYTES_ARROW);
+                return NullBuild.noEmpty(bytes);
+            } catch (Exception e) {
+                linkLog.append(HTTP_TO_BYTES_Q).append(e.getMessage());
+                throw new NullChainException(linkLog.toString());
             }
-            linkLog.append(HTTP_TO_BYTES_ARROW);
-            return bytes;
-        } catch (Exception e) {
-            linkLog.append(HTTP_TO_BYTES_Q).append(e.getMessage());
-            throw new NullChainException(linkLog.toString());
-        }
+        });
+        return NullBuild.busy(linkLog, taskList);
     }
 
     /**
      * 获取返回的输入流
      * 注意: 调用者需要负责关闭返回的输入流
      * 
-     * @return 输入流，如果响应为空则返回null
+     * @return 包含输入流的Null链，如果响应为空则返回空链
      */
-    public InputStream toInputStream() {
-        try {
-            OkHttpBuild.setHeader(headerMap, request);
-            InputStream inputStream = OkHttpBuild.toInputStream(url, okHttpClient, request, retryCount, retryInterval);
-            if (inputStream == null) {
-                linkLog.append(HTTP_TO_INPUTSTREAM_ARROW).append("(null)");
-                return null;
+    public NullChain<InputStream> toInputStream() {
+        this.taskList.add((__)->{
+            try {
+                OkHttpBuild.setHeader(headerMap, request);
+                InputStream inputStream = OkHttpBuild.toInputStream(url, okHttpClient, request, retryCount, retryInterval);
+                if (inputStream == null) {
+                    linkLog.append(HTTP_TO_INPUTSTREAM_ARROW).append("(null)");
+                    return NullBuild.empty();
+                }
+                linkLog.append(HTTP_TO_INPUTSTREAM_ARROW);
+                return NullBuild.noEmpty(inputStream);
+            } catch (Exception e) {
+                linkLog.append(HTTP_TO_INPUTSTREAM_Q).append(e.getMessage());
+                throw new NullChainException(linkLog.toString());
             }
-            linkLog.append(HTTP_TO_INPUTSTREAM_ARROW);
-            return inputStream;
-        } catch (Exception e) {
-            linkLog.append(HTTP_TO_INPUTSTREAM_Q).append(e.getMessage());
-            throw new NullChainException(linkLog.toString());
-        }
+        });
+        return NullBuild.busy(linkLog, taskList);
     }
 
     /**
@@ -360,6 +385,56 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
         return NullBuild.busy( linkLog, taskList);
     }
 
+    /**
+     * 处理 SSE 流式响应（使用默认字符串解码器）
+     * 
+     * <p>该方法用于处理 HTTP 响应为 SSE 流的情况。如果响应 Content-Type 为 text/event-stream，
+     * 则按照 SSE 协议解析并触发相应的事件回调；如果响应不是 SSE 格式，则触发非 SSE 响应回调。</p>
+     * 
+     * <p>此方法使用默认的字符串解码器，直接将原始数据作为字符串返回。</p>
+     * 
+     * @param listener SSE 事件监听器，处理各种 SSE 事件（数据类型为 String）
+     */
+    public void toSSEText(SSEEventListener<String> listener) {
+        toSSE(listener, DataDecoder.stringDecoder());
+    }
+    public void toSSEJson(SSEEventListener<JSONObject> listener) {
+        toSSE(listener, DataDecoder.jsonDecoder());
+    }
+
+    /**
+     * 处理 SSE 流式响应（自定义解码器）
+     * 
+     * <p>该方法用于处理 HTTP 响应为 SSE 流的情况。如果响应 Content-Type 为 text/event-stream，
+     * 则按照 SSE 协议解析并触发相应的事件回调；如果响应不是 SSE 格式，则触发非 SSE 响应回调。</p>
+     * 
+     * @param <R> SSE 数据解码后的类型
+     * @param listener SSE 事件监听器，处理各种 SSE 事件
+     * @param decoder 数据解码器，将原始字符串解码为泛型对象
+     */
+    public <R> void toSSE(SSEEventListener<R> listener, DataDecoder<R> decoder) {
+        taskList.runTaskAll((nullChainBase) -> {
+            if (listener == null) {
+                linkLog.append(HTTP_TO_SSE_Q).append("监听器不能为空");
+                throw new NullChainException(linkLog.toString());
+            }
+            if (decoder == null) {
+                linkLog.append(HTTP_TO_SSE_Q).append("解码器不能为空");
+                throw new NullChainException(linkLog.toString());
+            }
+            try {
+                // 先执行taskList中的所有任务，初始化request等字段
+                taskList.runTaskAll();
+                OkHttpBuild.setHeader(headerMap, request);
+                OkHttpBuild.toSSE(url, okHttpClient, request, retryCount, retryInterval, listener, decoder);
+                linkLog.append(HTTP_TO_SSE_ARROW);
+            } catch (Exception e) {
+                linkLog.append(HTTP_TO_SSE_Q).append(e.getMessage());
+                throw new NullChainException(linkLog.toString());
+            }
+        }, null);
+
+    }
 
 }
 

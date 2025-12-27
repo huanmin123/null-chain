@@ -20,7 +20,7 @@ import java.io.Serializable;
  * @since 1.0.0
  * @version 1.1.1
  */
-public class NullKernelAbstract<T> implements NullKernel<T>, Serializable, NullCheck {
+public class NullKernelAbstract implements  Serializable, NullCheck {
     private static final long serialVersionUID = 1L;
     protected transient StringBuilder linkLog;
 
@@ -74,27 +74,4 @@ public class NullKernelAbstract<T> implements NullKernel<T>, Serializable, NullC
     }
 
 
-    //同步转异步
-    public NullChain<T> async() {
-        this.taskList.add((value)->{
-            linkLog.append(ASYNC_ARROW);
-            NullTaskList.NullNode<Object> objectNullNode = NullBuild.noEmpty(value);
-            objectNullNode.async= true; //设置为异步
-            return objectNullNode;
-        });
-        return  NullBuild.busy(this);
-    }
-    //带线程池的同步转异步
-    public NullChain<T> async(String threadFactoryName) throws NullChainException {
-        this.taskList.add((value)->{
-            ThreadFactoryUtil.addExecutor(threadFactoryName);
-            taskList.setCurrentThreadFactoryName(threadFactoryName);
-            linkLog.append(ASYNC_ARROW);
-            NullTaskList.NullNode<Object> objectNullNode = NullBuild.noEmpty(value);
-            objectNullNode.async = true; //设置为异步
-            return objectNullNode;
-
-        });
-        return  NullBuild.busy(this);
-    }
 }

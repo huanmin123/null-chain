@@ -86,7 +86,7 @@ public class NullBuild {
 
     //因为在不同的leaf中转化为NullChain需要 , 这样做统一的兼容
     @SuppressWarnings("unchecked")
-    public static <X> NullChain<X> busy(NullKernelAbstract<?> o) {
+    public static <X> NullChain<X> busy(NullKernelAbstract o) {
         if (o instanceof NullChainBase) {
             return (NullChain<X>) o;
         }
@@ -95,32 +95,32 @@ public class NullBuild {
 
 
     @SuppressWarnings("unchecked")
-    public static <X extends java.math.BigDecimal> NullCalculate<X> busyCalc(NullKernelAbstract<?> o) {
+    public static <X extends java.math.BigDecimal> NullCalculate<X> busyCalc(NullKernelAbstract o) {
         return (NullCalculate<X>) o;
     }
 
     @SuppressWarnings("unchecked")
-    public static <X> NullStream<X> busyStream(NullKernelAbstract<?> o) {
+    public static <X> NullStream<X> busyStream(NullKernelAbstract o) {
         return (NullStream<X>) o;
     }
 
     @SuppressWarnings("unchecked")
-    public static <X> NullCheck<X> busyCheck(NullKernelAbstract<?> o) {
+    public static <X> NullCheck<X> busyCheck(NullKernelAbstract o) {
         return (NullCheck<X>) o;
     }
 
 
 
-    public static <T> NullIntStream busyIntStream(NullKernelAbstract<T> o) {
+    public static <T> NullIntStream busyIntStream(NullKernelAbstract o) {
         return  new NullIntStreamBase( o.linkLog, o.taskList);
     }
 
-    public static <T> NullLongStream busyLongStream(NullKernelAbstract<T> o) {
+    public static <T> NullLongStream busyLongStream(NullKernelAbstract o) {
         return new NullLongStreamBase(o.linkLog, o.taskList);
     }
 
 
-    public static <T> NullDoubleStream busyDoubleStream(NullKernelAbstract<T> o) {
+    public static <T> NullDoubleStream busyDoubleStream(NullKernelAbstract o) {
         return new NullDoubleStreamBase(o.linkLog, o.taskList);
     }
 

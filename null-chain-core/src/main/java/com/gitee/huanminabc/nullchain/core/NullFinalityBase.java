@@ -15,7 +15,7 @@ import java.util.function.Supplier;
  * @author huanmin
  * @date 2024/1/11
  */
-public class NullFinalityBase<T> extends NullKernelAbstract<T> implements NullFinality<T> {
+public class NullFinalityBase<T> extends NullKernelAsyncAbstract<T> implements NullFinality<T> {
 
 
     public NullFinalityBase(StringBuilder linkLog, NullTaskList taskList) {

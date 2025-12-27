@@ -23,7 +23,7 @@ import java.util.stream.*;
  * @since 1.0.0
  * @version 1.1.1
  */
-public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStream<T> {
+public class NullStreamBase<T> extends NullKernelAsyncAbstract<T> implements NullStream<T> {
     public NullStreamBase(StringBuilder linkLog, NullTaskList taskList) {
         super(linkLog, taskList);
     }

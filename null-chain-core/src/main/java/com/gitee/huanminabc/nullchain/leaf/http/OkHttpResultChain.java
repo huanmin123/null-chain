@@ -1,6 +1,10 @@
 package com.gitee.huanminabc.nullchain.leaf.http;
 
+import com.alibaba.fastjson.JSONObject;
 import com.gitee.huanminabc.nullchain.core.NullChain;
+import com.gitee.huanminabc.nullchain.leaf.http.sse.DataDecoder;
+import com.gitee.huanminabc.nullchain.leaf.http.sse.EventMessage;
+import com.gitee.huanminabc.nullchain.leaf.http.sse.SSEEventListener;
 
 import java.io.InputStream;
 /**
@@ -40,7 +44,7 @@ public interface OkHttpResultChain {
      *     .downloadFile("/path/to/download/file.pdf");  // 下载文件到指定路径
      * }</pre>
      */
-    boolean downloadFile(String filePath);
+    NullChain<Boolean> downloadFile(String filePath);
     
     /**
      * 获取返回的字节数组
@@ -48,16 +52,17 @@ public interface OkHttpResultChain {
      * <p>该方法用于获取HTTP响应的字节数组内容。
      * 适用于处理二进制数据、图片、文件等。</p>
      * 
-     * @return 字节数组，如果响应为空则返回空数组（长度为0）
+     * @return 包含字节数组的Null链，如果响应为空则返回空链
      * 
      * @example
      * <pre>{@code
      * byte[] data = Null.ofHttp("https://example.com/image.jpg")
      *     .get()
-     *     .toBytes();  // 获取图片的字节数组
+     *     .toBytes()  // 获取图片的字节数组
+     *     .orElse(new byte[0]);  // 如果为空则返回空数组
      * }</pre>
      */
-    byte[] toBytes();
+    NullChain<byte[]> toBytes();
 
     /**
      * 获取返回的输入流
@@ -65,13 +70,14 @@ public interface OkHttpResultChain {
      * <p>该方法用于获取HTTP响应的输入流，适用于处理大文件或流式数据。
      * 调用者需要负责关闭输入流。</p>
      * 
-     * @return 输入流，如果响应为空则返回null
+     * @return 包含输入流的Null链，如果响应为空则返回空链
      * 
      * @example
      * <pre>{@code
      * InputStream stream = Null.ofHttp("https://example.com/large-file.zip")
      *     .get()
-     *     .toInputStream();  // 获取大文件的输入流
+     *     .toInputStream()  // 获取大文件的输入流
+     *     .orElseNull();
      * if (stream != null) {
      *     try (stream) {
      *         // 处理流数据
@@ -79,7 +85,7 @@ public interface OkHttpResultChain {
      * }
      * }</pre>
      */
-    InputStream toInputStream();
+    NullChain<InputStream> toInputStream();
 
     /**
      * 获取返回的字符串
@@ -118,5 +124,64 @@ public interface OkHttpResultChain {
      * }</pre>
      */
     <R> NullChain<R> toJson(Class<R> clazz);
+
+
+    /**
+     * 处理 SSE (Server-Sent Events) 流式响应（自定义解码器）
+     * 
+     * <p>该方法用于处理 HTTP 响应为 SSE 流的情况。如果响应 Content-Type 为 text/event-stream，
+     * 则按照 SSE 协议解析并触发相应的事件回调；如果响应不是 SSE 格式，则触发非 SSE 响应回调。</p>
+     * 
+     * <h3>使用说明：</h3>
+     * <ul>
+     *   <li>SSE 流：会调用 {@link SSEEventListener#onOpen()}、{@link SSEEventListener#onEvent(EventMessage)}、
+     *       {@link SSEEventListener#onComplete()} 等方法</li>
+     *   <li>非 SSE 响应：会调用 {@link SSEEventListener#onNonSseResponse(String, String)} 方法，
+     *       避免与 SSE 事件混淆</li>
+     *   <li>错误处理：通过 {@link SSEEventListener#onError(int, Integer, String, Throwable)} 回调</li>
+     *   <li>主动终止：用户可以通过 {@link EventMessage#terminate()} 方法主动终止流，
+     *       终止后会触发 {@link SSEEventListener#onInterrupt()} 回调</li>
+     * </ul>
+     * 
+     * <h3>主动终止功能：</h3>
+     * <p>在处理事件时，如果发现结果不符合预期，可以通过 {@link EventMessage#terminate()} 方法主动终止流。
+     * 终止后会在读取完当前行后停止，并触发 {@link SSEEventListener#onInterrupt()} 回调。</p>
+     * 
+     * @param <T> SSE 数据解码后的类型
+     * @param listener SSE 事件监听器，处理各种 SSE 事件
+     * @param decoder 数据解码器，将原始字符串解码为泛型对象
+     * 
+     * @example
+     * <pre>{@code
+     * // 使用 JSON 解码器
+     * import com.alibaba.fastjson.JSONObject;
+     * import com.gitee.huanminabc.nullchain.leaf.http.sse.DataDecoder;
+     * 
+     * Null.ofHttp("https://api.example.com/sse")
+     *     .get()
+     *     .toSSE(new SSEEventListener<JSONObject>() {
+     *         public void onEvent(EventMessage<JSONObject> msg) {
+     *             JSONObject data = msg.getData();
+     *             if (data != null) {
+     *                 System.out.println("收到事件: " + data.getString("content"));
+     *                 
+     *                 // 如果发现结果不对，可以主动终止
+     *                 if (shouldStop(data)) {
+     *                     msg.terminate();  // 终止流
+     *                 }
+     *             }
+     *         }
+     *         
+     *         public void onInterrupt() {
+     *             // 流被用户主动终止时的回调
+     *             System.out.println("SSE 流已被用户终止");
+     *         }
+     *         // ... 其他回调方法
+     *     }, DataDecoder.jsonDecoder());  // 使用 JSON 解码器
+     * }</pre>
+     */
+    <T> void toSSE(SSEEventListener<T> listener, DataDecoder<T> decoder);
+    void toSSEText(SSEEventListener<String> listener);
+    void toSSEJson(SSEEventListener<JSONObject> listener);
 
 }

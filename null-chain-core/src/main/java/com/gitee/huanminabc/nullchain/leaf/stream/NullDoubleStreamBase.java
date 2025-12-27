@@ -1,10 +1,7 @@
 package com.gitee.huanminabc.nullchain.leaf.stream;
 
-import com.gitee.huanminabc.nullchain.common.NullBuild;
-import com.gitee.huanminabc.nullchain.common.NullChainException;
-import com.gitee.huanminabc.nullchain.common.NullKernelAbstract;
-import com.gitee.huanminabc.nullchain.common.NullReflectionKit;
-import com.gitee.huanminabc.nullchain.common.NullTaskList;
+import com.gitee.huanminabc.nullchain.common.*;
+
 import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 
 import java.util.function.DoubleFunction;
@@ -12,7 +9,7 @@ import java.util.function.DoubleUnaryOperator;
 import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
-public class NullDoubleStreamBase extends NullKernelAbstract<Double> implements NullDoubleStream {
+public class NullDoubleStreamBase extends NullKernelAsyncAbstract<Double> implements NullDoubleStream {
     public NullDoubleStreamBase(StringBuilder linkLog, NullTaskList taskList) {
         super(linkLog, taskList);
     }

@@ -1,10 +1,7 @@
 package com.gitee.huanminabc.nullchain.leaf.stream;
 
-import com.gitee.huanminabc.nullchain.common.NullBuild;
-import com.gitee.huanminabc.nullchain.common.NullChainException;
-import com.gitee.huanminabc.nullchain.common.NullKernelAbstract;
-import com.gitee.huanminabc.nullchain.common.NullReflectionKit;
-import com.gitee.huanminabc.nullchain.common.NullTaskList;
+import com.gitee.huanminabc.nullchain.common.*;
+
 import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 
 import java.util.function.IntFunction;
@@ -12,7 +9,7 @@ import java.util.function.IntUnaryOperator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public class NullIntStreamBase  extends NullKernelAbstract<Integer>  implements NullIntStream {
+public class NullIntStreamBase  extends NullKernelAsyncAbstract<Integer> implements NullIntStream {
     public NullIntStreamBase(StringBuilder linkLog, NullTaskList taskList) {
         super(linkLog, taskList);
     }

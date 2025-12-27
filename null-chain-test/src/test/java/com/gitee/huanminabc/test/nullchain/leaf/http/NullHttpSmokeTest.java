@@ -1,6 +1,7 @@
 package com.gitee.huanminabc.test.nullchain.leaf.http;
 
 import com.gitee.huanminabc.nullchain.Null;
+import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
 import lombok.Data;
 import org.junit.jupiter.api.Assertions;
@@ -323,7 +324,8 @@ public class NullHttpSmokeTest {
     public void testToBytes() {
         byte[] response = Null.ofHttp(HTTPBIN_BASE_URL + "/get")
                 .get()
-                .toBytes();
+                .toBytes()
+                .orElseNull();
 
         assertNotNull(response, "字节数组响应不应该为空");
         assertTrue(response.length > 0, "字节数组不应该为空");
@@ -340,7 +342,8 @@ public class NullHttpSmokeTest {
     public void testToInputStream() throws IOException {
         java.io.InputStream inputStream = Null.ofHttp(HTTPBIN_BASE_URL + "/get")
                 .get()
-                .toInputStream();
+                .toInputStream()
+                .orElseNull();
 
         assertNotNull(inputStream, "输入流不应该为空");
         
@@ -434,9 +437,9 @@ public class NullHttpSmokeTest {
         Path tempFile = Files.createTempFile("test-download-", ".txt");
         try {
             // 下载一个小的JSON响应到文件
-            boolean success = Null.ofHttp(HTTPBIN_BASE_URL + "/get")
+            Boolean success = Null.ofHttp(HTTPBIN_BASE_URL + "/get")
                     .get()
-                    .downloadFile(tempFile.toString());
+                    .downloadFile(tempFile.toString()).get();
 
             assertTrue(success, "文件下载应该成功");
             assertTrue(Files.exists(tempFile), "下载的文件应该存在");

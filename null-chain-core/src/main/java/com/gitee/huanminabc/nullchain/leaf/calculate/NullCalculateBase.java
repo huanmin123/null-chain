@@ -18,7 +18,7 @@ import java.math.RoundingMode;
  * @version 1.1.1
  */
 @Slf4j
-public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<T> implements NullCalculate<T> {
+public class NullCalculateBase<T extends BigDecimal> extends NullKernelAsyncAbstract<T> implements NullCalculate<T> {
     public NullCalculateBase(StringBuilder linkLog, NullTaskList taskList) {
         super(linkLog,taskList);
     }

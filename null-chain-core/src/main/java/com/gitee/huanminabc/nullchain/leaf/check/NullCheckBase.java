@@ -22,7 +22,7 @@ import java.util.List;
  * @version 1.1.2
  */
 @Slf4j
-public class NullCheckBase<T> extends NullKernelAbstract<T> implements NullCheck<T> {
+public class NullCheckBase<T> extends NullKernelAsyncAbstract<T> implements NullCheck<T> {
 
     /**
      * 存储所有节点的检查结果
