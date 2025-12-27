@@ -73,7 +73,7 @@ String message = Null.of(user)
 
 ## 详细文档
 
-📖 **完整使用教程**：https://www.yuque.com/huanmin-4bkaa/wfakqr?# 《Java-空链》
+📖 **完整使用教程**：https://www.yuque.com/huanmin-4bkaa/fxm661/fou8lvfycyppbpog
 
 ## 版本历史
 

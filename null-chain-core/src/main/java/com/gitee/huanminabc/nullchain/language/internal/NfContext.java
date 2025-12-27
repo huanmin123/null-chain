@@ -245,6 +245,7 @@ public class NfContext {
         importMap.put("float", Float.class.getName());
         importMap.put("double", Double.class.getName());
         importMap.put("boolean", Boolean.class.getName());
+        importMap.put("bool", Boolean.class.getName());
 
     }
 

@@ -64,12 +64,13 @@ public class NfToken {
         while (i < length) {
             char currentChar = input.charAt(i);
             // 记录行号
-            if (currentChar == '\n') {
+            if (currentChar == '\n' || currentChar== ';') {
                 line++;
                 i++;
                 tokens.add(new Token(TokenType.LINE_END, "", line));
                 continue;
             }
+
             // 判断是否是空白字符,是的话直接跳过
             if (Character.isWhitespace(currentChar)) {
                 i++;

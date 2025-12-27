@@ -16,12 +16,16 @@ import java.util.List;
 @Slf4j
 public class NfRunFxTest {
     static List<Token> tokens;
+    static List<Token> tokens1;
 
 
     @BeforeEach
     public  void before() {
         String file = TestUtil.readFile("test.nf");
         tokens = NfToken.tokens(file);
+
+        String file1 = TestUtil.readFile("test1.nf");
+        tokens1 = NfToken.tokens(file1);
     }
 
     @Test
@@ -40,5 +44,16 @@ public class NfRunFxTest {
             });
         }
 
+    }
+    @Test
+    public void NfSynta1() {
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens1);
+        for (int i = 0; i < 1; i++) {
+            CodeTimeUtil.creator(() -> {
+                NfContext context = new NfContext();
+                Object run = NfRun.run(syntaxNodes, context,log, null);
+                System.out.println(run);
+            });
+        }
     }
 }
