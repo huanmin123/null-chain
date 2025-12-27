@@ -309,7 +309,7 @@ public class NullUtilTest {
 
     @Test
     public void testCheckNullWithSupplier() {
-        assertThrows(NullChainException.class, () -> {
+        assertThrows(RuntimeException.class, () -> {
             Null.checkNull(null,  () -> new RuntimeException( "参数不能为空"));
         });
     }
