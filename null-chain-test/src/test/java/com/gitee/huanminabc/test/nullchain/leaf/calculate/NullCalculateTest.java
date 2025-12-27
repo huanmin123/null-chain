@@ -20,8 +20,13 @@ public class NullCalculateTest {
 
     @Test
     public void testOfCalcWithInteger() {
-        BigDecimal result = Null.ofCalc(100).map(bd -> bd).get();
-        assertEquals(new BigDecimal("100"), result);
+        BigDecimal bigDecimal = new BigDecimal(100);
+
+        BigDecimal result = Null.ofCalc(100.12).map(bd -> bd).get();
+        assertEquals(new BigDecimal("100.12"), result);
+
+        BigDecimal result1 = Null.ofCalc(100).map(bd -> bd).get();
+        assertEquals(new BigDecimal("100"), result1);
     }
 
     @Test

@@ -31,8 +31,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
             if (t2 == null) {
                 return NullBuild.empty();
             }
-            double v1 = t2.doubleValue();
-            BigDecimal add = ((BigDecimal)value).add(BigDecimal.valueOf(v1));
+            BigDecimal add = ((BigDecimal)value).add(new BigDecimal(t2.toString()));
             linkLog.append(CALC_ADD_ARROW);
             return NullBuild.noEmpty(add);
         });
@@ -50,8 +49,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
                 }
                 t2Value = defaultValue;
             }
-            double v1 = t2Value.doubleValue();
-            BigDecimal add = ((BigDecimal)value).add(BigDecimal.valueOf(v1));
+            BigDecimal add = ((BigDecimal)value).add(new BigDecimal(t2Value.toString()));
             linkLog.append(CALC_ADD_ARROW);
             return NullBuild.noEmpty(add);
         });
@@ -65,7 +63,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
                 return NullBuild.empty();
             }
             double v1 = t2.doubleValue();
-            BigDecimal subtract = ((BigDecimal)value).subtract(BigDecimal.valueOf(v1));
+            BigDecimal subtract = ((BigDecimal)value).subtract(new BigDecimal(t2.toString()));
             linkLog.append(CALC_SUB_ARROW);
             return NullBuild.noEmpty(subtract);
         });
@@ -83,8 +81,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
                 }
                 t2Value = defaultValue;
             }
-            double v1 = t2Value.doubleValue();
-            BigDecimal subtract =  ((BigDecimal)value).subtract(BigDecimal.valueOf(v1));
+            BigDecimal subtract =  ((BigDecimal)value).subtract(new BigDecimal(t2Value.toString()));
             linkLog.append(CALC_SUB_ARROW);
             return NullBuild.noEmpty(subtract);
         });
@@ -98,8 +95,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
             if ( t2 == null) {
                 return NullBuild.empty();
             }
-            double v1 = t2.doubleValue();
-            BigDecimal multiply =  ((BigDecimal)value).multiply(BigDecimal.valueOf(v1));
+            BigDecimal multiply =  ((BigDecimal)value).multiply(new BigDecimal(t2.toString()));
             linkLog.append(CALC_MUL_ARROW);
             return NullBuild.noEmpty(multiply);
         });
@@ -117,8 +113,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
                 }
                 t2Value = defaultValue;
             }
-            double v1 = t2Value.doubleValue();
-            BigDecimal multiply = ((BigDecimal)value).multiply(BigDecimal.valueOf(v1));
+            BigDecimal multiply = ((BigDecimal)value).multiply(new BigDecimal(t2Value.toString()));
             linkLog.append(CALC_MUL_ARROW);
             return NullBuild.noEmpty(multiply);
         });
@@ -137,11 +132,20 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
                 throw new NullChainException(linkLog.append(CALC_DIV_Q).append("除数不能为0").toString());
             }
             //在进行除法运算时，可能会出现除不尽的情况，从而导致无限循环小数。当有溢出的的时候会进行截取到16位然后四舍五入到15位
-            BigDecimal divide =  ((BigDecimal)value).divide(BigDecimal.valueOf(v1), 15, RoundingMode.HALF_UP);
+            BigDecimal divide =  ((BigDecimal)value).divide(new BigDecimal(t2.toString()), 15, RoundingMode.HALF_UP);
             linkLog.append(CALC_DIV_ARROW);
+            divide = clearZeros(divide);
             return NullBuild.noEmpty(divide);
         });
         return  NullBuild.busyCalc(this);
+    }
+
+    private static BigDecimal clearZeros(BigDecimal divide) {
+        divide = divide.stripTrailingZeros();//去掉多余的0
+        if (divide.scale() < 0) {
+            divide = new BigDecimal(divide.toPlainString());
+        }
+        return divide;
     }
 
     @Override
@@ -160,8 +164,9 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
                 throw new NullChainException(linkLog.append(CALC_DIV_Q).append("除数不能为0").toString());
             }
             //在进行除法运算时，可能会出现除不尽的情况，从而导致无限循环小数。当有溢出的的时候会进行截取到16位然后四舍五入到15位
-            BigDecimal divide = ((BigDecimal)value).divide(BigDecimal.valueOf(v1), 15, RoundingMode.HALF_UP);
+            BigDecimal divide = ((BigDecimal)value).divide(new BigDecimal(t2Value.toString()), 15, RoundingMode.HALF_UP);
             linkLog.append(CALC_DIV_ARROW);
+            divide = clearZeros(divide);
             return NullBuild.noEmpty(divide);
         });
         return  NullBuild.busyCalc(this);
@@ -207,8 +212,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
                     linkLog.append(CALC_MAX_ARROW);
                     return NullBuild.noEmpty(t2);
                 }
-                double v1 = t2.doubleValue();
-                BigDecimal max = ((BigDecimal)preValue).max(BigDecimal.valueOf(v1));
+                BigDecimal max = ((BigDecimal)preValue).max(new BigDecimal(t2.toString()));
                 linkLog.append(CALC_MAX_ARROW);
                 return NullBuild.noEmpty(max);
             }
@@ -239,8 +243,7 @@ public class NullCalculateBase<T extends BigDecimal> extends NullKernelAbstract<
                     linkLog.append(CALC_MIN_ARROW);
                     return NullBuild.noEmpty(t2);
                 }
-                double v1 = t2.doubleValue();
-                BigDecimal min = ((BigDecimal)preValue).min(BigDecimal.valueOf(v1));
+                BigDecimal min = ((BigDecimal)preValue).min(new BigDecimal(t2.toString()));
                 linkLog.append(CALC_MIN_ARROW);
                 return NullBuild.noEmpty(min);
             }

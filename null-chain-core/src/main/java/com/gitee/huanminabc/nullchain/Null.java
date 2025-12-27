@@ -18,10 +18,10 @@ import java.util.stream.Stream;
 
 /**
  * Null链式编程工具类 - 空值安全的流式API
- * 
+ *
  * <p>这是一个强大的空值安全编程工具，提供了类似Optional但功能更丰富的链式API。
  * 通过Null链，可以优雅地处理可能为空的值，避免NullPointerException。</p>
- * 
+ *
  * <h3>主要特性：</h3>
  * <ul>
  *   <li>空值安全的链式操作</li>
@@ -30,7 +30,7 @@ import java.util.stream.Stream;
  *   <li>支持异步操作</li>
  *   <li>完整的日志追踪</li>
  * </ul>
- * 
+ *
  * <h3>使用要求：</h3>
  * <ol>
  *   <li>类必须实现get/set方法 (强制必须实现,否则你编译不通过)</li>
@@ -38,7 +38,7 @@ import java.util.stream.Stream;
  *   <li>类中全部字段必须使用包装类型 (必须)</li>
  *   <li>可以使用lombok的@Data注解来实现</li>
  * </ol>
- * 
+ *
  * <h3>使用示例：</h3>
  * <pre>{@code
  * // 基本使用
@@ -46,7 +46,7 @@ import java.util.stream.Stream;
  *     .map(User::getName)
  *     .map(String::toUpperCase)
  *     .orElse("UNKNOWN");
- * 
+ *
  * // 集合操作
  * List<String> names = Null.of(users)
  *     .stream()
@@ -54,7 +54,7 @@ import java.util.stream.Stream;
  *     .filter(Objects::nonNull)
  *     .collect(Collectors.toList());
  * }</pre>
- * 
+ *
  * @author huanmin
  * @since 1.0.0
  * @version 1.1.1
@@ -66,7 +66,7 @@ public class Null extends NullUtil {
 
     /**
      * 创建一个空的Null链
-     * 
+     *
      * @param <T> 链中值的类型
      * @return 空的Null链，执行任何操作都会返回空值
      */
@@ -76,7 +76,7 @@ public class Null extends NullUtil {
 
     /**
      * 创建一个包含指定值的Null链
-     * 
+     *
      * @param <T> 值的类型
      * @param o 要包装的值，可以为null
      * @return 包含指定值的Null链
@@ -91,7 +91,7 @@ public class Null extends NullUtil {
 
     /**
      * 创建一个包含数组的Null链
-     * 
+     *
      * @param <T> 数组元素类型
      * @param array 要包装的数组，可以为null
      * @return 包含数组的Null链
@@ -102,7 +102,7 @@ public class Null extends NullUtil {
 
     /**
      * 创建一个包含集合的Null链
-     * 
+     *
      * @param <T> 集合元素类型
      * @param list 要包装的集合，可以为null
      * @return 包含集合的Null链
@@ -147,14 +147,14 @@ public class Null extends NullUtil {
 
     /**
      * 创建多级判空工具
-     * 
+     *
      * <p>该方法用于创建多级判空工具，与 `NullChain.of()` 不同，该工具会**全部判定一遍**所有节点，
      * 收集所有为空的节点信息，然后统一处理。</p>
-     * 
+     *
      * @param <T> 检查对象的类型
      * @param value 要检查的对象
      * @return 多级判空工具实例
-     * 
+     *
      * @example
      * <pre>{@code
      * Null.ofCheck(user)
@@ -224,7 +224,7 @@ public class Null extends NullUtil {
                 return NullBuild.empty();
             }
             linkLog.append(OF_CALC_ARROW);
-            return NullBuild.noEmpty(BigDecimal.valueOf(n.doubleValue()));
+            return NullBuild.noEmpty(new BigDecimal(n.toString()));
         });
         return NullBuild.busyCalc(linkLog, nullTaskList);
     }
@@ -238,7 +238,7 @@ public class Null extends NullUtil {
                 return NullBuild.empty();
             }
             linkLog.append(OF_CALC_ARROW);
-            return NullBuild.noEmpty(BigDecimal.valueOf(nullChain.get().doubleValue()));
+            return NullBuild.noEmpty(new BigDecimal(nullChain.get().toString()));
         });
         return NullBuild.busyCalc(linkLog, nullTaskList);
     }
@@ -275,7 +275,7 @@ public class Null extends NullUtil {
 
     /**
      * 创建Leaf对象的通用辅助方法
-     * 
+     *
      * @param valueSupplier 提供实际值的函数，如果为null或空则返回null
      * @param nullLog 空值日志
      * @param okLog 正常值日志
@@ -306,7 +306,7 @@ public class Null extends NullUtil {
             nullTaskList.add((__) -> NullBuild.empty());
             return builder.build(linkLog, nullTaskList);
         }
-        
+
         return createLeaf(() -> value, nullLog, okLog, builder);
     }
 
@@ -414,7 +414,7 @@ public class Null extends NullUtil {
             nullTaskList.add((__) -> NullBuild.empty());
             return NullBuild.busy(linkLog, nullTaskList);
         }
-        
+
         NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         nullTaskList.add((__) -> {
