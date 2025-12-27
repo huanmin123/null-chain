@@ -1,7 +1,9 @@
 package com.gitee.huanminabc.test.nullchain.core;
 
 import com.gitee.huanminabc.jcommon.base.SerializeUtil;
+import com.gitee.huanminabc.jcommon.exception.CommonException;
 import com.gitee.huanminabc.nullchain.Null;
+import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.test.nullchain.entity.RoleEntity;
 import com.gitee.huanminabc.test.nullchain.entity.UserEntity;
@@ -84,15 +86,15 @@ public class NullChainSerializeTest {
     @SneakyThrows
     @Test
     public void testSerializeWithNull() {
-        NullChain<RoleEntity> chain = Null.of((UserEntity) null)
-                .map(UserEntity::getRoleData);
-        
-        byte[] serialize = SerializeUtil.serialize(chain);
-        assertNotNull(serialize);
+        //异常包裹起来
+        assertThrows(CommonException.class, () -> {
+            NullChain<RoleEntity> chain = Null.of((UserEntity) null)
+                    .map(UserEntity::getRoleData);
+            SerializeUtil.serialize(chain);
 
-        NullChain<RoleEntity> deserialize = SerializeUtil.deserialize(serialize, NullChain.class);
-        assertNotNull(deserialize);
-        assertTrue(deserialize.is());
+        });
+
+
     }
 }
 

@@ -60,7 +60,6 @@
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <skipTests>false</skipTests>
-        <null-chain-version>1.1.2-RELEASE</null-chain-version>
     </properties>
 
     <dependencyManagement>
@@ -68,25 +67,25 @@
             <dependency>
                 <groupId>com.gitee.huanminabc</groupId>
                 <artifactId>null-chain-core</artifactId>
-                <version>${null-chain-version}</version>
+                <version>${version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.gitee.huanminabc</groupId>
                 <artifactId>null-chain-boot-starter</artifactId>
-                <version>${null-chain-version}</version>
+                <version>${version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.gitee.huanminabc</groupId>
                 <artifactId>null-chain-work</artifactId>
-                <version>${null-chain-version}</version>
+                <version>${version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.gitee.huanminabc</groupId>
                 <artifactId>null-chain-boot-dubbo</artifactId>
-                <version>${null-chain-version}</version>
+                <version>${version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -100,35 +99,4 @@
         </dependency>
 
     </dependencies>
-
-
-
-
-    <build>
-        <plugins>
-
-            <!-- GPG -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>deploy</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <!-- 非敏感参数：密钥 ID 可配置在这里（如果不敏感） -->
-                    <keyname>34F3FE239781913FDCAE3211292467D62DFF5927</keyname>
-                    <!-- 敏感参数：通过外部变量引用，不在 pom 中硬编码 -->
-                    <passphrase>gpg.passphrase</passphrase>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
-
 </project>
