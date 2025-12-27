@@ -4,6 +4,7 @@ import com.gitee.huanminabc.nullchain.Null;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -364,6 +365,12 @@ public class NullStreamTest {
             .toArray(String[]::new);
         
         Assertions.assertEquals(0, array.length);
+
+        List<String> data =new ArrayList<>();
+        Object[] array1 = Null.ofStream(data)
+                .toArray(String[]::new);
+
+        Assertions.assertEquals(0, array1.length);
     }
 }
 

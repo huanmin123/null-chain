@@ -711,9 +711,6 @@ public class NullStreamBase<T> extends NullKernelAsyncAbstract<T> implements Nul
             throw new NullChainException(linkLog.append(STREAM_TO_ARRAY_Q).append("generator must not be null").toString());
         }
         NullTaskList.NullNode<Object> objectNullNode = taskList.runTaskAll();
-        if (objectNullNode.isNull) {
-            return generator.apply(0);
-        }
         Stream<T> preValue = (Stream<T>) objectNullNode.value;
         A[] result;
         try {
