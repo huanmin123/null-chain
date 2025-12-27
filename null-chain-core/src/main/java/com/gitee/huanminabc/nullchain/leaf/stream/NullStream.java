@@ -5,7 +5,10 @@ import com.gitee.huanminabc.nullchain.common.function.NullConsumer2;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -138,7 +141,6 @@ public interface NullStream<T > extends NullKernel<T> {
 
     NullStream<T> then(Consumer<? super T> action);
 
-    NullStream<T> then(NullConsumer2<NullChain<T>, ? super T> function);
 
     //流展开 (扁平化)
   <R> NullStream<R> flatMap(NullFun<? super T, ? extends NullStream<? extends R>> mapper);
@@ -174,6 +176,38 @@ public interface NullStream<T > extends NullKernel<T> {
     //Collectors.xxx 一些常用的收集器
     <R, A> R collect(Collector<? super T, A, R> collector);
 
+    /**
+     * 将流收集为ArrayList
+     * 
+     * <p>该方法将流中的所有元素收集到一个ArrayList中。
+     * 如果流为空或包含null值，会返回一个空的ArrayList。</p>
+     * 
+     * @return 包含流中所有元素的ArrayList
+     * 
+     * @example
+     * <pre>{@code
+     * ArrayList<String> list = Null.of(Arrays.asList("a", "b", "c"))
+     *     .stream()
+     *     .toList();  // 返回包含["a", "b", "c"]的ArrayList
+     * }</pre>
+     */
+    List<T> toList();
 
+    /**
+     * 将流收集为HashSet
+     * 
+     * <p>该方法将流中的所有元素收集到一个HashSet中，自动去除重复元素。
+     * 如果流为空或包含null值，会返回一个空的HashSet。</p>
+     * 
+     * @return 包含流中所有不重复元素的HashSet
+     * 
+     * @example
+     * <pre>{@code
+     * HashSet<String> set = Null.of(Arrays.asList("a", "b", "a", "c"))
+     *     .stream()
+     *     .toSet();  // 返回包含["a", "b", "c"]的HashSet（去重）
+     * }</pre>
+     */
+    Set<T> toSet();
 
 }

@@ -124,6 +124,13 @@ public final class NullLog {
     public static final String STREAM_NONE_MATCH_ARROW = "noneMatch->";
     public static final String STREAM_FOR_EACH_Q = "forEach? ";
     public static final String STREAM_COLLECT_Q = "collect? ";
+    public static final String STREAM_COLLECT_ARROW = "collect->";
+    public static final String STREAM_TO_LIST_Q = "toList? ";
+    public static final String STREAM_TO_LIST_ARROW = "toList->";
+
+    public static final String STREAM_TO_SET_Q = "toSet? ";
+    public static final String STREAM_TO_SET_ARROW = "toSet->";
+
     public static final String STREAM_PARALLEL_VALUE_NOT_STREAM = "parallel? value must be a Stream";
     public static final String STREAM_COLLECT_COLLECTOR_NULL = "collect? collector must not be null";
 

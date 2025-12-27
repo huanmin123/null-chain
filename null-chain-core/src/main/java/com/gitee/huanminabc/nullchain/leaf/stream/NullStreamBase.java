@@ -8,8 +8,7 @@ import com.gitee.huanminabc.nullchain.core.NullChain;
 import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 
 import java.math.BigDecimal;
-import java.util.Comparator;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -44,7 +43,6 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
     @Override
     public <R> NullStream<R> map(NullFun<? super T, ? extends R> mapper) {
         this.taskList.add((value) -> {
-
             if (mapper == null) {
                 throw new NullChainException(linkLog.append(STREAM_MAP_Q).append("mapper must not be null").toString());
             }
@@ -53,7 +51,7 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
                 stream = (R) ((Stream) value).filter((data) -> {
                     //对mapper进行加强,如果返回的是空那么就丢弃
                     R apply = mapper.apply((T) data);
-                    return apply != null;
+                    return Null.non(apply) ;
                 }).map(mapper);
             } catch (Exception e) {
                 linkLog.append(STREAM_MAP_Q);
@@ -261,26 +259,6 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
         return NullBuild.busyStream(this);
     }
 
-    @Override
-    public NullStream<T> then(NullConsumer2<NullChain<T>, ? super T> function) {
-        this.taskList.add((value) -> {
-            if (function == null) {
-                throw new NullChainException(linkLog.append(STREAM_THEN_Q).append("action must not be null").toString());
-            }
-            T stream;
-            try {
-                stream = (T) ((Stream) value).peek((data) -> {
-                    function.accept((NullChain) Null.of(data), (T) data);
-                });
-            } catch (Exception e) {
-                linkLog.append(STREAM_THEN_Q);
-                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
-            }
-            linkLog.append(STREAM_THEN_ARROW);
-            return NullBuild.noEmpty(stream);
-        });
-        return NullBuild.busyStream(this);
-    }
 
     @Override
     public <R> NullStream<R> flatMap(NullFun<? super T, ? extends NullStream<? extends R>> mapper) {
@@ -318,6 +296,42 @@ public class NullStreamBase<T> extends NullKernelAbstract<T> implements NullStre
             linkLog.append(STREAM_COLLECT_Q);
             throw NullReflectionKit.addRunErrorMessage(e, linkLog);
         }
+        return result;
+    }
+
+    @Override
+    public List<T> toList() {
+        NullTaskList.NullNode<Object> objectNullNode = taskList.runTaskAll();
+        if (objectNullNode.isNull) {
+            return new ArrayList<>();
+        }
+        Stream<T> preValue = (Stream<T>) objectNullNode.value;
+        ArrayList<T> result;
+        try {
+            result = preValue.collect(Collectors.toCollection(ArrayList::new));
+        } catch (Exception e) {
+            linkLog.append(STREAM_TO_LIST_Q);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+        }
+        linkLog.append(STREAM_TO_LIST_ARROW);
+        return result;
+    }
+
+    @Override
+    public Set<T> toSet() {
+        NullTaskList.NullNode<Object> objectNullNode = taskList.runTaskAll();
+        if (objectNullNode.isNull) {
+            return new HashSet<>();
+        }
+        Stream<T> preValue = (Stream<T>) objectNullNode.value;
+        HashSet<T> result;
+        try {
+            result = preValue.collect(Collectors.toCollection(HashSet::new));
+        } catch (Exception e) {
+            linkLog.append(STREAM_TO_SET_Q);
+            throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+        }
+        linkLog.append(STREAM_TO_SET_ARROW);
         return result;
     }
 
