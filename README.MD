@@ -11,8 +11,6 @@ Null-Chain 是一个强大的空值安全链式编程框架，提供了类似 Op
 
 ## 详细文档
 
-📖 **在线完整使用教程**：https://www.yuque.com/huanmin-4bkaa/fxm661/fou8lvfycyppbpog
-
 📚 **本地文档**：查看 [doc/README.md](./doc/README.md) 获取完整的文档索引
 
 ## 许可证
