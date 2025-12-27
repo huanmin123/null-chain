@@ -94,7 +94,7 @@ public class NullReflectionKit {
         }
 
         //否则取内部的size或者length方法,如果都没有那么返回0
-        Method sizeMethod = null;
+        Method sizeMethod;
         try {
             sizeMethod = aClass.getMethod("size");
         } catch (NoSuchMethodException e) {
@@ -105,6 +105,7 @@ public class NullReflectionKit {
             }
         }
         try {
+            sizeMethod.setAccessible(true);
             Object invoke = sizeMethod.invoke(object);
             if (invoke instanceof Integer || invoke instanceof Long) {
                 return (int) invoke;
