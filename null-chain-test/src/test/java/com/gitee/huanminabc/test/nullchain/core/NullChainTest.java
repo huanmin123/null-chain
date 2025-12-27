@@ -699,11 +699,9 @@ public class NullChainTest {
                 .async()
                 .map(UserEntity::getRoleData)
                 .map(RoleEntity::getRoleName);
-        
+        chain.ifPresent(r -> result[0] = r);
         // 等待异步执行
         Thread.sleep(100);
-        
-        chain.ifPresent(r -> result[0] = r);
         assertEquals("admin", result[0]);
     }
 }
