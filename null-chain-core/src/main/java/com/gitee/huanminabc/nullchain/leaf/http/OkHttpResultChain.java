@@ -31,17 +31,16 @@ public interface OkHttpResultChain {
      * 适用于下载文件、图片、文档等二进制内容。</p>
      * 
      * @param filePath 文件保存路径
-     * @return 包含下载结果的Null链，true表示下载成功
+     * @return true表示下载成功，false表示下载失败
      * 
      * @example
      * <pre>{@code
-     * Boolean success = Null.of("https://example.com/file.pdf")
+     * boolean success = Null.ofHttp("https://example.com/file.pdf")
      *     .get()
-     *     .downloadFile("/path/to/download/file.pdf")  // 下载文件到指定路径
-     *     .orElse(false);
+     *     .downloadFile("/path/to/download/file.pdf");  // 下载文件到指定路径
      * }</pre>
      */
-    NullChain<Boolean> downloadFile(String filePath);
+    boolean downloadFile(String filePath);
     
     /**
      * 获取返回的字节数组
@@ -49,17 +48,16 @@ public interface OkHttpResultChain {
      * <p>该方法用于获取HTTP响应的字节数组内容。
      * 适用于处理二进制数据、图片、文件等。</p>
      * 
-     * @return 包含字节数组的Null链
+     * @return 字节数组，如果响应为空则返回空数组（长度为0）
      * 
      * @example
      * <pre>{@code
-     * byte[] data = Null.of("https://example.com/image.jpg")
+     * byte[] data = Null.ofHttp("https://example.com/image.jpg")
      *     .get()
-     *     .toBytes()  // 获取图片的字节数组
-     *     .orElse(new byte[0]);
+     *     .toBytes();  // 获取图片的字节数组
      * }</pre>
      */
-    NullChain<byte[]> toBytes();
+    byte[] toBytes();
 
     /**
      * 获取返回的输入流
@@ -67,17 +65,21 @@ public interface OkHttpResultChain {
      * <p>该方法用于获取HTTP响应的输入流，适用于处理大文件或流式数据。
      * 调用者需要负责关闭输入流。</p>
      * 
-     * @return 包含输入流的Null链
+     * @return 输入流，如果响应为空则返回null
      * 
      * @example
      * <pre>{@code
-     * InputStream stream = Null.of("https://example.com/large-file.zip")
+     * InputStream stream = Null.ofHttp("https://example.com/large-file.zip")
      *     .get()
-     *     .toInputStream()  // 获取大文件的输入流
-     *     .orElse(null);
+     *     .toInputStream();  // 获取大文件的输入流
+     * if (stream != null) {
+     *     try (stream) {
+     *         // 处理流数据
+     *     }
+     * }
      * }</pre>
      */
-    NullChain<InputStream> toInputStream();
+    InputStream toInputStream();
 
     /**
      * 获取返回的字符串
@@ -89,12 +91,32 @@ public interface OkHttpResultChain {
      * 
      * @example
      * <pre>{@code
-     * String response = Null.of("https://api.example.com/users")
+     * String response = Null.ofHttp("https://api.example.com/users")
      *     .get()
      *     .toStr()  // 获取API响应的字符串
      *     .orElse("请求失败");
      * }</pre>
      */
-    NullChain<String> toStr();
+    NullChain<String> toJson();
+
+    /**
+     * 获取返回的字符串并转换为指定类型的对象
+     * 
+     * <p>该方法用于获取HTTP响应的字符串内容，并通过JSON反序列化转换为指定类型的对象。
+     * 适用于处理JSON格式的API响应。</p>
+     * 
+     * @param <R> 目标对象类型
+     * @param clazz 目标类型的Class对象
+     * @return 包含目标类型对象的Null链
+     * 
+     * @example
+     * <pre>{@code
+     * User user = Null.ofHttp("https://api.example.com/user/1")
+     *     .get()
+     *     .toStr(User.class)  // 将JSON响应转换为User对象
+     *     .orElseNull();
+     * }</pre>
+     */
+    <R> NullChain<R> toJson(Class<R> clazz);
 
 }

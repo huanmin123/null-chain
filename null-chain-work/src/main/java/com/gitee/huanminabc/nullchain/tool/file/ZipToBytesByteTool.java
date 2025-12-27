@@ -1,10 +1,9 @@
 package com.gitee.huanminabc.nullchain.tool.file;
 
 
-import com.gitee.huanminabc.nullchain.Null;
+import com.gitee.huanminabc.jcommon.str.StringUtil;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.tool.NullTool;
-import java.util.Map;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Comparator;
@@ -31,7 +30,7 @@ public class ZipToBytesByteTool implements NullTool<Map<String, byte[]>,byte[]> 
              ZipOutputStream zos = new ZipOutputStream(bos);
         ) {
             for (String fileName : fileNamesSort) {
-                if (Null.is(fileName)) {
+                if (StringUtil.isEmpty(fileName)) {
                     continue;
                 }
                 byte[] bytes = preValue.get(fileName);

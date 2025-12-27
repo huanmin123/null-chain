@@ -1,5 +1,7 @@
 package com.gitee.huanminabc.nullchain.leaf.http;
 
+import com.alibaba.fastjson.JSON;
+import com.gitee.huanminabc.jcommon.str.StringUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.common.*;
@@ -28,6 +30,14 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
     private Map<String, String> headerMap;
     private Request.Builder request;
     private String url;
+    /**
+     * 重试次数，默认3次
+     */
+    private int retryCount = 3;
+    /**
+     * 重试间隔时间（毫秒），默认100毫秒
+     */
+    private long retryInterval = 100;
 
     private void setUrl(String url) {
         //加工url,如果结尾是/或者?那么去掉
@@ -121,6 +131,42 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
         return this;
     }
 
+    /**
+     * 设置请求失败时的重试次数
+     *
+     * @param retryCount 重试次数，必须大于等于0
+     * @return OkHttp对象，以便链式调用
+     */
+    public OkHttp retryCount(int retryCount) {
+        this.taskList.add((preValue)->{
+            linkLog.append("->retryCount(").append(retryCount).append(")");
+            if (retryCount < 0) {
+                throw new NullChainException("重试次数不能小于0");
+            }
+            this.retryCount = retryCount;
+            return NullBuild.noEmpty(preValue);
+        });
+        return this;
+    }
+
+    /**
+     * 设置请求失败时的重试间隔时间
+     *
+     * @param retryInterval 重试间隔时间（毫秒），必须大于等于0
+     * @return OkHttp对象，以便链式调用
+     */
+    public OkHttp retryInterval(long retryInterval) {
+        this.taskList.add((preValue)->{
+            linkLog.append("->retryInterval(").append(retryInterval).append("ms)");
+            if (retryInterval < 0) {
+                throw new NullChainException("重试间隔时间不能小于0");
+            }
+            this.retryInterval = retryInterval;
+            return NullBuild.noEmpty(preValue);
+        });
+        return this;
+    }
+
 
     public OkHttp get() {
         this.taskList.add((preValue)->{
@@ -194,79 +240,82 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
 
 
     /**
+     * 下载文件到指定路径
+     * 
      * @param filePath 下载内容存储的路径
+     * @return true表示下载成功，false表示下载失败
      */
-    public NullChain<Boolean> downloadFile(String filePath) {
-        this.taskList.add((__)->{
-            if (Null.is(filePath)) {
-                linkLog.append(HTTP_DOWNLOAD_FILE_PATH_NULL);
-                throw new NullChainException(linkLog.toString());
-            }
+    public boolean downloadFile(String filePath) {
+        if (StringUtil.isEmpty(filePath)) {
+            linkLog.append(HTTP_DOWNLOAD_FILE_PATH_NULL);
+            throw new NullChainException(linkLog.toString());
+        }
 
-            try {
-                OkHttpBuild.setHeader(headerMap, request);
-                boolean b = OkHttpBuild.downloadFile(url, filePath, okHttpClient, request);
-                linkLog.append(HTTP_DOWNLOAD_FILE_ARROW);
-                return NullBuild.noEmpty(b);
-            } catch (Exception e) {
-                linkLog.append(HTTP_DOWNLOAD_FILE_Q).append(e.getMessage());
-                throw new NullChainException(linkLog.toString());
-            }
-        });
-        return NullBuild.busy( linkLog, taskList);
-    }
-
-    //下载文件返回字节流
-    public NullChain<byte[]> toBytes() {
-        this.taskList.add((__)->{
-            try {
-                OkHttpBuild.setHeader(headerMap, request);
-                byte[] bytes = OkHttpBuild.toBytes(url, okHttpClient, request);
-                if (bytes == null) {
-                    linkLog.append(HTTP_TO_BYTES_Q).append("返回值为空");
-                    return NullBuild.empty();
-                }
-                linkLog.append(HTTP_TO_BYTES_ARROW);
-                return NullBuild.noEmpty(bytes);
-            } catch (Exception e) {
-                linkLog.append(HTTP_TO_BYTES_Q).append(e.getMessage());
-                throw new NullChainException(linkLog.toString());
-            }
-        });
-        return NullBuild.busy( linkLog, taskList);
-    }
-
-    //下载文件返回inputStream
-    public NullChain<InputStream> toInputStream() {
-        this.taskList.add((__)->{
-            try {
-                OkHttpBuild.setHeader(headerMap, request);
-                InputStream inputStream = OkHttpBuild.toInputStream(url, okHttpClient, request);
-                if (inputStream == null) {
-                    linkLog.append(HTTP_TO_INPUTSTREAM_Q).append("返回值为空");
-                    return NullBuild.empty();
-                }
-                linkLog.append(HTTP_TO_INPUTSTREAM_ARROW);
-                return NullBuild.noEmpty(inputStream);
-            } catch (Exception e) {
-                linkLog.append(HTTP_TO_INPUTSTREAM_Q).append(e.getMessage());
-                throw new NullChainException(linkLog.toString());
-            }
-        });
-        return NullBuild.busy( linkLog, taskList);
+        try {
+            OkHttpBuild.setHeader(headerMap, request);
+            boolean result = OkHttpBuild.downloadFile(url, filePath, okHttpClient, request, retryCount, retryInterval);
+            linkLog.append(HTTP_DOWNLOAD_FILE_ARROW);
+            return result;
+        } catch (Exception e) {
+            linkLog.append(HTTP_DOWNLOAD_FILE_Q).append(e.getMessage());
+            throw new NullChainException(linkLog.toString());
+        }
     }
 
     /**
-     * 同步请求
-     *
-     * @return
+     * 获取返回的字节数组
+     * 
+     * @return 字节数组，如果响应为空则返回空数组（长度为0）
      */
-    public NullChain<String> toStr() {
+    public byte[] toBytes() {
+        try {
+            OkHttpBuild.setHeader(headerMap, request);
+            byte[] bytes = OkHttpBuild.toBytes(url, okHttpClient, request, retryCount, retryInterval);
+            if (bytes == null) {
+                linkLog.append(HTTP_TO_BYTES_ARROW).append("(empty)");
+                return new byte[0];
+            }
+            linkLog.append(HTTP_TO_BYTES_ARROW);
+            return bytes;
+        } catch (Exception e) {
+            linkLog.append(HTTP_TO_BYTES_Q).append(e.getMessage());
+            throw new NullChainException(linkLog.toString());
+        }
+    }
+
+    /**
+     * 获取返回的输入流
+     * 注意: 调用者需要负责关闭返回的输入流
+     * 
+     * @return 输入流，如果响应为空则返回null
+     */
+    public InputStream toInputStream() {
+        try {
+            OkHttpBuild.setHeader(headerMap, request);
+            InputStream inputStream = OkHttpBuild.toInputStream(url, okHttpClient, request, retryCount, retryInterval);
+            if (inputStream == null) {
+                linkLog.append(HTTP_TO_INPUTSTREAM_ARROW).append("(null)");
+                return null;
+            }
+            linkLog.append(HTTP_TO_INPUTSTREAM_ARROW);
+            return inputStream;
+        } catch (Exception e) {
+            linkLog.append(HTTP_TO_INPUTSTREAM_Q).append(e.getMessage());
+            throw new NullChainException(linkLog.toString());
+        }
+    }
+
+    /**
+     * 获取返回的字符串
+     *
+     * @return 包含字符串的Null链
+     */
+    public NullChain<String> toJson() {
         this.taskList.add((__)->{
             try {
                 OkHttpBuild.setHeader(headerMap, request);
-                String str = OkHttpBuild.toStr(url, okHttpClient, request);
-                if (Null.is(str)) {
+                String str = OkHttpBuild.toStr(url, okHttpClient, request, retryCount, retryInterval);
+                if (StringUtil.isEmpty(str)) {
                     linkLog.append(HTTP_TO_STR_Q).append("返回值为空");
                     return NullBuild.empty();
                 }
@@ -274,6 +323,37 @@ public class OkHttpBase<T> extends NullKernelAbstract<T> implements  OkHttp<T> {
                 return NullBuild.noEmpty(str);
             } catch (Exception e) {
                 linkLog.append(HTTP_TO_STR_Q).append(e.getMessage());
+                throw new NullChainException(linkLog.toString());
+            }
+        });
+        return NullBuild.busy( linkLog, taskList);
+    }
+
+    /**
+     * 获取返回的字符串并转换为指定类型的对象
+     * 
+     * @param <R> 目标对象类型
+     * @param clazz 目标类型的Class对象
+     * @return 包含目标类型对象的Null链
+     */
+    public <R> NullChain<R> toJson(Class<R> clazz) {
+        this.taskList.add((__)->{
+            try {
+                OkHttpBuild.setHeader(headerMap, request);
+                String str = OkHttpBuild.toStr(url, okHttpClient, request, retryCount, retryInterval);
+                if (StringUtil.isEmpty(str)) {
+                    linkLog.append(HTTP_TO_STR_Q).append("返回值为空");
+                    return NullBuild.empty();
+                }
+                linkLog.append(HTTP_TO_STR_ARROW).append("->toJson(").append(clazz.getSimpleName()).append(")");
+                // 使用 FastJSON 将字符串转换为对象
+                R result = JSON.parseObject(str, clazz);
+                if (Null.is(result)) {
+                    return NullBuild.empty();
+                }
+                return NullBuild.noEmpty(result);
+            } catch (Exception e) {
+                linkLog.append(HTTP_TO_STR_Q).append("转换为").append(clazz.getSimpleName()).append("失败:").append(e.getMessage());
                 throw new NullChainException(linkLog.toString());
             }
         });

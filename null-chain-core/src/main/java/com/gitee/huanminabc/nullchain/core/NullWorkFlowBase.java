@@ -1,6 +1,7 @@
 package com.gitee.huanminabc.nullchain.core;
 
 import com.gitee.huanminabc.jcommon.multithreading.executor.ThreadFactoryUtil;
+import com.gitee.huanminabc.jcommon.str.StringUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.*;
 import com.gitee.huanminabc.nullchain.language.NfMain;
@@ -101,7 +102,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
 
             @Override
             public NullTaskList.NullNode nodeTask(Object preValue) throws RuntimeException {
-                if (Null.is(classPath)) {
+                if (StringUtil.isEmpty(classPath)) {
                     throw new NullChainException(linkLog.append(TASK_Q).append("传参不能为空").toString());
                 }
                 Object o = __task__(preValue,classPath, params);
@@ -270,7 +271,7 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
         List<Future<?>> futures = new ArrayList<>();
         NullGroupTask.NullTaskInfo[] list = nullGroupTask.getList();
         for (NullGroupTask.NullTaskInfo nullTaskInfo : list) {
-            if (Null.is(nullTaskInfo.getTaskName())) {
+            if (StringUtil.isEmpty(nullTaskInfo.getTaskName())) {
                 linkLog.append(TASK_Q).append("任务名不能为空");
                 throw new NullChainException(linkLog.toString());
             }

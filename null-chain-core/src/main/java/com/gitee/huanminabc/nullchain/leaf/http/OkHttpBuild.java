@@ -61,8 +61,8 @@ public class OkHttpBuild {
         return okHttpClientConcurrentHashMap.computeIfAbsent(httpName, k -> createOkHttpClient(100));
     }
 
-    public static boolean downloadFile(String url, String filePath, OkHttpClient okHttpClient, Request.Builder request) {
-        return retry(url, () -> {
+    public static boolean downloadFile(String url, String filePath, OkHttpClient okHttpClient, Request.Builder request, int retryCount, long retryInterval) {
+        return retry(url, retryCount, retryInterval, () -> {
             try (Response response = okHttpClient.newCall(request.build()).execute()) {
                 if (response.body() == null) {
                     return false;
@@ -91,8 +91,8 @@ public class OkHttpBuild {
         });
     }
 
-    public static String toStr(String url, OkHttpClient okHttpClient, Request.Builder request) {
-        return retry(url, () -> {
+    public static String toStr(String url, OkHttpClient okHttpClient, Request.Builder request, int retryCount, long retryInterval) {
+        return retry(url, retryCount, retryInterval, () -> {
             try (Response response = okHttpClient.newCall(request.build()).execute()) {
                 if (response.body() == null) {
                     return null;
@@ -103,20 +103,33 @@ public class OkHttpBuild {
         });
     }
 
-    public static InputStream toInputStream(String url, OkHttpClient okHttpClient, Request.Builder request) {
-        return retry(url, () -> {
-            try (Response response = okHttpClient.newCall(request.build()).execute()) {
-                if (response.body() == null) {
-                    return null;
-                }
-                return response.body().byteStream();
+    /**
+     * 获取响应的输入流
+     * 注意: 返回的 InputStream 必须由调用方负责关闭,否则会造成资源泄漏
+     * 
+     * @param url HTTP请求的URL
+     * @param okHttpClient OkHttp客户端实例
+     * @param request 请求构建器
+     * @param retryCount 重试次数
+     * @param retryInterval 重试间隔（毫秒）
+     * @return 响应体的输入流,如果响应体为空则返回null
+     */
+    public static InputStream toInputStream(String url, OkHttpClient okHttpClient, Request.Builder request, int retryCount, long retryInterval) {
+        return retry(url, retryCount, retryInterval, () -> {
+            Response response = okHttpClient.newCall(request.build()).execute();
+            if (response.body() == null) {
+                // 如果没有响应体,需要关闭response避免资源泄漏
+                response.close();
+                return null;
             }
+            // 返回流,由调用方负责关闭(关闭流会自动关闭response)
+            return response.body().byteStream();
         });
 
     }
 
-    public static byte[] toBytes(String url, OkHttpClient okHttpClient, Request.Builder request) {
-        return retry(url, () -> {
+    public static byte[] toBytes(String url, OkHttpClient okHttpClient, Request.Builder request, int retryCount, long retryInterval) {
+        return retry(url, retryCount, retryInterval, () -> {
             try (Response response = okHttpClient.newCall(request.build()).execute()) {
                 if (response.body() == null) {
                     return null;
@@ -126,22 +139,45 @@ public class OkHttpBuild {
         });
     }
 
-    //重试3次,不行就拉倒, 就剩网络波动也不可能连续3次失败
-    private static <T> T retry(String url, NullHttpSupplierEx<T> runnable) {
-        for (int i = 1; i <= 3; i++) {
+    /**
+     * HTTP请求重试机制
+     * 
+     * @param url 请求的URL
+     * @param retryCount 重试次数
+     * @param retryInterval 基础重试间隔（毫秒），实际间隔为：retryInterval * 当前重试次数
+     * @param runnable 执行的HTTP请求操作
+     * @return 请求结果
+     * @throws NullChainException 当所有重试都失败时抛出异常
+     */
+    private static <T> T retry(String url, int retryCount, long retryInterval, NullHttpSupplierEx<T> runnable) {
+        // 如果重试次数为0，直接执行一次
+        if (retryCount == 0) {
+            try {
+                return runnable.get();
+            } catch (IOException e) {
+                log.error("{}请求失败，未配置重试", url, e);
+                throw new NullChainException(url + "请求失败: " + e.getMessage());
+            }
+        }
+        
+        // 执行重试逻辑
+        for (int i = 1; i <= retryCount; i++) {
             try {
                 return runnable.get();
             } catch (IOException e) {
                 log.error("{}请求失败开始重试次数：{}", url, i, e);
-                try {
-                    Thread.sleep(100 * i);
-                } catch (InterruptedException e1) {
-                    log.warn("重试线程被中断", e1);
-                    Thread.currentThread().interrupt();
+                // 如果还有重试机会，则等待后继续
+                if (i < retryCount) {
+                    try {
+                        Thread.sleep(retryInterval * i);
+                    } catch (InterruptedException e1) {
+                        log.warn("重试线程被中断", e1);
+                        Thread.currentThread().interrupt();
+                    }
                 }
             }
         }
-        throw new NullChainException(url + "重试" + 3 + "次还是请求失败");
+        throw new NullChainException(url + "重试" + retryCount + "次还是请求失败");
     }
 
 
@@ -171,10 +207,10 @@ public class OkHttpBuild {
                     String key = entry.getKey();
                     Object value1 = entry.getValue();
                     //必须是字符串
-                    if (value1 instanceof String) {
+                    if (!(value1 instanceof String)) {
                         throw new NullChainException("FORM类型value值只能是字符串");
                     }
-                    formBody.add(key, String.valueOf(value1));
+                    formBody.add(key, (String) value1);
                 }
                 requestBody = formBody.build();
                 break;
@@ -317,6 +353,10 @@ public class OkHttpBuild {
         if (v == Void.TYPE) {
             return new HashMap<>();
         }
+        // 如果v本身就是Map类型，直接返回，不需要特殊处理
+        if (v instanceof Map) {
+            return (Map<String, Object>) v;
+        }
         //这个会把类中的字节给转化为字符串了,需要单独取出来
         Map<String, Object> map = valuetoMap(v);
         Set<String> strings = map.keySet();
@@ -337,6 +377,11 @@ public class OkHttpBuild {
                     }
                 }
             }
+            // 如果还是找不到字段，跳过（可能是Map中的key，但对象中没有对应字段）
+            if (Null.is(field1)) {
+                continue;
+            }
+            field1.setAccessible(true);
             Object o = field1.get(v);
             //获取类型,如果是byte[] 或者File... 那么就处理
             if (

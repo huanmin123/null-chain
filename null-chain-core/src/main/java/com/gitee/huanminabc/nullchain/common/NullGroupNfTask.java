@@ -1,7 +1,7 @@
 package com.gitee.huanminabc.nullchain.common;
 
 import com.gitee.huanminabc.jcommon.encryption.HashUtil;
-import com.gitee.huanminabc.nullchain.Null;
+import com.gitee.huanminabc.jcommon.str.StringUtil;
 import lombok.Data;
 import org.slf4j.Logger;
 
@@ -86,7 +86,7 @@ public class NullGroupNfTask {
         info.setParams(params);
         info.setLogger(logger);
         String text = readFileStrAll(new File(filePath));
-        if (Null.is(text)) {
+        if (StringUtil.isEmpty(text)) {
             throw new NullChainException("NullGroupNfTask::taskFile-> 文件内容为空{}", filePath);
         }
         info.setNfContext(text);
@@ -100,7 +100,7 @@ public class NullGroupNfTask {
     }
 
     public static NullTaskInfo task(String nfContext, Logger logger, Object... params) {
-        if (Null.is(nfContext)) {
+        if (StringUtil.isEmpty(nfContext)) {
             throw new NullChainException("NullGroupNfTask::task-> nf脚本内容为空");
         }
         NullTaskInfo info = new NullTaskInfo();
@@ -117,10 +117,10 @@ public class NullGroupNfTask {
         String key = HashUtil.md5(nfContextOrFilePath);
         String s = Arrays.stream(list).map(NullTaskInfo::getKey).filter(k -> k.equals(key)).findFirst().orElse(null);
         //如果拿内容没有找到, 那么就拿文件路径找
-        if (Null.is(s)) {
+        if (StringUtil.isEmpty(s)) {
             s = Arrays.stream(list).map(NullTaskInfo::getFilePath).filter(k -> k.equals(nfContextOrFilePath)).findFirst().orElse(null);
         }
-        if (Null.is(s)) {
+        if (StringUtil.isEmpty(s)) {
             throw new NullChainException("NullGroupNfTask::getKey-> 通过{}没有找到对应任务标识",key);
         }
         return s;

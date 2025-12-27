@@ -2,6 +2,7 @@ package com.gitee.huanminabc.nullchain;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.gitee.huanminabc.jcommon.str.StringUtil;
 import com.gitee.huanminabc.nullchain.common.*;
 import com.gitee.huanminabc.nullchain.core.NullChainBase;
 import static com.gitee.huanminabc.nullchain.common.NullLog.*;
@@ -369,14 +370,14 @@ public class Null extends NullUtil {
         StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         nullTaskList.add((__) -> {
             if (value == null) {
-                if (Null.is(url)) {
+                if (StringUtil.isEmpty(url)) {
                     linkLog.append(OF_HTTP_Q);
                     return NullBuild.empty();
                 }
                 linkLog.append(OF_HTTP_ARROW);
                 return NullBuild.noEmpty(Void.TYPE);
             }
-            if (Null.isAny(url, value)) {
+            if (StringUtil.isEmpty(url) || Null.is(value)) {
                 linkLog.append(OF_HTTP_Q);
                 return NullBuild.empty();
             }
