@@ -574,6 +574,16 @@ public class NullChainTest {
         NullChain<UserEntity> userEntityChain = collect.get(UserEntity.class);
         assertFalse(userEntityChain.is());
         assertEquals("huanmin", userEntityChain.get().getName());
+
+        NullCollect collect1 = Null.of(userEntity)
+                .map(UserEntity::getRoleData)
+                .of(RoleEntity::getId)
+                .of(RoleEntity::getRoleName)
+                .of(RoleEntity::getRoleDescription)
+                .collect();
+        assertFalse(collect1.get(RoleEntity.class).is());
+
+
     }
 
     @Test
