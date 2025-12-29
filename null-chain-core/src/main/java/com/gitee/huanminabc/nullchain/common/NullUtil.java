@@ -168,6 +168,7 @@ public class NullUtil {
         return realValueA == realValueB || realValueA.equals(realValueB);
     }
 
+    //只要有一个相等就返回true
     public static boolean eqAny(Object a, Object... b) {
         if (isAny(a, b)) {
             return false;
@@ -180,12 +181,26 @@ public class NullUtil {
         return false;
     }
 
+
     //如果不相等那么返回true
     public static boolean notEq(Object a, Object b) {
         if (isAny(a, b)) {
             return false;
         }
         return !eq(a, b);
+    }
+
+    //只要有一个不相等就返回true
+    public static boolean notEqAny(Object a, Object... b) {
+        if (isAny(a, b)) {
+            return false;
+        }
+        for (Object o : b) {
+            if (notEq(a, o)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     //全部不相等返回true,只要有一个相等就返回false
