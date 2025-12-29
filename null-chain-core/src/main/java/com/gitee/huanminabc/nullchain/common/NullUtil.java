@@ -100,6 +100,18 @@ public class NullUtil {
         }
         return false;
     }
+    //只要有一个不为空就返回true
+    public static boolean notAny(Object... o) {
+        if (o == null) {
+            return false;
+        }
+        for (Object o1 : o) {
+            if (non(o1)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     //判断全部是空返回true,只要有一个不为空就返回false
     public static boolean isAll(Object... o) {
