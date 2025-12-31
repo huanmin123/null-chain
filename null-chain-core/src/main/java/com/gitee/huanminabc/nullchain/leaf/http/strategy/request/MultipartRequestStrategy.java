@@ -1,9 +1,10 @@
-package com.gitee.huanminabc.nullchain.leaf.http.strategy;
+package com.gitee.huanminabc.nullchain.leaf.http.strategy.request;
 
 import com.alibaba.fastjson.JSON;
 import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
 import com.gitee.huanminabc.nullchain.leaf.http.OkHttpBuild;
 import com.gitee.huanminabc.nullchain.leaf.http.dto.FileBinary;
+import com.gitee.huanminabc.nullchain.leaf.http.strategy.RequestStrategy;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.Request;
@@ -34,7 +35,7 @@ import java.util.Objects;
  * @author huanmin
  * @since 1.1.2
  */
-public class MultipartRequestBodyStrategy implements RequestBodyStrategy {
+public class MultipartRequestStrategy implements RequestStrategy {
     
     @Override
     public RequestBody build(Object requestData, Request.Builder requestBuilder) throws Exception {
@@ -75,7 +76,7 @@ public class MultipartRequestBodyStrategy implements RequestBodyStrategy {
             }
             
             // 判断 value 是否是支持的文件类型
-            if (isSupportedFileType(value)) {
+            if (OkHttpBuild.isFileType(value)) {
                 // 是文件类型，使用 key 作为 addFormDataPart 的 name
                 addFilesToBuilder(key, collectFileValues(value, key), bodyBuilder);
             } else {
@@ -175,44 +176,6 @@ public class MultipartRequestBodyStrategy implements RequestBodyStrategy {
         return type == OkHttpPostEnum.FILE;
     }
     
-    /**
-     * 判断值是否是支持的文件类型
-     * 
-     * @param value 要判断的值
-     * @return 如果是支持的文件类型返回 true，否则返回 false
-     */
-    private boolean isSupportedFileType(Object value) {
-        if (value == null) {
-            return false;
-        }
-        
-        // 支持 FileBinaryDTO
-        if (value instanceof FileBinary) {
-            return true;
-        }
-        
-        // 支持 File
-        if (value instanceof File) {
-            return true;
-        }
-        
-        // 支持 File[]
-        if (value instanceof File[]) {
-            return true;
-        }
-        
-        // 支持 Collection<File> 或 Collection<FileBinaryDTO>
-        if (value instanceof Collection) {
-            Collection<?> collection = (Collection<?>) value;
-            if (collection.isEmpty()) {
-                return false;
-            }
-            Object firstItem = collection.iterator().next();
-            return firstItem instanceof File || firstItem instanceof FileBinary;
-        }
-        
-        return false;
-    }
     
     /**
      * 字段信息封装类
@@ -252,7 +215,7 @@ public class MultipartRequestBodyStrategy implements RequestBodyStrategy {
                 }
 
                 // 自动识别文件类型字段
-                if (isSupportedFileType(value)) {
+                if (OkHttpBuild.isFileType(value)) {
                     // 获取字段名（优先使用 @JSONField 的 name，否则使用字段名）
                     String fieldName = OkHttpBuild.getFieldName(field);
                     List<FileBinary> files = collectFileValues(value, field.getName());
@@ -294,7 +257,7 @@ public class MultipartRequestBodyStrategy implements RequestBodyStrategy {
                 }
 
                 // 检查是否是文件类型：如果是文件类型则排除（文件类型会单独处理）
-                if (isSupportedFileType(value)) {
+                if (OkHttpBuild.isFileType(value)) {
                     continue;
                 }
 

@@ -12,7 +12,7 @@ import okhttp3.RequestBody;
  * @author huanmin
  * @since 1.1.2
  */
-public interface RequestBodyStrategy {
+public interface RequestStrategy {
     /**
      * 构建请求体
      * 

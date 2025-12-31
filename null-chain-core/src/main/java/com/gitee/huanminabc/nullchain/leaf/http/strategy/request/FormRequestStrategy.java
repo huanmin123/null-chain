@@ -1,8 +1,9 @@
-package com.gitee.huanminabc.nullchain.leaf.http.strategy;
+package com.gitee.huanminabc.nullchain.leaf.http.strategy.request;
 
 import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
 import com.gitee.huanminabc.nullchain.leaf.http.OkHttpBuild;
+import com.gitee.huanminabc.nullchain.leaf.http.strategy.RequestStrategy;
 import okhttp3.FormBody;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -21,7 +22,7 @@ import java.util.Map;
  * @author huanmin
  * @since 1.1.2
  */
-public class FormRequestBodyStrategy implements RequestBodyStrategy {
+public class FormRequestStrategy implements RequestStrategy {
     
     @Override
     public RequestBody build(Object requestData, Request.Builder requestBuilder) throws Exception {

@@ -1,17 +1,15 @@
-package com.gitee.huanminabc.nullchain.leaf.http.strategy;
+package com.gitee.huanminabc.nullchain.leaf.http.strategy.request;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
-import com.alibaba.fastjson.annotation.JSONField;
-import com.gitee.huanminabc.nullchain.leaf.http.dto.FileBinary;
+import com.gitee.huanminabc.nullchain.leaf.http.OkHttpBuild;
+import com.gitee.huanminabc.nullchain.leaf.http.strategy.RequestStrategy;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 
-import java.io.File;
 import java.lang.reflect.Field;
-import java.util.Collection;
 
 /**
  * JSON 请求体构建策略
@@ -26,7 +24,7 @@ import java.util.Collection;
  * @author huanmin
  * @since 1.1.2
  */
-public class JsonRequestBodyStrategy implements RequestBodyStrategy {
+public class JsonRequestStrategy implements RequestStrategy {
     
     @Override
     public RequestBody build(Object requestData, Request.Builder requestBuilder) throws Exception {
@@ -70,12 +68,12 @@ public class JsonRequestBodyStrategy implements RequestBodyStrategy {
                     }
 
                     // 检查是否是文件类型：如果是文件类型则排除
-                    if (isFileType(value)) {
+                    if (OkHttpBuild.isFileType(value)) {
                         continue; // 排除文件类型字段
                     }
 
                     // 确定JSON字段名：优先使用 @JSONField 的 name，否则使用字段名
-                    String fieldName = getFieldName(field);
+                    String fieldName = OkHttpBuild.getFieldName(field);
                     jsonMap.put(fieldName, value);
 
                 } catch (IllegalAccessException e) {
@@ -83,66 +81,14 @@ public class JsonRequestBodyStrategy implements RequestBodyStrategy {
                 }
             }
 
-            // 序列化为JSON字符串
-            String jsonString = JSON.toJSONString(jsonMap, SerializerFeature.DisableCircularReferenceDetect);
-            return jsonString;
+            // 序列化为JSON字符串, 忽略循环引用加快速度
+            return JSON.toJSONString(jsonMap, SerializerFeature.DisableCircularReferenceDetect);
 
         } catch (Exception e) {
             throw new RuntimeException("构建JSON请求体失败", e);
         }
     }
     
-    /**
-     * 获取字段名：优先使用 @JSONField 的 name，否则使用字段名
-     *
-     * @param field 字段
-     * @return 字段名
-     */
-    private String getFieldName(Field field) {
-        JSONField jsonField = field.getAnnotation(JSONField.class);
-        if (jsonField != null && jsonField.name() != null && !jsonField.name().isEmpty()) {
-            return jsonField.name();
-        }
-        return field.getName();
-    }
-    
-    /**
-     * 判断值是否是文件类型
-     * 
-     * @param value 要判断的值
-     * @return 如果是文件类型返回 true，否则返回 false
-     */
-    private boolean isFileType(Object value) {
-        if (value == null) {
-            return false;
-        }
-        
-        // 支持 FileBinaryDTO
-        if (value instanceof FileBinary) {
-            return true;
-        }
-        
-        // 支持 File
-        if (value instanceof File) {
-            return true;
-        }
-        
-        // 支持 File[]
-        if (value instanceof File[]) {
-            return true;
-        }
-        
-        // 支持 Collection<File> 或 Collection<FileBinaryDTO>
-        if (value instanceof Collection) {
-            Collection<?> collection = (Collection<?>) value;
-            if (collection.isEmpty()) {
-                return false;
-            }
-            Object firstItem = collection.iterator().next();
-            return firstItem instanceof File || firstItem instanceof FileBinary;
-        }
-        
-        return false;
-    }
+
 }
 
