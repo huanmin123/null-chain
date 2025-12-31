@@ -11,7 +11,7 @@ import lombok.ToString;
  * @since 1.1.2
  */
 @ToString(exclude = {"content"})
-public class FileBinaryDTO {
+public class FileBinary {
     /** 文件名 */
     public final String fileName;
     /** 文件二进制内容 */
@@ -26,7 +26,7 @@ public class FileBinaryDTO {
      * @param content 文件二进制内容
      * @param contentType 文件内容类型（MIME类型），可为 null
      */
-    public FileBinaryDTO(String fileName, byte[] content, String contentType) {
+    public FileBinary(String fileName, byte[] content, String contentType) {
         this.fileName = fileName;
         this.content = content;
         this.contentType = contentType;

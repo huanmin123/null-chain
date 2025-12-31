@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
 import com.alibaba.fastjson.annotation.JSONField;
-import com.gitee.huanminabc.nullchain.leaf.http.dto.FileBinaryDTO;
+import com.gitee.huanminabc.nullchain.leaf.http.dto.FileBinary;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -118,7 +118,7 @@ public class JsonRequestBodyStrategy implements RequestBodyStrategy {
         }
         
         // 支持 FileBinaryDTO
-        if (value instanceof FileBinaryDTO) {
+        if (value instanceof FileBinary) {
             return true;
         }
         
@@ -139,7 +139,7 @@ public class JsonRequestBodyStrategy implements RequestBodyStrategy {
                 return false;
             }
             Object firstItem = collection.iterator().next();
-            return firstItem instanceof File || firstItem instanceof FileBinaryDTO;
+            return firstItem instanceof File || firstItem instanceof FileBinary;
         }
         
         return false;

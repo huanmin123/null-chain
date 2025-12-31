@@ -2,7 +2,7 @@ package com.gitee.huanminabc.test.nullchain.leaf.http;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.gitee.huanminabc.nullchain.leaf.http.OkHttpBuild;
-import com.gitee.huanminabc.nullchain.leaf.http.dto.FileBinaryDTO;
+import com.gitee.huanminabc.nullchain.leaf.http.dto.FileBinary;
 import lombok.Data;
 import org.junit.jupiter.api.Test;
 
@@ -39,7 +39,7 @@ public class OkHttpBuildUtilTest {
         private String name;
         
         // 文件类型字段，自动识别
-        private FileBinaryDTO file;
+        private FileBinary file;
     }
 
     /**
@@ -50,10 +50,10 @@ public class OkHttpBuildUtilTest {
         private String description;
         
         // 文件类型字段，自动识别
-        private FileBinaryDTO file1;
+        private FileBinary file1;
         
         // 文件类型字段，自动识别
-        private List<FileBinaryDTO> files;
+        private List<FileBinary> files;
     }
 
     /**
@@ -91,7 +91,7 @@ public class OkHttpBuildUtilTest {
         private Map<String, String> headers;
         
         // 文件类型字段，自动识别
-        private FileBinaryDTO file;
+        private FileBinary file;
     }
 
     // ========== extractAllFiles 测试 ==========

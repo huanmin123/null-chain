@@ -3,7 +3,7 @@ package com.gitee.huanminabc.test.nullchain.leaf.http;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
-import com.gitee.huanminabc.nullchain.leaf.http.dto.FileBinaryDTO;
+import com.gitee.huanminabc.nullchain.leaf.http.dto.FileBinary;
 import lombok.Data;
 import org.junit.jupiter.api.Test;
 
@@ -57,7 +57,7 @@ public class NullHttpStrategyTest {
         private String description;
         
         // 文件类型字段，自动识别，在 JSON 中会被排除，在 Multipart 中会作为文件上传
-        private FileBinaryDTO file;
+        private FileBinary file;
     }
 
     /**
@@ -72,7 +72,7 @@ public class NullHttpStrategyTest {
         private Map<String, String> headers;
         
         // 文件类型字段，自动识别
-        private FileBinaryDTO file;
+        private FileBinary file;
     }
 
     /**
@@ -83,7 +83,7 @@ public class NullHttpStrategyTest {
         private String description;
         
         // 文件类型字段，自动识别
-        private List<FileBinaryDTO> files;
+        private List<FileBinary> files;
     }
 
     /**
@@ -115,7 +115,7 @@ public class NullHttpStrategyTest {
             
             // 创建 FileBinaryDTO
             byte[] fileContent = Files.readAllBytes(tempFile);
-            FileBinaryDTO fileDTO = new FileBinaryDTO(
+            FileBinary fileDTO = new FileBinary(
                     tempFile.getFileName().toString(),
                     fileContent,
                     "text/plain"
@@ -153,13 +153,13 @@ public class NullHttpStrategyTest {
             Files.write(tempFile1, "First file content".getBytes());
             Files.write(tempFile2, "Second file content".getBytes());
             
-            List<FileBinaryDTO> files = new ArrayList<>();
-            files.add(new FileBinaryDTO(
+            List<FileBinary> files = new ArrayList<>();
+            files.add(new FileBinary(
                     tempFile1.getFileName().toString(),
                     Files.readAllBytes(tempFile1),
                     "text/plain"
             ));
-            files.add(new FileBinaryDTO(
+            files.add(new FileBinary(
                     tempFile2.getFileName().toString(),
                     Files.readAllBytes(tempFile2),
                     "text/plain"
@@ -199,7 +199,7 @@ public class NullHttpStrategyTest {
         request.setHeaders(headers);
         
         // 创建一个小的文件 DTO（不实际上传，只测试字段排除）
-        FileBinaryDTO fileDTO = new FileBinaryDTO("test.txt", "test content".getBytes(), "text/plain");
+        FileBinary fileDTO = new FileBinary("test.txt", "test content".getBytes(), "text/plain");
         request.setFile(fileDTO);
 
         String response = Null.ofHttp(HTTPBIN_BASE_URL + "/post", request)
@@ -462,7 +462,7 @@ public class NullHttpStrategyTest {
             Files.write(tempFile, "Complex test content".getBytes());
             
             byte[] fileContent = Files.readAllBytes(tempFile);
-            FileBinaryDTO fileDTO = new FileBinaryDTO(
+            FileBinary fileDTO = new FileBinary(
                     tempFile.getFileName().toString(),
                     fileContent,
                     "text/plain"
@@ -571,7 +571,7 @@ public class NullHttpStrategyTest {
             byte[] smallContent = new byte[1024]; // 1KB
             Files.write(tempFile, smallContent);
             
-            FileBinaryDTO fileDTO = new FileBinaryDTO(
+            FileBinary fileDTO = new FileBinary(
                     tempFile.getFileName().toString(),
                     smallContent,
                     "text/plain"
@@ -693,7 +693,7 @@ public class NullHttpStrategyTest {
             Files.write(tempFile, "Test content".getBytes());
             content = Files.readAllBytes(tempFile);
             
-            FileBinaryDTO fileDTO = new FileBinaryDTO(
+            FileBinary fileDTO = new FileBinary(
                     tempFile.getFileName().toString(),
                     content,
                     "text/plain"

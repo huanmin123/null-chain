@@ -3,7 +3,7 @@ package com.gitee.huanminabc.nullchain.leaf.http.strategy;
 import com.alibaba.fastjson.JSON;
 import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
 import com.gitee.huanminabc.nullchain.leaf.http.OkHttpBuild;
-import com.gitee.huanminabc.nullchain.leaf.http.dto.FileBinaryDTO;
+import com.gitee.huanminabc.nullchain.leaf.http.dto.FileBinary;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.Request;
@@ -99,11 +99,11 @@ public class MultipartRequestBodyStrategy implements RequestBodyStrategy {
         }
 
         // 自动识别并添加文件字段
-        Map<String, List<FileBinaryDTO>> allFiles = extractAllFiles(requestData);
+        Map<String, List<FileBinary>> allFiles = extractAllFiles(requestData);
         if (!allFiles.isEmpty()) {
-            for (Map.Entry<String, List<FileBinaryDTO>> entry : allFiles.entrySet()) {
+            for (Map.Entry<String, List<FileBinary>> entry : allFiles.entrySet()) {
                 String fieldName = entry.getKey(); // 字段名（优先使用 @JSONField 的 name，否则使用字段名）
-                List<FileBinaryDTO> files = entry.getValue();
+                List<FileBinary> files = entry.getValue();
                 addFilesToBuilder(fieldName, files, bodyBuilder);
             }
         }
@@ -116,8 +116,8 @@ public class MultipartRequestBodyStrategy implements RequestBodyStrategy {
      * @param files 文件列表
      * @param bodyBuilder 请求体构建器
      */
-    private void addFilesToBuilder(String fieldName, List<FileBinaryDTO> files, MultipartBody.Builder bodyBuilder) {
-        for (FileBinaryDTO fb : files) {
+    private void addFilesToBuilder(String fieldName, List<FileBinary> files, MultipartBody.Builder bodyBuilder) {
+        for (FileBinary fb : files) {
             if (fb == null || fb.content == null || fb.content.length == 0) {
                 continue;
             }
@@ -156,7 +156,7 @@ public class MultipartRequestBodyStrategy implements RequestBodyStrategy {
      * @param fileDTO 文件 DTO
      * @return Content-Type，如果无法确定则返回 "application/octet-stream"
      */
-    private String getContentType(FileBinaryDTO fileDTO) {
+    private String getContentType(FileBinary fileDTO) {
         if (fileDTO.contentType != null && !fileDTO.contentType.isEmpty()) {
             return fileDTO.contentType;
         }
@@ -187,7 +187,7 @@ public class MultipartRequestBodyStrategy implements RequestBodyStrategy {
         }
         
         // 支持 FileBinaryDTO
-        if (value instanceof FileBinaryDTO) {
+        if (value instanceof FileBinary) {
             return true;
         }
         
@@ -208,7 +208,7 @@ public class MultipartRequestBodyStrategy implements RequestBodyStrategy {
                 return false;
             }
             Object firstItem = collection.iterator().next();
-            return firstItem instanceof File || firstItem instanceof FileBinaryDTO;
+            return firstItem instanceof File || firstItem instanceof FileBinary;
         }
         
         return false;
@@ -234,8 +234,8 @@ public class MultipartRequestBodyStrategy implements RequestBodyStrategy {
      * @param obj 要处理的对象
      * @return 所有文件的列表（字段名 -> 文件列表的映射）
      */
-    private Map<String, List<FileBinaryDTO>> extractAllFiles(Object obj) {
-        Map<String, List<FileBinaryDTO>> allFiles = new HashMap<>();
+    private Map<String, List<FileBinary>> extractAllFiles(Object obj) {
+        Map<String, List<FileBinary>> allFiles = new HashMap<>();
 
         if (obj == null) {
             return allFiles;
@@ -255,7 +255,7 @@ public class MultipartRequestBodyStrategy implements RequestBodyStrategy {
                 if (isSupportedFileType(value)) {
                     // 获取字段名（优先使用 @JSONField 的 name，否则使用字段名）
                     String fieldName = OkHttpBuild.getFieldName(field);
-                    List<FileBinaryDTO> files = collectFileValues(value, field.getName());
+                    List<FileBinary> files = collectFileValues(value, field.getName());
                     if (!files.isEmpty()) {
                         allFiles.put(fieldName, files);
                     }
@@ -320,15 +320,15 @@ public class MultipartRequestBodyStrategy implements RequestBodyStrategy {
      * @param fieldName 字段名
      * @return 文件列表
      */
-    private List<FileBinaryDTO> collectFileValues(Object value, String fieldName) {
-        List<FileBinaryDTO> files = new ArrayList<>();
+    private List<FileBinary> collectFileValues(Object value, String fieldName) {
+        List<FileBinary> files = new ArrayList<>();
         if (value == null) {
             return files;
         }
         
         // 支持 FileBinaryDTO
-        if (value instanceof FileBinaryDTO) {
-            files.add((FileBinaryDTO) value);
+        if (value instanceof FileBinary) {
+            files.add((FileBinary) value);
             return files;
         }
         
@@ -341,7 +341,7 @@ public class MultipartRequestBodyStrategy implements RequestBodyStrategy {
             try {
                 byte[] content = Files.readAllBytes(file.toPath());
                 String contentType = getContentTypeForFile(file);
-                files.add(new FileBinaryDTO(file.getName(), content, contentType));
+                files.add(new FileBinary(file.getName(), content, contentType));
             } catch (Exception e) {
                 // 忽略读取失败的文件
             }
@@ -358,7 +358,7 @@ public class MultipartRequestBodyStrategy implements RequestBodyStrategy {
                 try {
                     byte[] content = Files.readAllBytes(file.toPath());
                     String contentType = getContentTypeForFile(file);
-                    files.add(new FileBinaryDTO(file.getName(), content, contentType));
+                    files.add(new FileBinary(file.getName(), content, contentType));
                 } catch (Exception e) {
                     // 忽略读取失败的文件
                 }
@@ -373,8 +373,8 @@ public class MultipartRequestBodyStrategy implements RequestBodyStrategy {
                 if (item == null) {
                     continue;
                 }
-                if (item instanceof FileBinaryDTO) {
-                    files.add((FileBinaryDTO) item);
+                if (item instanceof FileBinary) {
+                    files.add((FileBinary) item);
                 } else if (item instanceof File) {
                     File file = (File) item;
                     if (!file.exists()) {
@@ -383,7 +383,7 @@ public class MultipartRequestBodyStrategy implements RequestBodyStrategy {
                     try {
                         byte[] content = Files.readAllBytes(file.toPath());
                         String contentType = getContentTypeForFile(file);
-                        files.add(new FileBinaryDTO(file.getName(), content, contentType));
+                        files.add(new FileBinary(file.getName(), content, contentType));
                     } catch (Exception e) {
                         // 忽略读取失败的文件
                     }
