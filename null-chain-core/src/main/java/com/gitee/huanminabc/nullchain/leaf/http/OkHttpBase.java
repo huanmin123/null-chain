@@ -207,8 +207,11 @@ public class OkHttpBase<T> extends NullKernelAbstract implements  OkHttp<T> {
                 return   NullBuild.empty();
             }
             try {
-                RequestBody requestBody = OkHttpBuild.requestBodyHandel(type, preValue);
-                request = new Request.Builder().post(requestBody).url(url);
+                // 创建请求构建器
+                Request.Builder requestBuilder = new Request.Builder().url(url);
+                // 使用策略模式构建请求体（会自动提取并添加请求头）
+                RequestBody requestBody = OkHttpBuild.requestBodyHandel(type, preValue, requestBuilder);
+                request = requestBuilder.post(requestBody);
                 linkLog.append(HTTP_POST_ARROW);
             } catch (Exception e) {
                 linkLog.append(HTTP_POST_Q).append(e.getMessage());
@@ -226,8 +229,11 @@ public class OkHttpBase<T> extends NullKernelAbstract implements  OkHttp<T> {
                 return   NullBuild.empty();
             }
             try {
-                RequestBody requestBody = OkHttpBuild.requestBodyHandel(type, preValue);
-                request = new Request.Builder().put(requestBody).url(url);
+                // 创建请求构建器
+                Request.Builder requestBuilder = new Request.Builder().url(url);
+                // 使用策略模式构建请求体（会自动提取并添加请求头）
+                RequestBody requestBody = OkHttpBuild.requestBodyHandel(type, preValue, requestBuilder);
+                request = requestBuilder.put(requestBody);
                 linkLog.append(HTTP_PUT_ARROW);
             } catch (Exception e) {
                 linkLog.append(HTTP_PUT_Q).append(e.getMessage());

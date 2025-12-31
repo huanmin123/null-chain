@@ -13,6 +13,7 @@ import com.gitee.huanminabc.nullchain.leaf.http.sse.DataDecoder;
 import com.gitee.huanminabc.nullchain.leaf.http.sse.EventMessage;
 import com.gitee.huanminabc.nullchain.leaf.http.sse.SSEEventListener;
 import com.gitee.huanminabc.nullchain.leaf.http.sse.SSEStreamController;
+import com.gitee.huanminabc.nullchain.leaf.http.strategy.*;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import okio.BufferedSource;
@@ -26,8 +27,10 @@ import java.lang.reflect.Field;
 import java.net.URLEncoder;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,6 +40,31 @@ import java.util.concurrent.TimeUnit;
 public class OkHttpBuild {
     public final static ConcurrentHashMap<String, OkHttpClient> okHttpClientConcurrentHashMap = new ConcurrentHashMap<>();
     public final static int LIMIT_MAXIMUM_POOL_SIZE = 1000;
+    
+    /**
+     * 字段信息封装类
+     */
+    public static class FieldInfo {
+        public final String name;
+        public final Object value;
+
+        public FieldInfo(String name, Object value) {
+            this.name = name;
+            this.value = value;
+        }
+    }
+    
+    /**
+     * 策略注册表
+     */
+    private static final List<RequestBodyStrategy> strategies = new ArrayList<>();
+    
+    static {
+        // 注册默认策略
+        strategies.add(new JsonRequestBodyStrategy());
+        strategies.add(new FormRequestBodyStrategy());
+        strategies.add(new MultipartRequestBodyStrategy());
+    }
 
     static {
         //默认的OkHttp 实例
@@ -197,104 +225,42 @@ public class OkHttpBuild {
         }
     }
 
-    public static RequestBody requestBodyHandel(OkHttpPostEnum type, Object value__) throws Exception {
-        RequestBody requestBody = null;
-        switch (type) {
-            case JSON:
-                String json = JSON.toJSONString(value__);
-                requestBody = RequestBody.create( MediaType.parse("application/json; charset=utf-8"),json);
-                break;
-            case FORM:
-                //默认是application/x-www-form-urlencoded协议
-                FormBody.Builder formBody = new FormBody.Builder();
-                Map<String, Object> formMap = OkHttpBuild.valuetoMap(value__);
-                for (Map.Entry<String, Object> entry : formMap.entrySet()) {
-                    String key = entry.getKey();
-                    Object value1 = entry.getValue();
-                    //必须是字符串
-                    if (!(value1 instanceof String)) {
-                        throw new NullChainException("FORM类型value值只能是字符串");
-                    }
-                    formBody.add(key, (String) value1);
-                }
-                requestBody = formBody.build();
-                break;
-            case FILE:
-                //multipart/form-data 协议
-                Map<String, Object> fileMap = OkHttpBuild.fileValuetoMap(value__);
-                Object fileName = fileMap.get("fileName");
-                MultipartBody.Builder builder = new MultipartBody.Builder();
-                builder.setType(MultipartBody.FORM);
-                for (Map.Entry<String, Object> field : fileMap.entrySet()) { // 添加表单信息
-                    String key = field.getKey();
-                    Object value = field.getValue();
-                    //判断是 File
-                    if (value instanceof File) {
-                        File file = (File) field.getValue();
-                        if (!file.exists()) {
-                            throw new NullChainException("文件路径不存在:" + file.getAbsolutePath());
-                        }
-                        builder.addFormDataPart(key, file.getName(), RequestBody.create( MediaType.parse("application/octet-stream"),file));
-                    }
-
-                    if (value instanceof File[]) {  //判断是 File[]
-                        File[] values = (File[]) field.getValue();
-                        for (File file : values) {
-                            if (!file.exists()) {
-                                throw new NullChainException("文件路径不存在:" + file.getAbsolutePath());
-                            }
-                            builder.addFormDataPart(key, file.getName(), RequestBody.create( MediaType.parse("application/octet-stream"),file));
-                        }
-                    }
-                    if (value instanceof Collection) {
-                        //取出第一个值判断是否为File
-                        Object o = ((Collection) value).iterator().next();
-                        if (o instanceof File) {
-                            for (Object o1 : (Collection) value) {
-                                File file = (File) o1;
-                                //判断是否存在
-                                if (!file.exists()) {
-                                    throw new NullChainException("文件路径不存在:" + file.getAbsolutePath());
-                                }
-                                builder.addFormDataPart(key, file.getName(), RequestBody.create( MediaType.parse("application/octet-stream"),file));
-                            }
-                            continue;
-                        }
-                        if (o instanceof byte[]) {
-                            for (Object o1 : (Collection) value) {
-                                byte[] bytes = (byte[]) o1;
-                                builder.addFormDataPart(key, (String) fileName, RequestBody.create( MediaType.parse("application/octet-stream"),bytes));
-                            }
-                            continue;
-                        }
-                    }
-
-                    if (value instanceof byte[]) {
-                        if (Null.is(fileName)) {
-                            throw new NullChainException("参数错误,你使用的是字节上传,需要添加fileName参数,指定文件名");
-                        }
-                        byte[] fileByte = (byte[]) field.getValue();
-                        builder.addFormDataPart(key, (String) fileName, RequestBody.create(MediaType.parse("application/octet-stream"),fileByte));
-                        continue;
-                    }
-
-                    if (value instanceof byte[][]) {
-                        if (Null.is(fileName)) {
-                            throw new NullChainException("参数错误,你使用的是字节上传,需要添加fileName参数,指定文件名");
-                        }
-                        byte[][] fileByte = (byte[][]) field.getValue();
-                        for (byte[] bytes : fileByte) {
-                            builder.addFormDataPart(key, (String) fileName, RequestBody.create( MediaType.parse("application/octet-stream"),bytes));
-                        }
-                        continue;
-                    }
-                    builder.addFormDataPart(field.getKey(), String.valueOf(field.getValue()));
-                }
-                requestBody = builder.build();
-
-                break;
+    /**
+     * 构建请求体（使用策略模式）
+     * 
+     * @param type 请求类型
+     * @param value__ 请求数据对象
+     * @param requestBuilder 请求构建器，用于添加请求头等
+     * @return 构建好的请求体
+     * @throws Exception 构建过程中可能出现的异常
+     */
+    public static RequestBody requestBodyHandel(OkHttpPostEnum type, Object value__, Request.Builder requestBuilder) throws Exception {
+        // 查找支持该类型的策略
+        RequestBodyStrategy strategy = strategies.stream()
+                .filter(s -> s.supports(type))
+                .findFirst()
+                .orElseThrow(() -> new NullChainException("不支持的请求类型: " + type));
+        
+        // 如果 value__ 是 Void.TYPE，返回空请求体
+        if (value__ == Void.TYPE) {
+            return RequestBody.create(MediaType.parse("application/octet-stream"), new byte[0]);
         }
-        return requestBody;
+        
+        // 使用策略构建请求体
+        return strategy.build(value__, requestBuilder);
+    }
+    
+    /**
+     * 构建请求体（向后兼容方法，不传递 Request.Builder）
+     * 
+     * @param type 请求类型
+     * @param value__ 请求数据对象
+     * @return 构建好的请求体
+     * @throws Exception 构建过程中可能出现的异常
+     */
+    public static RequestBody requestBodyHandel(OkHttpPostEnum type, Object value__) throws Exception {
+        Request.Builder requestBuilder = new Request.Builder();
+        return requestBodyHandel(type, value__, requestBuilder);
     }
 
 
@@ -807,5 +773,21 @@ public class OkHttpBuild {
             }
         }
     }
+
+
+    /**
+     * 获取字段名：优先使用 @JSONField 的 name，否则使用字段名
+     *
+     * @param field 字段
+     * @return 字段名
+     */
+    public static String getFieldName(Field field) {
+        JSONField jsonField = field.getAnnotation(JSONField.class);
+        if (jsonField != null && jsonField.name() != null && !jsonField.name().isEmpty()) {
+            return jsonField.name();
+        }
+        return field.getName();
+    }
+
 
 }
