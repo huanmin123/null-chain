@@ -7,7 +7,7 @@
 
 ## 项目简介
 
-Null-Chain 是一个强大的空值安全链式编程框架，提供了类似 Optional 但功能更丰富的链式 API。通过 Null 链，可以优雅地处理可能为空的值，避免 NullPointerException。
+Null-Chain 是一个强大的空值安全链式编程框架，提供了类似 Optional 但功能更丰富的链式 API。通过 Null 链，可以优雅地处理可能为空的值，避免 NullPointerException。  支持java8~java最新版本
 
 ## 详细文档
 
