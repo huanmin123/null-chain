@@ -14,5 +14,4 @@ target/
 # Log file
 *.log
 /null-chain-test/src/test/resources/node_modules/
-/null-chain-test/src/test/resources/package.json
 /null-chain-test/src/test/resources/package-lock.json
