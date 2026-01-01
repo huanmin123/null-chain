@@ -5,6 +5,8 @@ import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.leaf.http.sse.DataDecoder;
 import com.gitee.huanminabc.nullchain.leaf.http.sse.EventMessage;
 import com.gitee.huanminabc.nullchain.leaf.http.sse.SSEEventListener;
+import com.gitee.huanminabc.nullchain.leaf.http.websocket.WebSocketController;
+import com.gitee.huanminabc.nullchain.leaf.http.websocket.WebSocketEventListener;
 
 import java.io.InputStream;
 /**
@@ -183,5 +185,50 @@ public interface OkHttpResultChain {
     <T> void toSSE(SSEEventListener<T> listener, DataDecoder<T> decoder);
     void toSSEText(SSEEventListener<String> listener);
     void toSSEJson(SSEEventListener<JSONObject> listener);
+
+    /**
+     * 处理 WebSocket 连接
+     * 
+     * <p>该方法用于建立 WebSocket 连接，提供自定义事件监听器接口。
+     * 支持智能重连机制：区分消息重发（有消息队列时）和连接重连（无消息队列时）。</p>
+     * 
+     * <h3>使用说明：</h3>
+     * <ul>
+     *   <li>连接建立：会调用 {@link WebSocketEventListener#onOpen(WebSocketController)}</li>
+     *   <li>接收消息：会调用 {@link WebSocketEventListener#onMessage(WebSocketController, String)} 或
+     *       {@link WebSocketEventListener#onMessage(WebSocketController, byte[])}</li>
+     *   <li>错误处理：通过 {@link WebSocketEventListener#onError(WebSocketController, Throwable, String)} 回调</li>
+     *   <li>连接关闭：通过 {@link WebSocketEventListener#onClose(WebSocketController, int, String)} 回调</li>
+     *   <li>自动重连：使用全局的 retryCount 和 retryInterval 配置</li>
+     * </ul>
+     * 
+     * @param listener WebSocket 事件监听器，处理各种 WebSocket 事件
+     * @return WebSocketController 实例，可用于发送消息和关闭连接
+     * 
+     * @example
+     * <pre>{@code
+     * WebSocketController controller = Null.ofHttp("ws://example.com/ws")
+     *     .retryCount(3)        // 重连3次
+     *     .retryInterval(1000)  // 间隔1秒
+     *     .toWebSocket(new WebSocketEventListener() {
+     *         @Override
+     *         public void onOpen(WebSocketController controller) {
+     *             controller.send("Hello Server");
+     *         }
+     *         
+     *         @Override
+     *         public void onMessage(WebSocketController controller, String text) {
+     *             System.out.println("收到: " + text);
+     *             controller.send("Reply: " + text);
+     *         }
+     *         
+     *         // ... 其他回调方法
+     *     });
+     * 
+     * // 后续可以继续发送消息
+     * controller.send("Later message");
+     * }</pre>
+     */
+    WebSocketController toWebSocket(WebSocketEventListener listener);
 
 }

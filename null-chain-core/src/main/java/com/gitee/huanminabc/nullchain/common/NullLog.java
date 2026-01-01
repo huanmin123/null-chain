@@ -195,6 +195,10 @@ public final class NullLog {
     public static final String HTTP_TO_SSE_ARROW = "toSSE->";
     public static final String HTTP_TO_SSE_Q = "toSSE? ";
 
+    public static final String HTTP_TO_WEBSOCKET_ARROW = "toWebSocket->";
+    public static final String HTTP_TO_WEBSOCKET_Q = "toWebSocket? ";
+
+
     // core chain base
     public static final String CHAIN_OF_Q = "of?";
     public static final String CHAIN_OF_ARROW = "of->";

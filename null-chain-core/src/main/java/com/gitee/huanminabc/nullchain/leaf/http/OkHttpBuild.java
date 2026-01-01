@@ -64,6 +64,7 @@ public class OkHttpBuild {
         responseStrategies.add(new FileDownloadResponseStrategy());
         responseStrategies.add(new JsonResponseStrategy());
         responseStrategies.add(new SSEResponseStrategy());
+        responseStrategies.add(new WebSocketResponseStrategy());
     }
 
     static {

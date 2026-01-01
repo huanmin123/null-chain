@@ -10,6 +10,9 @@ import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
 import com.gitee.huanminabc.nullchain.enums.OkHttpResponseEnum;
 import com.gitee.huanminabc.nullchain.leaf.http.sse.DataDecoder;
 import com.gitee.huanminabc.nullchain.leaf.http.sse.SSEEventListener;
+import com.gitee.huanminabc.nullchain.leaf.http.websocket.WebSocketController;
+import com.gitee.huanminabc.nullchain.leaf.http.websocket.WebSocketEventListener;
+import com.gitee.huanminabc.nullchain.leaf.http.websocket.WebSocketHeartbeatHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import static com.gitee.huanminabc.nullchain.common.NullLog.*;
@@ -21,7 +24,9 @@ import okhttp3.RequestBody;
 
 import java.io.InputStream;
 import java.net.Proxy;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -44,6 +49,26 @@ public class OkHttpBase<T> extends NullKernelAbstract implements OkHttp<T> {
      * 重试间隔时间（毫秒），默认100毫秒
      */
     private long retryInterval = 100;
+    
+    /**
+     * 心跳处理器
+     */
+    private WebSocketHeartbeatHandler heartbeatHandler;
+    
+    /**
+     * 心跳间隔时间（毫秒），默认30000毫秒（30秒）
+     */
+    private long heartbeatInterval = 30000;
+    
+    /**
+     * 心跳超时时间（毫秒），默认10000毫秒（10秒）
+     */
+    private long heartbeatTimeout = 10000;
+    
+    /**
+     * WebSocket 子协议列表
+     */
+    private List<String> subprotocols;
 
     private void setUrl(String url) {
         //加工url,如果结尾是/或者?那么去掉
@@ -145,10 +170,11 @@ public class OkHttpBase<T> extends NullKernelAbstract implements OkHttp<T> {
      */
     public OkHttp retryCount(int retryCount) {
         this.taskList.add((preValue) -> {
-            linkLog.append("->retryCount(").append(retryCount).append(")");
             if (retryCount < 0) {
-                throw new NullChainException("重试次数不能小于0");
+                linkLog.append("->retryCount(").append(retryCount).append(")?").append(" 重试次数不能小于0");
+                throw new NullChainException(linkLog.toString());
             }
+            linkLog.append("->retryCount(").append(retryCount).append(")->");
             this.retryCount = retryCount;
             return NullBuild.noEmpty(preValue);
         });
@@ -163,11 +189,98 @@ public class OkHttpBase<T> extends NullKernelAbstract implements OkHttp<T> {
      */
     public OkHttp retryInterval(long retryInterval) {
         this.taskList.add((preValue) -> {
-            linkLog.append("->retryInterval(").append(retryInterval).append("ms)");
             if (retryInterval < 0) {
-                throw new NullChainException("重试间隔时间不能小于0");
+                linkLog.append("->retryInterval(").append(retryInterval).append("ms)?").append(" 重试间隔时间不能小于0");
+                throw new NullChainException(linkLog.toString());
             }
+            linkLog.append("->retryInterval(").append(retryInterval).append("ms)->");
             this.retryInterval = retryInterval;
+            return NullBuild.noEmpty(preValue);
+        });
+        return this;
+    }
+
+    /**
+     * 配置 WebSocket 心跳检测（使用默认间隔和超时时间）
+     *
+     * <p>设置心跳处理器，使用默认的心跳间隔（30秒）和超时时间（10秒）。
+     * 心跳检测会在连接建立后自动启动。</p>
+     *
+     * @param handler 心跳处理器，用户实现心跳消息生成和回复判断逻辑
+     * @return OkHttp对象，以便链式调用
+     */
+    public OkHttp heartbeat(WebSocketHeartbeatHandler handler) {
+        return heartbeat(handler, 30000, 10000);
+    }
+
+    /**
+     * 配置 WebSocket 心跳检测
+     *
+     * <p>设置心跳处理器、心跳间隔和超时时间。心跳检测会在连接建立后自动启动。</p>
+     *
+     * @param handler 心跳处理器，用户实现心跳消息生成和回复判断逻辑
+     * @param interval 心跳间隔时间（毫秒），默认30000（30秒）
+     * @param timeout 心跳超时时间（毫秒），默认10000（10秒）
+     * @return OkHttp对象，以便链式调用
+     */
+    public OkHttp heartbeat(WebSocketHeartbeatHandler handler, long interval, long timeout) {
+        this.taskList.add((preValue) -> {
+            if (handler == null) {
+                linkLog.append("heartbeat?").append(" 心跳处理器不能为空");
+                throw new NullChainException(linkLog.toString());
+            }
+            if (interval <= 0) {
+                linkLog.append("heartbeat?").append(" 心跳间隔时间必须大于0");
+                throw new NullChainException(linkLog.toString());
+            }
+            if (timeout <= 0) {
+                linkLog.append("heartbeat?").append(" 心跳超时时间必须大于0");
+                throw new NullChainException(linkLog.toString());
+            }
+            linkLog.append("->heartbeat(interval:").append(interval).append("ms, timeout:").append(timeout).append("ms)->");
+            this.heartbeatHandler = handler;
+            this.heartbeatInterval = interval;
+            this.heartbeatTimeout = timeout;
+            return NullBuild.noEmpty(preValue);
+        });
+        return this;
+    }
+
+    /**
+     * 配置 WebSocket 子协议
+     *
+     * <p>设置支持的子协议列表。服务器会从列表中选择一个支持的协议返回。
+     * 如果服务器返回的协议不在列表中，连接将失败。</p>
+     *
+     * @param protocols 支持的子协议列表
+     * @return OkHttp对象，以便链式调用
+     */
+    public OkHttp subprotocol(String... protocols) {
+        this.taskList.add((preValue) -> {
+            linkLog.append("->subprotocol(");
+            if (protocols != null && protocols.length > 0) {
+                for (int i = 0; i < protocols.length; i++) {
+                    if (i > 0) {
+                        linkLog.append(", ");
+                    }
+                    linkLog.append(protocols[i]);
+                }
+            }
+            linkLog.append(")");
+            
+            if (protocols == null || protocols.length == 0) {
+                this.subprotocols = null;
+            } else {
+                this.subprotocols = new ArrayList<>();
+                for (String protocol : protocols) {
+                    if (protocol != null && !protocol.trim().isEmpty()) {
+                        this.subprotocols.add(protocol.trim());
+                    }
+                }
+                if (this.subprotocols.isEmpty()) {
+                    this.subprotocols = null;
+                }
+            }
             return NullBuild.noEmpty(preValue);
         });
         return this;
@@ -438,8 +551,6 @@ public class OkHttpBase<T> extends NullKernelAbstract implements OkHttp<T> {
                 throw new NullChainException(linkLog.toString());
             }
             try {
-                // 先执行taskList中的所有任务，初始化request等字段
-                taskList.runTaskAll();
                 OkHttpBuild.setHeader(headerMap, request);
                 OkHttpBuild.handleResponse(
                         OkHttpResponseEnum.SSE, url, okHttpClient, request,
@@ -451,6 +562,70 @@ public class OkHttpBase<T> extends NullKernelAbstract implements OkHttp<T> {
             }
         }, null);
 
+    }
+
+    /**
+     * 处理 WebSocket 连接
+     *
+     * <p>该方法用于建立 WebSocket 连接，提供自定义事件监听器接口。
+     * 支持智能重连机制：区分消息重发（有消息队列时）和连接重连（无消息队列时）。</p>
+     *
+     * <h3>使用说明：</h3>
+     * <ul>
+     *   <li>连接建立：会调用 {@link WebSocketEventListener#onOpen(WebSocketController)}</li>
+     *   <li>接收消息：会调用 {@link WebSocketEventListener#onMessage(WebSocketController, String)} 或
+     *       {@link WebSocketEventListener#onMessage(WebSocketController, byte[])}</li>
+     *   <li>错误处理：通过 {@link WebSocketEventListener#onError(WebSocketController, Throwable, String)} 回调</li>
+     *   <li>连接关闭：通过 {@link WebSocketEventListener#onClose(WebSocketController, int, String)} 回调</li>
+     *   <li>自动重连：使用全局的 retryCount 和 retryInterval 配置</li>
+     * </ul>
+     *
+     * @param listener WebSocket 事件监听器，处理各种 WebSocket 事件
+     * @return WebSocketController 实例，可用于发送消息和关闭连接
+     */
+    public WebSocketController toWebSocket(WebSocketEventListener listener) {
+        if (listener == null) {
+            linkLog.append(HTTP_TO_WEBSOCKET_Q).append("监听器不能为空");
+            throw new NullChainException(linkLog.toString());
+        }
+        // 先执行taskList中的所有任务，初始化request等字段
+        NullTaskList.NullNode<Object> nullNode = taskList.runTaskAll();
+        if (nullNode.isNull) {
+            linkLog.append(HTTP_TO_WEBSOCKET_Q).append("任务链执行返回空值");
+            throw new NullChainException(linkLog.toString());
+        }
+
+        try {
+            //因为不需要get post ... 协议所以创建无协议的request
+            request = new Request.Builder();
+            OkHttpBuild.setHeader(headerMap, request);
+            if (url == null || url.isEmpty()) {
+                linkLog.append(HTTP_TO_WEBSOCKET_Q).append("URL不能为空");
+                throw new NullChainException(linkLog.toString());
+            }
+            WebSocketController controller = (WebSocketController) OkHttpBuild.handleResponse(
+                    OkHttpResponseEnum.WEBSOCKET, url, okHttpClient, request,
+                    retryCount, retryInterval, listener, heartbeatHandler, heartbeatInterval, heartbeatTimeout, subprotocols);
+            if (controller == null) {
+                linkLog.append(HTTP_TO_WEBSOCKET_Q).append("WebSocketController创建失败，返回null");
+                throw new NullChainException(linkLog.toString());
+            }
+            linkLog.append(HTTP_TO_WEBSOCKET_ARROW);
+            return controller;
+        } catch (NullChainException e) {
+            // 如果是NullChainException，直接抛出，不重复包装
+            throw e;
+        } catch (Exception e) {
+            String errorMsg = e.getMessage();
+            if (errorMsg == null || errorMsg.isEmpty()) {
+                errorMsg = e.getClass().getSimpleName() + (e.getCause() != null ? ": " + e.getCause().getMessage() : "");
+                if (errorMsg.equals(e.getClass().getSimpleName())) {
+                    errorMsg = e.getClass().getSimpleName() + " (无详细错误信息)";
+                }
+            }
+            linkLog.append(HTTP_TO_WEBSOCKET_Q).append(errorMsg);
+            throw new NullChainException(e, linkLog.toString());
+        }
     }
 
 }

@@ -1,6 +1,7 @@
 package com.gitee.huanminabc.nullchain.leaf.http;
 
 import com.gitee.huanminabc.nullchain.core.NullChain;
+import com.gitee.huanminabc.nullchain.leaf.http.websocket.WebSocketHeartbeatHandler;
 
 import java.net.Proxy;
 import java.util.concurrent.TimeUnit;
@@ -144,6 +145,116 @@ public interface OkHttpConfigChain extends  OkHttpProtocolChain {
      */
     OkHttp retryInterval(long retryInterval);
 
+    /**
+     * 配置 WebSocket 心跳检测（使用默认间隔和超时时间）
+     * 
+     * <p>设置心跳处理器，使用默认的心跳间隔（30秒）和超时时间（10秒）。
+     * 心跳检测会在连接建立后自动启动。</p>
+     * 
+     * <h3>心跳机制：</h3>
+     * <ul>
+     *   <li>定时发送：每隔30秒发送一次心跳消息</li>
+     *   <li>超时检测：如果超过10秒未收到心跳回复，主动断开连接</li>
+     *   <li>消息格式：心跳消息和回复格式完全由用户自定义实现</li>
+     * </ul>
+     * 
+     * @param handler 心跳处理器，用户实现心跳消息生成和回复判断逻辑
+     * @return OkHttp对象，以便链式调用其他配置方法
+     * 
+     * @example <pre>{@code
+     * WebSocketController controller = Null.ofHttp("ws://example.com/ws")
+     *     .retryCount(3)
+     *     .retryInterval(1000)
+     *     .heartbeat(new WebSocketHeartbeatHandler() {
+     *         @Override
+     *         public String generateHeartbeat() {
+     *             return "{\"type\":\"ping\",\"timestamp\":" + System.currentTimeMillis() + "}";
+     *         }
+     *         
+     *         @Override
+     *         public boolean isHeartbeatResponse(String text) {
+     *             return text != null && text.contains("\"type\":\"pong\"");
+     *         }
+     *     })  // 使用默认间隔30秒，超时10秒
+     *     .toWebSocket(new WebSocketEventListener() {
+     *         // ... 监听器实现
+     *     });
+     * }</pre>
+     */
+    OkHttp heartbeat(WebSocketHeartbeatHandler handler);
+
+    /**
+     * 配置 WebSocket 心跳检测
+     * 
+     * <p>设置心跳处理器、心跳间隔和超时时间。心跳检测会在连接建立后自动启动。</p>
+     * 
+     * <h3>心跳机制：</h3>
+     * <ul>
+     *   <li>定时发送：每隔指定间隔（默认30秒）发送一次心跳消息</li>
+     *   <li>超时检测：如果超过指定时间（默认10秒）未收到心跳回复，主动断开连接</li>
+     *   <li>消息格式：心跳消息和回复格式完全由用户自定义实现</li>
+     * </ul>
+     * 
+     * @param handler 心跳处理器，用户实现心跳消息生成和回复判断逻辑
+     * @param interval 心跳间隔时间（毫秒），默认30000（30秒）
+     * @param timeout 心跳超时时间（毫秒），默认10000（10秒）
+     * @return OkHttp对象，以便链式调用其他配置方法
+     * 
+     * @example <pre>{@code
+     * WebSocketController controller = Null.ofHttp("ws://example.com/ws")
+     *     .retryCount(3)
+     *     .retryInterval(1000)
+     *     .heartbeat(new WebSocketHeartbeatHandler() {
+     *         @Override
+     *         public String generateHeartbeat() {
+     *             return "{\"type\":\"ping\",\"timestamp\":" + System.currentTimeMillis() + "}";
+     *         }
+     *         
+     *         @Override
+     *         public boolean isHeartbeatResponse(String text) {
+     *             return text != null && text.contains("\"type\":\"pong\"");
+     *         }
+     *     }, 30000, 10000)  // 间隔30秒，超时10秒
+     *     .toWebSocket(new WebSocketEventListener() {
+     *         // ... 监听器实现
+     *     });
+     * }</pre>
+     */
+    OkHttp heartbeat(WebSocketHeartbeatHandler handler, long interval, long timeout);
+
+    /**
+     * 配置 WebSocket 子协议
+     * 
+     * <p>设置支持的子协议列表。服务器会从列表中选择一个支持的协议返回。
+     * 如果服务器返回的协议不在列表中，连接将失败。</p>
+     * 
+     * <h3>子协议验证：</h3>
+     * <ul>
+     *   <li>客户端配置：通过此方法设置支持的子协议列表</li>
+     *   <li>服务器选择：服务器从列表中选择一个支持的协议返回</li>
+     *   <li>验证匹配：如果服务器返回的协议不在客户端列表中，连接失败</li>
+     *   <li>协议存储：验证成功后，选中的协议会保存到 WebSocketController 中</li>
+     * </ul>
+     * 
+     * @param protocols 支持的子协议列表
+     * @return OkHttp对象，以便链式调用其他配置方法
+     * 
+     * @example <pre>{@code
+     * WebSocketController controller = Null.ofHttp("ws://example.com/ws")
+     *     .subprotocol("chat", "superchat")  // 配置支持的子协议
+     *     .toWebSocket(new WebSocketEventListener() {
+     *         @Override
+     *         public void onOpen(WebSocketController controller) {
+     *             String protocol = controller.getSelectedSubprotocol();
+     *             if (protocol != null) {
+     *                 System.out.println("选中的子协议: " + protocol);
+     *             }
+     *         }
+     *         // ... 其他回调方法
+     *     });
+     * }</pre>
+     */
+    OkHttp subprotocol(String... protocols);
 
     /**
      * 异步请求

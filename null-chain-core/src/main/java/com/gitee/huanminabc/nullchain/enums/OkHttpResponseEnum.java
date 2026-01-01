@@ -25,6 +25,9 @@ public enum OkHttpResponseEnum {
     JSON,
     
     /** SSE流式响应（对应 toSSE 方法） */
-    SSE
+    SSE,
+    
+    /** WebSocket响应（对应 toWebSocket 方法） */
+    WEBSOCKET
 }
 
