@@ -14,7 +14,7 @@ package com.gitee.huanminabc.nullchain.leaf.http.sse;
  *   <li>如果是非 SSE 响应：调用 {@link #onNonSseResponse(String, String)} 处理响应内容</li>
  *   <li>当会话终止或自然断流结束时，调用一次 {@link #onComplete()}</li>
  *   <li>当用户通过 {@link EventMessage#terminate()} 主动终止流时，调用一次 {@link #onInterrupt()}</li>
- *   <li>发生错误时调用 {@link #onError(int, Integer, String, Throwable)}</li>
+ *   <li>发生错误时调用 {@link #onError(int, int, String, Throwable)}</li>
  * </ol>
  * 
  * <h3>线程与性能：</h3>
@@ -52,12 +52,25 @@ public interface SSEEventListener<T> {
     /**
      * 发生错误时触发：非 2xx 响应、网络错误或读取异常。
      * 
+     * <p>错误码说明：
+     * <ul>
+     *   <li>100-599：HTTP 状态码（标准 HTTP 响应码）</li>
+     *   <li>-1：网络异常（连接失败、超时等）</li>
+     *   <li>-2：处理异常（解码失败、解析错误等）</li>
+     *   <li>-3：用户终止（用户主动终止流）</li>
+     *   <li>-4：重连次数已达上限</li>
+     *   <li>-5：重试被中断</li>
+     *   <li>-6：监听器回调异常</li>
+     *   <li>-7：未知错误</li>
+     * </ul>
+     * </p>
+     * 
      * @param attempt 当次错误发生的序号（与重试相关）
-     * @param httpCode HTTP 状态码，网络异常等情况可能为 null
+     * @param errorCode 错误码，HTTP 错误使用状态码（100-599），系统错误使用负数（见 {@link SSEErrorCode}）
      * @param message 错误信息
      * @param t 相关异常，可能为 null
      */
-    void onError(int attempt, Integer httpCode, String message, Throwable t);
+    void onError(int attempt, int errorCode, String message, Throwable t);
     
     /**
      * 会话结束时触发：自定义终止或自然断流。仅调用一次。
@@ -96,6 +109,33 @@ public interface SSEEventListener<T> {
      */
     default boolean shouldTerminate(EventMessage<T> msg) { 
         return false; 
+    }
+    
+    /**
+     * 连接状态变化时触发
+     * 
+     * <p>当 SSE 连接状态发生变化时，会调用此方法。可以用于监控连接状态，
+     * 例如在状态变为 CONNECTED 时进行初始化，在状态变为 CLOSED 时进行清理。</p>
+     * 
+     * <p>默认实现为空，子类可以重写此方法以处理状态变化事件。</p>
+     * 
+     * @param controller SSE 控制器
+     * @param oldState 旧状态
+     * @param newState 新状态
+     * 
+     * @example
+     * <pre>{@code
+     * public void onStateChanged(SSEController controller, SSEConnectionState oldState, SSEConnectionState newState) {
+     *     if (newState == SSEConnectionState.CONNECTED) {
+     *         System.out.println("SSE 连接已建立");
+     *     } else if (newState == SSEConnectionState.CLOSED) {
+     *         System.out.println("SSE 连接已关闭");
+     *     }
+     * }
+     * }</pre>
+     */
+    default void onStateChanged(SSEController controller, SSEConnectionState oldState, SSEConnectionState newState) {
+        // 默认实现为空，子类可以重写
     }
 }
 

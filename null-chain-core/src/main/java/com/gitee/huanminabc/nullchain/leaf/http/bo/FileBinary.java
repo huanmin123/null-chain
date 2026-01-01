@@ -1,4 +1,4 @@
-package com.gitee.huanminabc.nullchain.leaf.http.dto;
+package com.gitee.huanminabc.nullchain.leaf.http.bo;
 
 import lombok.ToString;
 

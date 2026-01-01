@@ -1,8 +1,9 @@
-package com.gitee.huanminabc.test.nullchain.leaf.http;
+package com.gitee.huanminabc.test.nullchain.leaf.http.sse;
 
 import com.alibaba.fastjson.JSONObject;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.leaf.http.sse.EventMessage;
+import com.gitee.huanminabc.nullchain.leaf.http.sse.SSEController;
 import com.gitee.huanminabc.nullchain.leaf.http.sse.SSEEventListener;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -16,23 +17,29 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * SSE (Server-Sent Events) 测试Demo
  * 
- * <p>测试两个公开的SSE接口：
+ * <p>使用本地SSE服务器进行测试，运行前需要启动测试服务器：</p>
+ * <pre>
+ * cd null-chain-test/src/test/resources
+ * node sse-server.js
+ * </pre>
+ * 
+ * <p>测试端点：</p>
  * <ul>
- *   <li>https://echo.websocket.org/.sse - 返回普通文本的data</li>
- *   <li>https://stream.wikimedia.org/v2/stream/recentchange - 返回JSON格式的data</li>
+ *   <li>http://localhost:3000/sse - 返回JSON格式的data</li>
+ *   <li>http://localhost:3000/sse-reconnect - 支持Last-Event-ID的重连测试</li>
+ *   <li>http://localhost:3000/sse-disconnect - 模拟连接断开</li>
  * </ul>
- * </p>
  * 
  * @author huanmin
  * @since 1.0.0
  */
 @Slf4j
-public class SSETestDemo {
+public class SSETestDemo extends SSEBaseTest {
 
     /**
      * 测试普通文本SSE接口
      * 
-     * <p>测试 https://echo.websocket.org/.sse 接口，该接口返回普通文本数据</p>
+     * <p>测试本地SSE服务器，使用toSSEText接收文本数据</p>
      */
     @Test
     public void testTextSSE() throws InterruptedException {
@@ -78,8 +85,8 @@ public class SSETestDemo {
             }
 
             @Override
-            public void onError(int attempt, Integer httpCode, String message, Throwable t) {
-                log.error("SSE错误 - Attempt: {}, HttpCode: {}, Message: {}", attempt, httpCode, message, t);
+            public void onError(int attempt, int errorCode, String message, Throwable t) {
+                log.error("SSE错误 - Attempt: {}, ErrorCode: {}, Message: {}", attempt, errorCode, message, t);
                 fail("不应该发生错误: " + message);
             }
 
@@ -91,12 +98,15 @@ public class SSETestDemo {
         };
 
         // 执行SSE请求（使用字符串解码器）
-        Null.ofHttp("https://echo.websocket.org/.sse")
+        SSEController controller = Null.ofHttp(BASE_URL + "/sse-text")
+                .retryCount(0)
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
-                .async()
                 .get()
                 .toSSEText(listener);
+        
+        // 验证controller不为null
+        assertNotNull(controller, "SSEController不应该为null");
 
         // 等待接收至少5条消息，最多等待30秒
         boolean received = latch.await(30, TimeUnit.SECONDS);
@@ -157,10 +167,10 @@ public class SSETestDemo {
             }
 
             @Override
-            public void onError(int attempt, Integer httpCode, String message, Throwable t) {
-                log.error("SSE错误 - Attempt: {}, HttpCode: {}, Message: {}", attempt, httpCode, message, t);
+            public void onError(int attempt, int errorCode, String message, Throwable t) {
+                log.error("SSE错误 - Attempt: {}, ErrorCode: {}, Message: {}", attempt, errorCode, message, t);
                 // Wikipedia的接口可能会因为网络问题失败，这里只记录错误，不直接fail
-                if (httpCode != null && httpCode >= 400) {
+                if (errorCode >= 400) {
                     log.warn("HTTP错误，但继续测试: {}", message);
                 } else {
                     fail("不应该发生网络错误: " + message);
@@ -182,12 +192,14 @@ public class SSETestDemo {
         };
 
         // 执行SSE请求（使用JSON解码器）
-        // 注意：Wikipedia API 要求设置 User-Agent 并遵守机器人政策
-        Null.ofHttp("http://localhost:3000/sse")
+        SSEController controller = Null.ofHttp("http://localhost:3000/sse")
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
                 .get()
                 .toSSEJson(listener);
+        
+        // 验证controller不为null
+        assertNotNull(controller, "SSEController不应该为null");
 
         // 等待终止完成，最多等待30秒
         boolean interrupted = latch.await(30, TimeUnit.SECONDS);
@@ -248,8 +260,8 @@ public class SSETestDemo {
             }
 
             @Override
-            public void onError(int attempt, Integer httpCode, String message, Throwable t) {
-                log.error("SSE错误 - Attempt: {}, HttpCode: {}, Message: {}", attempt, httpCode, message, t);
+            public void onError(int attempt, int errorCode, String message, Throwable t) {
+                log.error("SSE错误 - Attempt: {}, ErrorCode: {}, Message: {}", attempt, errorCode, message, t);
                 fail("不应该发生错误: " + message);
             }
 
@@ -268,11 +280,15 @@ public class SSETestDemo {
         };
 
         // 执行SSE请求
-        Null.ofHttp("https://echo.websocket.org/.sse")
+        SSEController controller = Null.ofHttp(BASE_URL + "/sse-text")
+                .retryCount(0)
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
                 .get()
                 .toSSEText(listener);
+        
+        // 验证controller不为null
+        assertNotNull(controller, "SSEController不应该为null");
 
         // 等待终止完成，最多等待30秒
         boolean interrupted = latch.await(30, TimeUnit.SECONDS);

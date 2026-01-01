@@ -8,7 +8,7 @@ import com.gitee.huanminabc.nullchain.common.NullChainException;
 import com.gitee.huanminabc.nullchain.common.function.NullHttpSupplierEx;
 import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
 import com.gitee.huanminabc.nullchain.enums.OkHttpResponseEnum;
-import com.gitee.huanminabc.nullchain.leaf.http.dto.FileBinary;
+import com.gitee.huanminabc.nullchain.leaf.http.bo.FileBinary;
 import com.gitee.huanminabc.nullchain.leaf.http.strategy.*;
 import com.gitee.huanminabc.nullchain.leaf.http.strategy.ResponseStrategy;
 import com.gitee.huanminabc.nullchain.leaf.http.strategy.request.FormRequestStrategy;

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.leaf.http.sse.DataDecoder;
 import com.gitee.huanminabc.nullchain.leaf.http.sse.EventMessage;
+import com.gitee.huanminabc.nullchain.leaf.http.sse.SSEController;
 import com.gitee.huanminabc.nullchain.leaf.http.sse.SSEEventListener;
 import com.gitee.huanminabc.nullchain.leaf.http.websocket.WebSocketController;
 import com.gitee.huanminabc.nullchain.leaf.http.websocket.WebSocketEventListener;
@@ -140,7 +141,7 @@ public interface OkHttpResultChain {
      *       {@link SSEEventListener#onComplete()} 等方法</li>
      *   <li>非 SSE 响应：会调用 {@link SSEEventListener#onNonSseResponse(String, String)} 方法，
      *       避免与 SSE 事件混淆</li>
-     *   <li>错误处理：通过 {@link SSEEventListener#onError(int, Integer, String, Throwable)} 回调</li>
+     *   <li>错误处理：通过 {@link SSEEventListener#onError(int, int, String, Throwable)} 回调</li>
      *   <li>主动终止：用户可以通过 {@link EventMessage#terminate()} 方法主动终止流，
      *       终止后会触发 {@link SSEEventListener#onInterrupt()} 回调</li>
      * </ul>
@@ -182,9 +183,9 @@ public interface OkHttpResultChain {
      *     }, DataDecoder.jsonDecoder());  // 使用 JSON 解码器
      * }</pre>
      */
-    <T> void toSSE(SSEEventListener<T> listener, DataDecoder<T> decoder);
-    void toSSEText(SSEEventListener<String> listener);
-    void toSSEJson(SSEEventListener<JSONObject> listener);
+    <T> SSEController toSSE(SSEEventListener<T> listener, DataDecoder<T> decoder);
+    SSEController toSSEText(SSEEventListener<String> listener);
+    SSEController toSSEJson(SSEEventListener<JSONObject> listener);
 
     /**
      * 处理 WebSocket 连接

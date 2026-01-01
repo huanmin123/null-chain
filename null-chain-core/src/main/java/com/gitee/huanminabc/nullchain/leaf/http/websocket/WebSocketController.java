@@ -47,7 +47,7 @@ public class WebSocketController implements AutoCloseable {
     
     /** 消息队列最大大小（默认1000，0表示无限制） */
     private volatile int maxQueueSize = 1000;
-    
+
     /** 队列满时的处理策略 */
     public enum QueueFullPolicy {
         /** 拒绝新消息 */
@@ -59,8 +59,7 @@ public class WebSocketController implements AutoCloseable {
     /** 队列满时的处理策略（默认丢弃最旧的消息）
      * -- GETTER --
      *  获取队列满时的处理策略
-     *
-     * @return 处理策略
+     * 处理策略
      */
     @Getter
     private volatile QueueFullPolicy queueFullPolicy = QueueFullPolicy.DROP_OLDEST;
@@ -72,8 +71,13 @@ public class WebSocketController implements AutoCloseable {
      * -- SETTER --
      *  设置内部 WebSocket 实例
      * webSocket OkHttp WebSocket 实例
+     * -- GETTER --
+     *  获取内部 WebSocket 实例
+     *  <p>注意：此方法主要用于策略类在重连时关闭旧连接，一般用户不应直接使用。</p>
+     *  OkHttp WebSocket 实例，如果未设置则返回 null
      */
     @Setter
+    @Getter
     private volatile okhttp3.WebSocket webSocket;
     
     /** 心跳处理器 */
@@ -726,6 +730,15 @@ public class WebSocketController implements AutoCloseable {
      */
     public static ExecutorService getSharedExecutor() {
         return SHARED_EXECUTOR;
+    }
+    
+    /**
+     * 获取共享的心跳执行器（用于定时任务）
+     * 
+     * @return 共享的心跳执行器
+     */
+    public static ScheduledExecutorService getSharedHeartbeatExecutor() {
+        return SHARED_HEARTBEAT_EXECUTOR;
     }
     
     /**

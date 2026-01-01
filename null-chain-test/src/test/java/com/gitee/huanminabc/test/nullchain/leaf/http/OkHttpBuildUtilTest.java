@@ -2,7 +2,7 @@ package com.gitee.huanminabc.test.nullchain.leaf.http;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.gitee.huanminabc.nullchain.leaf.http.OkHttpBuild;
-import com.gitee.huanminabc.nullchain.leaf.http.dto.FileBinary;
+import com.gitee.huanminabc.nullchain.leaf.http.bo.FileBinary;
 import lombok.Data;
 import org.junit.jupiter.api.Test;
 

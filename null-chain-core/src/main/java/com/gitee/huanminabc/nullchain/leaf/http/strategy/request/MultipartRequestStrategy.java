@@ -3,7 +3,7 @@ package com.gitee.huanminabc.nullchain.leaf.http.strategy.request;
 import com.alibaba.fastjson.JSON;
 import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
 import com.gitee.huanminabc.nullchain.leaf.http.OkHttpBuild;
-import com.gitee.huanminabc.nullchain.leaf.http.dto.FileBinary;
+import com.gitee.huanminabc.nullchain.leaf.http.bo.FileBinary;
 import com.gitee.huanminabc.nullchain.leaf.http.strategy.RequestStrategy;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;

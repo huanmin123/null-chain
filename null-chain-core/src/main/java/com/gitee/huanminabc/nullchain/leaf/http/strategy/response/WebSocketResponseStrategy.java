@@ -213,18 +213,69 @@ public class WebSocketResponseStrategy implements ResponseStrategy {
         // 更新连接状态为正在重连
         controller.setConnectionState(WebSocketConnectionState.RECONNECTING);
         
-        // 等待后重连（使用重连管理器计算延迟）
+        // 使用重连管理器计算延迟（指数退避策略）
+        long delay = WebSocketReconnectManager.calculateDelay(attempt, retryInterval);
+        log.debug("重连延迟: {}ms (第{}次重连)", delay, attempt);
+        
+        // 使用 ScheduledExecutorService 延迟执行重连，避免阻塞线程
         // 注意：所有重连都应该有延迟，包括首次重连
-        try {
-            // 使用重连管理器计算延迟（指数退避策略）
-            long delay = WebSocketReconnectManager.calculateDelay(attempt, retryInterval);
-            log.debug("重连延迟: {}ms (第{}次重连)", delay, attempt);
-            Thread.sleep(delay);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            listener.onError(controller, e, "重试被中断: " + e.getMessage());
-            controller.setReconnecting(false);
-            return;
+        WebSocketController.getSharedHeartbeatExecutor().schedule(() -> {
+            // 检查控制器是否已销毁（可能在延迟期间被关闭）
+            if (controller.isDestroyed()) {
+                log.debug("控制器已销毁，取消重连");
+                controller.setReconnecting(false);
+                return;
+            }
+            
+            // 再次检查是否超过最大重连次数（可能在延迟期间状态已改变）
+            if (controller.isReconnectExhausted()) {
+                log.debug("重连次数已用完，取消重连");
+                if (lastException != null) {
+                    listener.onError(controller, lastException, 
+                            "重试" + retryCount + "次后仍然失败: " + lastException.getMessage());
+                }
+                controller.setReconnecting(false);
+                return;
+            }
+            
+            // 执行实际的重连逻辑
+            performReconnect(url, okHttpClient, request, retryCount, retryInterval,
+                    listener, controller, heartbeatHandler, heartbeatInterval, heartbeatTimeout, subprotocols);
+        }, delay, TimeUnit.MILLISECONDS);
+    }
+    
+    /**
+     * 执行实际的重连操作
+     * 
+     * @param url WebSocket URL
+     * @param okHttpClient OkHttp 客户端
+     * @param request WebSocket 请求
+     * @param retryCount 总重试次数
+     * @param retryInterval 重试间隔（毫秒）
+     * @param listener 用户的事件监听器
+     * @param controller WebSocket 控制器
+     * @param heartbeatHandler 心跳处理器
+     * @param heartbeatInterval 心跳间隔（毫秒）
+     * @param heartbeatTimeout 心跳超时（毫秒）
+     */
+    private void performReconnect(String url, OkHttpClient okHttpClient, Request request,
+                                  int retryCount, long retryInterval,
+                                  WebSocketEventListener listener, WebSocketController controller,
+                                  WebSocketHeartbeatHandler heartbeatHandler, long heartbeatInterval, long heartbeatTimeout,
+                                  List<String> subprotocols) {
+        
+        // 在创建新连接前，先关闭旧的 WebSocket 连接（如果存在）
+        // 注意：这可以防止资源泄漏，确保旧的连接被正确关闭
+        WebSocket oldWebSocket = controller.getWebSocket();
+        if (oldWebSocket != null) {
+            try {
+                // 只关闭连接，不影响消息队列和重连状态
+                oldWebSocket.close(1000, "重连前关闭旧连接");
+                log.debug("重连前已关闭旧连接");
+            } catch (Exception e) {
+                // 连接可能已经关闭，忽略异常
+                log.debug("关闭旧连接时发生异常（可能已经关闭）", e);
+            }
         }
         
         // 创建适用于 WebSocket 的客户端（统一配置，与初始连接保持一致）
@@ -284,231 +335,390 @@ public class WebSocketResponseStrategy implements ResponseStrategy {
         return new WebSocketListener() {
             @Override
             public void onOpen(WebSocket webSocket, Response response) {
-                // 验证子协议
-                if (!validateSubprotocol(response, controller, subprotocols)) {
-                    // 验证失败，设置连接状态为 FAILED
-                    WebSocketConnectionState oldState = controller.getConnectionState();
-                    controller.setConnectionState(WebSocketConnectionState.FAILED);
-                    controller.setOpen(false);
-                    
-                    // 关闭连接
-                    webSocket.close(1002, "Sec-WebSocket-Protocol 验证失败");
-                    
-                    // 调用用户监听器
-                    String errorMsg = "服务器返回的子协议不在客户端支持的列表中";
-                    listener.onError(controller, new IllegalStateException(errorMsg), errorMsg);
-                    listener.onStateChanged(controller, oldState, WebSocketConnectionState.FAILED);
-                    return;
-                }
-                
-                controller.setWebSocket(webSocket);
-                
-                // 更新连接状态
-                WebSocketConnectionState oldState = controller.getConnectionState();
-                controller.setConnectionState(WebSocketConnectionState.CONNECTED);
-                controller.setOpen(true);
-                
-                // 连接成功后，重置重连状态
-                controller.resetReconnectAttempt();
-                controller.setReconnecting(false);
-                
-                // 启动心跳检测（如果配置了）
-                if (heartbeatHandler != null) {
-                    controller.startHeartbeat(heartbeatHandler, heartbeatInterval, heartbeatTimeout);
-                }
-                
-                // 调用用户监听器
-                listener.onOpen(controller);
-                listener.onStateChanged(controller, oldState, WebSocketConnectionState.CONNECTED);
-                
-                log.info("WebSocket 连接建立成功");
-                
-                // 连接建立后，尝试发送队列中的消息
-                controller.trySend();
+                handleOnOpen(webSocket, response, listener, controller, subprotocols, 
+                        heartbeatHandler, heartbeatInterval, heartbeatTimeout);
             }
             
             @Override
             public void onMessage(WebSocket webSocket, String text) {
-                // 检测心跳回复
-                if (heartbeatHandler != null && heartbeatHandler.isHeartbeatResponse(text)) {
-                    controller.updateHeartbeatResponseTime(heartbeatHandler);
-                    // 心跳回复不传递给用户监听器
-                    return;
-                }
-                
-                // 调用用户监听器
-                listener.onMessage(controller, text);
+                handleOnMessageText(listener, controller, text, heartbeatHandler);
             }
             
             @Override
             public void onMessage(WebSocket webSocket, ByteString bytes) {
-                byte[] byteArray = bytes.toByteArray();
-                
-                // 检测心跳回复
-                if (heartbeatHandler != null && heartbeatHandler.isHeartbeatResponse(byteArray)) {
-                    controller.updateHeartbeatResponseTime(heartbeatHandler);
-                    // 心跳回复不传递给用户监听器
-                    return;
-                }
-                
-                // 调用用户监听器
-                listener.onMessage(controller, byteArray);
+                handleOnMessageBytes(listener, controller, bytes, heartbeatHandler);
             }
             
             @Override
             public void onClosing(WebSocket webSocket, int code, String reason) {
-                log.info("WebSocket onClosing 被调用: code={}, reason={}, url={}", code, reason, url);
-                
-                // 检查是否已经在关闭流程中，防止重复处理
-                WebSocketConnectionState currentState = controller.getConnectionState();
-                boolean alreadyClosing = (currentState == WebSocketConnectionState.CLOSING || 
-                                         currentState == WebSocketConnectionState.CLOSED);
-                
-                if (alreadyClosing) {
-                    // 如果已经在关闭流程中，仍然需要调用用户监听器（因为这是 OkHttp 的回调）
-                    // 但不要重复设置状态和执行其他逻辑
-                    log.debug("连接已在关闭流程中，但仍需调用用户监听器: currentState={}", currentState);
-                    listener.onClosing(controller, code, reason);
-                    return;
-                }
-                
-                // WebSocket 正在关闭
-                WebSocketConnectionState oldState = controller.getConnectionState();
-                controller.setConnectionState(WebSocketConnectionState.CLOSING);
-                controller.setOpen(false);
-                
-                // 停止心跳检测
-                controller.stopHeartbeat();
-                
-                // 调用用户监听器的 onClosing 方法
-                listener.onClosing(controller, code, reason);
-                listener.onStateChanged(controller, oldState, WebSocketConnectionState.CLOSING);
-                
-                // 根据 OkHttp WebSocket 规范，当收到关闭帧时，需要在 onClosing 中调用 webSocket.close() 来确认关闭
-                // 这样才能确保触发 onClosed 回调
-                try {
-                    webSocket.close(code, reason);
-                    log.debug("WebSocket 已确认关闭: code={}, reason={}", code, reason);
-                } catch (Exception e) {
-                    log.warn("WebSocket 确认关闭时发生异常", e);
-                }
+                handleOnClosing(webSocket, code, reason, listener, controller, url);
             }
             
             @Override
             public void onClosed(WebSocket webSocket, int code, String reason) {
-                int pendingCount = controller.getPendingMessageCount();
-                log.info("WebSocket onClosed 被调用: code={}, reason={}, url={}, 待发送消息数={}", 
-                        code, reason, url, pendingCount);
-                
-                // 检查是否已经处理过关闭，防止重复处理（可能由 onClosing 调用 close() 触发）
-                WebSocketConnectionState currentState = controller.getConnectionState();
-                boolean alreadyClosed = (currentState == WebSocketConnectionState.CLOSED);
-                
-                if (alreadyClosed) {
-                    // 如果已经关闭，仍然需要调用用户监听器（因为这是 OkHttp 的回调）
-                    // 但不要重复设置状态和执行其他逻辑（如重连判断、消息队列处理等）
-                    log.debug("连接已关闭，但仍需调用用户监听器: currentState={}", currentState);
-                    listener.onClose(controller, code, reason);
-                    return;
-                }
-                
-                // WebSocket 已关闭
-                WebSocketConnectionState oldState = controller.getConnectionState();
-                controller.setConnectionState(WebSocketConnectionState.CLOSED);
-                controller.setOpen(false);
-                
-                // 停止心跳检测
-                controller.stopHeartbeat();
-                
-                // 判断是否需要保留消息并重连
-                // 只有网络异常或用户通过 shouldReconnect 同意重连时，才保留消息
-                // 注意：重连逻辑只在这里处理，onFailure 中不再处理重连（避免重复）
-                boolean needReconnect = false;
-                Exception closeException = null;
-                
-                if (pendingCount > 0 && retryCount > 0) {
-                    // 判断是否是网络异常关闭（code 1006 通常表示异常关闭）
-                    boolean isNetworkError = (code == 1006) || (code == 1001) || (code == 1011);
-                    
-                    // 创建异常对象用于 shouldReconnect 判断
-                    if (isNetworkError) {
-                        closeException = new IOException("网络异常导致连接关闭: code=" + code + ", reason=" + reason);
-                    } else {
-                        // 服务端正常关闭，创建普通异常
-                        closeException = new IOException("连接关闭: code=" + code + ", reason=" + reason);
-                    }
-                    
-                    // 调用用户监听器判断是否应该重连
-                    needReconnect = shouldReconnect(controller, listener, closeException);
-                    
-                    if (needReconnect) {
-                        // 网络异常或用户同意重连，保留消息并触发重连
-                        log.info("连接关闭，但需要重连（网络异常或用户同意），保留 {} 条消息等待重连", pendingCount);
-                        controller.triggerReconnect("连接关闭，但需要重连");
-                    } else {
-                        // 服务端正常关闭且用户不同意重连，丢弃消息
-                        int clearedCount = controller.clearMessageQueue();
-                        log.info("连接关闭（服务端主动断开），丢弃 {} 条未发送消息。关闭原因: code={}, reason={}", 
-                                clearedCount, code, reason);
-                    }
-                } else if (pendingCount > 0) {
-                    // 有未发送消息但未配置重连，丢弃消息
-                    int clearedCount = controller.clearMessageQueue();
-                    log.info("连接关闭，未配置重连机制，丢弃 {} 条未发送消息。关闭原因: code={}, reason={}", 
-                            clearedCount, code, reason);
-                }
-                
-                // 调用用户监听器
-                listener.onClose(controller, code, reason);
-                listener.onStateChanged(controller, oldState, WebSocketConnectionState.CLOSED);
+                handleOnClosed(webSocket, code, reason, listener, controller, url, retryCount);
             }
             
             @Override
             public void onFailure(WebSocket webSocket, Throwable t, Response response) {
-                int pendingCount = controller.getPendingMessageCount();
-                log.info("WebSocket onFailure 被调用: url={}, error={}, response={}, 待发送消息数={}", 
-                        url, t != null ? t.getMessage() : "null", response, pendingCount);
-                
-                // 检查是否已经在关闭或关闭状态，防止重复处理
-                // 如果 onClosed 已经处理过，这里不应该再处理重连
-                WebSocketConnectionState currentState = controller.getConnectionState();
-                if (currentState == WebSocketConnectionState.CLOSED || 
-                    currentState == WebSocketConnectionState.CLOSING) {
-                    log.debug("连接已在关闭流程中，跳过 onFailure 处理: currentState={}", currentState);
-                    return;
-                }
-                
-                // 连接失败
-                WebSocketConnectionState oldState = controller.getConnectionState();
-                controller.setConnectionState(WebSocketConnectionState.FAILED);
-                controller.setOpen(false);
-                
-                // 停止心跳检测
-                controller.stopHeartbeat();
-                
-                Exception e = t != null ? (t instanceof Exception ? (Exception) t : new Exception(t)) : new IOException("连接失败");
-                
-                // 调用用户监听器
-                String message = t != null ? t.getMessage() : "连接失败";
-                listener.onError(controller, t, message);
-                listener.onStateChanged(controller, oldState, WebSocketConnectionState.FAILED);
-                
-                // 检查是否需要重连（调用用户监听器的方法）
-                // 注意：onFailure 通常在连接建立前失败，此时 onClosed 不会被调用
-                // 但如果连接建立后失败，可能会先触发 onFailure，然后触发 onClosed
-                // 为了安全，只在连接未关闭时处理重连
-                boolean needReconnect = shouldReconnect(controller, listener, e);
-                if (needReconnect && retryCount > 0) {
-                    // 网络异常且用户同意重连，保留消息并触发重连
-                    log.info("连接失败，但需要重连（网络异常或用户同意），保留 {} 条消息等待重连", pendingCount);
-                    controller.triggerReconnect("连接失败: " + (e != null ? e.getMessage() : "未知错误"));
-                } else if (pendingCount > 0) {
-                    // 用户不同意重连或未配置重连，丢弃消息
-                    int clearedCount = controller.clearMessageQueue();
-                    log.info("连接失败，但不需要重连，丢弃 {} 条未发送消息", clearedCount);
-                }
+                handleOnFailure(webSocket, t, response, listener, controller, url, retryCount);
             }
         };
+    }
+    
+    /**
+     * 处理连接打开事件
+     * 
+     * @param webSocket WebSocket 实例
+     * @param response HTTP 响应
+     * @param listener 用户的事件监听器
+     * @param controller WebSocket 控制器
+     * @param subprotocols 子协议列表
+     * @param heartbeatHandler 心跳处理器
+     * @param heartbeatInterval 心跳间隔（毫秒）
+     * @param heartbeatTimeout 心跳超时（毫秒）
+     */
+    private void handleOnOpen(WebSocket webSocket, Response response,
+                             WebSocketEventListener listener, WebSocketController controller,
+                             List<String> subprotocols,
+                             WebSocketHeartbeatHandler heartbeatHandler, long heartbeatInterval, long heartbeatTimeout) {
+        // 验证子协议
+        if (!validateSubprotocol(response, controller, subprotocols)) {
+            handleSubprotocolValidationFailure(webSocket, listener, controller);
+            return;
+        }
+        
+        controller.setWebSocket(webSocket);
+        
+        // 更新连接状态
+        WebSocketConnectionState oldState = controller.getConnectionState();
+        controller.setConnectionState(WebSocketConnectionState.CONNECTED);
+        controller.setOpen(true);
+        
+        // 连接成功后，重置重连状态
+        controller.resetReconnectAttempt();
+        controller.setReconnecting(false);
+        
+        // 启动心跳检测（如果配置了）
+        if (heartbeatHandler != null) {
+            controller.startHeartbeat(heartbeatHandler, heartbeatInterval, heartbeatTimeout);
+        }
+        
+        // 调用用户监听器
+        listener.onOpen(controller);
+        listener.onStateChanged(controller, oldState, WebSocketConnectionState.CONNECTED);
+        
+        log.info("WebSocket 连接建立成功");
+        
+        // 连接建立后，尝试发送队列中的消息
+        controller.trySend();
+    }
+    
+    /**
+     * 处理子协议验证失败
+     * 
+     * @param webSocket WebSocket 实例
+     * @param listener 用户的事件监听器
+     * @param controller WebSocket 控制器
+     */
+    private void handleSubprotocolValidationFailure(WebSocket webSocket,
+                                                    WebSocketEventListener listener,
+                                                    WebSocketController controller) {
+        // 验证失败，设置连接状态为 FAILED
+        WebSocketConnectionState oldState = controller.getConnectionState();
+        controller.setConnectionState(WebSocketConnectionState.FAILED);
+        controller.setOpen(false);
+        
+        // 如果正在重连，重置重连状态（避免状态不一致）
+        if (controller.isReconnecting()) {
+            controller.setReconnecting(false);
+        }
+        
+        // 停止心跳检测（如果已启动）
+        controller.stopHeartbeat();
+        
+        // 关闭连接
+        try {
+            webSocket.close(1002, "Sec-WebSocket-Protocol 验证失败");
+        } catch (Exception e) {
+            log.warn("关闭连接时发生异常", e);
+        }
+        
+        // 调用用户监听器
+        String errorMsg = "服务器返回的子协议不在客户端支持的列表中";
+        listener.onError(controller, new IllegalStateException(errorMsg), errorMsg);
+        listener.onStateChanged(controller, oldState, WebSocketConnectionState.FAILED);
+    }
+    
+    /**
+     * 处理文本消息
+     * 
+     * @param listener 用户的事件监听器
+     * @param controller WebSocket 控制器
+     * @param text 文本消息
+     * @param heartbeatHandler 心跳处理器
+     */
+    private void handleOnMessageText(WebSocketEventListener listener, WebSocketController controller,
+                                     String text, WebSocketHeartbeatHandler heartbeatHandler) {
+        // 检测心跳回复
+        if (heartbeatHandler != null && heartbeatHandler.isHeartbeatResponse(text)) {
+            controller.updateHeartbeatResponseTime(heartbeatHandler);
+            // 心跳回复不传递给用户监听器
+            return;
+        }
+        
+        // 调用用户监听器
+        listener.onMessage(controller, text);
+    }
+    
+    /**
+     * 处理二进制消息
+     * 
+     * @param listener 用户的事件监听器
+     * @param controller WebSocket 控制器
+     * @param bytes 二进制消息
+     * @param heartbeatHandler 心跳处理器
+     */
+    private void handleOnMessageBytes(WebSocketEventListener listener, WebSocketController controller,
+                                     ByteString bytes, WebSocketHeartbeatHandler heartbeatHandler) {
+        byte[] byteArray = bytes.toByteArray();
+        
+        // 检测心跳回复
+        if (heartbeatHandler != null && heartbeatHandler.isHeartbeatResponse(byteArray)) {
+            controller.updateHeartbeatResponseTime(heartbeatHandler);
+            // 心跳回复不传递给用户监听器
+            return;
+        }
+        
+        // 调用用户监听器
+        listener.onMessage(controller, byteArray);
+    }
+    
+    /**
+     * 处理连接正在关闭事件
+     * 
+     * @param webSocket WebSocket 实例
+     * @param code 关闭状态码
+     * @param reason 关闭原因
+     * @param listener 用户的事件监听器
+     * @param controller WebSocket 控制器
+     * @param url WebSocket URL
+     */
+    private void handleOnClosing(WebSocket webSocket, int code, String reason,
+                                 WebSocketEventListener listener, WebSocketController controller, String url) {
+        log.info("WebSocket onClosing 被调用: code={}, reason={}, url={}", code, reason, url);
+        
+        // 检查是否已经在关闭流程中，防止重复处理
+        if (isAlreadyClosing(controller)) {
+            // 如果已经在关闭流程中，仍然需要调用用户监听器（因为这是 OkHttp 的回调）
+            // 但不要重复设置状态和执行其他逻辑
+            log.debug("连接已在关闭流程中，但仍需调用用户监听器: currentState={}", controller.getConnectionState());
+            listener.onClosing(controller, code, reason);
+            return;
+        }
+        
+        // WebSocket 正在关闭
+        WebSocketConnectionState oldState = controller.getConnectionState();
+        controller.setConnectionState(WebSocketConnectionState.CLOSING);
+        controller.setOpen(false);
+        
+        // 停止心跳检测
+        controller.stopHeartbeat();
+        
+        // 调用用户监听器的 onClosing 方法
+        listener.onClosing(controller, code, reason);
+        listener.onStateChanged(controller, oldState, WebSocketConnectionState.CLOSING);
+        
+        // 根据 OkHttp WebSocket 规范，当收到关闭帧时，需要在 onClosing 中调用 webSocket.close() 来确认关闭
+        // 这样才能确保触发 onClosed 回调
+        try {
+            webSocket.close(code, reason);
+            log.debug("WebSocket 已确认关闭: code={}, reason={}", code, reason);
+        } catch (Exception e) {
+            log.warn("WebSocket 确认关闭时发生异常", e);
+        }
+    }
+    
+    /**
+     * 处理连接已关闭事件
+     * 
+     * @param webSocket WebSocket 实例
+     * @param code 关闭状态码
+     * @param reason 关闭原因
+     * @param listener 用户的事件监听器
+     * @param controller WebSocket 控制器
+     * @param url WebSocket URL
+     * @param retryCount 重试次数
+     */
+    private void handleOnClosed(WebSocket webSocket, int code, String reason,
+                                WebSocketEventListener listener, WebSocketController controller,
+                                String url, int retryCount) {
+        int pendingCount = controller.getPendingMessageCount();
+        log.info("WebSocket onClosed 被调用: code={}, reason={}, url={}, 待发送消息数={}", 
+                code, reason, url, pendingCount);
+        
+        // 检查是否已经处理过关闭，防止重复处理（可能由 onClosing 调用 close() 触发）
+        if (isAlreadyClosed(controller)) {
+            // 如果已经关闭，仍然需要调用用户监听器（因为这是 OkHttp 的回调）
+            // 但不要重复设置状态和执行其他逻辑（如重连判断、消息队列处理等）
+            log.debug("连接已关闭，但仍需调用用户监听器: currentState={}", controller.getConnectionState());
+            listener.onClose(controller, code, reason);
+            return;
+        }
+        
+        // WebSocket 已关闭
+        WebSocketConnectionState oldState = controller.getConnectionState();
+        controller.setConnectionState(WebSocketConnectionState.CLOSED);
+        controller.setOpen(false);
+        
+        // 停止心跳检测
+        controller.stopHeartbeat();
+        
+        // 处理重连决策和消息队列
+        handleReconnectDecision(controller, listener, code, reason, retryCount, pendingCount);
+        
+        // 调用用户监听器
+        listener.onClose(controller, code, reason);
+        listener.onStateChanged(controller, oldState, WebSocketConnectionState.CLOSED);
+    }
+    
+    /**
+     * 处理连接失败事件
+     * 
+     * @param webSocket WebSocket 实例
+     * @param t 异常
+     * @param response HTTP 响应
+     * @param listener 用户的事件监听器
+     * @param controller WebSocket 控制器
+     * @param url WebSocket URL
+     * @param retryCount 重试次数
+     */
+    private void handleOnFailure(WebSocket webSocket, Throwable t, Response response,
+                                WebSocketEventListener listener, WebSocketController controller,
+                                String url, int retryCount) {
+        int pendingCount = controller.getPendingMessageCount();
+        log.info("WebSocket onFailure 被调用: url={}, error={}, response={}, 待发送消息数={}", 
+                url, t != null ? t.getMessage() : "null", response, pendingCount);
+        
+        // 检查是否已经在关闭或关闭状态，防止重复处理
+        // 如果 onClosed 已经处理过，这里不应该再处理重连
+        if (isAlreadyClosingOrClosed(controller)) {
+            log.debug("连接已在关闭流程中，跳过 onFailure 处理: currentState={}", controller.getConnectionState());
+            return;
+        }
+        
+        // 连接失败
+        WebSocketConnectionState oldState = controller.getConnectionState();
+        controller.setConnectionState(WebSocketConnectionState.FAILED);
+        controller.setOpen(false);
+        
+        // 停止心跳检测
+        controller.stopHeartbeat();
+        
+        Exception e = t != null ? (t instanceof Exception ? (Exception) t : new Exception(t)) : new IOException("连接失败");
+        
+        // 调用用户监听器
+        String message = t != null ? t.getMessage() : "连接失败";
+        listener.onError(controller, t, message);
+        listener.onStateChanged(controller, oldState, WebSocketConnectionState.FAILED);
+        
+        // 检查是否需要重连（调用用户监听器的方法）
+        // 注意：onFailure 通常在连接建立前失败，此时 onClosed 不会被调用
+        // 但如果连接建立后失败，可能会先触发 onFailure，然后触发 onClosed
+        // 为了安全，只在连接未关闭时处理重连
+        boolean needReconnect = shouldReconnect(controller, listener, e);
+        if (needReconnect && retryCount > 0) {
+            // 网络异常且用户同意重连，保留消息并触发重连
+            log.info("连接失败，但需要重连（网络异常或用户同意），保留 {} 条消息等待重连", pendingCount);
+            controller.triggerReconnect("连接失败: " + (e != null ? e.getMessage() : "未知错误"));
+        } else if (pendingCount > 0) {
+            // 用户不同意重连或未配置重连，丢弃消息
+            int clearedCount = controller.clearMessageQueue();
+            log.info("连接失败，但不需要重连，丢弃 {} 条未发送消息", clearedCount);
+        }
+    }
+    
+    /**
+     * 检查是否已经在关闭流程中
+     * 
+     * @param controller WebSocket 控制器
+     * @return 如果已经在关闭流程中返回 true，否则返回 false
+     */
+    private boolean isAlreadyClosing(WebSocketController controller) {
+        WebSocketConnectionState currentState = controller.getConnectionState();
+        return currentState == WebSocketConnectionState.CLOSING || 
+               currentState == WebSocketConnectionState.CLOSED;
+    }
+    
+    /**
+     * 检查是否已经关闭
+     * 
+     * @param controller WebSocket 控制器
+     * @return 如果已经关闭返回 true，否则返回 false
+     */
+    private boolean isAlreadyClosed(WebSocketController controller) {
+        return controller.getConnectionState() == WebSocketConnectionState.CLOSED;
+    }
+    
+    /**
+     * 检查是否已经在关闭或关闭状态
+     * 
+     * @param controller WebSocket 控制器
+     * @return 如果已经在关闭或关闭状态返回 true，否则返回 false
+     */
+    private boolean isAlreadyClosingOrClosed(WebSocketController controller) {
+        WebSocketConnectionState currentState = controller.getConnectionState();
+        return currentState == WebSocketConnectionState.CLOSED || 
+               currentState == WebSocketConnectionState.CLOSING;
+    }
+    
+    /**
+     * 处理重连决策和消息队列
+     * 
+     * @param controller WebSocket 控制器
+     * @param listener 用户的事件监听器
+     * @param code 关闭状态码
+     * @param reason 关闭原因
+     * @param retryCount 重试次数
+     * @param pendingCount 待发送消息数
+     */
+    private void handleReconnectDecision(WebSocketController controller, WebSocketEventListener listener,
+                                        int code, String reason, int retryCount, int pendingCount) {
+        // 判断是否需要保留消息并重连
+        // 只有网络异常或用户通过 shouldReconnect 同意重连时，才保留消息
+        // 注意：重连逻辑只在这里处理，onFailure 中不再处理重连（避免重复）
+        if (pendingCount > 0 && retryCount > 0) {
+            // 判断是否是网络异常关闭（code 1006 通常表示异常关闭）
+            boolean isNetworkError = (code == 1006) || (code == 1001) || (code == 1011);
+            
+            // 创建异常对象用于 shouldReconnect 判断
+            Exception closeException;
+            if (isNetworkError) {
+                closeException = new IOException("网络异常导致连接关闭: code=" + code + ", reason=" + reason);
+            } else {
+                // 服务端正常关闭，创建普通异常
+                closeException = new IOException("连接关闭: code=" + code + ", reason=" + reason);
+            }
+            
+            // 调用用户监听器判断是否应该重连
+            boolean needReconnect = shouldReconnect(controller, listener, closeException);
+            
+            if (needReconnect) {
+                // 网络异常或用户同意重连，保留消息并触发重连
+                log.info("连接关闭，但需要重连（网络异常或用户同意），保留 {} 条消息等待重连", pendingCount);
+                controller.triggerReconnect("连接关闭，但需要重连");
+            } else {
+                // 服务端正常关闭且用户不同意重连，丢弃消息
+                int clearedCount = controller.clearMessageQueue();
+                log.info("连接关闭（服务端主动断开），丢弃 {} 条未发送消息。关闭原因: code={}, reason={}", 
+                        clearedCount, code, reason);
+            }
+        } else if (pendingCount > 0) {
+            // 有未发送消息但未配置重连，丢弃消息
+            int clearedCount = controller.clearMessageQueue();
+            log.info("连接关闭，未配置重连机制，丢弃 {} 条未发送消息。关闭原因: code={}, reason={}", 
+                    clearedCount, code, reason);
+        }
     }
     
     /**

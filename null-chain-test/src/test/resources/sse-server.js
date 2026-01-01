@@ -29,12 +29,14 @@ const server = http.createServer((req, res) => {
 
         // 用于存储定时器ID，方便后续清理
         let timeoutId = null;
+        let messageId = 0; // 消息ID计数器
 
         // 2. 核心：随机发送JSON数据的递归函数
         const sendRandomSSE = () => {
+            messageId++;
             // 生成随机数据
             const randomJson = {
-                id: Math.floor(Math.random() * 10000), // 随机ID
+                id: messageId, // 递增的ID，用于Last-Event-ID测试
                 timestamp: new Date().toISOString(), // 时间戳
                 message: randomMessages[Math.floor(Math.random() * randomMessages.length)], // 随机消息
                 type: randomTypes[Math.floor(Math.random() * randomTypes.length)], // 随机消息类型
@@ -47,7 +49,7 @@ const server = http.createServer((req, res) => {
             // event：自定义事件类型，客户端可按需监听
             // data：消息体（JSON字符串格式）
             const sseMessage = [
-                `id: ${Date.now()}`, // 用时间戳作为唯一ID，更可靠
+                `id: ${messageId}`, // 递增的ID
                 `event: randomJsonEvent`, // 自定义事件名
                 `data: ${JSON.stringify(randomJson)}`,
             ].join('\n');
@@ -80,9 +82,211 @@ const server = http.createServer((req, res) => {
 
         req.on('close', cleanUp); // 客户端正常断开
         req.on('abort', cleanUp); // 客户端异常中断
+    } else if (req.url === '/sse-text') {
+        // 返回纯文本数据的SSE端点，用于测试toSSEText
+        res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.flushHeaders();
+
+        let timeoutId = null;
+        let messageId = 0;
+
+        const sendTextSSE = () => {
+            messageId++;
+            const textMessage = `这是第 ${messageId} 条文本消息 - ${new Date().toLocaleTimeString()}`;
+
+            const sseMessage = [
+                `id: ${messageId}`,
+                `event: textEvent`,
+                `data: ${textMessage}`,
+            ].join('\n');
+
+            try {
+                res.write(sseMessage + '\n\n');
+                console.log('发送文本消息 ID:', messageId);
+            } catch (err) {
+                clearTimeout(timeoutId);
+                return;
+            }
+
+            // 固定延迟2秒
+            timeoutId = setTimeout(sendTextSSE, 2000);
+        };
+
+        sendTextSSE();
+
+        const cleanUp = () => {
+            clearTimeout(timeoutId);
+            res.end();
+            console.log('客户端断开SSE文本连接');
+        };
+
+        req.on('close', cleanUp);
+        req.on('abort', cleanUp);
+    } else if (req.url === '/sse-reconnect') {
+        // 支持Last-Event-ID的端点，用于测试重连和断点续传
+        const lastEventId = req.headers['last-event-id'];
+        let startId = 1;
+        let isReconnect = false;
+        
+        if (lastEventId) {
+            startId = parseInt(lastEventId, 10) + 1;
+            isReconnect = true;
+            console.log(`收到Last-Event-ID: ${lastEventId}，从ID ${startId}开始发送（重连）`);
+        } else {
+            console.log('新的SSE重连测试连接');
+        }
+
+        res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.flushHeaders();
+
+        let timeoutId = null;
+        let messageId = startId - 1;
+        // 重连后重置messageCount，确保重连后继续发送消息
+        let messageCount = isReconnect ? 0 : 0;
+
+        const sendSSE = () => {
+            messageId++;
+            messageCount++;
+            const data = {
+                id: messageId,
+                timestamp: new Date().toISOString(),
+                message: `消息 ${messageId}`,
+                type: "info"
+            };
+
+            const sseMessage = [
+                `id: ${messageId}`,
+                `event: reconnectEvent`,
+                `data: ${JSON.stringify(data)}`,
+            ].join('\n');
+
+            try {
+                res.write(sseMessage + '\n\n');
+                console.log(`发送消息 ID: ${messageId} (${isReconnect ? '重连' : '首次'})`);
+                
+                // 如果是首次连接（非重连），发送3条消息后主动断开，用于测试自动重连
+                if (!isReconnect && messageCount >= 3) {
+                    setTimeout(() => {
+                        console.log('模拟连接断开（用于测试自动重连）');
+                        clearTimeout(timeoutId);
+                        // 使用destroy()强制关闭连接，触发IOException以触发重连
+                        res.destroy();
+                    }, 1000);
+                    return;
+                }
+            } catch (err) {
+                clearTimeout(timeoutId);
+                return;
+            }
+
+            // 固定延迟2秒
+            timeoutId = setTimeout(sendSSE, 2000);
+        };
+
+        sendSSE();
+
+        const cleanUp = () => {
+            clearTimeout(timeoutId);
+            res.end();
+            console.log('客户端断开SSE重连测试连接');
+        };
+
+        req.on('close', cleanUp);
+        req.on('abort', cleanUp);
+    } else if (req.url === '/sse-disconnect') {
+        // 模拟连接断开的端点，用于测试自动重连
+        res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.flushHeaders();
+
+        let messageCount = 0;
+        const sendAndDisconnect = () => {
+            messageCount++;
+            const data = {
+                id: messageCount,
+                timestamp: new Date().toISOString(),
+                message: `消息 ${messageCount}（将在3条后断开）`,
+                type: "info"
+            };
+
+            const sseMessage = [
+                `id: ${messageCount}`,
+                `event: disconnectEvent`,
+                `data: ${JSON.stringify(data)}`,
+            ].join('\n');
+
+            try {
+                res.write(sseMessage + '\n\n');
+                console.log(`发送消息 ID: ${messageCount}`);
+
+                // 发送3条消息后主动断开连接
+                if (messageCount >= 3) {
+                    setTimeout(() => {
+                        console.log('模拟连接断开');
+                        res.end();
+                    }, 1000);
+                } else {
+                    setTimeout(sendAndDisconnect, 1000);
+                }
+            } catch (err) {
+                console.log('连接已断开');
+            }
+        };
+
+        sendAndDisconnect();
+    } else if (req.url === '/non-sse') {
+        // 返回非SSE格式的响应，用于测试onNonSseResponse回调
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({
+            message: '这是一个非SSE响应',
+            type: 'json',
+            timestamp: new Date().toISOString()
+        }));
+        console.log('返回非SSE响应');
+    } else if (req.url === '/nonexistent' || req.url.startsWith('/nonexistent')) {
+        // 返回404错误，用于测试HTTP错误处理
+        res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('Not Found: The requested resource does not exist.');
+        console.log('返回404错误');
+    } else if (req.url === '/error-500') {
+        // 返回500错误，用于测试服务器错误
+        res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('Internal Server Error');
+        console.log('返回500错误');
+    } else if (req.url === '/error-401') {
+        // 返回401错误，用于测试认证错误（不可重试）
+        res.writeHead(401, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('Unauthorized');
+        console.log('返回401错误');
     } else {
-        res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
-        res.end('规范SSE服务运行中，端点：/sse');
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.end(`
+            <html>
+                <head><title>SSE 测试服务器</title></head>
+                <body>
+                    <h1>SSE 测试服务器运行中</h1>
+                    <p>端点：</p>
+                    <ul>
+                        <li>http://localhost:3000/sse - 基础SSE流（随机JSON数据）</li>
+                        <li>http://localhost:3000/sse-text - 纯文本SSE流（用于测试toSSEText）</li>
+                        <li>http://localhost:3000/sse-reconnect - 支持Last-Event-ID的重连测试</li>
+                        <li>http://localhost:3000/sse-disconnect - 模拟连接断开（用于测试自动重连）</li>
+                        <li>http://localhost:3000/non-sse - 非SSE响应（用于测试onNonSseResponse）</li>
+                        <li>http://localhost:3000/nonexistent - 404错误（用于测试HTTP错误处理）</li>
+                        <li>http://localhost:3000/error-500 - 500错误（用于测试服务器错误）</li>
+                        <li>http://localhost:3000/error-401 - 401错误（用于测试认证错误）</li>
+                    </ul>
+                </body>
+            </html>
+        `);
     }
 });
 

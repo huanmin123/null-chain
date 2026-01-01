@@ -9,6 +9,7 @@ import com.gitee.huanminabc.nullchain.common.*;
 import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
 import com.gitee.huanminabc.nullchain.enums.OkHttpResponseEnum;
 import com.gitee.huanminabc.nullchain.leaf.http.sse.DataDecoder;
+import com.gitee.huanminabc.nullchain.leaf.http.sse.SSEController;
 import com.gitee.huanminabc.nullchain.leaf.http.sse.SSEEventListener;
 import com.gitee.huanminabc.nullchain.leaf.http.websocket.WebSocketController;
 import com.gitee.huanminabc.nullchain.leaf.http.websocket.WebSocketEventListener;
@@ -522,12 +523,12 @@ public class OkHttpBase<T> extends NullKernelAbstract implements OkHttp<T> {
      *
      * @param listener SSE 事件监听器，处理各种 SSE 事件（数据类型为 String）
      */
-    public void toSSEText(SSEEventListener<String> listener) {
-        toSSE(listener, DataDecoder.stringDecoder());
+    public SSEController toSSEText(SSEEventListener<String> listener) {
+        return toSSE(listener, DataDecoder.stringDecoder());
     }
 
-    public void toSSEJson(SSEEventListener<JSONObject> listener) {
-        toSSE(listener, DataDecoder.jsonDecoder());
+    public SSEController toSSEJson(SSEEventListener<JSONObject> listener) {
+        return toSSE(listener, DataDecoder.jsonDecoder());
     }
 
     /**
@@ -539,29 +540,42 @@ public class OkHttpBase<T> extends NullKernelAbstract implements OkHttp<T> {
      * @param <R>      SSE 数据解码后的类型
      * @param listener SSE 事件监听器，处理各种 SSE 事件
      * @param decoder  数据解码器，将原始字符串解码为泛型对象
+     * @return SSE 控制器，可用于管理连接状态和关闭连接
      */
-    public <R> void toSSE(SSEEventListener<R> listener, DataDecoder<R> decoder) {
-        taskList.runTaskAll((nullChainBase) -> {
-            if (listener == null) {
-                linkLog.append(HTTP_TO_SSE_Q).append("监听器不能为空");
-                throw new NullChainException(linkLog.toString());
-            }
-            if (decoder == null) {
-                linkLog.append(HTTP_TO_SSE_Q).append("解码器不能为空");
-                throw new NullChainException(linkLog.toString());
-            }
-            try {
-                OkHttpBuild.setHeader(headerMap, request);
-                OkHttpBuild.handleResponse(
-                        OkHttpResponseEnum.SSE, url, okHttpClient, request,
-                        retryCount, retryInterval, listener, decoder);
-                linkLog.append(HTTP_TO_SSE_ARROW);
-            } catch (Exception e) {
-                linkLog.append(HTTP_TO_SSE_Q).append(e.getMessage());
-                throw new NullChainException(linkLog.toString());
-            }
-        }, null);
+    public <R> SSEController toSSE(SSEEventListener<R> listener, DataDecoder<R> decoder) {
+        if (listener == null) {
+            linkLog.append(HTTP_TO_SSE_Q).append("监听器不能为空");
+            throw new NullChainException(linkLog.toString());
+        }
+        if (decoder == null) {
+            linkLog.append(HTTP_TO_SSE_Q).append("解码器不能为空");
+            throw new NullChainException(linkLog.toString());
+        }
+        // 先执行taskList中的所有任务，初始化request等字段
+        NullTaskList.NullNode<Object> nullNode = taskList.runTaskAll();
+        if (nullNode.isNull) {
+            linkLog.append(HTTP_TO_SSE_Q).append("任务链执行返回空值");
+            throw new NullChainException(linkLog.toString());
+        }
 
+        try {
+            OkHttpBuild.setHeader(headerMap, request);
+            SSEController controller = (SSEController) OkHttpBuild.handleResponse(
+                    OkHttpResponseEnum.SSE, url, okHttpClient, request,
+                    retryCount, retryInterval, listener, decoder);
+            if (controller == null) {
+                linkLog.append(HTTP_TO_SSE_Q).append("SSEController创建失败，返回null");
+                throw new NullChainException(linkLog.toString());
+            }
+            linkLog.append(HTTP_TO_SSE_ARROW);
+            return controller;
+        } catch (NullChainException e) {
+            // 如果是NullChainException，直接抛出，不重复包装
+            throw e;
+        } catch (Exception e) {
+            linkLog.append(HTTP_TO_SSE_Q).append(e.getMessage());
+            throw new NullChainException(e, linkLog.toString());
+        }
     }
 
     /**
@@ -616,14 +630,7 @@ public class OkHttpBase<T> extends NullKernelAbstract implements OkHttp<T> {
             // 如果是NullChainException，直接抛出，不重复包装
             throw e;
         } catch (Exception e) {
-            String errorMsg = e.getMessage();
-            if (errorMsg == null || errorMsg.isEmpty()) {
-                errorMsg = e.getClass().getSimpleName() + (e.getCause() != null ? ": " + e.getCause().getMessage() : "");
-                if (errorMsg.equals(e.getClass().getSimpleName())) {
-                    errorMsg = e.getClass().getSimpleName() + " (无详细错误信息)";
-                }
-            }
-            linkLog.append(HTTP_TO_WEBSOCKET_Q).append(errorMsg);
+            linkLog.append(HTTP_TO_WEBSOCKET_Q).append( e.getMessage());
             throw new NullChainException(e, linkLog.toString());
         }
     }
