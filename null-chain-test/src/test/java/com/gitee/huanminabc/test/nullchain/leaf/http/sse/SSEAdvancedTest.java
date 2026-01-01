@@ -41,7 +41,8 @@ public class SSEAdvancedTest extends SSEBaseTest {
         AtomicReference<String> lastReceivedId = new AtomicReference<>();
         AtomicReference<SSEController> controllerRef = new AtomicReference<>();
 
-        SSEController controller = Null.ofHttp(BASE_URL + "/sse-reconnect")
+        // 使用 /sse 端点（不会主动断开），而不是 /sse-reconnect（会主动断开用于测试重连）
+        SSEController controller = Null.ofHttp(BASE_URL + "/sse")
                 .retryCount(0) // 不自动重连，手动测试
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .get()
