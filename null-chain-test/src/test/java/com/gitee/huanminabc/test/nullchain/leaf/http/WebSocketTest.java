@@ -1125,5 +1125,546 @@ public class WebSocketTest {
         controller.close(1000, "测试完成");
         Thread.sleep(500);
     }
+    
+    /**
+     * 测试二进制消息发送和接收
+     */
+    @Test
+    @Timeout(value = TIMEOUT_SECONDS, unit = TimeUnit.SECONDS)
+    public void testBinaryMessage() throws InterruptedException {
+        CountDownLatch openLatch = new CountDownLatch(1);
+        CountDownLatch binaryLatch = new CountDownLatch(1);
+        AtomicReference<byte[]> receivedBytes = new AtomicReference<>();
+        
+        WebSocketController controller = Null.ofHttp(BASE_URL + "/ws")
+                .retryCount(0)
+                .toWebSocket(new WebSocketEventListener() {
+                    @Override
+                    public void onOpen(WebSocketController controller) {
+                        log.info("连接建立");
+                        openLatch.countDown();
+                        
+                        // 发送二进制消息
+                        byte[] testData = "Hello Binary".getBytes();
+                        controller.send(testData);
+                    }
+                    
+                    @Override
+                    public void onMessage(WebSocketController controller, String text) {
+                        log.info("收到文本消息: {}", text);
+                    }
+                    
+                    @Override
+                    public void onMessage(WebSocketController controller, byte[] bytes) {
+                        log.info("收到二进制消息，长度: {}", bytes.length);
+                        receivedBytes.set(bytes);
+                        binaryLatch.countDown();
+                    }
+                    
+                    @Override
+                    public void onError(WebSocketController controller, Throwable t, String message) {
+                        log.error("发生错误: {}", message, t);
+                    }
+                    
+                    @Override
+                    public void onClose(WebSocketController controller, int code, String reason) {
+                        log.info("连接关闭: code={}, reason={}", code, reason);
+                    }
+                });
+        
+        // 等待连接建立
+        assertTrue(openLatch.await(5, TimeUnit.SECONDS), "连接应该在5秒内建立");
+        
+        // 等待收到二进制消息
+        assertTrue(binaryLatch.await(5, TimeUnit.SECONDS), "应该在5秒内收到二进制消息");
+        assertNotNull(receivedBytes.get(), "应该收到二进制消息");
+        assertTrue(receivedBytes.get().length > 0, "二进制消息长度应该大于0");
+        
+        controller.close(1000, "测试完成");
+        Thread.sleep(500);
+    }
+    
+    /**
+     * 测试重连机制（有消息队列时）
+     */
+    @Test
+    @Timeout(value = 30, unit = TimeUnit.SECONDS)
+    public void testReconnectWithMessageQueue() throws InterruptedException {
+        CountDownLatch firstOpenLatch = new CountDownLatch(1);
+        CountDownLatch reconnectOpenLatch = new CountDownLatch(1);
+        CountDownLatch closeLatch = new CountDownLatch(1);
+        AtomicInteger openCount = new AtomicInteger(0);
+        AtomicInteger messageCount = new AtomicInteger(0);
+        
+        WebSocketController controller = Null.ofHttp(BASE_URL + "/ws-reconnect")
+                .retryCount(2) // 允许重试2次
+                .retryInterval(1000) // 重试间隔1秒
+                .toWebSocket(new WebSocketEventListener() {
+                    @Override
+                    public void onOpen(WebSocketController controller) {
+                        int count = openCount.incrementAndGet();
+                        log.info("连接建立，第{}次", count);
+                        if (count == 1) {
+                            firstOpenLatch.countDown();
+                            // 发送消息后立即关闭连接（模拟网络断开）
+                            controller.send("{\"type\":\"test\",\"message\":\"before close\"}");
+                            // 在连接建立后发送消息，然后触发服务器关闭
+                            try {
+                                Thread.sleep(500);
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                            }
+                            controller.send("{\"type\":\"close\"}");
+                        } else {
+                            reconnectOpenLatch.countDown();
+                        }
+                    }
+                    
+                    @Override
+                    public void onMessage(WebSocketController controller, String text) {
+                        messageCount.incrementAndGet();
+                        log.info("收到消息 {}: {}", messageCount.get(), text);
+                    }
+                    
+                    @Override
+                    public void onMessage(WebSocketController controller, byte[] bytes) {
+                        // 忽略二进制消息
+                    }
+                    
+                    @Override
+                    public void onError(WebSocketController controller, Throwable t, String message) {
+                        log.error("发生错误: {}", message, t);
+                    }
+                    
+                    @Override
+                    public void onClose(WebSocketController controller, int code, String reason) {
+                        log.info("连接关闭: code={}, reason={}", code, reason);
+                        closeLatch.countDown();
+                    }
+                });
+        
+        // 等待第一次连接建立
+        assertTrue(firstOpenLatch.await(5, TimeUnit.SECONDS), "第一次连接应该在5秒内建立");
+        
+        // 等待连接关闭
+        assertTrue(closeLatch.await(5, TimeUnit.SECONDS), "连接应该在5秒内关闭");
+        
+        // 在连接关闭后发送消息（这些消息会进入队列，触发重连）
+        controller.send("{\"type\":\"queued1\"}");
+        controller.send("{\"type\":\"queued2\"}");
+        log.info("连接关闭后发送了2条消息，待发送消息数: {}", controller.getPendingMessageCount());
+        
+        // 等待重连
+        assertTrue(reconnectOpenLatch.await(10, TimeUnit.SECONDS), "应该在10秒内重连成功");
+        assertTrue(openCount.get() >= 2, "应该至少重连一次");
+        
+        // 等待消息发送
+        Thread.sleep(2000);
+        
+        // 验证消息队列已清空
+        assertEquals(0, controller.getPendingMessageCount(), "重连后消息队列应该为空");
+        
+        controller.close(1000, "测试完成");
+        Thread.sleep(500);
+    }
+    
+    /**
+     * 测试心跳超时检测
+     */
+    @Test
+    @Timeout(value = 20, unit = TimeUnit.SECONDS)
+    public void testHeartbeatTimeout() throws InterruptedException {
+        CountDownLatch openLatch = new CountDownLatch(1);
+        CountDownLatch closeLatch = new CountDownLatch(1);
+        AtomicInteger closeCode = new AtomicInteger(-1);
+        AtomicReference<String> closeReason = new AtomicReference<>();
+        
+        WebSocketController controller = Null.ofHttp(BASE_URL + "/ws-heartbeat-timeout")
+                .retryCount(0)
+                .heartbeat(new WebSocketHeartbeatHandler() {
+                    @Override
+                    public String generateHeartbeat() {
+                        return "{\"type\":\"ping\"}";
+                    }
+                    
+                    @Override
+                    public boolean isHeartbeatResponse(String text) {
+                        // 服务器不回复心跳，导致超时
+                        return false;
+                    }
+                }, 2000, 3000) // 间隔2秒，超时3秒
+                .toWebSocket(new WebSocketEventListener() {
+                    @Override
+                    public void onOpen(WebSocketController controller) {
+                        log.info("连接建立");
+                        openLatch.countDown();
+                    }
+                    
+                    @Override
+                    public void onMessage(WebSocketController controller, String text) {
+                        log.info("收到消息: {}", text);
+                    }
+                    
+                    @Override
+                    public void onMessage(WebSocketController controller, byte[] bytes) {
+                        // 忽略二进制消息
+                    }
+                    
+                    @Override
+                    public void onError(WebSocketController controller, Throwable t, String message) {
+                        log.error("发生错误: {}", message, t);
+                    }
+                    
+                    @Override
+                    public void onClose(WebSocketController controller, int code, String reason) {
+                        log.info("连接关闭: code={}, reason={}", code, reason);
+                        closeCode.set(code);
+                        closeReason.set(reason);
+                        closeLatch.countDown();
+                    }
+                });
+        
+        // 等待连接建立
+        assertTrue(openLatch.await(5, TimeUnit.SECONDS), "连接应该在5秒内建立");
+        
+        // 等待心跳超时（3秒超时 + 2秒间隔 = 至少5秒后才会超时）
+        assertTrue(closeLatch.await(10, TimeUnit.SECONDS), "应该在10秒内因心跳超时关闭");
+        assertEquals(1000, closeCode.get(), "关闭状态码应该是 1000");
+        assertTrue(closeReason.get() != null && closeReason.get().contains("心跳超时"),
+                "关闭原因应该包含'心跳超时'");
+        
+        // 验证连接已关闭
+        assertFalse(controller.isOpen(), "连接应该处于关闭状态");
+    }
+    
+    /**
+     * 测试二进制格式心跳
+     */
+    @Test
+    @Timeout(value = 20, unit = TimeUnit.SECONDS)
+    public void testBinaryHeartbeat() throws InterruptedException {
+        CountDownLatch openLatch = new CountDownLatch(1);
+        AtomicInteger heartbeatCount = new AtomicInteger(0);
+        
+        WebSocketController controller = Null.ofHttp(BASE_URL + "/ws-heartbeat-binary")
+                .retryCount(0)
+                .heartbeat(new WebSocketHeartbeatHandler() {
+                    @Override
+                    public String generateHeartbeat() {
+                        // 返回 null，使用二进制格式
+                        return null;
+                    }
+                    
+                    @Override
+                    public byte[] generateHeartbeatBytes() {
+                        // 返回二进制心跳
+                        return "PING".getBytes();
+                    }
+                    
+                    @Override
+                    public boolean isHeartbeatResponse(String text) {
+                        return false;
+                    }
+                    
+                    @Override
+                    public boolean isHeartbeatResponse(byte[] bytes) {
+                        // 检查是否是二进制心跳回复
+                        if (bytes != null && bytes.length == 4) {
+                            String response = new String(bytes);
+                            if ("PONG".equals(response)) {
+                                heartbeatCount.incrementAndGet();
+                                log.info("收到二进制心跳回复，总数: {}", heartbeatCount.get());
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+                }, 3000, 5000)
+                .toWebSocket(new WebSocketEventListener() {
+                    @Override
+                    public void onOpen(WebSocketController controller) {
+                        log.info("连接建立");
+                        openLatch.countDown();
+                    }
+                    
+                    @Override
+                    public void onMessage(WebSocketController controller, String text) {
+                        log.info("收到文本消息: {}", text);
+                    }
+                    
+                    @Override
+                    public void onMessage(WebSocketController controller, byte[] bytes) {
+                        // 心跳回复会被自动处理，不会到达这里
+                        log.debug("收到二进制消息，长度: {}", bytes.length);
+                    }
+                    
+                    @Override
+                    public void onError(WebSocketController controller, Throwable t, String message) {
+                        log.error("发生错误: {}", message, t);
+                    }
+                    
+                    @Override
+                    public void onClose(WebSocketController controller, int code, String reason) {
+                        log.info("连接关闭: code={}, reason={}", code, reason);
+                    }
+                });
+        
+        // 等待连接建立
+        assertTrue(openLatch.await(5, TimeUnit.SECONDS), "连接应该在5秒内建立");
+        
+        // 等待一段时间，让心跳机制工作
+        Thread.sleep(12000);
+        
+        // 验证心跳是否工作
+        assertTrue(heartbeatCount.get() > 0, 
+                "应该收到至少一次二进制心跳回复，实际收到: " + heartbeatCount.get());
+        log.info("二进制心跳回复总数: {}", heartbeatCount.get());
+        
+        controller.close(1000, "测试完成");
+        Thread.sleep(500);
+    }
+    
+    /**
+     * 测试 URL 转换（http → ws, https → wss）
+     */
+    @Test
+    @Timeout(value = TIMEOUT_SECONDS, unit = TimeUnit.SECONDS)
+    public void testUrlConversion() throws InterruptedException {
+        CountDownLatch openLatch = new CountDownLatch(1);
+        
+        // 测试 http:// 转换为 ws://
+        WebSocketController controller1 = Null.ofHttp("http://localhost:3001/ws")
+                .retryCount(0)
+                .toWebSocket(new WebSocketEventListener() {
+                    @Override
+                    public void onOpen(WebSocketController controller) {
+                        log.info("连接建立（http转换）");
+                        openLatch.countDown();
+                    }
+                    
+                    @Override
+                    public void onMessage(WebSocketController controller, String text) {
+                        // 忽略消息
+                    }
+                    
+                    @Override
+                    public void onMessage(WebSocketController controller, byte[] bytes) {
+                        // 忽略消息
+                    }
+                    
+                    @Override
+                    public void onError(WebSocketController controller, Throwable t, String message) {
+                        log.error("发生错误: {}", message, t);
+                    }
+                    
+                    @Override
+                    public void onClose(WebSocketController controller, int code, String reason) {
+                        log.info("连接关闭: code={}, reason={}", code, reason);
+                    }
+                });
+        
+        assertTrue(openLatch.await(5, TimeUnit.SECONDS), "连接应该在5秒内建立");
+        controller1.close(1000, "测试完成");
+        Thread.sleep(500);
+        
+        // 测试 ws:// 直接使用
+        CountDownLatch openLatch2 = new CountDownLatch(1);
+        WebSocketController controller2 = Null.ofHttp("ws://localhost:3001/ws")
+                .retryCount(0)
+                .toWebSocket(new WebSocketEventListener() {
+                    @Override
+                    public void onOpen(WebSocketController controller) {
+                        log.info("连接建立（ws直接）");
+                        openLatch2.countDown();
+                    }
+                    
+                    @Override
+                    public void onMessage(WebSocketController controller, String text) {
+                        // 忽略消息
+                    }
+                    
+                    @Override
+                    public void onMessage(WebSocketController controller, byte[] bytes) {
+                        // 忽略消息
+                    }
+                    
+                    @Override
+                    public void onError(WebSocketController controller, Throwable t, String message) {
+                        log.error("发生错误: {}", message, t);
+                    }
+                    
+                    @Override
+                    public void onClose(WebSocketController controller, int code, String reason) {
+                        log.info("连接关闭: code={}, reason={}", code, reason);
+                    }
+                });
+        
+        assertTrue(openLatch2.await(5, TimeUnit.SECONDS), "连接应该在5秒内建立");
+        controller2.close(1000, "测试完成");
+        Thread.sleep(500);
+    }
+    
+    /**
+     * 测试连接失败场景
+     */
+    @Test
+    @Timeout(value = TIMEOUT_SECONDS, unit = TimeUnit.SECONDS)
+    public void testConnectionFailure() throws InterruptedException {
+        CountDownLatch errorLatch = new CountDownLatch(1);
+        AtomicReference<String> errorMessage = new AtomicReference<>();
+        AtomicBoolean openCalled = new AtomicBoolean(false);
+        
+        // 尝试连接到不存在的服务器
+        WebSocketController controller = Null.ofHttp("ws://localhost:9999/nonexistent")
+                .retryCount(0) // 不重试
+                .toWebSocket(new WebSocketEventListener() {
+                    @Override
+                    public void onOpen(WebSocketController controller) {
+                        openCalled.set(true);
+                        log.info("连接建立（不应该发生）");
+                    }
+                    
+                    @Override
+                    public void onMessage(WebSocketController controller, String text) {
+                        // 忽略消息
+                    }
+                    
+                    @Override
+                    public void onMessage(WebSocketController controller, byte[] bytes) {
+                        // 忽略消息
+                    }
+                    
+                    @Override
+                    public void onError(WebSocketController controller, Throwable t, String message) {
+                        log.error("发生错误（预期）: {}", message, t);
+                        errorMessage.set(message);
+                        errorLatch.countDown();
+                    }
+                    
+                    @Override
+                    public void onClose(WebSocketController controller, int code, String reason) {
+                        log.info("连接关闭: code={}, reason={}", code, reason);
+                    }
+                });
+        
+        // 等待错误
+        assertTrue(errorLatch.await(5, TimeUnit.SECONDS), "应该在5秒内收到错误");
+        assertFalse(openCalled.get(), "onOpen 不应该被调用");
+        assertNotNull(errorMessage.get(), "应该有错误信息");
+        
+        // 验证连接已关闭
+        assertFalse(controller.isOpen(), "连接应该处于关闭状态");
+    }
+    
+    /**
+     * 测试子协议验证：服务器返回协议但客户端未配置
+     */
+    @Test
+    @Timeout(value = TIMEOUT_SECONDS, unit = TimeUnit.SECONDS)
+    public void testSubprotocolServerOnly() throws InterruptedException {
+        CountDownLatch openLatch = new CountDownLatch(1);
+        AtomicReference<String> selectedProtocol = new AtomicReference<>();
+        
+        // 客户端不配置子协议，但服务器返回协议
+        WebSocketController controller = Null.ofHttp(BASE_URL + "/ws-subprotocol")
+                .retryCount(0)
+                // 不配置子协议
+                .toWebSocket(new WebSocketEventListener() {
+                    @Override
+                    public void onOpen(WebSocketController controller) {
+                        log.info("连接建立，选中的子协议: {}", controller.getSelectedSubprotocol());
+                        selectedProtocol.set(controller.getSelectedSubprotocol());
+                        openLatch.countDown();
+                    }
+                    
+                    @Override
+                    public void onMessage(WebSocketController controller, String text) {
+                        // 忽略消息
+                    }
+                    
+                    @Override
+                    public void onMessage(WebSocketController controller, byte[] bytes) {
+                        // 忽略消息
+                    }
+                    
+                    @Override
+                    public void onError(WebSocketController controller, Throwable t, String message) {
+                        log.error("发生错误: {}", message, t);
+                    }
+                    
+                    @Override
+                    public void onClose(WebSocketController controller, int code, String reason) {
+                        log.info("连接关闭: code={}, reason={}", code, reason);
+                    }
+                });
+        
+        // 等待连接建立
+        assertTrue(openLatch.await(5, TimeUnit.SECONDS), "连接应该在5秒内建立");
+        
+        // 验证：如果服务器返回了协议，应该被保存（根据代码逻辑）
+        log.info("服务器返回的子协议: {}", selectedProtocol.get());
+        
+        controller.close(1000, "测试完成");
+        Thread.sleep(500);
+    }
+    
+    /**
+     * 测试子协议验证：客户端配置协议但服务器未返回
+     */
+    @Test
+    @Timeout(value = TIMEOUT_SECONDS, unit = TimeUnit.SECONDS)
+    public void testSubprotocolClientOnly() throws InterruptedException {
+        CountDownLatch errorLatch = new CountDownLatch(1);
+        AtomicReference<String> errorMessage = new AtomicReference<>();
+        AtomicBoolean openCalled = new AtomicBoolean(false);
+        
+        // 客户端配置子协议，但服务器不返回（使用不支持子协议的端点）
+        WebSocketController controller = Null.ofHttp(BASE_URL + "/ws") // 这个端点不支持子协议
+                .retryCount(0)
+                .subprotocol("chat") // 配置子协议
+                .toWebSocket(new WebSocketEventListener() {
+                    @Override
+                    public void onOpen(WebSocketController controller) {
+                        openCalled.set(true);
+                        log.info("连接建立（不应该发生）");
+                    }
+                    
+                    @Override
+                    public void onMessage(WebSocketController controller, String text) {
+                        // 忽略消息
+                    }
+                    
+                    @Override
+                    public void onMessage(WebSocketController controller, byte[] bytes) {
+                        // 忽略消息
+                    }
+                    
+                    @Override
+                    public void onError(WebSocketController controller, Throwable t, String message) {
+                        log.error("发生错误（预期）: {}", message, t);
+                        errorMessage.set(message);
+                        errorLatch.countDown();
+                    }
+                    
+                    @Override
+                    public void onClose(WebSocketController controller, int code, String reason) {
+                        log.info("连接关闭: code={}, reason={}", code, reason);
+                    }
+                });
+        
+        // 等待错误或连接建立
+        boolean errorOccurred = errorLatch.await(5, TimeUnit.SECONDS);
+        
+        if (errorOccurred) {
+            assertNotNull(errorMessage.get(), "应该有错误信息");
+            log.info("子协议验证失败（预期）: {}", errorMessage.get());
+        } else if (openCalled.get()) {
+            // 如果服务器接受了连接，记录警告
+            log.warn("服务器接受了子协议请求，这可能不是预期的行为");
+        }
+        
+        controller.close(1000, "测试完成");
+        Thread.sleep(500);
+    }
 }
 

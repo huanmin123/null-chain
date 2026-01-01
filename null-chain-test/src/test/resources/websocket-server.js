@@ -23,6 +23,9 @@ const server = http.createServer((req, res) => {
                         <li>ws://localhost:3001/ws-subprotocol - 支持子协议</li>
                         <li>ws://localhost:3001/ws-heartbeat - 支持心跳</li>
                         <li>ws://localhost:3001/ws-full - 完整功能（子协议+心跳）</li>
+                        <li>ws://localhost:3001/ws-reconnect - 支持重连测试</li>
+                        <li>ws://localhost:3001/ws-heartbeat-timeout - 心跳超时测试（不回复心跳）</li>
+                        <li>ws://localhost:3001/ws-heartbeat-binary - 二进制心跳</li>
                     </ul>
                 </body>
             </html>
@@ -47,9 +50,14 @@ const wss = new WebSocket.Server({
                     return protocol; // 返回第一个匹配的协议
                 }
             }
-            return false; // 如果不匹配，返回 false 拒绝连接
+            // 如果客户端请求了协议但不匹配，返回 false 拒绝连接
+            // 如果客户端未请求协议，返回 false（表示不支持子协议）
+            return false;
         }
-        return false; // 其他端点不支持子协议
+        // 其他端点不支持子协议：如果客户端请求了协议，返回 false 拒绝；如果未请求，返回 false（表示不支持）
+        // 注意：返回 false 表示不支持子协议，但不会拒绝连接（除非客户端强制要求）
+        // 为了测试客户端配置协议但服务器不返回的场景，这里返回 false
+        return false;
     }
 });
 
@@ -80,17 +88,34 @@ wss.on('connection', (ws, request) => {
     }
     
     // 处理接收到的消息
-    ws.on('message', (message) => {
+    ws.on('message', (message, isBinary) => {
         try {
+            // 检查是否是二进制消息
+            if (isBinary || Buffer.isBuffer(message)) {
+                handleBinaryMessage(ws, message, url);
+                return;
+            }
+            
             const data = message.toString();
             console.log(`收到消息: ${data}`);
             
-            // 处理心跳消息
-            if (data === HEARTBEAT_PING || data.trim() === HEARTBEAT_PING) {
-                // 回复心跳
-                ws.send(HEARTBEAT_PONG);
-                console.log('发送心跳回复: pong');
-                return;
+            // 处理心跳消息（仅对支持心跳的端点）
+            if (url === '/ws-heartbeat' || url === '/ws-full' || url === '/ws-heartbeat-binary') {
+                if (data === HEARTBEAT_PING || data.trim() === HEARTBEAT_PING) {
+                    // 回复心跳
+                    ws.send(HEARTBEAT_PONG);
+                    console.log('发送心跳回复: pong');
+                    return;
+                }
+            }
+            
+            // 心跳超时测试端点：不回复心跳
+            if (url === '/ws-heartbeat-timeout') {
+                // 不回复心跳，用于测试心跳超时
+                if (data === HEARTBEAT_PING || data.trim() === HEARTBEAT_PING) {
+                    console.log('收到心跳但不回复（用于测试超时）');
+                    return;
+                }
             }
             
             // 尝试解析 JSON
@@ -110,8 +135,13 @@ wss.on('connection', (ws, request) => {
             // 处理不同类型的消息
             switch (jsonData.type) {
                 case 'ping':
-                    // 另一种心跳格式
-                    ws.send(JSON.stringify({ type: 'pong' }));
+                    // 另一种心跳格式（仅对支持心跳的端点回复）
+                    if (url === '/ws-heartbeat' || url === '/ws-full' || url === '/ws-heartbeat-binary') {
+                        ws.send(JSON.stringify({ type: 'pong' }));
+                    } else if (url === '/ws-heartbeat-timeout') {
+                        // 不回复，用于测试超时
+                        console.log('收到ping但不回复（用于测试超时）');
+                    }
                     break;
                 case 'echo':
                     // 回显消息
@@ -157,7 +187,8 @@ wss.on('connection', (ws, request) => {
     });
     
     // 定期发送测试消息（可选）
-    if (url === '/ws' || url === '/ws-subprotocol' || url === '/ws-heartbeat' || url === '/ws-full') {
+    if (url === '/ws' || url === '/ws-subprotocol' || url === '/ws-heartbeat' || url === '/ws-full' || 
+        url === '/ws-reconnect' || url === '/ws-heartbeat-binary') {
         const testMessageInterval = setInterval(() => {
             if (ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
@@ -178,6 +209,29 @@ wss.on('connection', (ws, request) => {
     }
 });
 
+/**
+ * 处理二进制消息
+ */
+function handleBinaryMessage(ws, message, url) {
+    const buffer = Buffer.isBuffer(message) ? message : Buffer.from(message);
+    const data = buffer.toString('utf8');
+    console.log(`收到二进制消息: ${data}, 长度: ${buffer.length}`);
+    
+    // 二进制心跳处理（仅对 /ws-heartbeat-binary 端点）
+    if (url === '/ws-heartbeat-binary') {
+        if (data === 'PING') {
+            // 回复二进制心跳
+            ws.send(Buffer.from('PONG', 'utf8'));
+            console.log('发送二进制心跳回复: PONG');
+            return;
+        }
+    }
+    
+    // 其他二进制消息：直接回显二进制数据
+    // 这样客户端可以通过 onMessage(controller, byte[]) 接收
+    ws.send(buffer);
+}
+
 const PORT = 3001;
 server.listen(PORT, () => {
     console.log(`WebSocket 测试服务器已启动：http://localhost:${PORT}`);
@@ -186,5 +240,8 @@ server.listen(PORT, () => {
     console.log(`  - ws://localhost:${PORT}/ws-subprotocol`);
     console.log(`  - ws://localhost:${PORT}/ws-heartbeat`);
     console.log(`  - ws://localhost:${PORT}/ws-full`);
+    console.log(`  - ws://localhost:${PORT}/ws-reconnect`);
+    console.log(`  - ws://localhost:${PORT}/ws-heartbeat-timeout`);
+    console.log(`  - ws://localhost:${PORT}/ws-heartbeat-binary`);
 });
 
