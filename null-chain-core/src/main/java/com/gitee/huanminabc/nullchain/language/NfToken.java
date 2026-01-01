@@ -15,13 +15,14 @@ import java.util.List;
  */
 public class NfToken {
 
-    //括号检测  {} [] () "" 个数是否是偶数
+    //括号检测  {} [] () "" '' 个数是否是偶数
     public static void checkBrackets(String input) {
         int length = input.length();
-        int count1 = 0;
-        int count2 = 0;
-        int count3 = 0;
-        int count4 = 0;
+        int count1 = 0; // {}
+        int count2 = 0; // []
+        int count3 = 0; // ()
+        int count4 = 0; // ""
+        int count5 = 0; // ''
         for (int i = 0; i < length; i++) {
             char currentChar = input.charAt(i);
             if (currentChar == '{') {
@@ -45,9 +46,12 @@ public class NfToken {
             if (currentChar == '"') {
                 count4++;
             }
+            if (currentChar == '\'') {
+                count5++;
+            }
         }
-        if (count1 != 0 || count2 != 0 || count3 != 0 || count4 % 2 != 0) {
-            throw new NfException("{}不匹配", "{} [] () \"\" ");
+        if (count1 != 0 || count2 != 0 || count3 != 0 || count4 % 2 != 0 || count5 % 2 != 0) {
+            throw new NfException("{}不匹配", "{} [] () \"\" '' ");
         }
     }
 
@@ -91,8 +95,8 @@ public class NfToken {
                 i = NumberToken.number(input, currentChar, i, tokens, line);
                 continue;
             }
-            // 处理字符串
-            if (currentChar == '"') {
+            // 处理字符串（支持双引号和单引号）
+            if (currentChar == '"' || currentChar == '\'') {
                 i = StringToken.string(input, i, tokens, line);
                 continue;
             }

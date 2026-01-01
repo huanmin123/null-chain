@@ -60,13 +60,9 @@ public class NullKernelAbstract implements  Serializable, NullCheck {
         if (linkLog == null) {
             linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         }
-        if (linkLog.length() > 0 && this.linkLog != null) {
-            this.linkLog.append(linkLog);
-        } else {
-            this.linkLog = linkLog;
-        }
+        //因为是链式需要续上日志
+        this.linkLog = linkLog;
     }
-
 
     @Override
     public boolean isEmpty() {

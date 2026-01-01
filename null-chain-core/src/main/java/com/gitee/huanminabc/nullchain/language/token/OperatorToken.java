@@ -11,8 +11,43 @@ public class OperatorToken {
         // 处理各种符号
         switch (currentChar) {
             case '=':
-                tokens.add(new Token(TokenType.ASSIGN, "=", line));
-                i++;
+                // 检查是否是 ==
+                if (i + 1 < length && input.charAt(i + 1) == '=') {
+                    tokens.add(new Token(TokenType.EQ, "==", line));
+                    i += 2;
+                } else {
+                    tokens.add(new Token(TokenType.ASSIGN, "=", line));
+                    i++;
+                }
+                break;
+            case '>':
+                // 检查是否是 >=
+                if (i + 1 < length && input.charAt(i + 1) == '=') {
+                    tokens.add(new Token(TokenType.GE, ">=", line));
+                    i += 2;
+                } else {
+                    tokens.add(new Token(TokenType.GT, ">", line));
+                    i++;
+                }
+                break;
+            case '<':
+                // 检查是否是 <=
+                if (i + 1 < length && input.charAt(i + 1) == '=') {
+                    tokens.add(new Token(TokenType.LE, "<=", line));
+                    i += 2;
+                } else {
+                    tokens.add(new Token(TokenType.LT, "<", line));
+                    i++;
+                }
+                break;
+            case '!':
+                // 检查是否是 !=
+                if (i + 1 < length && input.charAt(i + 1) == '=') {
+                    tokens.add(new Token(TokenType.NE, "!=", line));
+                    i += 2;
+                } else {
+                    throw new IllegalArgumentException("Illegal character  line: " + line + " char: " + currentChar);
+                }
                 break;
             case '-':
                 if (i + 1 < length && input.charAt(i + 1) == '>') {

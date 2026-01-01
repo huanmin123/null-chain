@@ -8,8 +8,9 @@ public class DataType {
         switch (type) {
             case STRING:
                 String string = value.toString();
-                //判断前后是否有引号
-                if (string.startsWith("\"") && string.endsWith("\"")) {
+                //判断前后是否有引号（支持双引号和单引号）
+                if ((string.startsWith("\"") && string.endsWith("\"")) ||
+                    (string.startsWith("'") && string.endsWith("'"))) {
                     return string.substring(1, string.length() - 1);
                 }
                 return string;

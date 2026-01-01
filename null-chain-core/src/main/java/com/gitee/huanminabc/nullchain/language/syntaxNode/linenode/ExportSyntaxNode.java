@@ -1,5 +1,6 @@
 package com.gitee.huanminabc.nullchain.language.syntaxNode.linenode;
 
+import com.gitee.huanminabc.nullchain.language.NfCalculator;
 import com.gitee.huanminabc.nullchain.language.NfException;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
@@ -10,6 +11,7 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeStructType;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
+import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -18,7 +20,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * export语句 列如: export e
+ * export语句 
+ * 支持两种形式：
+ * 1. export 变量名 - 导出变量（如：export result）
+ * 2. export 表达式 - 导出表达式计算结果（如：export preValue + "_nf1"）
  */
 
 /**
@@ -43,7 +48,7 @@ public class ExportSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
             Token token = tokens.get(i);
             if (token.type == TokenType.EXPORT) {
                 //记录结束下标, 用于截取和删除
-                int endIndex = 0;
+                int endIndex = tokens.size(); // 默认到列表末尾
                 //遇到LINE_END结束
                 for (int j = i; j < tokens.size(); j++) {
                     if (tokens.get(j).type == TokenType.LINE_END) {
@@ -52,13 +57,13 @@ public class ExportSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                     }
                 }
                 //截取Export语句的标记序列 不包含Export和LINE_END
-                List<Token> newToken = new ArrayList(tokens.subList(i + 1, endIndex));
+                List<Token> newToken = new ArrayList<>(tokens.subList(i + 1, endIndex));
                 //去掉注释
                 newToken.removeIf(t -> t.type == TokenType.COMMENT);
 
                 //如果是空的export, 抛出异常
                 if (newToken.isEmpty()) {
-                    throw new NfException("Line:{} , export 语句不能为空,请给出需要导出的变量名",tokens.get(0).line);
+                    throw new NfException("Line:{} , export 语句不能为空,请给出需要导出的变量名或表达式",tokens.get(0).line);
                 }
 
                 ExportSyntaxNode exportExpNode = new ExportSyntaxNode(SyntaxNodeType.EXPORT_EXP);
@@ -82,15 +87,43 @@ public class ExportSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
 
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {
-        // 表达式中就一个IDENTIFIER, 取出来
         List<Token> tokens = syntaxNode.getValue();
-        Token token = tokens.get(0);
         NfContextScope mainScope = context.getMainScope();
-        NfVariableInfo variable = mainScope.getVariable(token.value);
-        if (variable == null) {
-            throw new NfException("Line:{} ,export 变量 {} 未定义, syntax: {}",token.line,token.value,syntaxNode);
+        Object exportValue;
+        Class<?> exportType;
+        
+        // 如果只有一个 IDENTIFIER token，优先作为变量名处理（向后兼容）
+        if (tokens.size() == 1 && tokens.get(0).type == TokenType.IDENTIFIER) {
+            Token token = tokens.get(0);
+            NfVariableInfo variable = mainScope.getVariable(token.value);
+            if (variable != null) {
+                // 变量存在，直接使用变量值
+                exportValue = variable.getValue();
+                exportType = variable.getType();
+            } else {
+                // 变量不存在，尝试作为表达式计算
+                String expression = TokenUtil.mergeToken(tokens).toString();
+                try {
+                    exportValue = NfCalculator.arithmetic(expression, context);
+                    exportType = exportValue != null ? exportValue.getClass() : null;
+                } catch (Exception e) {
+                    throw new NfException(e, "Line:{} ,export 变量 {} 未定义,且表达式计算失败, syntax: {}", token.line, token.value, syntaxNode);
+                }
+            }
+        } else {
+            // 多个 tokens，作为表达式计算
+            String expression = TokenUtil.mergeToken(tokens).toString();
+            try {
+                exportValue = NfCalculator.arithmetic(expression, context);
+                exportType = exportValue != null ? exportValue.getClass() : null;
+            } catch (Exception e) {
+                throw new NfException(e, "Line:{} ,export 表达式计算错误: {} , syntax: {}", 
+                        tokens.get(0).line, expression, syntaxNode);
+            }
         }
-        mainScope.addVariable(new NfVariableInfo(EXPORT, variable.getValue(), variable.getType()));
+        
+        // 将计算结果存储到 EXPORT 变量中
+        mainScope.addVariable(new NfVariableInfo(EXPORT, exportValue, exportType));
     }
 
     @Override
@@ -105,7 +138,10 @@ public class ExportSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
 
     @Override
     public String toString() {
-        return "export "+getValue().get(0).value;
+        if (getValue() == null || getValue().isEmpty()) {
+            return "export";
+        }
+        return "export " + TokenUtil.mergeToken(getValue()).toString();
     }
 
 }

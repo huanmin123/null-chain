@@ -50,7 +50,12 @@ public enum TokenType {
     ECHO, //打印
     LINE_END,//代码中的行结束
     NEW, // new
-
+    GT, // > 大于
+    LT, // < 小于
+    GE, // >= 大于等于
+    LE, // <= 小于等于
+    EQ, // == 等于
+    NE, // != 不等于
 
     LINE_END_SYMBOL, //\n 换行符号
     TAB_SYMBOL, ////\t 制表符号

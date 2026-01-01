@@ -228,11 +228,16 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
                         throw new NullChainException(linkLog.toString());
                     }
                 }
-                NullChainException nullChainException = new NullChainException();
+                // 保存 linkLog 的快照，为每个并发任务创建独立的副本，避免并发修改问题
+                String linkLogSnapshot = linkLog.toString();
                 StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
                 List<Future<?>> futures = new ArrayList<>();
                 Map<String, Object> nullChainMap = new ConcurrentHashMap<>();
                 for (NullGroupNfTask.NullTaskInfo nullTaskInfo : list) {
+                    // 为每个并发任务创建独立的 linkLog 副本和异常实例，避免并发修改
+                    StringBuilder taskLinkLog = new StringBuilder(linkLogSnapshot);
+                    // 为每个任务创建独立的异常实例，避免共享异常对象导致的信息覆盖问题
+                    NullChainException taskException = new NullChainException();
                     Future<?> submit = executor.submit(() -> {
                         try {
                             Object run = __nfTask__(preValue,nullTaskInfo.getNfContext(), threadFactoryName, nullTaskInfo.getLogger(), nullTaskInfo.getParams());
@@ -241,9 +246,9 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
                             }
                             nullChainMap.put(nullTaskInfo.getKey(), run);
                         } catch (Exception e) {
-                            nullChainException.setMessage(stackTrace, linkLog.toString());
-                            e.addSuppressed(nullChainException);
-                            log.error("{}{}{}多任务脚本并发执行失败", linkLog, TASK_Q, nullTaskInfo.getKey(), e);
+                            taskException.setMessage(stackTrace, taskLinkLog.toString());
+                            e.addSuppressed(taskException);
+                            log.error("{}{}{}多任务脚本并发执行失败", taskLinkLog, TASK_Q, nullTaskInfo.getKey(), e);
                         }
                     });
                     futures.add(submit);
@@ -276,23 +281,28 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
                 throw new NullChainException(linkLog.toString());
             }
         }
-        NullChainException nullChainException = new NullChainException();
+        // 保存 linkLog 的快照，为每个并发任务创建独立的副本，避免并发修改问题
+        String linkLogSnapshot = linkLog.toString();
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         for (NullGroupTask.NullTaskInfo nullTaskInfo : list) {
             String taskName = nullTaskInfo.getTaskName();
             Object[] params = nullTaskInfo.getParams();
             NullTask nullTask = getNullTask(taskName);
+            // 为每个并发任务创建独立的 linkLog 副本和异常实例，避免并发修改
+            StringBuilder taskLinkLog = new StringBuilder(linkLogSnapshot);
+            // 为每个任务创建独立的异常实例，避免共享异常对象导致的信息覆盖问题
+            NullChainException taskException = new NullChainException();
             Future<?> submit = executor.submit(() -> {
                 try {
-                    Object run = taskRun((T)preValue, nullTask, linkLog, params);
+                    Object run = taskRun((T)preValue, nullTask, taskLinkLog, params);
                     if (Null.is(run)) {
                         return;
                     }
                     nullChainMap.put(taskName, run);
                 }catch (Exception e) {
-                    nullChainException.setMessage(stackTrace, "{}{}", linkLog, TASK_Q);
-                    e.addSuppressed(nullChainException);
-                    log.error("{}{}多任务并发执行失败:{}", linkLog, TASK_Q, taskName, e);
+                    taskException.setMessage(stackTrace, "{}{}", taskLinkLog, TASK_Q);
+                    e.addSuppressed(taskException);
+                    log.error("{}{}多任务并发执行失败:{}", taskLinkLog, TASK_Q, taskName, e);
                 }
             });
             futures.add(submit);
