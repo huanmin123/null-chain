@@ -1,6 +1,5 @@
 package com.gitee.huanminabc.nullchain.leaf.http.websocket;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -9,9 +8,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * WebSocket 控制器
@@ -28,8 +30,25 @@ public class WebSocketController {
     /** 消息队列 */
     private final ConcurrentLinkedQueue<WebSocketMessage> messageQueue = new ConcurrentLinkedQueue<>();
     
-    /** 连接状态 */
-    private final AtomicBoolean isOpen = new AtomicBoolean(false);
+    /** 消息队列大小计数器（避免 ConcurrentLinkedQueue.size() 的 O(n) 操作） */
+    private final AtomicInteger queueSize = new AtomicInteger(0);
+    
+    /** 消息队列最大大小（默认1000，0表示无限制） */
+    private volatile int maxQueueSize = 1000;
+    
+    /** 队列满时的处理策略 */
+    public enum QueueFullPolicy {
+        /** 拒绝新消息 */
+        REJECT,
+        /** 丢弃最旧的消息 */
+        DROP_OLDEST
+    }
+    
+    /** 队列满时的处理策略（默认丢弃最旧的消息） */
+    private volatile QueueFullPolicy queueFullPolicy = QueueFullPolicy.DROP_OLDEST;
+    
+    /** 连接状态（统一管理，基于此状态计算 isOpen） */
+    private volatile WebSocketConnectionState connectionState = WebSocketConnectionState.INITIAL;
     
     /** 内部 WebSocket 实例（由策略类设置）
      * -- SETTER --
@@ -48,8 +67,51 @@ public class WebSocketController {
     /** 心跳超时时间（毫秒） */
     private volatile long heartbeatTimeout = 10000;
     
-    /** 心跳定时任务执行器 */
-    private volatile ScheduledExecutorService heartbeatExecutor;
+    /** 共享的线程池（用于重连任务） */
+    private static final ExecutorService SHARED_EXECUTOR = createSharedExecutor();
+    
+    /** 心跳定时任务执行器（复用，避免频繁创建销毁） */
+    private static final ScheduledExecutorService SHARED_HEARTBEAT_EXECUTOR = createSharedHeartbeatExecutor();
+    
+    /**
+     * 创建共享的重连线程池
+     * 
+     * <p>注意：使用 daemon 线程，JVM 关闭时会自动终止，不需要关闭钩子。
+     * 如果需要显式关闭，可以调用 {@link ExecutorService#shutdown()}。</p>
+     * 
+     * @return 线程池
+     */
+    private static ExecutorService createSharedExecutor() {
+        return Executors.newCachedThreadPool(new ThreadFactory() {
+            private final AtomicInteger threadNumber = new AtomicInteger(1);
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread t = new Thread(r, "WebSocket-Reconnect-" + threadNumber.getAndIncrement());
+                t.setDaemon(true); // Daemon 线程，JVM 关闭时自动终止
+                return t;
+            }
+        });
+    }
+    
+    /**
+     * 创建共享的心跳执行器
+     * 
+     * <p>注意：使用 daemon 线程，JVM 关闭时会自动终止，不需要关闭钩子。
+     * 如果需要显式关闭，可以调用 {@link ScheduledExecutorService#shutdown()}。</p>
+     * 
+     * @return 定时任务执行器
+     */
+    private static ScheduledExecutorService createSharedHeartbeatExecutor() {
+        return Executors.newScheduledThreadPool(2, new ThreadFactory() {
+            private final AtomicInteger threadNumber = new AtomicInteger(1);
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread t = new Thread(r, "WebSocket-Heartbeat-" + threadNumber.getAndIncrement());
+                t.setDaemon(true); // Daemon 线程，JVM 关闭时自动终止
+                return t;
+            }
+        });
+    }
     
     /** 心跳发送任务 */
     private volatile ScheduledFuture<?> heartbeatSendTask;
@@ -82,6 +144,29 @@ public class WebSocketController {
      */
     @Setter
     private volatile Runnable reconnectTrigger;
+    
+    /** 重连锁（确保重连操作的原子性） */
+    private final Object reconnectLock = new Object();
+    
+    /** 重连计数器（统一管理，避免每次创建新的） */
+    private final AtomicInteger reconnectAttempt = new AtomicInteger(0);
+    
+    /** 重连状态：是否正在重连中 */
+    private final AtomicBoolean isReconnecting = new AtomicBoolean(false);
+    
+    /** 最大重连次数（由策略类设置） */
+    @Setter
+    private volatile int maxReconnectCount = 0;
+    
+    /** 重连间隔（毫秒，由策略类设置） */
+    @Setter
+    private volatile long reconnectInterval = 1000;
+    
+    /** 心跳超时导致的重连次数（防止死循环） */
+    private final AtomicInteger heartbeatTimeoutReconnectCount = new AtomicInteger(0);
+    
+    /** 心跳超时导致的最大重连次数（默认3次，防止死循环） */
+    private static final int MAX_HEARTBEAT_TIMEOUT_RECONNECT = 3;
 
     /**
      * 检查是否已设置重连触发器
@@ -91,14 +176,158 @@ public class WebSocketController {
     public boolean hasReconnectTrigger() {
         return reconnectTrigger != null;
     }
+    
+    /**
+     * 获取当前重连次数
+     * 
+     * @return 当前重连次数
+     */
+    public int getReconnectAttempt() {
+        return reconnectAttempt.get();
+    }
+    
+    /**
+     * 重置重连计数器
+     */
+    public void resetReconnectAttempt() {
+        reconnectAttempt.set(0);
+        isReconnecting.set(false);
+        // 注意：不重置心跳超时重连次数，因为这是为了防止死循环的累计计数
+    }
+    
+    /**
+     * 重置心跳超时重连计数（在连接成功建立且收到心跳回复后调用）
+     */
+    public void resetHeartbeatTimeoutReconnectCount() {
+        heartbeatTimeoutReconnectCount.set(0);
+    }
+    
+    /**
+     * 检查是否正在重连
+     * 
+     * @return 如果正在重连返回 true，否则返回 false
+     */
+    public boolean isReconnecting() {
+        return isReconnecting.get();
+    }
+    
+    /**
+     * 设置重连状态
+     * 
+     * @param reconnecting 是否正在重连
+     * @return 如果状态设置成功返回 true，如果已经在目标状态返回 false
+     */
+    public boolean setReconnecting(boolean reconnecting) {
+        if (reconnecting) {
+            // 尝试设置为重连中，如果已经是重连中则返回 false（防止重复重连）
+            return isReconnecting.compareAndSet(false, true);
+        } else {
+            // 取消重连状态
+            isReconnecting.set(false);
+            return true;
+        }
+    }
+    
+    /**
+     * 触发重连（统一入口，确保原子性）
+     * 
+     * <p>此方法确保重连操作的原子性，防止重复触发。</p>
+     * 
+     * @param reason 触发重连的原因
+     * @return 如果成功触发重连返回 true，否则返回 false
+     */
+    public boolean triggerReconnect(String reason) {
+        // 使用同步块确保原子性
+        synchronized (reconnectLock) {
+            // 检查是否正在重连
+            if (isReconnecting.get()) {
+                log.debug("重连已在进行中，跳过触发: {}", reason);
+                return false;
+            }
+            
+            // 检查是否允许重连
+            if (maxReconnectCount <= 0) {
+                log.debug("未配置重连，跳过触发: {}", reason);
+                return false;
+            }
+            
+            // 检查重连触发器是否设置
+            Runnable trigger = reconnectTrigger;
+            if (trigger == null) {
+                log.debug("重连触发器未设置，跳过触发: {}", reason);
+                return false;
+            }
+            
+            // 尝试设置重连状态
+            if (!setReconnecting(true)) {
+                log.debug("无法设置重连状态，可能正在重连: {}", reason);
+                return false;
+            }
+            
+            // 触发重连
+            log.info("触发重连: {}, 待发送消息数: {}", reason, getPendingMessageCount());
+            trigger.run();
+            return true;
+        }
+    }
+    
+    /**
+     * 增加重连次数
+     * 
+     * @return 增加后的重连次数
+     */
+    public int incrementReconnectAttempt() {
+        return reconnectAttempt.incrementAndGet();
+    }
+    
+    /**
+     * 检查是否超过最大重连次数
+     * 
+     * @return 如果超过最大重连次数返回 true，否则返回 false
+     */
+    public boolean isReconnectExhausted() {
+        return maxReconnectCount > 0 && reconnectAttempt.get() > maxReconnectCount;
+    }
 
     /**
-     * 设置连接状态
+     * 设置连接状态（统一管理）
+     * 
+     * @param newState 新状态
+     */
+    public void setConnectionState(WebSocketConnectionState newState) {
+        WebSocketConnectionState oldState = this.connectionState;
+        if (oldState != newState) {
+            this.connectionState = newState;
+            log.debug("连接状态变化: {} -> {}", oldState, newState);
+        }
+    }
+    
+    /**
+     * 设置连接状态（兼容旧 API）
      * 
      * @param open 是否打开
      */
     public void setOpen(boolean open) {
-        this.isOpen.set(open);
+        if (open) {
+            setConnectionState(WebSocketConnectionState.CONNECTED);
+        } else {
+            // 只有在非关闭状态时才设置为关闭
+            WebSocketConnectionState current = this.connectionState;
+            if (current != WebSocketConnectionState.CLOSING && 
+                current != WebSocketConnectionState.CLOSED &&
+                current != WebSocketConnectionState.FAILED) {
+                setConnectionState(WebSocketConnectionState.CLOSED);
+            }
+        }
+    }
+    
+    /**
+     * 获取连接状态
+     * 
+     * @return 连接状态
+     */
+    public WebSocketConnectionState getConnectionState() {
+        return connectionState;
     }
     
     /**
@@ -115,14 +344,18 @@ public class WebSocketController {
         }
         
         WebSocketMessage message = WebSocketMessage.text(text);
-        messageQueue.offer(message);
+        
+        // 检查队列大小限制
+        if (!addToQueue(message)) {
+            log.warn("消息队列已满，无法添加新消息");
+            return false;
+        }
         
         boolean sent = trySend();
         
         // 如果连接已关闭且消息队列不为空，尝试触发重连
-        if (!sent && !isOpen.get() && !messageQueue.isEmpty() && reconnectTrigger != null) {
-            log.info("连接已关闭，但有待发送消息，触发重连，待发送消息数: {}", messageQueue.size());
-            reconnectTrigger.run();
+        if (!sent && !isOpen() && getPendingMessageCount() > 0 && reconnectTrigger != null) {
+            triggerReconnect("连接已关闭，但有待发送消息");
         }
         
         return sent;
@@ -142,31 +375,95 @@ public class WebSocketController {
         }
         
         WebSocketMessage message = WebSocketMessage.binary(bytes);
-        messageQueue.offer(message);
+        
+        // 检查队列大小限制
+        if (!addToQueue(message)) {
+            log.warn("消息队列已满，无法添加新消息");
+            return false;
+        }
         
         boolean sent = trySend();
         
         // 如果连接已关闭且消息队列不为空，尝试触发重连
-        if (!sent && !isOpen.get() && !messageQueue.isEmpty() && reconnectTrigger != null) {
-            log.info("连接已关闭，但有待发送消息，触发重连，待发送消息数: {}", messageQueue.size());
-            reconnectTrigger.run();
+        if (!sent && !isOpen() && getPendingMessageCount() > 0 && reconnectTrigger != null) {
+            triggerReconnect("连接已关闭，但有待发送消息");
         }
         
         return sent;
     }
     
     /**
+     * 将消息添加到队列（处理队列大小限制）
+     * 
+     * @param message 消息
+     * @return 如果成功添加返回 true，否则返回 false
+     */
+    private boolean addToQueue(WebSocketMessage message) {
+        if (message == null) {
+            log.warn("尝试添加 null 消息到队列，忽略");
+            return false;
+        }
+        
+        // 使用原子计数器检查队列大小，避免 O(n) 的 size() 操作
+        int currentSize = queueSize.get();
+        
+        if (maxQueueSize > 0 && currentSize >= maxQueueSize) {
+            // 队列已满，根据策略处理
+            if (queueFullPolicy == QueueFullPolicy.DROP_OLDEST) {
+                // 丢弃最旧的消息（原子操作）
+                WebSocketMessage dropped = messageQueue.poll();
+                if (dropped != null) {
+                    queueSize.decrementAndGet();
+                    log.warn("队列已满（大小: {}），丢弃最旧的消息（类型: {}），添加新消息（类型: {}）", 
+                            currentSize, dropped.getType(), message.getType());
+                }
+                // 尝试添加新消息
+                if (messageQueue.offer(message)) {
+                    queueSize.incrementAndGet();
+                    return true;
+                }
+                log.error("队列已满，丢弃旧消息后仍无法添加新消息，可能发生竞态条件");
+                return false;
+            } else {
+                // 拒绝新消息
+                log.warn("队列已满（大小: {}），拒绝新消息（类型: {}），策略: REJECT", 
+                        currentSize, message.getType());
+                return false;
+            }
+        } else {
+            // 尝试添加消息
+            if (messageQueue.offer(message)) {
+                queueSize.incrementAndGet();
+                log.debug("消息已添加到队列，队列大小: {}, 消息类型: {}", queueSize.get(), message.getType());
+                return true;
+            }
+            log.error("无法添加消息到队列，可能发生异常");
+            return false;
+        }
+    }
+    
+    /**
      * 尝试发送队列中的消息
+     * 
+     * <p>注意：此方法可能被多个线程并发调用，需要保证线程安全。</p>
      * 
      * @return 是否成功发送了消息
      */
     public boolean trySend() {
-        if (!isOpen.get() || webSocket == null) {
+        // 使用局部变量缓存，减少并发访问
+        okhttp3.WebSocket ws = this.webSocket;
+        if (!isOpen() || ws == null) {
             return false;
         }
         
         // 发送队列中的所有消息
         while (!messageQueue.isEmpty()) {
+            // 再次检查连接状态，防止在发送过程中连接已关闭
+            if (!isOpen() || this.webSocket != ws) {
+                // 连接状态已改变，停止发送
+                return false;
+            }
+            
             WebSocketMessage message = messageQueue.peek();
             if (message == null) {
                 break;
@@ -175,25 +472,104 @@ public class WebSocketController {
             boolean sent = false;
             try {
                 if (message.getType() == WebSocketMessage.MessageType.TEXT) {
-                    sent = webSocket.send(message.getText());
+                    sent = ws.send(message.getText());
                 } else {
-                    sent = webSocket.send(okio.ByteString.of(message.getBytes()));
+                    sent = ws.send(okio.ByteString.of(message.getBytes()));
                 }
                 
                 if (sent) {
                     // 发送成功，从队列中移除
-                    messageQueue.poll();
+                    WebSocketMessage removed = messageQueue.poll();
+                    if (removed != null) {
+                        queueSize.decrementAndGet();
+                    }
+                    log.debug("消息发送成功，队列剩余: {}", queueSize.get());
                 } else {
-                    // 发送失败，停止尝试
+                    // 发送失败，增加重试次数
+                    int retryCount = message.incrementRetryCount();
+                    if (message.isRetryExhausted()) {
+                        // 超过最大重试次数，丢弃消息
+                        WebSocketMessage removed = messageQueue.poll();
+                        if (removed != null) {
+                            queueSize.decrementAndGet();
+                        }
+                        log.warn("消息发送失败，已超过最大重试次数（{}），丢弃消息。消息类型: {}, 队列剩余: {}", 
+                                retryCount, message.getType(), queueSize.get());
+                    } else {
+                        // 未超过最大重试次数，稍后重试
+                        log.debug("消息发送失败，重试次数: {}/{}, 稍后重试。消息类型: {}", 
+                                retryCount, WebSocketMessage.getMaxRetryCount(), message.getType());
+                    }
+                    // 停止尝试，等待下次重试
                     break;
                 }
             } catch (Exception e) {
-                // 发送异常，停止尝试
+                // 发送异常，可能是连接已关闭
+                // 再次检查连接状态
+                if (!isOpen() || this.webSocket != ws) {
+                    // 连接已关闭，停止发送
+                    log.debug("连接已关闭，停止发送消息");
+                    return false;
+                }
+                
+                // 发送异常，增加重试次数
+                int retryCount = message.incrementRetryCount();
+                if (message.isRetryExhausted()) {
+                    // 超过最大重试次数，丢弃消息
+                    WebSocketMessage removed = messageQueue.poll();
+                    if (removed != null) {
+                        queueSize.decrementAndGet();
+                    }
+                    log.warn("消息发送异常，已超过最大重试次数（{}），丢弃消息。消息类型: {}, 异常: {}, 队列剩余: {}", 
+                            retryCount, message.getType(), e.getClass().getSimpleName(), queueSize.get(), e);
+                } else {
+                    // 未超过最大重试次数，稍后重试
+                    log.debug("消息发送异常，重试次数: {}/{}, 稍后重试。消息类型: {}, 异常: {}", 
+                            retryCount, WebSocketMessage.getMaxRetryCount(), message.getType(), 
+                            e.getClass().getSimpleName(), e);
+                }
+                // 停止尝试，等待下次重试
                 break;
             }
         }
         
         return messageQueue.isEmpty();
+    }
+    
+    /**
+     * 设置消息队列最大大小
+     * 
+     * @param maxSize 最大大小，0表示无限制
+     */
+    public void setMaxQueueSize(int maxSize) {
+        this.maxQueueSize = maxSize >= 0 ? maxSize : 0;
+    }
+    
+    /**
+     * 获取消息队列最大大小
+     * 
+     * @return 最大大小，0表示无限制
+     */
+    public int getMaxQueueSize() {
+        return maxQueueSize;
+    }
+    
+    /**
+     * 设置队列满时的处理策略
+     * 
+     * @param policy 处理策略
+     */
+    public void setQueueFullPolicy(QueueFullPolicy policy) {
+        this.queueFullPolicy = policy != null ? policy : QueueFullPolicy.DROP_OLDEST;
+    }
+    
+    /**
+     * 获取队列满时的处理策略
+     * 
+     * @return 处理策略
+     */
+    public QueueFullPolicy getQueueFullPolicy() {
+        return queueFullPolicy;
     }
     
     /**
@@ -212,21 +588,26 @@ public class WebSocketController {
         this.heartbeatInterval = interval > 0 ? interval : 30000;
         this.heartbeatTimeout = timeout > 0 ? timeout : 10000;
         
+        // 验证心跳参数合理性：超时时间应该大于间隔时间，否则可能导致误判
+        if (this.heartbeatTimeout <= this.heartbeatInterval) {
+            log.warn("心跳超时时间（{}ms）应该大于心跳间隔（{}ms），调整为间隔的2倍", 
+                    this.heartbeatTimeout, this.heartbeatInterval);
+            this.heartbeatTimeout = this.heartbeatInterval * 2;
+        }
+        
         // 停止旧的心跳任务
         stopHeartbeat();
         
-        // 创建新的执行器
-        heartbeatExecutor = Executors.newScheduledThreadPool(2, r -> {
-            Thread t = new Thread(r, "WebSocket-Heartbeat-" + System.currentTimeMillis());
-            t.setDaemon(true);
-            return t;
-        });
+        // 重置心跳超时处理标志
+        heartbeatTimeoutHandled = false;
+        
+        // 使用共享的心跳执行器（复用，避免频繁创建销毁）
         
         // 初始化最后回复时间为当前时间（连接刚建立时）
         lastHeartbeatResponseTime.set(System.currentTimeMillis());
         
         // 启动心跳发送任务
-        heartbeatSendTask = heartbeatExecutor.scheduleAtFixedRate(() -> {
+        heartbeatSendTask = SHARED_HEARTBEAT_EXECUTOR.scheduleAtFixedRate(() -> {
             try {
                 sendHeartbeat();
             } catch (Exception e) {
@@ -234,14 +615,20 @@ public class WebSocketController {
             }
         }, heartbeatInterval, heartbeatInterval, TimeUnit.MILLISECONDS);
         
-        // 启动超时检测任务（每秒检查一次）
-        heartbeatTimeoutTask = heartbeatExecutor.scheduleAtFixedRate(() -> {
+        // 启动超时检测任务（根据心跳间隔和超时时间动态调整检测频率）
+        // 检测频率 = min(心跳间隔/2, 心跳超时/4, 1000ms)，但至少每秒一次
+        long checkInterval = Math.min(Math.min(heartbeatInterval / 2, heartbeatTimeout / 4), 1000);
+        checkInterval = Math.max(checkInterval, 1000); // 至少每秒检查一次
+        
+        heartbeatTimeoutTask = SHARED_HEARTBEAT_EXECUTOR.scheduleAtFixedRate(() -> {
             try {
                 checkHeartbeatTimeout();
             } catch (Exception e) {
                 log.error("心跳超时检测异常", e);
             }
-        }, 1000, 1000, TimeUnit.MILLISECONDS);
+        }, checkInterval, checkInterval, TimeUnit.MILLISECONDS);
+        
+        log.debug("心跳超时检测频率: {}ms", checkInterval);
         
         log.debug("心跳检测已启动，间隔: {}ms, 超时: {}ms", heartbeatInterval, heartbeatTimeout);
     }
@@ -258,25 +645,25 @@ public class WebSocketController {
             heartbeatTimeoutTask.cancel(false);
             heartbeatTimeoutTask = null;
         }
-        if (heartbeatExecutor != null) {
-            heartbeatExecutor.shutdown();
-            try {
-                if (!heartbeatExecutor.awaitTermination(1, TimeUnit.SECONDS)) {
-                    heartbeatExecutor.shutdownNow();
-                }
-            } catch (InterruptedException e) {
-                heartbeatExecutor.shutdownNow();
-                Thread.currentThread().interrupt();
-            }
-            heartbeatExecutor = null;
-        }
+        // 重置心跳超时处理标志
+        heartbeatTimeoutHandled = false;
+        // 注意：不再关闭共享执行器，因为它是静态共享的
+    }
+    
+    /**
+     * 获取共享的线程池（用于重连任务）
+     * 
+     * @return 共享的线程池
+     */
+    public static ExecutorService getSharedExecutor() {
+        return SHARED_EXECUTOR;
     }
     
     /**
      * 发送心跳消息
      */
     private void sendHeartbeat() {
-        if (!isOpen.get() || webSocket == null || heartbeatHandler == null) {
+        if (!isOpen() || webSocket == null || heartbeatHandler == null) {
             return;
         }
         
@@ -284,26 +671,45 @@ public class WebSocketController {
             // 优先使用文本格式
             String text = heartbeatHandler.generateHeartbeat();
             if (text != null) {
-                webSocket.send(text);
-                log.debug("发送心跳消息（文本）: {}", text);
+                boolean sent = webSocket.send(text);
+                if (sent) {
+                    log.debug("发送心跳消息（文本）: {}", text);
+                } else {
+                    log.warn("心跳消息发送失败（文本），连接可能已关闭");
+                }
             } else {
                 // 使用二进制格式
                 byte[] bytes = heartbeatHandler.generateHeartbeatBytes();
                 if (bytes != null) {
-                    webSocket.send(okio.ByteString.of(bytes));
-                    log.debug("发送心跳消息（二进制），长度: {}", bytes.length);
+                    boolean sent = webSocket.send(okio.ByteString.of(bytes));
+                    if (sent) {
+                        log.debug("发送心跳消息（二进制），长度: {}", bytes.length);
+                    } else {
+                        log.warn("心跳消息发送失败（二进制），连接可能已关闭");
+                    }
+                } else {
+                    log.warn("心跳处理器未生成任何心跳消息（文本和二进制都返回null），可能导致心跳超时");
                 }
             }
         } catch (Exception e) {
-            log.warn("发送心跳消息失败", e);
+            log.warn("发送心跳消息异常", e);
         }
     }
     
+    /** 心跳超时检测锁（防止并发检测） */
+    private final Object heartbeatTimeoutLock = new Object();
+    
+    /** 心跳超时检测标志（防止重复处理） */
+    private volatile boolean heartbeatTimeoutHandled = false;
+    
     /**
      * 检查心跳超时
+     * 
+     * <p>注意：此方法可能被多个线程并发调用，使用同步块确保线程安全。</p>
      */
     private void checkHeartbeatTimeout() {
-        if (!isOpen.get() || heartbeatHandler == null) {
+        // 快速检查，避免不必要的同步
+        if (!isOpen() || heartbeatHandler == null || heartbeatTimeoutHandled) {
             return;
         }
         
@@ -312,9 +718,71 @@ public class WebSocketController {
         long elapsed = currentTime - lastResponseTime;
         
         if (elapsed > heartbeatTimeout) {
-            log.warn("心跳超时，已超过 {}ms 未收到回复，主动断开连接", elapsed);
-            // 主动断开连接
-            close(1000, "心跳超时");
+            // 使用同步块确保只有一个线程处理超时
+            synchronized (heartbeatTimeoutLock) {
+                // 双重检查，防止重复处理
+                if (heartbeatTimeoutHandled || !isOpen()) {
+                    return;
+                }
+                
+                // 标记为已处理
+                heartbeatTimeoutHandled = true;
+                
+                // 再次检查连接状态，防止在检查过程中连接已关闭
+                WebSocketConnectionState currentState = this.connectionState;
+                if (currentState != WebSocketConnectionState.CONNECTED) {
+                    // 连接状态已经不是 CONNECTED，重置标志并返回
+                    heartbeatTimeoutHandled = false;
+                    return;
+                }
+                
+                // 原子性地更新状态为 CLOSED
+                setConnectionState(WebSocketConnectionState.CLOSED);
+            
+            log.warn("心跳超时，已超过 {}ms 未收到回复", elapsed);
+            
+            // 检查心跳超时导致的重连次数，防止死循环
+            int heartbeatReconnectCount = heartbeatTimeoutReconnectCount.incrementAndGet();
+            if (heartbeatReconnectCount > MAX_HEARTBEAT_TIMEOUT_RECONNECT) {
+                log.error("心跳超时导致的重连次数已达到上限（{}次），停止重连，避免死循环。"
+                        + "可能是服务器不支持心跳或心跳配置不正确。", MAX_HEARTBEAT_TIMEOUT_RECONNECT);
+                // 直接关闭连接，不再重连（状态已经在上面设置为 CLOSED）
+                if (webSocket != null) {
+                    try {
+                        webSocket.close(1000, "心跳超时次数过多，停止重连");
+                    } catch (Exception e) {
+                        log.debug("关闭连接时发生异常", e);
+                    }
+                }
+                    stopHeartbeat();
+                    heartbeatTimeoutHandled = false; // 重置标志
+                    return;
+                }
+                
+                // 心跳超时后，先关闭当前连接，然后触发重连（如果有重连触发器）
+                // 注意：状态已经在上面设置为 CLOSED
+                if (webSocket != null) {
+                    try {
+                        webSocket.close(1000, "心跳超时");
+                    } catch (Exception e) {
+                        log.debug("关闭连接时发生异常", e);
+                    }
+                }
+                
+                // 停止心跳检测
+                stopHeartbeat();
+                
+                // 触发重连（使用统一入口）
+                if (triggerReconnect("心跳超时（心跳超时重连次数: " + heartbeatReconnectCount + "/" + MAX_HEARTBEAT_TIMEOUT_RECONNECT + "）")) {
+                    log.info("心跳超时，已触发重连（心跳超时重连次数: {}/{}）", 
+                            heartbeatReconnectCount, MAX_HEARTBEAT_TIMEOUT_RECONNECT);
+                } else {
+                    log.warn("心跳超时，但无法触发重连（可能正在重连或未配置重连机制）");
+                }
+                
+                // 重置标志，允许下次检测
+                heartbeatTimeoutHandled = false;
+            }
         }
     }
     
@@ -327,6 +795,13 @@ public class WebSocketController {
         if (handler != null && handler == this.heartbeatHandler) {
             lastHeartbeatResponseTime.set(System.currentTimeMillis());
             log.debug("收到心跳回复，更新时间: {}", lastHeartbeatResponseTime.get());
+            
+            // 收到心跳回复后，重置心跳超时重连计数（说明心跳机制正常工作）
+            // 这样可以避免因为临时网络问题导致的心跳超时累积
+            if (heartbeatTimeoutReconnectCount.get() > 0) {
+                log.debug("收到心跳回复，重置心跳超时重连计数");
+                resetHeartbeatTimeoutReconnectCount();
+            }
         }
     }
     
@@ -337,7 +812,8 @@ public class WebSocketController {
      * @param reason 关闭原因
      */
     public void close(int code, String reason) {
-        isOpen.set(false);
+        // 统一使用 connectionState 管理状态
+        setConnectionState(WebSocketConnectionState.CLOSED);
         
         // 停止心跳检测
         stopHeartbeat();
@@ -346,20 +822,71 @@ public class WebSocketController {
             try {
                 webSocket.close(code, reason);
             } catch (Exception e) {
-                // 忽略关闭异常
+                // 记录关闭异常，但不影响关闭流程
+                log.debug("关闭 WebSocket 连接时发生异常: code={}, reason={}", code, reason, e);
             }
         }
+        
         // 清空消息队列
+        int clearedCount = queueSize.getAndSet(0);
         messageQueue.clear();
+        if (clearedCount > 0) {
+            log.info("连接关闭，清空消息队列，丢弃 {} 条消息", clearedCount);
+        }
+        
+        log.info("连接已关闭: code={}, reason={}", code, reason);
+    }
+    
+    /**
+     * 销毁控制器，释放所有资源
+     * 
+     * <p>调用此方法后，控制器将不再可用。应该确保不再使用此控制器。</p>
+     */
+    public void destroy() {
+        log.info("销毁 WebSocket 控制器，释放所有资源");
+        
+        // 关闭连接
+        if (isOpen()) {
+            close(1000, "控制器销毁");
+        }
+        
+        // 停止心跳检测
+        stopHeartbeat();
+        
+        // 清空消息队列
+        int clearedCount = queueSize.getAndSet(0);
+        messageQueue.clear();
+        if (clearedCount > 0) {
+            log.debug("控制器销毁，清空消息队列，丢弃 {} 条消息", clearedCount);
+        }
+        
+        // 重置状态
+        setConnectionState(WebSocketConnectionState.CLOSED);
+        resetReconnectAttempt();
+        setReconnecting(false);
+        
+        // 重置心跳超时重连计数
+        resetHeartbeatTimeoutReconnectCount();
+        
+        // 清空引用
+        webSocket = null;
+        heartbeatHandler = null;
+        reconnectTrigger = null;
+        selectedSubprotocol = null;
+        
+        log.debug("WebSocket 控制器已销毁");
     }
     
     /**
      * 检查连接是否已打开
      * 
+     * <p>基于 connectionState 计算，确保状态一致性。</p>
+     * 
      * @return 如果连接已打开返回 true，否则返回 false
      */
     public boolean isOpen() {
-        return isOpen.get();
+        WebSocketConnectionState state = this.connectionState;
+        return state == WebSocketConnectionState.CONNECTED;
     }
     
     /**
@@ -368,17 +895,20 @@ public class WebSocketController {
      * @return 待发送消息数量
      */
     public int getPendingMessageCount() {
-        return messageQueue.size();
+        // 使用原子计数器，避免 O(n) 的 size() 操作
+        return queueSize.get();
     }
     
     /**
-     * 获取消息队列（用于策略类访问）
+     * 获取消息队列大小（用于策略类访问）
+     * 
+     * <p>注意：此方法返回队列大小，不暴露内部队列实现。</p>
      *
-     * @return 消息队列
+     * @return 消息队列大小
      */
-    ConcurrentLinkedQueue<WebSocketMessage> getMessageQueue() {
-        return messageQueue;
+    int getMessageQueueSize() {
+        return queueSize.get();
     }
-
+    
 }
 

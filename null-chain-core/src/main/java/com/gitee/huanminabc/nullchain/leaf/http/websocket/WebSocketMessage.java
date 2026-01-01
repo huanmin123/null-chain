@@ -28,6 +28,12 @@ public class WebSocketMessage {
     /** 二进制消息内容（二进制消息时使用） */
     private final byte[] bytes;
     
+    /** 重试次数 */
+    private volatile int retryCount = 0;
+    
+    /** 最大重试次数（默认3次） */
+    public static final int MAX_RETRY_COUNT = 3;
+    
     /**
      * 创建文本消息
      * 
@@ -86,6 +92,42 @@ public class WebSocketMessage {
      */
     public byte[] getBytes() {
         return bytes;
+    }
+    
+    /**
+     * 增加重试次数
+     * 
+     * @return 增加后的重试次数
+     */
+    public int incrementRetryCount() {
+        return ++retryCount;
+    }
+    
+    /**
+     * 获取重试次数
+     * 
+     * @return 重试次数
+     */
+    public int getRetryCount() {
+        return retryCount;
+    }
+    
+    /**
+     * 检查是否超过最大重试次数
+     * 
+     * @return 如果超过最大重试次数返回 true，否则返回 false
+     */
+    public boolean isRetryExhausted() {
+        return retryCount >= MAX_RETRY_COUNT;
+    }
+    
+    /**
+     * 获取最大重试次数
+     * 
+     * @return 最大重试次数
+     */
+    public static int getMaxRetryCount() {
+        return MAX_RETRY_COUNT;
     }
 }
 

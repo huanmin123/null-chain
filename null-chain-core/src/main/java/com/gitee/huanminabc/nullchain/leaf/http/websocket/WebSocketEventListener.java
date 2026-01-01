@@ -56,6 +56,30 @@ public interface WebSocketEventListener {
     void onError(WebSocketController controller, Throwable t, String message);
     
     /**
+     * 判断是否应该重连（在连接失败或关闭时调用）
+     * 
+     * <p>当连接失败或关闭时，系统会调用此方法判断是否应该重连。
+     * 如果返回 true，系统会尝试重连；如果返回 false，系统不会重连。</p>
+     * 
+     * <p>默认实现：如果有待发送消息或网络异常，返回 true；否则返回 false。</p>
+     * 
+     * @param controller WebSocket 控制器
+     * @param exception 异常信息
+     * @param hasPendingMessages 是否有待发送消息
+     * @return 如果应该重连返回 true，否则返回 false
+     */
+    default boolean shouldReconnect(WebSocketController controller, Throwable exception, boolean hasPendingMessages) {
+        // 默认策略：如果有待发送消息或网络异常，应该重连
+        if (hasPendingMessages) {
+            return true;
+        }
+        if (exception instanceof java.io.IOException) {
+            return true;
+        }
+        return false;
+    }
+    
+    /**
      * 连接正在关闭时触发（收到关闭帧）
      * 
      * <p>当收到对端的关闭帧时，会先触发此方法，此时连接正在关闭过程中。
@@ -81,5 +105,20 @@ public interface WebSocketEventListener {
      * @param reason 关闭原因
      */
     void onClose(WebSocketController controller, int code, String reason);
+    
+    /**
+     * 连接状态变化时触发
+     * 
+     * <p>当连接状态发生变化时触发此方法，包括连接建立、重连、关闭等状态变化。</p>
+     * 
+     * <p>默认实现为空，子类可以重写此方法以处理状态变化事件。</p>
+     * 
+     * @param controller WebSocket 控制器
+     * @param oldState 旧状态
+     * @param newState 新状态
+     */
+    default void onStateChanged(WebSocketController controller, WebSocketConnectionState oldState, WebSocketConnectionState newState) {
+        // 默认实现为空
+    }
 }
 
