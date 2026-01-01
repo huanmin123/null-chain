@@ -247,6 +247,80 @@ Null.ofHttp("https://api.example.com/sse")
     }, DataDecoder.jsonDecoder());
 ```
 
+### WebSocket 连接
+
+```java
+// 基础连接
+WebSocketController controller = Null.ofHttp("ws://example.com/ws")
+    .toWebSocket(new WebSocketEventListener() {
+        @Override
+        public void onOpen(WebSocketController controller) {
+            controller.send("Hello");
+        }
+        
+        @Override
+        public void onMessage(WebSocketController controller, String text) {
+            System.out.println("收到: " + text);
+        }
+        
+        @Override
+        public void onMessage(WebSocketController controller, byte[] bytes) {
+            // 处理二进制消息
+        }
+        
+        @Override
+        public void onError(WebSocketController controller, Throwable t, String message) {
+            // 处理错误
+        }
+        
+        @Override
+        public void onClose(WebSocketController controller, int code, String reason) {
+            // 连接关闭
+        }
+    });
+
+// 发送消息
+controller.send("文本消息");
+controller.send(new byte[]{1, 2, 3});
+
+// 配置重连
+WebSocketController controller = Null.ofHttp("ws://example.com/ws")
+    .retryCount(5)
+    .retryInterval(1000)
+    .toWebSocket(listener);
+
+// 配置心跳
+WebSocketController controller = Null.ofHttp("ws://example.com/ws")
+    .heartbeat(new WebSocketHeartbeatHandler() {
+        @Override
+        public String generateHeartbeat() {
+            return "{\"type\":\"ping\"}";
+        }
+        
+        @Override
+        public boolean isHeartbeatResponse(String text) {
+            return text != null && text.contains("\"type\":\"pong\"");
+        }
+    }, 30000, 10000)  // 间隔30秒，超时10秒
+    .toWebSocket(listener);
+
+// 配置子协议
+List<String> subprotocols = Arrays.asList("chat", "superchat");
+WebSocketController controller = Null.ofHttp("ws://example.com/ws")
+    .subprotocols(subprotocols)
+    .toWebSocket(listener);
+
+// 关闭连接
+controller.close();
+controller.close(1000, "正常关闭");
+
+// 使用 try-with-resources 自动关闭
+try (WebSocketController ctrl = Null.ofHttp("ws://example.com/ws")
+        .toWebSocket(listener)) {
+    ctrl.send("Hello");
+}
+```
+
 ## 完整示例
 
 ```java
@@ -335,4 +409,5 @@ public class HttpExample {
 4. **文件上传**：需要正确设置文件字段和文件名
 5. **异步请求**：异步请求不会阻塞当前线程，但需要处理回调结果
 6. **SSE 流**：SSE 流可以通过 `terminate()` 方法主动终止
+7. **WebSocket**：HTTP URL 会自动转换为 WebSocket URL（http→ws，https→wss）；连接未建立时发送的消息会加入队列；重连使用指数退避策略；建议使用 try-with-resources 自动关闭连接
 
