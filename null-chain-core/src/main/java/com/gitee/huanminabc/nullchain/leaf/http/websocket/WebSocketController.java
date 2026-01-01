@@ -5,6 +5,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.Executors;
@@ -192,6 +193,12 @@ public class WebSocketController implements AutoCloseable {
     
     /** 控制器是否已销毁（防止销毁后继续使用） */
     private final AtomicBoolean destroyed = new AtomicBoolean(false);
+    
+    /** 连接结束的同步锁（用于等待连接结束） */
+    private final CountDownLatch completionLatch = new CountDownLatch(1);
+    
+    /** 是否已经触发完成信号（确保只触发一次） */
+    private final AtomicBoolean completionSignaled = new AtomicBoolean(false);
 
     /**
      * 检查是否已设置重连触发器
@@ -336,6 +343,13 @@ public class WebSocketController implements AutoCloseable {
         if (oldState != newState) {
             this.connectionState = newState;
             log.debug("连接状态变化: {} -> {}", oldState, newState);
+            
+            // 如果状态变为CLOSED或FAILED，触发完成信号（只触发一次）
+            if ((newState == WebSocketConnectionState.CLOSED || newState == WebSocketConnectionState.FAILED) 
+                    && completionSignaled.compareAndSet(false, true)) {
+                completionLatch.countDown();
+                log.debug("连接已结束，触发完成信号，状态: {}", newState);
+            }
         }
     }
     
@@ -1032,6 +1046,88 @@ public class WebSocketController implements AutoCloseable {
             log.debug("清空消息队列，丢弃 {} 条消息", clearedCount);
         }
         return clearedCount;
+    }
+    
+    /**
+     * 等待WebSocket连接结束（无限等待）
+     * 
+     * <p>此方法会阻塞当前线程，直到WebSocket连接结束（状态变为CLOSED或FAILED）。
+     * 如果连接已经结束，此方法会立即返回。</p>
+     * 
+     * <p>使用场景：</p>
+     * <ul>
+     *   <li>需要同步等待WebSocket连接处理完成</li>
+     *   <li>在测试中等待连接结束</li>
+     *   <li>需要确保所有消息处理完成后再继续执行</li>
+     * </ul>
+     * 
+     * <p>示例：</p>
+     * <pre>{@code
+     * WebSocketController controller = Null.ofHttp("ws://example.com/ws")
+     *         .toWebSocket(listener);
+     * 
+     * // 执行其他操作...
+     * 
+     * // 等待连接结束
+     * controller.await();
+     * 
+     * // 连接已结束，可以安全地继续执行
+     * }</pre>
+     * 
+     * @throws InterruptedException 如果等待过程中线程被中断
+     */
+    public void await() throws InterruptedException {
+        completionLatch.await();
+    }
+    
+    /**
+     * 等待WebSocket连接结束（带超时）
+     * 
+     * <p>此方法会阻塞当前线程，直到WebSocket连接结束（状态变为CLOSED或FAILED）或超时。
+     * 如果连接已经结束，此方法会立即返回。</p>
+     * 
+     * <p>使用场景：</p>
+     * <ul>
+     *   <li>需要同步等待WebSocket连接处理完成，但不想无限等待</li>
+     *   <li>在测试中设置超时时间</li>
+     *   <li>需要在一定时间内等待连接结束</li>
+     * </ul>
+     * 
+     * <p>示例：</p>
+     * <pre>{@code
+     * WebSocketController controller = Null.ofHttp("ws://example.com/ws")
+     *         .toWebSocket(listener);
+     * 
+     * // 执行其他操作...
+     * 
+     * // 等待连接结束，最多等待30秒
+     * boolean completed = controller.await(30, TimeUnit.SECONDS);
+     * if (completed) {
+     *     System.out.println("连接已结束");
+     * } else {
+     *     System.out.println("等待超时");
+     * }
+     * }</pre>
+     * 
+     * @param timeout 超时时间
+     * @param unit 时间单位
+     * @return 如果连接在超时前结束返回 true，如果超时返回 false
+     * @throws InterruptedException 如果等待过程中线程被中断
+     */
+    public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
+        return completionLatch.await(timeout, unit);
+    }
+    
+    /**
+     * 检查连接是否已结束
+     * 
+     * <p>连接结束是指状态变为CLOSED或FAILED。</p>
+     * 
+     * @return 如果连接已结束返回 true，否则返回 false
+     */
+    public boolean isCompleted() {
+        WebSocketConnectionState state = this.connectionState;
+        return state == WebSocketConnectionState.CLOSED || state == WebSocketConnectionState.FAILED;
     }
 
 }
