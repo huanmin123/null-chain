@@ -25,7 +25,15 @@ const server = http.createServer((req, res) => {
                         <li>ws://localhost:3001/ws-full - 完整功能（子协议+心跳）</li>
                         <li>ws://localhost:3001/ws-reconnect - 支持重连测试</li>
                         <li>ws://localhost:3001/ws-heartbeat-timeout - 心跳超时测试（不回复心跳）</li>
+                        <li>ws://localhost:3001/ws-heartbeat-timeout-reconnect - 心跳超时重连测试（不回复心跳，允许重连）</li>
                         <li>ws://localhost:3001/ws-heartbeat-binary - 二进制心跳</li>
+                        <li>关闭消息类型：</li>
+                        <ul>
+                            <li>{"type":"close"} - 正常关闭（code 1000）</li>
+                            <li>{"type":"close-abnormal"} - 异常关闭（code 1006）</li>
+                            <li>{"type":"close-going-away"} - 端点离开（code 1001）</li>
+                            <li>{"type":"close-server-error"} - 服务器错误（code 1011）</li>
+                        </ul>
                     </ul>
                 </body>
             </html>
@@ -124,10 +132,10 @@ wss.on('connection', (ws, request) => {
             }
             
             // 心跳超时测试端点：不回复心跳
-            if (url === '/ws-heartbeat-timeout') {
+            if (url === '/ws-heartbeat-timeout' || url === '/ws-heartbeat-timeout-reconnect') {
                 // 不回复心跳，用于测试心跳超时
                 if (data === HEARTBEAT_PING || data.trim() === HEARTBEAT_PING) {
-                    console.log('收到心跳但不回复（用于测试超时）');
+                    console.log(`[${url}] 收到心跳但不回复（用于测试超时）`);
                     return;
                 }
             }
@@ -152,9 +160,9 @@ wss.on('connection', (ws, request) => {
                     // 另一种心跳格式（仅对支持心跳的端点回复）
                     if (url === '/ws-heartbeat' || url === '/ws-full' || url === '/ws-heartbeat-binary') {
                         ws.send(JSON.stringify({ type: 'pong' }));
-                    } else if (url === '/ws-heartbeat-timeout') {
+                    } else if (url === '/ws-heartbeat-timeout' || url === '/ws-heartbeat-timeout-reconnect') {
                         // 不回复，用于测试超时
-                        console.log('收到ping但不回复（用于测试超时）');
+                        console.log(`[${url}] 收到ping但不回复（用于测试超时）`);
                     }
                     break;
                 case 'echo':
@@ -166,11 +174,41 @@ wss.on('connection', (ws, request) => {
                     }));
                     break;
                 case 'close':
-                    // 客户端请求关闭
+                    // 客户端请求关闭（正常关闭）
                     console.log(`[${url}] 收到关闭请求，准备关闭连接，当前状态: ${ws.readyState}`);
                     if (ws.readyState === WebSocket.OPEN) {
                         ws.close(1000, '客户端请求关闭');
-                        console.log(`[${url}] 已发送关闭帧`);
+                        console.log(`[${url}] 已发送关闭帧（正常关闭）`);
+                    } else {
+                        console.log(`[${url}] 连接已关闭，无法发送关闭帧，状态: ${ws.readyState}`);
+                    }
+                    break;
+                case 'close-abnormal':
+                    // 模拟网络异常关闭（code 1006）
+                    console.log(`[${url}] 收到异常关闭请求，准备异常关闭连接，当前状态: ${ws.readyState}`);
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.close(1006, '网络异常');
+                        console.log(`[${url}] 已发送关闭帧（异常关闭 code 1006）`);
+                    } else {
+                        console.log(`[${url}] 连接已关闭，无法发送关闭帧，状态: ${ws.readyState}`);
+                    }
+                    break;
+                case 'close-going-away':
+                    // 模拟端点离开（code 1001）
+                    console.log(`[${url}] 收到端点离开请求，准备关闭连接，当前状态: ${ws.readyState}`);
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.close(1001, '端点离开');
+                        console.log(`[${url}] 已发送关闭帧（端点离开 code 1001）`);
+                    } else {
+                        console.log(`[${url}] 连接已关闭，无法发送关闭帧，状态: ${ws.readyState}`);
+                    }
+                    break;
+                case 'close-server-error':
+                    // 模拟服务器错误（code 1011）
+                    console.log(`[${url}] 收到服务器错误请求，准备关闭连接，当前状态: ${ws.readyState}`);
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.close(1011, '服务器错误');
+                        console.log(`[${url}] 已发送关闭帧（服务器错误 code 1011）`);
                     } else {
                         console.log(`[${url}] 连接已关闭，无法发送关闭帧，状态: ${ws.readyState}`);
                     }
@@ -208,7 +246,7 @@ wss.on('connection', (ws, request) => {
     
     // 定期发送测试消息（可选）
     if (url === '/ws' || url === '/ws-subprotocol' || url === '/ws-heartbeat' || url === '/ws-full' || 
-        url === '/ws-reconnect' || url === '/ws-heartbeat-binary') {
+        url === '/ws-reconnect' || url === '/ws-heartbeat-binary' || url === '/ws-heartbeat-timeout-reconnect') {
         const testMessageInterval = setInterval(() => {
             if (ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
@@ -249,7 +287,28 @@ function handleBinaryMessage(ws, message, url) {
                     console.log(`[${url}] 收到关闭请求（从二进制消息中解析），准备关闭连接，当前状态: ${ws.readyState}`);
                     if (ws.readyState === WebSocket.OPEN) {
                         ws.close(1000, '客户端请求关闭');
-                        console.log(`[${url}] 已发送关闭帧`);
+                        console.log(`[${url}] 已发送关闭帧（正常关闭）`);
+                    }
+                    return;
+                case 'close-abnormal':
+                    // 模拟网络异常关闭（code 1006）
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.close(1006, '网络异常');
+                        console.log(`[${url}] 已发送关闭帧（异常关闭 code 1006）`);
+                    }
+                    return;
+                case 'close-going-away':
+                    // 模拟端点离开（code 1001）
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.close(1001, '端点离开');
+                        console.log(`[${url}] 已发送关闭帧（端点离开 code 1001）`);
+                    }
+                    return;
+                case 'close-server-error':
+                    // 模拟服务器错误（code 1011）
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.close(1011, '服务器错误');
+                        console.log(`[${url}] 已发送关闭帧（服务器错误 code 1011）`);
                     }
                     return;
                 case 'test':
@@ -294,6 +353,12 @@ server.listen(PORT, () => {
     console.log(`  - ws://localhost:${PORT}/ws-full`);
     console.log(`  - ws://localhost:${PORT}/ws-reconnect`);
     console.log(`  - ws://localhost:${PORT}/ws-heartbeat-timeout`);
+    console.log(`  - ws://localhost:${PORT}/ws-heartbeat-timeout-reconnect`);
     console.log(`  - ws://localhost:${PORT}/ws-heartbeat-binary`);
+    console.log(`\n关闭消息类型：`);
+    console.log(`  - {"type":"close"} - 正常关闭（code 1000）`);
+    console.log(`  - {"type":"close-abnormal"} - 异常关闭（code 1006）`);
+    console.log(`  - {"type":"close-going-away"} - 端点离开（code 1001）`);
+    console.log(`  - {"type":"close-server-error"} - 服务器错误（code 1011）`);
 });
 

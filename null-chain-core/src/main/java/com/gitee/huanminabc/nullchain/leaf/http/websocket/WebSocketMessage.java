@@ -1,5 +1,7 @@
 package com.gitee.huanminabc.nullchain.leaf.http.websocket;
 
+import lombok.Getter;
+
 /**
  * WebSocket 消息封装类
  * 
@@ -8,6 +10,7 @@ package com.gitee.huanminabc.nullchain.leaf.http.websocket;
  * @author huanmin
  * @since 1.1.2
  */
+@Getter
 public class WebSocketMessage {
     /**
      * 消息类型枚举
@@ -19,16 +22,36 @@ public class WebSocketMessage {
         BINARY
     }
     
-    /** 消息类型 */
+    /** 消息类型
+     * -- GETTER --
+     *  获取消息类型
+     *
+     * @return 消息类型
+     */
     private final MessageType type;
     
-    /** 文本消息内容（文本消息时使用） */
+    /** 文本消息内容（文本消息时使用）
+     * -- GETTER --
+     *  获取文本内容（仅文本消息时有效）
+     *
+     * @return 文本内容
+     */
     private final String text;
     
-    /** 二进制消息内容（二进制消息时使用） */
+    /** 二进制消息内容（二进制消息时使用）
+     * -- GETTER --
+     *  获取二进制内容（仅二进制消息时有效）
+     *
+     * @return 二进制内容
+     */
     private final byte[] bytes;
     
-    /** 重试次数 */
+    /** 重试次数
+     * -- GETTER --
+     *  获取重试次数
+     *
+     * @return 重试次数
+     */
     private volatile int retryCount = 0;
     
     /** 最大重试次数（默认3次） */
@@ -66,34 +89,7 @@ public class WebSocketMessage {
         this.text = text;
         this.bytes = bytes;
     }
-    
-    /**
-     * 获取消息类型
-     * 
-     * @return 消息类型
-     */
-    public MessageType getType() {
-        return type;
-    }
-    
-    /**
-     * 获取文本内容（仅文本消息时有效）
-     * 
-     * @return 文本内容
-     */
-    public String getText() {
-        return text;
-    }
-    
-    /**
-     * 获取二进制内容（仅二进制消息时有效）
-     * 
-     * @return 二进制内容
-     */
-    public byte[] getBytes() {
-        return bytes;
-    }
-    
+
     /**
      * 增加重试次数
      * 
@@ -102,16 +98,7 @@ public class WebSocketMessage {
     public int incrementRetryCount() {
         return ++retryCount;
     }
-    
-    /**
-     * 获取重试次数
-     * 
-     * @return 重试次数
-     */
-    public int getRetryCount() {
-        return retryCount;
-    }
-    
+
     /**
      * 检查是否超过最大重试次数
      * 
