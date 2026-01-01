@@ -119,9 +119,25 @@ public class WebSocketResponseStrategy implements ResponseStrategy {
                 .readTimeout(0, TimeUnit.SECONDS)
                 .build();
         
+        // 创建重连计数器
+        AtomicInteger reconnectAttempt = new AtomicInteger(0);
+        
+        // 设置重连触发器：当连接关闭后发送消息时，触发重连
+        controller.setReconnectTrigger(() -> {
+            if (retryCount > 0 && controller.getPendingMessageCount() > 0) {
+                log.info("检测到连接关闭后有待发送消息，触发重连");
+                new Thread(() -> {
+                    reconnectAttempt.incrementAndGet();
+                    reconnectWebSocket(url, okHttpClient, request, retryCount, retryInterval,
+                            listener, controller, reconnectAttempt, new IOException("连接已关闭，有待发送消息"),
+                            heartbeatHandler, heartbeatInterval, heartbeatTimeout, subprotocols);
+                }).start();
+            }
+        });
+        
         // 创建包装的 WebSocketListener（重连逻辑在回调中处理）
         WebSocketListener wrapperListener = createWrapperListener(listener, controller, 
-                url, wsClient, request, retryCount, retryInterval, heartbeatHandler, heartbeatInterval, heartbeatTimeout, subprotocols);
+                url, wsClient, request, retryCount, retryInterval, reconnectAttempt, heartbeatHandler, heartbeatInterval, heartbeatTimeout, subprotocols);
         
         // 建立 WebSocket 连接（异步，立即返回）
         WebSocket webSocket = wsClient.newWebSocket(request, wrapperListener);
@@ -324,6 +340,7 @@ public class WebSocketResponseStrategy implements ResponseStrategy {
             
             @Override
             public void onClosing(WebSocket webSocket, int code, String reason) {
+                log.info("WebSocket onClosing 被调用: code={}, reason={}, url={}", code, reason, url);
                 // WebSocket 正在关闭
                 controller.setOpen(false);
                 
@@ -337,13 +354,16 @@ public class WebSocketResponseStrategy implements ResponseStrategy {
                 // 这样才能确保触发 onClosed 回调
                 try {
                     webSocket.close(code, reason);
+                    log.debug("WebSocket 已确认关闭: code={}, reason={}", code, reason);
                 } catch (Exception e) {
-                    // 忽略关闭异常
+                    log.warn("WebSocket 确认关闭时发生异常", e);
                 }
             }
             
             @Override
             public void onClosed(WebSocket webSocket, int code, String reason) {
+                log.info("WebSocket onClosed 被调用: code={}, reason={}, url={}, 待发送消息数={}", 
+                        code, reason, url, controller.getPendingMessageCount());
                 // WebSocket 已关闭
                 controller.setOpen(false);
                 
@@ -368,6 +388,8 @@ public class WebSocketResponseStrategy implements ResponseStrategy {
             
             @Override
             public void onFailure(WebSocket webSocket, Throwable t, Response response) {
+                log.info("WebSocket onFailure 被调用: url={}, error={}, response={}, 待发送消息数={}", 
+                        url, t != null ? t.getMessage() : "null", response, controller.getPendingMessageCount());
                 // 连接失败
                 controller.setOpen(false);
                 

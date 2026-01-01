@@ -73,6 +73,7 @@ wss.on('connection', (ws, request) => {
     }
     
     // 发送欢迎消息
+    console.log(`[${url}] 发送欢迎消息`);
     ws.send(JSON.stringify({
         type: 'welcome',
         message: '连接成功',
@@ -91,13 +92,26 @@ wss.on('connection', (ws, request) => {
     ws.on('message', (message, isBinary) => {
         try {
             // 检查是否是二进制消息
-            if (isBinary || Buffer.isBuffer(message)) {
+            // 注意：即使 isBinary 为 false，message 也可能是 Buffer
+            // 但如果是文本消息，应该能正常转换为字符串
+            const isBinaryMessage = isBinary === true;
+            
+            if (isBinaryMessage) {
+                // 明确的二进制消息
                 handleBinaryMessage(ws, message, url);
                 return;
             }
             
-            const data = message.toString();
-            console.log(`收到消息: ${data}`);
+            // 尝试作为文本消息处理
+            let data;
+            if (Buffer.isBuffer(message)) {
+                // 如果是 Buffer 但不是二进制标记，尝试转换为文本
+                data = message.toString('utf8');
+            } else {
+                data = message.toString();
+            }
+            
+            console.log(`[${url}] 收到文本消息: ${data}, isBinary=${isBinary}`);
             
             // 处理心跳消息（仅对支持心跳的端点）
             if (url === '/ws-heartbeat' || url === '/ws-full' || url === '/ws-heartbeat-binary') {
@@ -153,7 +167,13 @@ wss.on('connection', (ws, request) => {
                     break;
                 case 'close':
                     // 客户端请求关闭
-                    ws.close(1000, '客户端请求关闭');
+                    console.log(`[${url}] 收到关闭请求，准备关闭连接，当前状态: ${ws.readyState}`);
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.close(1000, '客户端请求关闭');
+                        console.log(`[${url}] 已发送关闭帧`);
+                    } else {
+                        console.log(`[${url}] 连接已关闭，无法发送关闭帧，状态: ${ws.readyState}`);
+                    }
                     break;
                 default:
                     // 默认回显
@@ -175,7 +195,7 @@ wss.on('connection', (ws, request) => {
     
     // 处理连接关闭
     ws.on('close', (code, reason) => {
-        console.log(`连接关闭: code=${code}, reason=${reason || '无原因'}`);
+        console.log(`[${url}] 连接关闭: code=${code}, reason=${reason || '无原因'}, readyState=${ws.readyState}`);
         if (heartbeatInterval) {
             clearInterval(heartbeatInterval);
         }
@@ -215,7 +235,39 @@ wss.on('connection', (ws, request) => {
 function handleBinaryMessage(ws, message, url) {
     const buffer = Buffer.isBuffer(message) ? message : Buffer.from(message);
     const data = buffer.toString('utf8');
-    console.log(`收到二进制消息: ${data}, 长度: ${buffer.length}`);
+    console.log(`[${url}] 收到二进制消息: ${data}, 长度: ${buffer.length}`);
+    
+    // 尝试判断是否是文本消息被误识别为二进制
+    // 如果内容看起来像 JSON 文本，尝试作为文本消息处理
+    if (data.startsWith('{') || data.startsWith('[') || data.startsWith('"')) {
+        console.log(`[${url}] 检测到可能是文本消息，尝试作为文本处理`);
+        try {
+            const jsonData = JSON.parse(data);
+            // 处理不同类型的消息
+            switch (jsonData.type) {
+                case 'close':
+                    console.log(`[${url}] 收到关闭请求（从二进制消息中解析），准备关闭连接，当前状态: ${ws.readyState}`);
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.close(1000, '客户端请求关闭');
+                        console.log(`[${url}] 已发送关闭帧`);
+                    }
+                    return;
+                case 'test':
+                case 'echo':
+                default:
+                    // 回显消息
+                    ws.send(JSON.stringify({
+                        type: 'response',
+                        received: jsonData,
+                        timestamp: new Date().toISOString()
+                    }));
+                    return;
+            }
+        } catch (e) {
+            // 不是 JSON，继续作为二进制处理
+            console.log(`[${url}] 解析 JSON 失败，作为二进制消息处理: ${e.message}`);
+        }
+    }
     
     // 二进制心跳处理（仅对 /ws-heartbeat-binary 端点）
     if (url === '/ws-heartbeat-binary') {

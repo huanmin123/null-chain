@@ -1,5 +1,8 @@
 package com.gitee.huanminabc.nullchain.leaf.http.websocket;
 
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -28,7 +31,12 @@ public class WebSocketController {
     /** 连接状态 */
     private final AtomicBoolean isOpen = new AtomicBoolean(false);
     
-    /** 内部 WebSocket 实例（由策略类设置） */
+    /** 内部 WebSocket 实例（由策略类设置）
+     * -- SETTER --
+     *  设置内部 WebSocket 实例
+     * webSocket OkHttp WebSocket 实例
+     */
+    @Setter
     private volatile okhttp3.WebSocket webSocket;
     
     /** 心跳处理器 */
@@ -52,18 +60,38 @@ public class WebSocketController {
     /** 最后一次收到心跳回复的时间 */
     private final AtomicLong lastHeartbeatResponseTime = new AtomicLong(0);
     
-    /** 服务器返回的选中子协议 */
+    /** 服务器返回的选中子协议
+     * -- SETTER --
+     *  设置服务器返回的选中子协议（由策略类调用）
+     * -- GETTER --
+     *  获取服务器返回的选中子协议
+     *  <p>在握手成功后，如果服务器返回了子协议，可以通过此方法获取。</p>
+     *  subprotocol 服务器返回的子协议
+     * 服务器返回的子协议，如果未设置则返回 null
+     */
+    @Getter
+    @Setter
     private volatile String selectedSubprotocol;
     
-    /**
-     * 设置内部 WebSocket 实例
-     * 
-     * @param webSocket OkHttp WebSocket 实例
+    /** 重连触发器（由策略类设置）
+     * -- SETTER --
+     *  设置重连触发器
+     *  <p>由策略类调用，用于在连接关闭后发送消息时触发重连。</p>
+     *
+     * trigger 重连触发器，当连接关闭后发送消息时会被调用
      */
-    public void setWebSocket(okhttp3.WebSocket webSocket) {
-        this.webSocket = webSocket;
+    @Setter
+    private volatile Runnable reconnectTrigger;
+
+    /**
+     * 检查是否已设置重连触发器
+     * 
+     * @return 如果已设置返回 true，否则返回 false
+     */
+    public boolean hasReconnectTrigger() {
+        return reconnectTrigger != null;
     }
-    
+
     /**
      * 设置连接状态
      * 
@@ -89,7 +117,15 @@ public class WebSocketController {
         WebSocketMessage message = WebSocketMessage.text(text);
         messageQueue.offer(message);
         
-        return trySend();
+        boolean sent = trySend();
+        
+        // 如果连接已关闭且消息队列不为空，尝试触发重连
+        if (!sent && !isOpen.get() && !messageQueue.isEmpty() && reconnectTrigger != null) {
+            log.info("连接已关闭，但有待发送消息，触发重连，待发送消息数: {}", messageQueue.size());
+            reconnectTrigger.run();
+        }
+        
+        return sent;
     }
     
     /**
@@ -108,7 +144,15 @@ public class WebSocketController {
         WebSocketMessage message = WebSocketMessage.binary(bytes);
         messageQueue.offer(message);
         
-        return trySend();
+        boolean sent = trySend();
+        
+        // 如果连接已关闭且消息队列不为空，尝试触发重连
+        if (!sent && !isOpen.get() && !messageQueue.isEmpty() && reconnectTrigger != null) {
+            log.info("连接已关闭，但有待发送消息，触发重连，待发送消息数: {}", messageQueue.size());
+            reconnectTrigger.run();
+        }
+        
+        return sent;
     }
     
     /**
@@ -329,31 +373,12 @@ public class WebSocketController {
     
     /**
      * 获取消息队列（用于策略类访问）
-     * 
+     *
      * @return 消息队列
      */
     ConcurrentLinkedQueue<WebSocketMessage> getMessageQueue() {
         return messageQueue;
     }
-    
-    /**
-     * 设置服务器返回的选中子协议（由策略类调用）
-     * 
-     * @param subprotocol 服务器返回的子协议
-     */
-    public void setSelectedSubprotocol(String subprotocol) {
-        this.selectedSubprotocol = subprotocol;
-    }
-    
-    /**
-     * 获取服务器返回的选中子协议
-     * 
-     * <p>在握手成功后，如果服务器返回了子协议，可以通过此方法获取。</p>
-     * 
-     * @return 服务器返回的子协议，如果未设置则返回 null
-     */
-    public String getSelectedSubprotocol() {
-        return selectedSubprotocol;
-    }
+
 }
 
