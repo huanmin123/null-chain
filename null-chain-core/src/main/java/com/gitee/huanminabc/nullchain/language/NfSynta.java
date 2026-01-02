@@ -22,18 +22,20 @@ public class NfSynta {
     //构建主语句, 也就是把所有的Token解析第一层语法节点,和文件代码顺序一致,但是一些块语句内部的节点还没有解析
     public static List<SyntaxNode> buildMainStatement(List<Token> tokens) {
         List<SyntaxNode> syntaxNodeList = new ArrayList<>();
-        for ( int i = 0; i < tokens.size(); i++) {
+        //使用while循环替代for循环，因为循环中会修改tokens列表
+        while (!tokens.isEmpty()) {
             //跳过换行和注释
-            if (tokens.get(0).type == TokenType.LINE_END||tokens.get(0).type == TokenType.COMMENT) {
+            Token firstToken = tokens.get(0);
+            if (firstToken.type == TokenType.LINE_END || firstToken.type == TokenType.COMMENT) {
                 tokens.remove(0);
-                i = -1;
                 continue;
             }
-            boolean b = SyntaxNodeFactory.forEachNode(tokens, syntaxNodeList);
-            if (b) {
-                i = -1;
-            }else{
-                throw new NfException("语法构建错误: {} ......", TokenUtil.mergeToken(tokens.subList(0, Math.min(tokens.size(), 20))));
+            //尝试识别并构建语法节点
+            boolean success = SyntaxNodeFactory.forEachNode(tokens, syntaxNodeList);
+            if (!success) {
+                //如果无法识别，抛出异常
+                int errorTokenCount = Math.min(tokens.size(), 20);
+                throw new NfException("语法构建错误: {} ......", TokenUtil.mergeToken(tokens.subList(0, errorTokenCount)));
             }
         }
         return syntaxNodeList;

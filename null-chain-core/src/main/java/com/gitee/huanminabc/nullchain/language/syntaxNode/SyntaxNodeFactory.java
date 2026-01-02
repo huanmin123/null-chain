@@ -9,10 +9,9 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode.SwitchSyntax
 import com.gitee.huanminabc.nullchain.language.syntaxNode.linenode.*;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 /**
  * 语法节点工厂类
  * 
@@ -34,8 +33,9 @@ public class SyntaxNodeFactory {
     /**
      * 语法节点识别器映射表
      * 存储所有语法节点类型的识别器实例，用于识别Token
+     * 使用LinkedHashMap保证识别顺序的稳定性
      */
-    private static final Map<SyntaxNodeType, SyntaxNode> syntaxNodeMap = new HashMap<>();
+    private static final Map<SyntaxNodeType, SyntaxNode> syntaxNodeMap = new LinkedHashMap<>();
     
     static {
         // 初始化所有语法节点的识别器实例
@@ -78,8 +78,8 @@ public class SyntaxNodeFactory {
      * @return 如果成功识别并构建了节点返回true，否则返回false
      */
     public static boolean forEachNode(List<Token> tokens, List<SyntaxNode> syntaxNodeList) {
-        Set<Map.Entry<SyntaxNodeType, SyntaxNode>> entries = syntaxNodeMap.entrySet();
-        for (Map.Entry<SyntaxNodeType, SyntaxNode> entry : entries) {
+        //使用LinkedHashMap保证遍历顺序的稳定性，确保识别优先级一致
+        for (Map.Entry<SyntaxNodeType, SyntaxNode> entry : syntaxNodeMap.entrySet()) {
             SyntaxNode recognizer = entry.getValue(); // 识别器实例
             if (recognizer.analystToken(tokens)) {
                 // buildStatement会创建新的节点实例
@@ -99,25 +99,22 @@ public class SyntaxNodeFactory {
      */
     public static void executeAll(List<SyntaxNode> syntaxNodeList, NfContext context) {
         for (SyntaxNode syntaxNode : syntaxNodeList) {
-            if (syntaxNode.analystSyntax(syntaxNode)){
-                //保留当前的作用域id
-                String currentScopeId = context.getCurrentScopeId();
-                syntaxNode.run(context, syntaxNode);
-                //恢复当前的作用域id
-                context.setCurrentScopeId(currentScopeId);
-                NfContextScope currentScope = context.getCurrentScope();
-                //判断作用域中是否存在break或者continue,如果存在break或者continue,则跳出当前循环
-                //注意：breakAll只应该在FOR循环中生效，不应该影响主作用域（ALL类型）的后续语句
-                boolean shouldBreak = currentScope.isBreak() || currentScope.isContinue();
-                //只有当作用域是FOR类型时，breakAll标志才会导致跳出循环
-                //主作用域（ALL类型）的breakAll标志应该被忽略
-                if (currentScope.isBreakAll() && currentScope.getType() == NfContextScopeType.FOR) {
-                    shouldBreak = true;
-                }
-                if (shouldBreak) {
-//                    System.out.println("=========:"+currentScope.getType());
-                    break;
-                }
+            //保留当前的作用域id
+            String currentScopeId = context.getCurrentScopeId();
+            syntaxNode.run(context, syntaxNode);
+            //恢复当前的作用域id
+            context.setCurrentScopeId(currentScopeId);
+            NfContextScope currentScope = context.getCurrentScope();
+            //判断作用域中是否存在break或者continue,如果存在break或者continue,则跳出当前循环
+            //注意：breakAll只应该在FOR循环中生效，不应该影响主作用域（ALL类型）的后续语句
+            boolean shouldBreak = currentScope.isBreak() || currentScope.isContinue();
+            //只有当作用域是FOR类型时，breakAll标志才会导致跳出循环
+            //主作用域（ALL类型）的breakAll标志应该被忽略
+            if (currentScope.isBreakAll() && currentScope.getType() == NfContextScopeType.FOR) {
+                shouldBreak = true;
+            }
+            if (shouldBreak) {
+                break;
             }
         }
     }

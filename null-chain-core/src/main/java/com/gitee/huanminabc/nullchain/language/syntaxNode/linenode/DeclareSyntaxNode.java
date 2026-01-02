@@ -47,11 +47,12 @@ public class DeclareSyntaxNode extends LineSyntaxNode {
     @Override
     public boolean buildStatement(List<Token> tokens, List<SyntaxNode> syntaxNodeList) {
         // 遍历标记序列
-        for (int i = 0; i < tokens.size(); i++) {
+        int tokensSize = tokens.size();
+        for (int i = 0; i < tokensSize; i++) {
             Token token = tokens.get(i);
 
             //IDENTIFIER +IDENTIFIER +LINE_END
-            if (token.type == TokenType.IDENTIFIER && tokens.get(i + 1).type == TokenType.IDENTIFIER && tokens.get(i + 2).type == TokenType.LINE_END) {
+            if (i + 2 < tokensSize && token.type == TokenType.IDENTIFIER && tokens.get(i + 1).type == TokenType.IDENTIFIER && tokens.get(i + 2).type == TokenType.LINE_END) {
                 //截取声明语句的标记序列,不包含LINE_END
                 List<Token> newToken = new ArrayList<>(tokens.subList(i, i + 2));
                 //删除已经解析的标记
@@ -79,7 +80,10 @@ public class DeclareSyntaxNode extends LineSyntaxNode {
 
     @Override
     public boolean analystToken(List<Token> tokens) {
-        if ( tokens.get(0).type == TokenType.IDENTIFIER && tokens.get(1).type == TokenType.IDENTIFIER && tokens.get(2).type == TokenType.LINE_END) {
+        if (tokens == null || tokens.size() < 3) {
+            return false;
+        }
+        if (tokens.get(0).type == TokenType.IDENTIFIER && tokens.get(1).type == TokenType.IDENTIFIER && tokens.get(2).type == TokenType.LINE_END) {
             return true;
         }
         return false;

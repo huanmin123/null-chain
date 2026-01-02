@@ -142,6 +142,10 @@ public class ForSyntaxNode extends BlockSyntaxNode {
         syntaxNode.setValue(forTokens);
         //构建子节点
         List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokenList);
+        if (!(syntaxNode instanceof ForSyntaxNode)) {
+            throw new NfException("Line:{} ,语法节点类型错误，期望ForSyntaxNode，实际:{}", 
+                syntaxNode.getLine(), syntaxNode.getClass().getName());
+        }
         ((ForSyntaxNode)syntaxNode).setChildSyntaxNodeList(syntaxNodes);
         return true;
     }
@@ -149,8 +153,16 @@ public class ForSyntaxNode extends BlockSyntaxNode {
 
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {
+        if (!(syntaxNode instanceof ForSyntaxNode)) {
+            throw new NfException("Line:{} ,语法节点类型错误，期望ForSyntaxNode，实际:{}", 
+                syntaxNode.getLine(), syntaxNode.getClass().getName());
+        }
         ForSyntaxNode forSyntaxNode = (ForSyntaxNode) syntaxNode;
         List<Token> ifValue = forSyntaxNode.getValue();
+        if (ifValue == null || ifValue.size() < 5) {
+            throw new NfException("Line:{} ,for表达式格式错误，必须包含变量名、in关键字和范围值 , syntax:{} ", 
+                forSyntaxNode.getLine(), syntaxNode);
+        }
         //i in 1..10
         //取出i
         String i = ifValue.get(0).value;
@@ -164,13 +176,16 @@ public class ForSyntaxNode extends BlockSyntaxNode {
         int startInt = Integer.parseInt(start);
         int endInt = Integer.parseInt(end);
         //循环
+        List<SyntaxNode> childList = forSyntaxNode.getChildSyntaxNodeList();
         for (int j = startInt; j <= endInt; j++) {
             //创建子作用域
             NfContextScope newScope = context.createChildScope(currentScopeId, NfContextScopeType.FOR);
             //将i的值赋值
             newScope.addVariable(new NfVariableInfo(i,j, Integer.class));
             //执行子节点
-            SyntaxNodeFactory.executeAll(forSyntaxNode.getChildSyntaxNodeList(), context);
+            if (childList != null) {
+                SyntaxNodeFactory.executeAll(childList, context);
+            }
             //移除子作用域
             context.removeScope(newScope.getScopeId());
             //如果是break,那么就跳出当前的循环
@@ -196,28 +211,7 @@ public class ForSyntaxNode extends BlockSyntaxNode {
 
     //跳到For结束位置获取结束下标
     private int skipForEnd(List<Token> tokens, int i) {
-        //记录结束下标, 用于截取和删除
-        int endIndex = 0;
-        //记录深度  每次遇到 LBRACE + LINE_END 深度+1, 遇到 RBRACE 深度-1
-        int depth = 0;
-        //优化：缓存size，避免在循环中重复调用
-        int tokensSize = tokens.size();
-        //遇到RBRACE + LINE_END结束
-        for (int j = i; j < tokensSize - 1; j++) {
-            if (tokens.get(j).type == TokenType.LBRACE && tokens.get(j + 1).type == TokenType.LINE_END) {
-                depth++;
-            }
-            //}
-            if (tokens.get(j).type == TokenType.RBRACE) {
-                depth--;
-            }
-            //当结尾是RBRACE + LINE_END 且深度为0时, 说明表达式结束
-            if (depth == 0 && tokens.get(j).type == TokenType.RBRACE) {
-                endIndex = j + 1;
-                break;
-            }
-        }
-        return endIndex;
+        return BlockSyntaxNode.skipBlockEnd(tokens, i, false);
     }
 
     //打印for 的token

@@ -95,65 +95,57 @@ public class IFSyntaxNode extends BlockSyntaxNode {
 
     //跳到if结束位置获取结束下标
     private int skipIfEnd(List<Token> tokens, int i) {
-        //记录结束下标, 用于截取和删除
-        int endIndex = 0;
-        //记录深度  每次遇到 LBRACE + LINE_END 深度+1, 遇到 RBRACE 深度-1
-        int depth = 0;
-        //遇到RBRACE + LINE_END结束
-        for (int j = i; j < tokens.size()-1; j++) {
-            if (tokens.get(j).type == TokenType.LBRACE && tokens.get(j + 1).type == TokenType.LINE_END) {
-                depth++;
-            }
-            //}  || } else
-            if (tokens.get(j).type == TokenType.RBRACE && tokens.get(j + 1).type == TokenType.LINE_END || tokens.get(j).type == TokenType.RBRACE && tokens.get(j + 1).type == TokenType.ELSE) {
-                depth--;
-            }
-            //当结尾是RBRACE + LINE_END 且深度为0时, 说明if表达式结束
-            if (depth == 0 && tokens.get(j).type == TokenType.RBRACE && tokens.get(j + 1).type == TokenType.LINE_END) {
-                endIndex = j + 1;
-                break;
-            }
-        }
-        return endIndex;
+        return BlockSyntaxNode.skipBlockEnd(tokens, i, true);
     }
     //只跳到下一个块if位置
     private int skipIf1Block(List<Token> tokens) {
         //记录结束下标, 用于截取和删除
         int endIndex = 0;
+        int tokensSize = tokens.size();
+        if (tokensSize < 2) {
+            return tokensSize > 0 ? tokensSize - 1 : 0; // 如果tokens不足，返回安全值
+        }
 
         boolean hasElse = false;
         //识别是否有else如果没有那么最大长度就是结束
         int depth_else = 0; //用于找到最外层的else 而不是内部的else
-        for (int j = 0; j < tokens.size()-1; j++) {
-            if (tokens.get(j).type == TokenType.LBRACE && tokens.get(j + 1).type == TokenType.LINE_END) {
+        for (int j = 0; j < tokensSize - 1; j++) {
+            Token currentToken = tokens.get(j);
+            Token nextToken = tokens.get(j + 1);
+            if (currentToken.type == TokenType.LBRACE && nextToken.type == TokenType.LINE_END) {
                 depth_else++;
             }
-            if (tokens.get(j).type == TokenType.RBRACE ) {
+            if (currentToken.type == TokenType.RBRACE ) {
                 depth_else--;
             }
             //} else {
-            if (depth_else == 0 && tokens.get(j).type == TokenType.RBRACE && tokens.get(j + 1).type == TokenType.ELSE && tokens.get(j + 2).type == TokenType.LBRACE) {
+            if (depth_else == 0 && j + 2 < tokensSize && 
+                currentToken.type == TokenType.RBRACE && 
+                nextToken.type == TokenType.ELSE && 
+                tokens.get(j + 2).type == TokenType.LBRACE) {
                 hasElse = true;
                 break;
             }
         }
         if (!hasElse) {
-            return  tokens.size()-1; //不包含最后的}
+            return tokensSize > 0 ? tokensSize - 1 : 0; //不包含最后的}
         }
         //记录深度  每次遇到 LBRACE + LINE_END 深度+1, 遇到 RBRACE 深度-1
         int depth = 0;
         //遇到RBRACE + LINE_END结束
-        for (int j = 0; j < tokens.size()-1; j++) {
-            if (tokens.get(j).type == TokenType.LBRACE && tokens.get(j + 1).type == TokenType.LINE_END) {
+        for (int j = 0; j < tokensSize - 1; j++) {
+            Token currentToken = tokens.get(j);
+            Token nextToken = tokens.get(j + 1);
+            if (currentToken.type == TokenType.LBRACE && nextToken.type == TokenType.LINE_END) {
                 depth++;
             }
             //}  || } else
-            if (tokens.get(j).type == TokenType.RBRACE && tokens.get(j + 1).type == TokenType.LINE_END || tokens.get(j).type == TokenType.RBRACE && tokens.get(j + 1).type == TokenType.ELSE) {
+            if (currentToken.type == TokenType.RBRACE && (nextToken.type == TokenType.LINE_END || nextToken.type == TokenType.ELSE)) {
                 depth--;
             }
             //当深度为0时, 说明到了第一个else if 或者 else  位置了
-            if (depth == 0 && tokens.get(j).type == TokenType.RBRACE ) {
-                endIndex = j ;
+            if (depth == 0 && currentToken.type == TokenType.RBRACE ) {
+                endIndex = j;
                 break;
             }
         }
@@ -166,6 +158,9 @@ public class IFSyntaxNode extends BlockSyntaxNode {
     public boolean buildChildStatement(SyntaxNode syntaxNode) {
         //第一步需要先将全部的if else if else 语句分割出来
         List<Token> tokenList = syntaxNode.getValue();
+        if (tokenList == null || tokenList.isEmpty()) {
+            throw new NfException("Line:{} ,if表达式tokens不能为空", syntaxNode.getLine());
+        }
         //去掉IF
         tokenList.remove(0);
         IFSyntaxNode ifSyntaxNode = splitIf(tokenList,IFType.IF);
@@ -181,31 +176,59 @@ public class IFSyntaxNode extends BlockSyntaxNode {
         if (elseSyntaxNode != null) {
             syntaxNode.addChild(elseSyntaxNode);
         }
-        //清除原有的标记序列
-        syntaxNode.setValue(null);
+        //清除原有的标记序列（因为tokens已经被分解到子节点中，父节点不再需要保留原始tokens）
+        clearParentNodeValue(syntaxNode);
         return true;
+    }
+    
+    /**
+     * 清理父节点的value
+     * 在构建完子节点后，原始的tokens已经被分解到各个子节点中，父节点不再需要保留原始tokens
+     * 
+     * @param syntaxNode 语法节点
+     */
+    private void clearParentNodeValue(SyntaxNode syntaxNode) {
+        syntaxNode.setValue(null);
     }
 
 
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {
         //取出子节点
+        if (!(syntaxNode instanceof IFSyntaxNode)) {
+            throw new NfException("Line:{} ,语法节点类型错误，期望IFSyntaxNode，实际:{}", 
+                syntaxNode.getLine(), syntaxNode.getClass().getName());
+        }
         IFSyntaxNode ifSyntaxNode = (IFSyntaxNode)syntaxNode;
         List<SyntaxNode> childSyntaxNodeList = ifSyntaxNode.getChildSyntaxNodeList();
+        if (childSyntaxNodeList == null || childSyntaxNodeList.isEmpty()) {
+            // if语句没有子节点，直接返回
+            return;
+        }
         for (SyntaxNode node : childSyntaxNodeList) {
+            if (!(node instanceof IFSyntaxNode)) {
+                throw new NfException("Line:{} ,if子节点类型错误，期望IFSyntaxNode，实际:{}", 
+                    node.getLine(), node.getClass().getName());
+            }
             IFSyntaxNode nodeIf = (IFSyntaxNode) node;
             //判断是否是else,那么就没有条件直接执行
             if (nodeIf.ifType==IFType.ELSE){
                 //创建子作用域
                 NfContextScope childScope = context.createChildScope(context.getCurrentScopeId(), NfContextScopeType.IF);
                 //执行else if代码块内部的语句
-                SyntaxNodeFactory.executeAll(nodeIf.getChildSyntaxNodeList(), context);
+                List<SyntaxNode> elseChildList = nodeIf.getChildSyntaxNodeList();
+                if (elseChildList != null) {
+                    SyntaxNodeFactory.executeAll(elseChildList, context);
+                }
                 //删除子作用域
                 context.removeScope(childScope.getScopeId());
                 break;
             }
             //条件
             List<Token> ifValue = node.getValue();
+            if (ifValue == null || ifValue.isEmpty()) {
+                continue;
+            }
             StringBuilder ifBuilder = TokenUtil.mergeToken(ifValue);
             try {
                 Object arithmetic = NfCalculator.arithmetic(ifBuilder.toString(), context);
@@ -214,7 +237,10 @@ public class IFSyntaxNode extends BlockSyntaxNode {
                     //创建子作用域
                     NfContextScope childScope = context.createChildScope(context.getCurrentScopeId(), NfContextScopeType.IF);
                     //执行if代码块内部的语句
-                    SyntaxNodeFactory.executeAll(nodeIf.getChildSyntaxNodeList(), context);
+                    List<SyntaxNode> ifChildList = nodeIf.getChildSyntaxNodeList();
+                    if (ifChildList != null) {
+                        SyntaxNodeFactory.executeAll(ifChildList, context);
+                    }
                     //删除子作用域
                     context.removeScope(childScope.getScopeId());
                     break;
@@ -227,6 +253,9 @@ public class IFSyntaxNode extends BlockSyntaxNode {
 
     //识别if表达式
     public IFSyntaxNode splitIf(List<Token> tokens,IFType ifType) {
+        if (tokens == null || tokens.isEmpty()) {
+            throw new NfException("if表达式tokens不能为空");
+        }
 
         IFSyntaxNode ifStatement = new IFSyntaxNode(SyntaxNodeType.IF_EXP);
         ifStatement.setIfType(ifType);
@@ -234,17 +263,22 @@ public class IFSyntaxNode extends BlockSyntaxNode {
 
         //记录结束下标, 用于截取和删除
         int endIndex = skipIf1Block(tokens);
+        if (endIndex <= 0 || endIndex > tokens.size()) {
+            throw new NfException("Line:{} ,if表达式格式错误，无法找到结束位置", tokens.get(0).getLine());
+        }
         //截取if表达式的标记序列
         List<Token> ifTokens = new ArrayList<>(tokens.subList(0, endIndex));
         //删除
         tokens.subList(0, endIndex).clear();
         //删除}
-        tokens.remove(0);
-
+        if (!tokens.isEmpty()) {
+            tokens.remove(0);
+        }
 
         //找到第一个{+LINE_END的位置
         int endIndex2 = 0;
-        for (int j = 0; j < ifTokens.size(); j++) {
+        int ifTokensSize = ifTokens.size();
+        for (int j = 0; j < ifTokensSize - 1; j++) {
             if (ifTokens.get(j).type == TokenType.LBRACE && ifTokens.get(j + 1).type == TokenType.LINE_END) {
                 endIndex2 = j;
                 break;

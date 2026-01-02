@@ -1,6 +1,8 @@
 package com.gitee.huanminabc.nullchain.language.syntaxNode.linenode;
 
+import com.gitee.huanminabc.nullchain.language.NfException;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
+import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScopeType;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.LineSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
@@ -49,6 +51,10 @@ public class BreakSyntaxNode extends LineSyntaxNode {
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {
         //找到上一个作用域类型是for的作用域,设置break为true
-        context.findByTypeScope(NfContextScopeType.FOR).setBreak(true);
+        NfContextScope forScope = context.findByTypeScope(NfContextScopeType.FOR);
+        if (forScope == null) {
+            throw new NfException("Line:{} ,break语句必须在for循环内使用", syntaxNode.getLine());
+        }
+        forScope.setBreak(true);
     }
 }

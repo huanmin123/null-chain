@@ -107,5 +107,71 @@ public abstract class BlockSyntaxNode extends SyntaxNodeAbs implements SyntaxNod
     protected static void removeComments(List<Token> tokens) {
         tokens.removeIf(t -> t.type == TokenType.COMMENT);
     }
+    
+    /**
+     * 跳到块结束位置获取结束下标
+     * 通过深度计算找到匹配的块结束位置（RBRACE）
+     * 
+     * @param tokens Token列表
+     * @param startIndex 开始查找的位置
+     * @param checkElse 是否检查 ELSE 关键字（用于 if 语句）
+     * @return 块结束位置的下标（包含 RBRACE），如果未找到则返回 tokens.size()
+     */
+    protected static int skipBlockEnd(List<Token> tokens, int startIndex, boolean checkElse) {
+        //记录结束下标, 用于截取和删除
+        int endIndex = 0;
+        //记录深度  每次遇到 LBRACE + LINE_END 深度+1, 遇到 RBRACE 深度-1
+        int depth = 0;
+        int tokensSize = tokens.size();
+        if (tokensSize < 2 || startIndex >= tokensSize - 1) {
+            return tokensSize; // 如果tokens不足或起始位置无效，返回列表末尾
+        }
+        //遇到RBRACE + LINE_END结束
+        for (int j = startIndex; j < tokensSize - 1; j++) {
+            Token currentToken = tokens.get(j);
+            Token nextToken = tokens.get(j + 1);
+            if (currentToken.type == TokenType.LBRACE && nextToken.type == TokenType.LINE_END) {
+                depth++;
+            }
+            //}  || } else (如果checkElse为true)
+            if (currentToken.type == TokenType.RBRACE) {
+                if (checkElse) {
+                    // 只有当后面是LINE_END或ELSE时，才减少深度
+                    if (nextToken.type == TokenType.LINE_END || nextToken.type == TokenType.ELSE) {
+                        depth--;
+                    }
+                } else {
+                    // 不检查ELSE时，遇到RBRACE就减少深度
+                    depth--;
+                }
+            }
+            //当深度为0且遇到RBRACE时, 说明块表达式结束
+            if (depth == 0 && currentToken.type == TokenType.RBRACE) {
+                // 如果checkElse为true，需要确保后面是LINE_END（if语句的结束必须是 } + 换行）
+                if (checkElse) {
+                    if (nextToken.type == TokenType.LINE_END) {
+                        endIndex = j + 1;
+                        break;
+                    }
+                } else {
+                    // 对于switch和for，只需要深度为0且遇到RBRACE即可
+                    endIndex = j + 1;
+                    break;
+                }
+            }
+        }
+        return endIndex;
+    }
+    
+    /**
+     * 跳到块结束位置获取结束下标（不检查ELSE）
+     * 
+     * @param tokens Token列表
+     * @param startIndex 开始查找的位置
+     * @return 块结束位置的下标（包含 RBRACE），如果未找到则返回 tokens.size()
+     */
+    protected static int skipBlockEnd(List<Token> tokens, int startIndex) {
+        return skipBlockEnd(tokens, startIndex, false);
+    }
 }
 

@@ -129,8 +129,16 @@ public class SwitchSyntaxNode extends BlockSyntaxNode {
 
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {
+        if (!(syntaxNode instanceof SwitchSyntaxNode)) {
+            throw new NfException("Line:{} ,语法节点类型错误，期望SwitchSyntaxNode，实际:{}", 
+                syntaxNode.getLine(), syntaxNode.getClass().getName());
+        }
         SwitchSyntaxNode switchSyntaxNode = (SwitchSyntaxNode) syntaxNode;
-        Token switchValueToken = switchSyntaxNode.getValue().get(0);
+        List<Token> switchValueList = switchSyntaxNode.getValue();
+        if (switchValueList == null || switchValueList.isEmpty()) {
+            throw new NfException("Line:{} ,switch条件值不能为空 , syntax:{} ", switchSyntaxNode.getLine(), syntaxNode);
+        }
+        Token switchValueToken = switchValueList.get(0);
         Object switchValue;
         
         //判断switch条件值是变量还是常量
@@ -139,27 +147,42 @@ public class SwitchSyntaxNode extends BlockSyntaxNode {
             String switchName = switchValueToken.value;
             NfVariableInfo variable = context.getVariable(switchName);
             if (variable == null) {
-                throw new NfException("{}变量不存在 , syntax:{} ", switchName, syntaxNode);
+                throw new NfException("Line:{} ,{}变量不存在 , syntax:{} ", switchSyntaxNode.getLine(), switchName, syntaxNode);
             }
             switchValue = variable.getValue();
         } else {
             //是常量，直接转换为实际值
             switchValue = DataType.realType(switchValueToken.type, switchValueToken.value);
         }
+        List<SyntaxNode> childList = switchSyntaxNode.getChildSyntaxNodeList();
+        if (childList == null || childList.isEmpty()) {
+            // switch语句没有子节点，直接返回
+            return;
+        }
         back:
-        for (SyntaxNode node : switchSyntaxNode.getChildSyntaxNodeList()) {
+        for (SyntaxNode node : childList) {
+            if (!(node instanceof SwitchSyntaxNode)) {
+                throw new NfException("Line:{} ,switch子节点类型错误，期望SwitchSyntaxNode，实际:{}", 
+                    node.getLine(), node.getClass().getName());
+            }
             SwitchSyntaxNode caseNode= (SwitchSyntaxNode) node;
             if (caseNode.getSwitchType()==SwitchType.DEFAULT){
                 //创建子作用域
                 NfContextScope childScope = context.createChildScope(context.getCurrentScopeId(), NfContextScopeType.SWITCH);
                 //执行else if代码块内部的语句
-                SyntaxNodeFactory.executeAll(caseNode.getChildSyntaxNodeList(), context);
+                List<SyntaxNode> defaultChildList = caseNode.getChildSyntaxNodeList();
+                if (defaultChildList != null) {
+                    SyntaxNodeFactory.executeAll(defaultChildList, context);
+                }
                 //删除子作用域
                 context.removeScope(childScope.getScopeId());
                 //执行完毕后跳出switch
                 break;
             }else{
                 List<Token> caseValue = node.getValue();
+                if (caseValue == null || caseValue.isEmpty()) {
+                    continue;
+                }
                 for (Token token : caseValue) {
                     //跳过逗号
                     if (token.type == TokenType.COMMA) {
@@ -171,7 +194,10 @@ public class SwitchSyntaxNode extends BlockSyntaxNode {
                         //创建子作用域
                         NfContextScope childScope = context.createChildScope(context.getCurrentScopeId(), NfContextScopeType.SWITCH);
                         //执行else if代码块内部的语句
-                        SyntaxNodeFactory.executeAll(caseNode.getChildSyntaxNodeList(), context);
+                        List<SyntaxNode> caseChildList = caseNode.getChildSyntaxNodeList();
+                        if (caseChildList != null) {
+                            SyntaxNodeFactory.executeAll(caseChildList, context);
+                        }
                         //删除子作用域
                         context.removeScope(childScope.getScopeId());
                         //执行完毕后跳出switch
@@ -295,30 +321,9 @@ public class SwitchSyntaxNode extends BlockSyntaxNode {
 
 
 
-    //跳到if结束位置获取结束下标
+    //跳到switch结束位置获取结束下标
     private int skipSwitchEnd(List<Token> tokens, int i) {
-        //记录结束下标, 用于截取和删除
-        int endIndex = 0;
-        //记录深度  每次遇到 LBRACE + LINE_END 深度+1, 遇到 RBRACE 深度-1
-        int depth = 0;
-        //优化：缓存size，避免在循环中重复调用
-        int tokensSize = tokens.size();
-        //遇到RBRACE + LINE_END结束
-        for (int j = i; j < tokensSize - 1; j++) {
-            if (tokens.get(j).type == TokenType.LBRACE && tokens.get(j + 1).type == TokenType.LINE_END) {
-                depth++;
-            }
-            //}
-            if (tokens.get(j).type == TokenType.RBRACE) {
-                depth--;
-            }
-            //当结尾是RBRACE + LINE_END 且深度为0时, 说明表达式结束
-            if (depth == 0 && tokens.get(j).type == TokenType.RBRACE) {
-                endIndex = j + 1;
-                break;
-            }
-        }
-        return endIndex;
+        return BlockSyntaxNode.skipBlockEnd(tokens, i, false);
     }
 
 

@@ -45,13 +45,12 @@ public class FunExeSyntaxNode extends LineSyntaxNode {
     @Override
     public boolean buildStatement(List<Token> tokens,List<SyntaxNode> syntaxNodeList) {
         // 遍历标记序列
-        for (int i = 0; i < tokens.size(); i++) {
+        int tokensSize = tokens.size();
+        for (int i = 0; i < tokensSize; i++) {
             Token token = tokens.get(i);
 
             //判断是否是函数执行 IDENTIFIER+DOT+IDENTIFIER+LPAREN
-            if (token.type == TokenType.IDENTIFIER&&tokens.get(i+1).type==TokenType.DOT&&tokens.get(i+2).type==TokenType.IDENTIFIER&&tokens.get(i+3).type==TokenType.LPAREN) {
-                //优化：缓存size，避免在循环中重复调用
-                int tokensSize = tokens.size();
+            if (i + 3 < tokensSize && token.type == TokenType.IDENTIFIER&&tokens.get(i+1).type==TokenType.DOT&&tokens.get(i+2).type==TokenType.IDENTIFIER&&tokens.get(i+3).type==TokenType.LPAREN) {
                 //记录结束下标, 用于截取和删除
                 int endIndex = findLineEndIndex(tokens, i);
                 //截取函数执行语句的标记序列,不包含LINE_END
