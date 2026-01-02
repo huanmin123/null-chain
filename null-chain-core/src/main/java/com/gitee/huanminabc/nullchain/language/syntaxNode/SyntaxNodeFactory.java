@@ -1,5 +1,6 @@
 package com.gitee.huanminabc.nullchain.language.syntaxNode;
 
+import com.gitee.huanminabc.nullchain.language.NfPerformanceMonitor;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScopeType;
@@ -98,10 +99,35 @@ public class SyntaxNodeFactory {
      * @param context NF上下文
      */
     public static void executeAll(List<SyntaxNode> syntaxNodeList, NfContext context) {
+        executeAll(syntaxNodeList, context, null);
+    }
+    
+    /**
+     * 遍历全部的语法节点并执行（支持性能监控）
+     * 
+     * <p>按照语法节点的顺序执行，支持break、continue和breakAll控制流。
+     * 如果提供了性能监控器，会记录每个节点的执行时间。</p>
+     * 
+     * @param syntaxNodeList 语法节点列表
+     * @param context NF上下文
+     * @param monitor 性能监控器（可选，如果为null则不监控）
+     */
+    public static void executeAll(List<SyntaxNode> syntaxNodeList, NfContext context, NfPerformanceMonitor monitor) {
         for (SyntaxNode syntaxNode : syntaxNodeList) {
             //保留当前的作用域id
             String currentScopeId = context.getCurrentScopeId();
+            
+            //记录执行开始时间
+            long startTime = monitor != null ? System.nanoTime() : 0;
+            
             syntaxNode.run(context, syntaxNode);
+            
+            //记录执行时间
+            if (monitor != null) {
+                long duration = System.nanoTime() - startTime;
+                monitor.recordNodeExecution(syntaxNode.getType().name(), duration);
+            }
+            
             //恢复当前的作用域id
             context.setCurrentScopeId(currentScopeId);
 

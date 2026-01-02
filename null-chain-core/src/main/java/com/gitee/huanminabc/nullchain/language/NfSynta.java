@@ -34,6 +34,7 @@ public class NfSynta {
      * 
      * @param tokens Token列表（会被修改，已解析的部分会被移除）
      * @return 解析后的语法节点列表
+     * @throws NfSyntaxException 如果遇到语法错误，立即抛出异常
      */
     public static List<SyntaxNode> buildMainStatement(List<Token> tokens) {
         List<SyntaxNode> syntaxNodeList = new ArrayList<>();
@@ -46,10 +47,11 @@ public class NfSynta {
                 tokens.remove(0);
                 continue;
             }
+            
             //尝试识别并构建语法节点
             boolean success = SyntaxNodeFactory.forEachNode(tokens, syntaxNodeList);
             if (!success) {
-                //如果无法识别，抛出异常
+                //如果无法识别，立即抛出异常
                 int errorTokenCount = Math.min(tokens.size(), MAX_ERROR_CONTEXT_TOKENS);
                 String context = TokenUtil.mergeToken(tokens.subList(0, errorTokenCount)).toString();
                 String suggestion = "期望: import, task, assign, declare, run, export, echo, if, switch, for, while, break, breakAll, continue 等关键字";

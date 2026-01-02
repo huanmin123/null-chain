@@ -63,7 +63,7 @@ public class NfCalculator {
     }
 
     private static void mergeScope(NfContext nfContext, NfContextScope currentScope, JexlContext context) {
-        mergeScope__(nfContext, currentScope, context);
+        mergeScopeRecursively(nfContext, currentScope, context);
         //合并当前作用域
         Map<String, Object> currentScopeMap = currentScope.toMap();
         for (Map.Entry<String, Object> entry : currentScopeMap.entrySet()) {
@@ -71,14 +71,21 @@ public class NfCalculator {
         }
     }
 
-    //递归合并父作用域
-    private static void mergeScope__(NfContext nfContext, NfContextScope currentScope, JexlContext context) {
+    /**
+     * 递归合并父作用域
+     * 从当前作用域开始，向上遍历所有父作用域，将变量合并到JexlContext中
+     * 
+     * @param nfContext NF上下文
+     * @param currentScope 当前作用域
+     * @param context Jexl上下文
+     */
+    private static void mergeScopeRecursively(NfContext nfContext, NfContextScope currentScope, JexlContext context) {
         //获取父作用域
         NfContextScope parentScope = nfContext.getScope(currentScope.getParentScopeId());
         if (parentScope != null) {
-            //合并父作用域
-            mergeScope__(nfContext, parentScope, context);
-            //合并当前作用域
+            //先递归合并父作用域（确保父作用域的变量先被设置）
+            mergeScopeRecursively(nfContext, parentScope, context);
+            //合并当前父作用域的变量
             Map<String, Object> parentScopeMap = parentScope.toMap();
             for (Map.Entry<String, Object> entry : parentScopeMap.entrySet()) {
                 context.set(entry.getKey(), entry.getValue());

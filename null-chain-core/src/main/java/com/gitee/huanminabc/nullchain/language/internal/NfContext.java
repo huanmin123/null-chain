@@ -253,7 +253,7 @@ public class NfContext {
 
         importMap.put("HashMap", HashMap.class.getName());
         importMap.put("TreeMap", TreeMap.class.getName());
-        importMap.put("LikedList", LinkedList.class.getName());
+        importMap.put("LinkedList", LinkedList.class.getName());
         importMap.put("ArrayList", ArrayList.class.getName());
 
         importMap.put("Map", Map.class.getName());
