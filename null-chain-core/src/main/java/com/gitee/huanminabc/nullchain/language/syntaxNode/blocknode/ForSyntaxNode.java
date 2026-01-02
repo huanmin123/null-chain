@@ -182,9 +182,18 @@ public class ForSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
             }
             //如果是breakall,那么就跳出所有循环
             if (newScope.isBreakAll()) {
-                context.getScope(newScope.getParentScopeId()).setBreakAll(true);
+                //只有当父作用域是FOR类型时，才传播breakAll标志，避免影响主作用域（ALL类型）
+                NfContextScope parentScope = context.getScope(newScope.getParentScopeId());
+                if (parentScope != null && parentScope.getType() == NfContextScopeType.FOR) {
+                    parentScope.setBreakAll(true);
+                }
                 break;
             }
+        }
+        //循环结束后，清除当前FOR作用域的breakAll标志，避免影响后续执行
+        NfContextScope currentForScope = context.getScope(currentScopeId);
+        if (currentForScope != null && currentForScope.getType() == NfContextScopeType.FOR) {
+            currentForScope.setBreakAll(false);
         }
     }
 

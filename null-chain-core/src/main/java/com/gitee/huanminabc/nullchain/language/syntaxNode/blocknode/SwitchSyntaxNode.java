@@ -83,9 +83,14 @@ public class SwitchSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         List<Token> tokens = syntaxNode.getValue();
         //取出来switch的条件值
         List<Token> switchValue = splitSwitchValue(tokens);
-        //判断第一个是否是标识符
-        if (switchValue.get(0).type != TokenType.IDENTIFIER) {
-            throw new NfException("问题行号:{} , switch的条件值必须是变量", switchValue.get(0).getLine());
+        //判断是否是标识符（变量）或常量（整数、字符串、布尔值、浮点数）
+        TokenType switchValueType = switchValue.get(0).type;
+        if (switchValueType != TokenType.IDENTIFIER && 
+            switchValueType != TokenType.INTEGER && 
+            switchValueType != TokenType.STRING && 
+            switchValueType != TokenType.BOOLEAN && 
+            switchValueType != TokenType.FLOAT) {
+            throw new NfException("问题行号:{} , switch的条件值必须是变量或常量（整数、字符串、布尔值、浮点数）", switchValue.get(0).getLine());
         }
         syntaxNode.setValue(switchValue);
         //取出来全部的case
@@ -127,13 +132,22 @@ public class SwitchSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {
         SwitchSyntaxNode switchSyntaxNode = (SwitchSyntaxNode) syntaxNode;
-        String switchName= switchSyntaxNode.getValue().get(0).value;
-        //将a转换为实际值
-        NfVariableInfo variable = context.getVariable(switchName);
-        if (variable == null) {
-           throw new NfException("{}变量不存在 , syntax:{} ",switchName,syntaxNode );
+        Token switchValueToken = switchSyntaxNode.getValue().get(0);
+        Object switchValue;
+        
+        //判断switch条件值是变量还是常量
+        if (switchValueToken.type == TokenType.IDENTIFIER) {
+            //是变量，从上下文中获取值
+            String switchName = switchValueToken.value;
+            NfVariableInfo variable = context.getVariable(switchName);
+            if (variable == null) {
+                throw new NfException("{}变量不存在 , syntax:{} ", switchName, syntaxNode);
+            }
+            switchValue = variable.getValue();
+        } else {
+            //是常量，直接转换为实际值
+            switchValue = DataType.realType(switchValueToken.type, switchValueToken.value);
         }
-        Object switchValue=variable.getValue();
         back:
         for (SyntaxNode node : switchSyntaxNode.getChildSyntaxNodeList()) {
             SwitchSyntaxNode caseNode= (SwitchSyntaxNode) node;
@@ -182,11 +196,25 @@ public class SwitchSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         tokens.remove(0);
         //去掉换行
         tokens.remove(0);
-        //去掉最后的{
-        tokens.remove(tokens.size()-1);
+        //去掉最后的}（RBRACE），这是switch语句的结束标记
+        //注意：这个RBRACE是在skipSwitchEnd中已经计算好的switch语句的结束位置
+        if (tokens.size() > 0 && tokens.get(tokens.size() - 1).type == TokenType.RBRACE) {
+            tokens.remove(tokens.size() - 1);
+        }
         return value;
     }
+    /**
+     * 提取case语句
+     * 如果列表为空或开头不是case，返回null
+     * 
+     * @param tokens Token列表
+     * @return case语句节点，如果不存在则返回null
+     */
     private  SwitchSyntaxNode  splitCase( List<Token> tokens){
+        // 如果列表为空，直接返回null
+        if (tokens == null || tokens.isEmpty()) {
+            return null;
+        }
         //判断开头是否是case
         if (tokens.get(0).type != TokenType.CASE) {
             return null;
@@ -225,7 +253,18 @@ public class SwitchSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         caseStatement.setChildSyntaxNodeList(syntaxNodes);
         return caseStatement;
     }
+    /**
+     * 提取default语句
+     * 如果列表为空或开头不是default，返回null
+     * 
+     * @param tokens Token列表
+     * @return default语句节点，如果不存在则返回null
+     */
     private  SwitchSyntaxNode  splitDefault( List<Token> tokens){
+        // 如果列表为空，直接返回null
+        if (tokens == null || tokens.isEmpty()) {
+            return null;
+        }
         //判断开头是否是default
         if (tokens.get(0).type != TokenType.DEFAULT) {
             return null;
@@ -288,23 +327,36 @@ public class SwitchSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
     //只跳到下一个块Case位置
     private int skipCase1Block(List<Token> tokens) {
         //记录结束下标, 用于截取和删除
-        int endIndex = 0;
+        int endIndex = -1;
         //记录深度  每次遇到 LBRACE + LINE_END 深度+1, 遇到 RBRACE 深度-1
         int depth = 0;
         //遇到RBRACE + LINE_END结束
-        for (int j = 0; j < tokens.size()-1; j++) {
-            if (tokens.get(j).type == TokenType.LBRACE && tokens.get(j + 1).type == TokenType.LINE_END) {
+        for (int j = 0; j < tokens.size(); j++) {
+            if (j < tokens.size() - 1 && tokens.get(j).type == TokenType.LBRACE && tokens.get(j + 1).type == TokenType.LINE_END) {
                 depth++;
             }
             //}
             if (tokens.get(j).type == TokenType.RBRACE ) {
                 depth--;
             }
-            //当深度为0时, 并且遇到case  位置了 那么回退到上一个位置就是case的结束位置
-            if (depth == 0 && tokens.get(j).type == TokenType.CASE|| tokens.get(j).type == TokenType.DEFAULT) {
-                endIndex = j-1 ;
+            //当深度为0时, 并且遇到case或default位置了 那么回退到上一个位置就是case的结束位置
+            if (depth == 0 && (tokens.get(j).type == TokenType.CASE || tokens.get(j).type == TokenType.DEFAULT)) {
+                endIndex = j - 1;
                 break;
             }
+            //如果深度小于0，说明遇到了switch的结束}，也应该结束
+            if (depth < 0 && tokens.get(j).type == TokenType.RBRACE) {
+                endIndex = j - 1;
+                break;
+            }
+        }
+        //如果没有找到下一个case/default，说明这是最后一个case，返回tokens的末尾
+        if (endIndex < 0) {
+            endIndex = tokens.size() - 1;
+        }
+        //确保endIndex至少为0
+        if (endIndex < 0) {
+            endIndex = 0;
         }
         return endIndex;
     }

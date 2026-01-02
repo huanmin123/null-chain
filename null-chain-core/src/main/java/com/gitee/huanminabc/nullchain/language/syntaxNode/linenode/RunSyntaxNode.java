@@ -17,6 +17,7 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeStructType;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
+import com.gitee.huanminabc.nullchain.language.utils.DataType;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
 import com.gitee.huanminabc.nullchain.task.NullTask;
 import com.gitee.huanminabc.nullchain.task.NullTaskFactory;
@@ -196,7 +197,17 @@ public class RunSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                                 String value1 = token1.value;
                                 //去掉前后的引号
                                 value1 = value1.substring(1, value1.length() - 1);
+                                // 如果包含占位符，进行替换
+                                if (value1.contains("{") && value1.contains("}")) {
+                                    value1 = EchoSyntaxNode.replaceTemplate(value1, context, syntaxNode);
+                                }
                                 params.add(value1);
+                                break;
+                            case TEMPLATE_STRING:
+                                // 处理模板字符串，去除首尾的 ```，然后替换占位符
+                                String templateValue = (String) DataType.realType(TokenType.TEMPLATE_STRING, token1.value);
+                                templateValue = EchoSyntaxNode.replaceTemplate(templateValue, context, syntaxNode);
+                                params.add(templateValue);
                                 break;
                             case INTEGER:
                                 params.add(Double.parseDouble(token1.value));
@@ -210,7 +221,6 @@ public class RunSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                             default:
                                 throw new NfException("Line:{}, 参数类型错误,只支持String,Number,Boolean, syntax:{}", syntaxNode.getLine(), syntaxNode);
                         }
-                        params.add(token1.value);
                     }
                 }
                 nullNodes.add(new NullNode<>(taskName, params));

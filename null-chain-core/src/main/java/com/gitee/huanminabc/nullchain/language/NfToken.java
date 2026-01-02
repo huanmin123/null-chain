@@ -80,8 +80,8 @@ public class NfToken {
                 i++;
                 continue;
             }
-            //如果是注释
-            if (currentChar == '/') {
+            //如果是注释（//）
+            if (currentChar == '/' && i + 1 < length && input.charAt(i + 1) == '/') {
                 i = CommentToken.comment(input, i, tokens, line);
                 continue;
             }
@@ -93,6 +93,12 @@ public class NfToken {
             // 处理数字
             if (Character.isDigit(currentChar)) {
                 i = NumberToken.number(input, currentChar, i, tokens, line);
+                continue;
+            }
+            // 处理模板字符串（``` 开头，必须在普通字符串之前检测）
+            if (currentChar == '`' && i + 2 < length && 
+                input.charAt(i + 1) == '`' && input.charAt(i + 2) == '`') {
+                i = StringToken.templateString(input, i, tokens, line);
                 continue;
             }
             // 处理字符串（支持双引号和单引号）
@@ -107,9 +113,19 @@ public class NfToken {
     }
 
 
-    //去掉开头的换行
+    /**
+     * 去掉开头的换行
+     * 如果列表为空，直接返回，避免IndexOutOfBoundsException
+     * 
+     * @param tokens Token列表
+     */
     public static void skipLineEnd(List<Token> tokens) {
-        while (tokens.get(0).type == TokenType.LINE_END) {
+        // 如果列表为空，直接返回，避免IndexOutOfBoundsException
+        if (tokens == null || tokens.isEmpty()) {
+            return;
+        }
+        // 循环移除开头的换行符
+        while (!tokens.isEmpty() && tokens.get(0).type == TokenType.LINE_END) {
             tokens.remove(0);
         }
     }

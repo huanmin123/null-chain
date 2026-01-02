@@ -11,6 +11,7 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeStructType;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
+import com.gitee.huanminabc.nullchain.language.utils.DataType;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -92,8 +93,16 @@ public class ExportSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         Object exportValue;
         Class<?> exportType;
         
+        // 检查是否是模板字符串（单个 TEMPLATE_STRING token）
+        if (tokens.size() == 1 && tokens.get(0).type == TokenType.TEMPLATE_STRING) {
+            Token token = tokens.get(0);
+            // 去除首尾的 ```，并处理占位符
+            String templateValue = (String) DataType.realType(TokenType.TEMPLATE_STRING, token.value);
+            exportValue = EchoSyntaxNode.replaceTemplate(templateValue, context, syntaxNode);
+            exportType = String.class;
+        }
         // 如果只有一个 IDENTIFIER token，优先作为变量名处理（向后兼容）
-        if (tokens.size() == 1 && tokens.get(0).type == TokenType.IDENTIFIER) {
+        else if (tokens.size() == 1 && tokens.get(0).type == TokenType.IDENTIFIER) {
             Token token = tokens.get(0);
             NfVariableInfo variable = mainScope.getVariable(token.value);
             if (variable != null) {
@@ -106,6 +115,10 @@ public class ExportSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                 try {
                     exportValue = NfCalculator.arithmetic(expression, context);
                     exportType = exportValue != null ? exportValue.getClass() : null;
+                    // 如果计算结果是字符串且包含占位符，进行替换
+                    if (exportValue instanceof String && ((String) exportValue).contains("{") && ((String) exportValue).contains("}")) {
+                        exportValue = EchoSyntaxNode.replaceTemplate((String) exportValue, context, syntaxNode);
+                    }
                 } catch (Exception e) {
                     throw new NfException(e, "Line:{} ,export 变量 {} 未定义,且表达式计算失败, syntax: {}", token.line, token.value, syntaxNode);
                 }
@@ -116,6 +129,10 @@ public class ExportSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
             try {
                 exportValue = NfCalculator.arithmetic(expression, context);
                 exportType = exportValue != null ? exportValue.getClass() : null;
+                // 如果计算结果是字符串且包含占位符，进行替换
+                if (exportValue instanceof String && ((String) exportValue).contains("{") && ((String) exportValue).contains("}")) {
+                    exportValue = EchoSyntaxNode.replaceTemplate((String) exportValue, context, syntaxNode);
+                }
             } catch (Exception e) {
                 throw new NfException(e, "Line:{} ,export 表达式计算错误: {} , syntax: {}", 
                         tokens.get(0).line, expression, syntaxNode);

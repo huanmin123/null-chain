@@ -11,6 +11,7 @@ public enum TokenType {
     TASK, // 导入任务
     IDENTIFIER, // 标识符
     STRING, // 字符串
+    TEMPLATE_STRING, // 模板字符串 ```
     INTEGER, // 整数
     FLOAT, // 浮点数
     BOOLEAN, // 布尔
@@ -19,6 +20,7 @@ public enum TokenType {
     SUB, // 减
     MUL, // 乘
     DIV, // 除
+    MOD, // 取模 %
     RUN, // 运行
     ARROW_ASSIGN, // 箭头赋值
     COLON, // 冒号

@@ -78,7 +78,7 @@ public class NullTaskTest {
 
     @Test
     public void testNfFileTask() {
-        String file = PathUtil.getCurrentProjectTestResourcesAbsolutePath("nf/test.nf");
+        String file = PathUtil.getCurrentProjectTestResourcesAbsolutePath("nf/student/advanced_examples.nf");
         String input = "123131";
         String result = Null.of(input)
                 .nfTask(NullGroupNfTask.taskFile(file))

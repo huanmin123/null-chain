@@ -21,10 +21,10 @@ public class NfRunFxTest {
 
     @BeforeEach
     public  void before() {
-        String file = TestUtil.readFile("test.nf");
+        String file = TestUtil.readFile("student/advanced_examples.nf");
         tokens = NfToken.tokens(file);
 
-        String file1 = TestUtil.readFile("test1.nf");
+        String file1 = TestUtil.readFile("student/basic_syntax.nf");
         tokens1 = NfToken.tokens(file1);
     }
 

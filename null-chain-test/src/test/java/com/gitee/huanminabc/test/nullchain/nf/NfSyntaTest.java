@@ -20,7 +20,7 @@ public class NfSyntaTest {
 
     @BeforeEach
     public  void before() {
-        String file = TestUtil.readFile("test.nf");
+        String file = TestUtil.readFile("student/advanced_examples.nf");
         tokens = NfToken.tokens(file);
     }
     @AfterEach

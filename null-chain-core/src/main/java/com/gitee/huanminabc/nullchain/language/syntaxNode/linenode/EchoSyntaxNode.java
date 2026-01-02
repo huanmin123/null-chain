@@ -48,7 +48,7 @@ public class EchoSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
             Token token = tokens.get(i);
             if (token.type == TokenType.ECHO) {
                 //记录结束下标, 用于截取和删除
-                int endIndex = 0;
+                int endIndex = tokensSize; // 默认到列表末尾，避免找不到 LINE_END 时出错
                 //遇到LINE_END结束
                 for (int j = i; j < tokensSize; j++) {
                     if (tokens.get(j).type == TokenType.LINE_END) {
@@ -57,7 +57,7 @@ public class EchoSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                     }
                 }
                 //截取ECHO语句的标记序列 不包含ECHO
-                List<Token> newToken = new ArrayList(tokens.subList(i + 1, endIndex));
+                List<Token> newToken = new ArrayList<>(tokens.subList(i + 1, endIndex));
                 //去掉注释
                 newToken.removeIf(t -> t.type == TokenType.COMMENT);
                 EchoSyntaxNode exportExpNode = new EchoSyntaxNode(SyntaxNodeType.ECHO_EXP);
@@ -124,6 +124,31 @@ public class EchoSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                     }
                     exp.append(value);
                     break;
+                case TEMPLATE_STRING:
+                    // 处理模板字符串，去除首尾的 ```，然后替换占位符
+                    // 模板字符串应该直接输出，不通过表达式计算
+                    String templateValue = token.value;
+                    // 去除首尾的 ```
+                    if (templateValue.startsWith("```") && templateValue.endsWith("```")) {
+                        templateValue = templateValue.substring(3, templateValue.length() - 3);
+                    }
+                    // 替换占位符
+                    if (templateValue.contains("{") && templateValue.contains("}")) {
+                        templateValue = replaceTemplate(templateValue, context, syntaxNode);
+                    }
+                    // 如果 exp 中有内容，先计算并输出
+                    if (exp.length() > 0) {
+                        try {
+                            Object arithmetic = NfCalculator.arithmetic(exp.toString(), context);
+                            sb.append(arithmetic);
+                            exp = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
+                        } catch (Exception e) {
+                            throw new NfException(e, "Line:{}, 表达式计算错误: {} , syntax: {}", syntaxNode.getLine(), exp, syntaxNode);
+                        }
+                    }
+                    // 直接输出模板字符串内容
+                    sb.append(templateValue);
+                    break;
                 case COMMA:
                     if (exp.length()==0){
                         break;
@@ -153,8 +178,16 @@ public class EchoSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
     }
 
 
-    //传入一个字符串"123:{c} {b}"  将全部的模版替换为实际的值
-    private String replaceTemplate(String str, NfContext context,SyntaxNode syntaxNode) {
+    /**
+     * 传入一个字符串"123:{c} {b}"  将全部的模版替换为实际的值
+     * 公共静态方法，供其他语法节点复用
+     * 
+     * @param str 包含占位符的字符串
+     * @param context NF上下文
+     * @param syntaxNode 语法节点（用于错误信息）
+     * @return 替换后的字符串
+     */
+    public static String replaceTemplate(String str, NfContext context, SyntaxNode syntaxNode) {
         //找到所有的模版占位符
         int start = str.indexOf("{");
         int end = str.indexOf("}");

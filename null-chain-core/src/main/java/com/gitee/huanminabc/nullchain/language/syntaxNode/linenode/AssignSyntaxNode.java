@@ -12,6 +12,7 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeStructType;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
+import com.gitee.huanminabc.nullchain.language.utils.DataType;
 import com.gitee.huanminabc.nullchain.language.utils.KeywordUtil;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
 import lombok.Data;
@@ -21,11 +22,7 @@ import lombok.NoArgsConstructor;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * 赋值表达式 例如: int a=1
@@ -46,38 +43,91 @@ public class AssignSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         super.setStructType(SyntaxNodeStructType.LINE_NODE);
     }
 
+    /**
+     * 分析Token是否可以解析为赋值表达式
+     * 支持两种格式：
+     * 1. 带类型声明的赋值：IDENTIFIER IDENTIFIER ASSIGN ... (例如：Integer factorial = 1)
+     * 2. 已存在变量的重新赋值：IDENTIFIER ASSIGN ... (例如：factorial = factorial * i)
+     * 
+     * @param tokens Token列表
+     * @return 是否可以解析为赋值表达式
+     */
     @Override
     public boolean analystToken(List<Token> tokens) {
-        return tokens.get(0).type == TokenType.IDENTIFIER &&
+        int size = tokens.size();
+        if (size < 2) {
+            return false;
+        }
+        // 检查是否是已存在变量的重新赋值：IDENTIFIER ASSIGN ...
+        if (tokens.get(0).type == TokenType.IDENTIFIER && tokens.get(1).type == TokenType.ASSIGN) {
+            return true;
+        }
+        // 检查是否是带类型声明的赋值：IDENTIFIER IDENTIFIER ASSIGN ...
+        if (size >= 3 && tokens.get(0).type == TokenType.IDENTIFIER &&
                 tokens.get(1).type == TokenType.IDENTIFIER &&
-                tokens.get(2).type == TokenType.ASSIGN;
+                tokens.get(2).type == TokenType.ASSIGN) {
+            return true;
+        }
+        return false;
     }
 
 
+    /**
+     * 构建赋值语句
+     * 支持两种格式：
+     * 1. 带类型声明的赋值：IDENTIFIER IDENTIFIER ASSIGN ... (例如：Integer factorial = 1)
+     * 2. 已存在变量的重新赋值：IDENTIFIER ASSIGN ... (例如：factorial = factorial * i)
+     * 
+     * @param tokens Token列表
+     * @param syntaxNodeList 语法节点列表
+     * @return 是否成功构建
+     */
     @Override
     public boolean buildStatement(List<Token> tokens, List<SyntaxNode> syntaxNodeList) {
         // 遍历标记序列
         for (int i = 0; i < tokens.size(); i++) {
             Token token = tokens.get(i);
             if (token.type == TokenType.ASSIGN) {
-                //下标像前移动2位
-                i -= 2;
+                // 判断是哪种格式的赋值
+                boolean hasTypeDeclaration = i >= 2 && 
+                    tokens.get(i - 2).type == TokenType.IDENTIFIER && 
+                    tokens.get(i - 1).type == TokenType.IDENTIFIER;
+                
+                int startIndex;
+                if (hasTypeDeclaration) {
+                    // 带类型声明的赋值：下标向前移动2位（类型 + 变量名）
+                    startIndex = i - 2;
+                } else {
+                    // 已存在变量的重新赋值：下标向前移动1位（变量名）
+                    // 确保 startIndex >= 0
+                    if (i < 1) {
+                        // 如果 i < 1，说明 ASSIGN 前面没有足够的 token，这是语法错误
+                        continue;
+                    }
+                    startIndex = i - 1;
+                }
+                
+                // 确保 startIndex 有效
+                if (startIndex < 0 || startIndex >= tokens.size()) {
+                    continue;
+                }
+                
                 //记录结束下标, 用于截取和删除
-                int endIndex = 0;
+                int endIndex = tokens.size(); // 默认到列表末尾，避免找不到 LINE_END 时出错
                 //遇到LINE_END结束
-                for (int j = i; j < tokens.size(); j++) {
+                for (int j = startIndex; j < tokens.size(); j++) {
                     if (tokens.get(j).type == TokenType.LINE_END) {
                         endIndex = j;
                         break;
                     }
                 }
                 //截取赋值语句的标记序列,不包含LINE_END
-                List<Token> newToken = new ArrayList<>(tokens.subList(i, endIndex));
+                List<Token> newToken = new ArrayList<>(tokens.subList(startIndex, endIndex));
                 //删除已经解析的标记
-                tokens.subList(i, endIndex).clear();
+                tokens.subList(startIndex, endIndex).clear();
 
-                //拿到第1个变量名称
-                Token varName = newToken.get(1);
+                //拿到变量名称（根据是否有类型声明，位置不同）
+                Token varName = hasTypeDeclaration ? newToken.get(1) : newToken.get(0);
                 boolean forbidKeyword = KeywordUtil.isForbidKeyword(varName.value);
                 if (forbidKeyword) {
                     throw new NfException("Line:{} ,变量名 {} 不能是禁用的关键字: {}",varName.line,varName.value,printExp(newToken));
@@ -98,30 +148,64 @@ public class AssignSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         return false;
     }
 
+    /**
+     * 执行赋值语句
+     * 支持两种格式：
+     * 1. 带类型声明的赋值：IDENTIFIER IDENTIFIER ASSIGN ... (例如：Integer factorial = 1)
+     * 2. 已存在变量的重新赋值：IDENTIFIER ASSIGN ... (例如：factorial = factorial * i)
+     * 
+     * @param context 上下文
+     * @param syntaxNode 语法节点
+     */
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {
-        // IDENTIFIER IDENTIFIER ASSIGN xxx
-        //获取类型
-        Token token = syntaxNode.getValue().get(0);
-        String type = token.value;
-        //转化为java类型
-        String importType = context.getImportType(type);
-        if (importType == null) {
-            throw new NfException("Line:{} ,未找到类型 {} , syntax: {}",token.line, type, syntaxNode);
+        List<Token> valueTokens = syntaxNode.getValue();
+        boolean hasTypeDeclaration = valueTokens.size() >= 3 && 
+            valueTokens.get(0).type == TokenType.IDENTIFIER && 
+            valueTokens.get(1).type == TokenType.IDENTIFIER && 
+            valueTokens.get(2).type == TokenType.ASSIGN;
+        
+        String importType;
+        String varName;
+        List<Token> expTokens;
+        
+        if (hasTypeDeclaration) {
+            // 带类型声明的赋值：IDENTIFIER IDENTIFIER ASSIGN xxx
+            //获取类型
+            Token token = valueTokens.get(0);
+            String type = token.value;
+            //转化为java类型
+            importType = context.getImportType(type);
+            if (importType == null) {
+                throw new NfException("Line:{} ,未找到类型 {} , syntax: {}",token.line, type, syntaxNode);
+            }
+            //获取赋值的变量名
+            varName = valueTokens.get(1).value;
+            //获取赋值的表达式
+            expTokens = valueTokens.subList(3, valueTokens.size());
+        } else {
+            // 已存在变量的重新赋值：IDENTIFIER ASSIGN xxx
+            //获取变量名
+            varName = valueTokens.get(0).value;
+            //获取赋值的表达式
+            expTokens = valueTokens.subList(2, valueTokens.size());
+            //从上下文获取变量的类型
+            NfVariableInfo variableInfo = context.getVariable(varName);
+            if (variableInfo == null) {
+                throw new NfException("Line:{} ,变量 {} 不存在，无法重新赋值 , syntax: {}", 
+                    valueTokens.get(0).line, varName, syntaxNode);
+            }
+            importType = variableInfo.getType().getName();
         }
-
-        //获取赋值的变量名
-        String varName = syntaxNode.getValue().get(1).value;
-        //获取赋值的表达式
-        List<Token> expTokens = syntaxNode.getValue().subList(3, syntaxNode.getValue().size());
         //如果是空的那么就报错
         if (expTokens.isEmpty()) {
-            throw new NfException("Line:{} ,赋值表达式为空 , syntax: {}", token.line,syntaxNode);
+            int line = hasTypeDeclaration ? valueTokens.get(0).line : valueTokens.get(0).line;
+            throw new NfException("Line:{} ,赋值表达式为空 , syntax: {}", line, syntaxNode);
         }
         //取出来上下文
         NfContextScope currentScope = context.getCurrentScope();
-        //获取第一个token类型如果是New那么就是创建对象
-        if (expTokens.get(0).type == TokenType.NEW) {
+        //获取第一个token类型如果是New那么就是创建对象（仅支持带类型声明的赋值）
+        if (hasTypeDeclaration && expTokens.get(0).type == TokenType.NEW) {
             try {
                 //创建对象
                 Class<?> declaredType = Class.forName(importType);
@@ -131,7 +215,9 @@ public class AssignSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                 if (declaredType.isInterface()) {
                     actualType = context.getInterfaceDefaultImpl(declaredType);
                     if (actualType == null) {
-                        throw new NfException("Line:{} ,接口 {} 没有默认实现类，无法创建实例 , syntax: {}", token.line, importType, syntaxNode);
+                        int line = valueTokens.get(0).line;
+                        throw new NfException("Line:{} ,接口 {} 没有默认实现类，无法创建实例 , syntax: {}", 
+                            line, importType, syntaxNode);
                     }
                 }
                 
@@ -142,29 +228,69 @@ public class AssignSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
                 currentScope.addVariable(new NfVariableInfo(varName, o, declaredType));
             } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException |
                      InvocationTargetException e) {
-                throw new NfException(e, "Line:{} ,创建{}对象失败 , syntax: {}", token.line , importType, syntaxNode);
+                int line = valueTokens.get(0).line;
+                throw new NfException(e, "Line:{} ,创建{}对象失败 , syntax: {}", line, importType, syntaxNode);
             }
             return;
         }
+        // 检查表达式中是否包含模板字符串，如果有则先处理模板字符串
+        boolean hasTemplateString = false;
+        String templateStringValue = null;
+        for (Token expToken : expTokens) {
+            if (expToken.type == TokenType.TEMPLATE_STRING) {
+                hasTemplateString = true;
+                // 去除首尾的 ```，并处理占位符
+                templateStringValue = (String) DataType.realType(TokenType.TEMPLATE_STRING, expToken.value);
+                templateStringValue = EchoSyntaxNode.replaceTemplate(templateStringValue, context, syntaxNode);
+                break;
+            }
+        }
+        
         //计算表达式
         StringBuilder exp = TokenUtil.mergeToken(expTokens);
         Object arithmetic = null;
         try {
-            arithmetic = NfCalculator.arithmetic(exp.toString(), context);
+            // 如果表达式只包含模板字符串，直接使用处理后的值
+            if (hasTemplateString && expTokens.size() == 1 && expTokens.get(0).type == TokenType.TEMPLATE_STRING) {
+                arithmetic = templateStringValue;
+            } else {
+                arithmetic = NfCalculator.arithmetic(exp.toString(), context);
+                // 如果计算结果是字符串且包含占位符，进行替换
+                if (arithmetic instanceof String && ((String) arithmetic).contains("{") && ((String) arithmetic).contains("}")) {
+                    arithmetic = EchoSyntaxNode.replaceTemplate((String) arithmetic, context, syntaxNode);
+                }
+            }
         } catch (Exception e) {
-            throw new NfException(e, "Line:{} , syntax: {}", token.line , syntaxNode);
+            int line = hasTypeDeclaration ? valueTokens.get(0).line : valueTokens.get(0).line;
+            throw new NfException(e, "Line:{} , syntax: {}", line, syntaxNode);
         }
         //判断类型值和类型是否一致（支持接口类型兼容性）
         try {
             Class<?> declaredType = Class.forName(importType);
             Class<?> actualType = arithmetic.getClass();
             if (!declaredType.isAssignableFrom(actualType)) {
-                throw new NfException("Line:{} ,变量 {} 值类型和声明的型不匹配 {} vs {} ,syntax: {}", token.line ,varName, importType, arithmetic.getClass(), syntaxNode);
+                int line = hasTypeDeclaration ? valueTokens.get(0).line : valueTokens.get(0).line;
+                throw new NfException("Line:{} ,变量 {} 值类型和声明的型不匹配 {} vs {} ,syntax: {}", 
+                    line, varName, importType, arithmetic.getClass(), syntaxNode);
             }
             //将计算的值放入上下文，类型保持为声明的类型（如果是接口，保持接口类型）
-            currentScope.addVariable(new NfVariableInfo(varName, arithmetic, declaredType));
+            if (hasTypeDeclaration) {
+                // 新变量声明：添加到当前作用域
+                currentScope.addVariable(new NfVariableInfo(varName, arithmetic, declaredType));
+            } else {
+                // 已存在变量的重新赋值：更新变量所在的作用域，而不是当前作用域
+                // 这样可以确保在循环中对父作用域变量的修改能够持久化
+                NfContextScope variableScope = context.findVariableScope(varName);
+                if (variableScope != null) {
+                    variableScope.addVariable(new NfVariableInfo(varName, arithmetic, declaredType));
+                } else {
+                    // 如果找不到变量所在的作用域（理论上不应该发生），则添加到当前作用域
+                    currentScope.addVariable(new NfVariableInfo(varName, arithmetic, declaredType));
+                }
+            }
         } catch (ClassNotFoundException e) {
-            throw new NfException("Line:{} ,未找到类型 {} , syntax: {}", token.line, importType, syntaxNode);
+            int line = hasTypeDeclaration ? valueTokens.get(0).line : valueTokens.get(0).line;
+            throw new NfException("Line:{} ,未找到类型 {} , syntax: {}", line, importType, syntaxNode);
         }
     }
 
@@ -174,16 +300,40 @@ public class AssignSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         return syntaxNode instanceof AssignSyntaxNode;
     }
 
-    //打印表达式
+    /**
+     * 打印表达式
+     * 根据是否有类型声明，格式不同：
+     * 1. 带类型声明：类型 变量名 = 表达式
+     * 2. 已存在变量重新赋值：变量名 = 表达式
+     * 
+     * @param tokens Token列表
+     * @return 表达式字符串
+     */
     private String printExp(List<Token> tokens) {
         StringBuilder sb = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
-        //前3个是类型,变量名,赋值符号 需要空格
-        for (int i = 0; i < 3; i++) {
-            sb.append(tokens.get(i).value).append(" ");
-        }
-        //后面的是表达式
-        for (int i = 3; i < tokens.size(); i++) {
-            sb.append(tokens.get(i).value);
+        boolean hasTypeDeclaration = tokens.size() >= 3 && 
+            tokens.get(0).type == TokenType.IDENTIFIER && 
+            tokens.get(1).type == TokenType.IDENTIFIER && 
+            tokens.get(2).type == TokenType.ASSIGN;
+        
+        if (hasTypeDeclaration) {
+            //前3个是类型,变量名,赋值符号 需要空格
+            for (int i = 0; i < 3; i++) {
+                sb.append(tokens.get(i).value).append(" ");
+            }
+            //后面的是表达式
+            for (int i = 3; i < tokens.size(); i++) {
+                sb.append(tokens.get(i).value);
+            }
+        } else {
+            //前2个是变量名,赋值符号 需要空格
+            for (int i = 0; i < 2; i++) {
+                sb.append(tokens.get(i).value).append(" ");
+            }
+            //后面的是表达式
+            for (int i = 2; i < tokens.size(); i++) {
+                sb.append(tokens.get(i).value);
+            }
         }
         return sb.toString();
     }

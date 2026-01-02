@@ -70,6 +70,10 @@ public class OperatorToken {
                 tokens.add(new Token(TokenType.DIV, "/", line));
                 i++;
                 break;
+            case '%':
+                tokens.add(new Token(TokenType.MOD, "%", line));
+                i++;
+                break;
             case ':':
                 tokens.add(new Token(TokenType.COLON, ":", line));
                 i++;
@@ -131,6 +135,9 @@ public class OperatorToken {
                     throw new IllegalArgumentException("Illegal character  line: " + line + " char: " + currentChar);
                 }
                 break;
+            case '`':
+                // 单个反引号不被支持，需要使用三个反引号 ``` 来表示模板字符串
+                throw new IllegalArgumentException("Illegal character  line: " + line + " char: " + currentChar + " (单个反引号不被支持，请使用三个反引号 ``` 来表示模板字符串)");
             default:
                 throw new IllegalArgumentException("Illegal character  line: " + line + " char: " + currentChar);
         }

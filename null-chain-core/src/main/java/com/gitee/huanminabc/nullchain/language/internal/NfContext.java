@@ -180,6 +180,37 @@ public class NfContext {
         return null;
     }
 
+    /**
+     * 查找变量所在的作用域
+     * 从当前作用域开始向上查找，直到找到包含该变量的作用域
+     * 
+     * @param name 变量名
+     * @return 包含该变量的作用域，如果不存在则返回null
+     */
+    public NfContextScope findVariableScope(String name) {
+        return findVariableScope(name, currentScopeId);
+    }
+
+    /**
+     * 递归查找变量所在的作用域
+     * 
+     * @param name 变量名
+     * @param scopeId 当前作用域ID
+     * @return 包含该变量的作用域，如果不存在则返回null
+     */
+    private NfContextScope findVariableScope(String name, String scopeId) {
+        NfContextScope nfContextScope = scopeMap.get(scopeId);
+        if (nfContextScope != null) {
+            NfVariableInfo nfVariableInfo = nfContextScope.getVariable(name);
+            if (nfVariableInfo != null) {
+                return nfContextScope;
+            }
+            //如果当前作用域没有找到,那么就从父作用域查找
+            return findVariableScope(name, nfContextScope.getParentScopeId());
+        }
+        return null;
+    }
+
     //移除一个作用域
     public void removeScope(String id) {
         //需要先将作用域中的变量移除,减少gc的压力

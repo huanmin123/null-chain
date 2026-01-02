@@ -2,6 +2,7 @@ package com.gitee.huanminabc.nullchain.language.syntaxNode;
 
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
+import com.gitee.huanminabc.nullchain.language.internal.NfContextScopeType;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode.ForSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode.IFSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode.SwitchSyntaxNode;
@@ -62,7 +63,14 @@ public class SyntaxNodeFactory {
                 context.setCurrentScopeId(currentScopeId);
                 NfContextScope currentScope = context.getCurrentScope();
                 //判断作用域中是否存在break或者continue,如果存在break或者continue,则跳出当前循环
-                if (currentScope.isBreak() || currentScope.isContinue()||currentScope.isBreakAll()){
+                //注意：breakAll只应该在FOR循环中生效，不应该影响主作用域（ALL类型）的后续语句
+                boolean shouldBreak = currentScope.isBreak() || currentScope.isContinue();
+                //只有当作用域是FOR类型时，breakAll标志才会导致跳出循环
+                //主作用域（ALL类型）的breakAll标志应该被忽略
+                if (currentScope.isBreakAll() && currentScope.getType() == NfContextScopeType.FOR) {
+                    shouldBreak = true;
+                }
+                if (shouldBreak) {
 //                    System.out.println("=========:"+currentScope.getType());
                     break;
                 }

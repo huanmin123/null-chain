@@ -14,6 +14,13 @@ public class DataType {
                     return string.substring(1, string.length() - 1);
                 }
                 return string;
+            case TEMPLATE_STRING:
+                String template = value.toString();
+                // 去除首尾的 ```
+                if (template.startsWith("```") && template.endsWith("```")) {
+                    return template.substring(3, template.length() - 3);
+                }
+                return template;
             case INTEGER:
                 return Integer.parseInt(value.toString());
             case BOOLEAN:
