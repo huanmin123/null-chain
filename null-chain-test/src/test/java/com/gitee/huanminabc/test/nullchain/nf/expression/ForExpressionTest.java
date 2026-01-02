@@ -177,5 +177,48 @@ public class ForExpressionTest {
             log.info("instanceof 类型判断测试通过（忽略 export null 的 NPE）");
         }
     }
+
+    /**
+     * 测试动态范围循环：for i in start..end
+     * 验证范围值可以是变量而不仅仅是常量
+     */
+    @Test
+    public void testForRangeDynamic() {
+        String file = TestUtil.readFile("for/for_range_dynamic.nf");
+        List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(file);
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
+
+        NfContext context = new NfContext();
+        Object result = NfRun.run(syntaxNodes, context, log, null);
+
+        assertNotNull(result);
+        // for_range_dynamic.nf 最后 export sum，值为 15 (1+2+3+4+5)
+        assertEquals(15, result);
+        log.info("动态范围循环测试通过，结果: {}", result);
+    }
+
+    /**
+     * 测试小数范围值报错
+     * 验证 for 范围循环不支持小数，会直接报错
+     */
+    @Test
+    public void testForRangeDecimalRejected() {
+        String script = "Double start = 1.5\nInteger end = 5\nfor i in start..end {\n}\n";
+        List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(script);
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
+
+        NfContext context = new NfContext();
+        Exception exception = null;
+        try {
+            NfRun.run(syntaxNodes, context, log, null);
+        } catch (Exception e) {
+            exception = e;
+        }
+
+        assertNotNull(exception, "应该抛出异常");
+        assertTrue(exception.getMessage().contains("不支持小数"),
+            "异常信息应包含'不支持小数'，实际: " + exception.getMessage());
+        log.info("小数范围值报错测试通过");
+    }
 }
 

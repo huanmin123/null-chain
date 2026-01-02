@@ -27,6 +27,7 @@ import java.util.List;
  * 1. 数值范围: for i in 1..10 {}
  * 2. 变量迭代: for item in list {} 或 for k, v in map {}
  */
+
 /**
  * @author huanmin
  * @date 2024/11/22
@@ -136,11 +137,11 @@ public class ForSyntaxNode extends BlockSyntaxNode {
             // 格式错误
             String context = printFor(forTokens);
             throw new NfSyntaxException(
-                forTokens.isEmpty() ? 0 : forTokens.get(0).line,
-                "for表达式语法错误",
-                "无法识别的for循环格式",
-                context,
-                "支持的格式：for i in 1..10 {}, for item in list {}, for k, v in map {}"
+                    forTokens.isEmpty() ? 0 : forTokens.get(0).line,
+                    "for表达式语法错误",
+                    "无法识别的for循环格式",
+                    context,
+                    "支持的格式：for i in 1..10 {}, for item in list {}, for k, v in map {}"
             );
         }
 
@@ -157,7 +158,7 @@ public class ForSyntaxNode extends BlockSyntaxNode {
         List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokenList);
         if (!(syntaxNode instanceof ForSyntaxNode)) {
             throw new NfException("Line:{} ,语法节点类型错误，期望ForSyntaxNode，实际:{}",
-                syntaxNode.getLine(), syntaxNode.getClass().getName());
+                    syntaxNode.getLine(), syntaxNode.getClass().getName());
         }
         ((ForSyntaxNode) syntaxNode).setChildSyntaxNodeList(syntaxNodes);
         return true;
@@ -168,7 +169,7 @@ public class ForSyntaxNode extends BlockSyntaxNode {
     public void run(NfContext context, SyntaxNode syntaxNode) {
         if (!(syntaxNode instanceof ForSyntaxNode)) {
             throw new NfException("Line:{} ,语法节点类型错误，期望ForSyntaxNode，实际:{}",
-                syntaxNode.getLine(), syntaxNode.getClass().getName());
+                    syntaxNode.getLine(), syntaxNode.getClass().getName());
         }
         ForSyntaxNode forSyntaxNode = (ForSyntaxNode) syntaxNode;
         ForLoopType loopType = forSyntaxNode.getLoopType();
@@ -186,25 +187,80 @@ public class ForSyntaxNode extends BlockSyntaxNode {
     }
 
     /**
-     * 执行数值范围循环: for i in 1..10 { ... }
+     * 解析范围值，支持常量和变量两种形式
+     *
+     * <p>解析优先级：
+     * <ol>
+     *   <li>首先尝试作为整数字面量解析（如 "1", "10"）</li>
+     *   <li>如果解析失败，则作为变量名从上下文中获取值</li>
+     * </ol>
+     *
+     * <p><b>类型限制</b>：只支持整数类型（Integer, Long, Short, Byte），
+     * 不支持浮点数（Double, Float），小数会直接报错。
+     *
+     * @param context  NF上下文
+     * @param valueStr 值字符串（可能是常量或变量名）
+     * @param line     行号（用于错误提示）
+     * @return 解析后的整数值
+     * @throws NfException 如果值无法解析为整数、变量不存在、或是小数
+     */
+    private int parseRangeValue(NfContext context, String valueStr, int line) {
+        // 快速检查：如果是小数字面量，直接报错
+        if (valueStr.contains(".")) {
+            throw new NfException(
+                    "Line:{} ,for范围循环不支持小数，范围值: {}",
+                    line, valueStr
+            );
+        }
+        // 尝试解析为整数字面量
+        try {
+            return Integer.parseInt(valueStr);
+        } catch (NumberFormatException e) {
+            // 不是整数字面量，尝试从上下文获取变量值
+            NfVariableInfo variable = context.getVariable(valueStr);
+            if (variable == null) {
+                throw new NfException(
+                        "Line:{} ,范围值 '{}' 既不是整数字面量，也不是已定义的变量",
+                        line, valueStr
+                );
+            }
+            Object value = variable.getValue();
+            if (value == null) {
+                throw new NfException(
+                        "Line:{} ,变量 '{}' 的值为null，无法作为范围值使用",
+                        line, valueStr
+                );
+            }
+            // 只支持整数类型（Integer, Long, Short, Byte）
+            if (value instanceof Number) {
+                return ((Number) value).intValue();
+            }
+            // 浮点数类型直接报错
+            throw new NfException("Line:{} ,变量 '{}' 的值不是整数类型，实际类型: {}", line, valueStr, value.getClass().getSimpleName()
+            );
+        }
+    }
+
+    /**
+     * 执行数值范围循环: for i in 1..10 { ... } 或 for i in start..end { ... }
      */
     private void executeRangeLoop(NfContext context, ForSyntaxNode forSyntaxNode,
-                                   List<SyntaxNode> childList, String currentScopeId) {
+                                  List<SyntaxNode> childList, String currentScopeId) {
         List<Token> forValue = forSyntaxNode.getValue();
         if (forValue == null || forValue.size() < 5) {
             throw new NfException("Line:{} ,for表达式格式错误，必须包含变量名、in关键字和范围值 , syntax:{} ",
-                forSyntaxNode.getLine(), forSyntaxNode);
+                    forSyntaxNode.getLine(), forSyntaxNode);
         }
-        // i in 1..10
-        // 取出i
+        // i in 1..10 或 for i in start..end (动态范围)
+        // 取出循环变量名
         String i = forValue.get(0).value;
-        // 取出start
+        // 取出start（可能是常量或变量名）
         String start = forValue.get(2).value;
-        // 取出end
+        // 取出end（可能是常量或变量名）
         String end = forValue.get(4).value;
-        // 优化：提前解析start和end，避免在循环中重复调用parseInt
-        int startInt = Integer.parseInt(start);
-        int endInt = Integer.parseInt(end);
+        // 优化：提前解析start和end，支持常量和变量两种形式
+        int startInt = parseRangeValue(context, start, forSyntaxNode.getLine());
+        int endInt = parseRangeValue(context, end, forSyntaxNode.getLine());
 
         // 循环
         if (childList == null) {
@@ -264,11 +320,11 @@ public class ForSyntaxNode extends BlockSyntaxNode {
      * - for k, v in map { ... }
      */
     private void executeVariableIteration(NfContext context, ForSyntaxNode forSyntaxNode,
-                                        List<SyntaxNode> childList, String currentScopeId) {
+                                          List<SyntaxNode> childList, String currentScopeId) {
         List<Token> forValue = forSyntaxNode.getValue();
         if (forValue == null || forValue.isEmpty()) {
             throw new NfException("Line:{} ,for表达式格式错误，必须包含变量名和in关键字 , syntax:{} ",
-                forSyntaxNode.getLine(), forSyntaxNode);
+                    forSyntaxNode.getLine(), forSyntaxNode);
         }
 
         // 判断是单变量还是双变量模式
@@ -282,7 +338,7 @@ public class ForSyntaxNode extends BlockSyntaxNode {
             // 格式：IDENTIFIER, COMMA, IDENTIFIER, IN, IDENTIFIER
             if (forValue.size() < 5) {
                 throw new NfException("Line:{} ,for表达式格式错误，双变量模式需要: key, value in map , syntax:{} ",
-                    forSyntaxNode.getLine(), forSyntaxNode);
+                        forSyntaxNode.getLine(), forSyntaxNode);
             }
             varName2 = forValue.get(2).value;
             targetVarName = forValue.get(4).value;
@@ -291,7 +347,7 @@ public class ForSyntaxNode extends BlockSyntaxNode {
             // 格式：IDENTIFIER, IN, IDENTIFIER
             if (forValue.size() < 3) {
                 throw new NfException("Line:{} ,for表达式格式错误，单变量模式需要: item in list , syntax:{} ",
-                    forSyntaxNode.getLine(), forSyntaxNode);
+                        forSyntaxNode.getLine(), forSyntaxNode);
             }
             targetVarName = forValue.get(2).value;
         }
@@ -300,32 +356,32 @@ public class ForSyntaxNode extends BlockSyntaxNode {
         NfVariableInfo targetVarInfo = context.getVariable(targetVarName);
         if (targetVarInfo == null) {
             throw new NfException("Line:{} ,变量 {} 不存在 , syntax:{} ",
-                forSyntaxNode.getLine(), targetVarName, forSyntaxNode);
+                    forSyntaxNode.getLine(), targetVarName, forSyntaxNode);
         }
 
         Object targetValue = targetVarInfo.getValue();
         // 检查是否为null
         if (targetValue == null) {
             throw new NfException("Line:{} ,变量 {} 的值为null , syntax:{} ",
-                forSyntaxNode.getLine(), targetVarName, forSyntaxNode);
+                    forSyntaxNode.getLine(), targetVarName, forSyntaxNode);
         }
 
         // 根据变量实际类型决定是List、Set还是Map迭代
         if (targetValue instanceof java.util.Map) {
             // Map迭代
             executeMapIteration(context, forSyntaxNode, childList, currentScopeId,
-                                varName1, varName2, targetValue);
+                    varName1, varName2, targetValue);
         } else if (targetValue instanceof java.util.List || targetValue.getClass().isArray()) {
             // List迭代
             executeListIteration(context, forSyntaxNode, childList, currentScopeId,
-                                 varName1, targetValue);
+                    varName1, targetValue);
         } else if (targetValue instanceof java.util.Set) {
             // Set迭代
             executeSetIteration(context, forSyntaxNode, childList, currentScopeId,
-                                varName1, targetValue);
+                    varName1, targetValue);
         } else {
             throw new NfException("Line:{} ,变量 {} 不是List、Map、Set或数组类型，实际类型: {} , syntax:{} ",
-                forSyntaxNode.getLine(), targetVarName, targetValue.getClass().getSimpleName(), forSyntaxNode);
+                    forSyntaxNode.getLine(), targetVarName, targetValue.getClass().getSimpleName(), forSyntaxNode);
         }
     }
 
@@ -333,8 +389,8 @@ public class ForSyntaxNode extends BlockSyntaxNode {
      * 执行List迭代（实际执行部分）
      */
     private void executeListIteration(NfContext context, ForSyntaxNode forSyntaxNode,
-                                    List<SyntaxNode> childList, String currentScopeId,
-                                    String itemName, Object listValue) {
+                                      List<SyntaxNode> childList, String currentScopeId,
+                                      String itemName, Object listValue) {
         // 转换为List
         java.util.List<?> list = null;
         if (listValue instanceof java.util.List) {
@@ -397,8 +453,8 @@ public class ForSyntaxNode extends BlockSyntaxNode {
      * 执行Map迭代（实际执行部分）
      */
     private void executeMapIteration(NfContext context, ForSyntaxNode forSyntaxNode,
-                                    List<SyntaxNode> childList, String currentScopeId,
-                                    String keyName, String valueName, Object mapValue) {
+                                     List<SyntaxNode> childList, String currentScopeId,
+                                     String keyName, String valueName, Object mapValue) {
         @SuppressWarnings("unchecked")
         java.util.Map<Object, Object> map = (java.util.Map<Object, Object>) mapValue;
 
