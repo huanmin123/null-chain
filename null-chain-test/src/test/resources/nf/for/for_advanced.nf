@@ -67,3 +67,4 @@ echo "最终 product = {product}"
 
 export product
 
+

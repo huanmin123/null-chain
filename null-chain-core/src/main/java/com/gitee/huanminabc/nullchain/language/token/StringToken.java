@@ -14,6 +14,7 @@ public class StringToken {
 
     /**
      * 处理字符串（支持双引号和单引号）
+     * 支持转义字符：\n, \t, \r, \\, \", \'
      * 
      * @param input 输入字符串
      * @param i 当前字符位置
@@ -25,12 +26,58 @@ public class StringToken {
         char quoteChar = input.charAt(i); // 获取引号字符（" 或 '）
         StringBuilder sb = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         i++;
-        // 查找匹配的结束引号
-        while (i < input.length() && input.charAt(i) != quoteChar) {
-            sb.append(input.charAt(i));
+        
+        // 查找匹配的结束引号，处理转义字符
+        while (i < input.length()) {
+            char c = input.charAt(i);
+            
+            // 检查转义字符
+            if (c == '\\' && i + 1 < input.length()) {
+                char nextChar = input.charAt(i + 1);
+                switch (nextChar) {
+                    case 'n':
+                        sb.append('\n');
+                        break;
+                    case 't':
+                        sb.append('\t');
+                        break;
+                    case 'r':
+                        sb.append('\r');
+                        break;
+                    case '\\':
+                        sb.append('\\');
+                        break;
+                    case '"':
+                        sb.append('"');
+                        break;
+                    case '\'':
+                        sb.append('\'');
+                        break;
+                    default:
+                        // 未知转义字符，保留原样（转义字符+下一个字符）
+                        sb.append('\\').append(nextChar);
+                        break;
+                }
+                i += 2; // 跳过转义字符和下一个字符
+                continue;
+            }
+            
+            // 检查结束引号
+            if (c == quoteChar) {
+                break;
+            }
+            
+            sb.append(c);
             i++;
         }
-        i++;
+        
+        // 检查字符串是否未正确结束
+        if (i >= input.length()) {
+            throw new com.gitee.huanminabc.nullchain.language.NfException(
+                "字符串未正确结束，缺少结束引号，行号: {}", line);
+        }
+        
+        i++; // 跳过结束引号
         // 统一使用双引号格式存储，便于后续处理
         tokens.add(new Token(TokenType.STRING, quoteChar + sb.toString() + quoteChar, line));
         return i;

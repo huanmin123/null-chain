@@ -42,7 +42,7 @@ public class NfToken {
                 i++;
                 while (i < length) {
                     char c = input.charAt(i);
-                    if (c == '\'' && i + 1 < length) {
+                    if (c == '\\' && i + 1 < length) {
                         // 转义字符，跳过下一个字符
                         i += 2;
                         continue;
@@ -59,7 +59,7 @@ public class NfToken {
                 i++;
                 while (i < length) {
                     char c = input.charAt(i);
-                    if (c == '\'' && i + 1 < length) {
+                    if (c == '\\' && i + 1 < length) {
                         // 转义字符，跳过下一个字符
                         i += 2;
                         continue;
@@ -111,9 +111,15 @@ public class NfToken {
         int line = 1;
         while (i < length) {
             char currentChar = input.charAt(i);
-            // 记录行号
-            if (currentChar == '\n' || currentChar== ';') {
+            // 记录行号（只有换行符才增加行号）
+            if (currentChar == '\n') {
                 line++;
+                i++;
+                tokens.add(new Token(TokenType.LINE_END, "", line));
+                continue;
+            }
+            // 分号单独处理，不增加行号
+            if (currentChar == ';') {
                 i++;
                 tokens.add(new Token(TokenType.LINE_END, "", line));
                 continue;

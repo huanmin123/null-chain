@@ -57,3 +57,4 @@ echo "sum = {sum}, avg = {avg}"
 
 export sum
 
+

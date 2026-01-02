@@ -81,3 +81,4 @@ echo "total = {total}, count = {count}, average = {average}"
 
 export average
 
+
