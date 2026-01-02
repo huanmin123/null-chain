@@ -56,19 +56,19 @@ public class ForSyntaxNode extends BlockSyntaxNode {
             if (token.type == TokenType.FOR) {
                 //记录结束下标, 用于截取和删除
                 int endIndex =skipForEnd(tokens, i);
-                //截取While表达式的标记序列
-                List<Token> ifTokens = new ArrayList<>(tokens.subList(i, endIndex));
+                //截取for表达式的标记序列
+                List<Token> forTokens = new ArrayList<>(tokens.subList(i, endIndex));
                 //删除
                 tokens.subList(i, endIndex).clear();
 
-                ForSyntaxNode ifStatement = new ForSyntaxNode(SyntaxNodeType.FOR_EXP);
-                ifStatement.setValue(ifTokens);
-                ifStatement.setLine(token.getLine());
+                ForSyntaxNode forStatement = new ForSyntaxNode(SyntaxNodeType.FOR_EXP);
+                forStatement.setValue(forTokens);
+                forStatement.setLine(token.getLine());
                 //构建子节点
-                if (!buildChildStatement(ifStatement)) {
+                if (!buildChildStatement(forStatement)) {
                     return false;
                 }
-                syntaxNodeList.add(ifStatement);
+                syntaxNodeList.add(forStatement);
                 return true;
             }
         }
@@ -158,18 +158,18 @@ public class ForSyntaxNode extends BlockSyntaxNode {
                 syntaxNode.getLine(), syntaxNode.getClass().getName());
         }
         ForSyntaxNode forSyntaxNode = (ForSyntaxNode) syntaxNode;
-        List<Token> ifValue = forSyntaxNode.getValue();
-        if (ifValue == null || ifValue.size() < 5) {
+        List<Token> forValue = forSyntaxNode.getValue();
+        if (forValue == null || forValue.size() < 5) {
             throw new NfException("Line:{} ,for表达式格式错误，必须包含变量名、in关键字和范围值 , syntax:{} ", 
                 forSyntaxNode.getLine(), syntaxNode);
         }
         //i in 1..10
         //取出i
-        String i = ifValue.get(0).value;
+        String i = forValue.get(0).value;
         //取出start
-        String start = ifValue.get(2).value;
+        String start = forValue.get(2).value;
         //取出end
-        String end = ifValue.get(4).value;
+        String end = forValue.get(4).value;
         //保留当前作用域id
         String currentScopeId = context.getCurrentScopeId();
         //优化：提前解析start和end，避免在循环中重复调用parseInt

@@ -14,7 +14,7 @@ import java.util.List;
  * <ul>
  *   <li>统一设置structType为LINE_NODE</li>
  *   <li>提供默认的buildChildStatement实现（行节点不需要构建子节点）</li>
- *   <li>提供公共的analystToken和analystSyntax实现</li>
+ *   <li>提供公共的analystToken实现</li>
  * </ul>
  * 
  * @author huanmin
@@ -75,18 +75,6 @@ public abstract class LineSyntaxNode extends SyntaxNodeAbs implements SyntaxNode
             throw new UnsupportedOperationException("子类必须重写analystToken方法或实现getTargetTokenType方法");
         }
         return !tokens.isEmpty() && tokens.get(0).type == targetType;
-    }
-    
-    /**
-     * 分析语法节点是否可以执行
-     * 默认实现：检查节点类型是否匹配当前类
-     * 
-     * @param syntaxNode 语法节点
-     * @return 如果可以执行返回true，否则返回false
-     */
-    @Override
-    public boolean analystSyntax(SyntaxNode syntaxNode) {
-        return syntaxNode.getClass() == this.getClass();
     }
     
     /**

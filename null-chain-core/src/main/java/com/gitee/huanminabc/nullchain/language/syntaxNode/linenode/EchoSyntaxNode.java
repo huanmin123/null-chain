@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * echo语句 列如: echo "测试打印: ","____","123:{c}",\t,c,\t,123
+ * echo语句 例如: echo "测试打印: ","____","123:{c}",\t,c,\t,123
  * 每次打印一行, 多个参数用逗号隔开 字符串支持模版占位符, 支持\n 和 \t
  */
 

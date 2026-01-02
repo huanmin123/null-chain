@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * task语句  列如: task com.xxx.ClassTaskName as test1
+ * task语句  例如: task com.xxx.ClassTaskName as test1
  */
 
 /**

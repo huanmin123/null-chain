@@ -14,7 +14,7 @@ import java.util.List;
  * <ul>
  *   <li>统一设置structType为BLOCK_NODE</li>
  *   <li>强制子类实现buildChildStatement方法（块节点必须构建子节点）</li>
- *   <li>提供公共的analystToken和analystSyntax实现</li>
+ *   <li>提供公共的analystToken实现</li>
  * </ul>
  * 
  * @author huanmin
@@ -67,18 +67,6 @@ public abstract class BlockSyntaxNode extends SyntaxNodeAbs implements SyntaxNod
     @Override
     public boolean analystToken(List<Token> tokens) {
         return !tokens.isEmpty() && tokens.get(0).type == getTargetTokenType();
-    }
-    
-    /**
-     * 分析语法节点是否可以执行
-     * 默认实现：检查节点类型是否匹配当前类
-     * 
-     * @param syntaxNode 语法节点
-     * @return 如果可以执行返回true，否则返回false
-     */
-    @Override
-    public boolean analystSyntax(SyntaxNode syntaxNode) {
-        return syntaxNode.getClass() == this.getClass();
     }
     
     /**

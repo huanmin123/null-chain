@@ -44,9 +44,25 @@ public interface SyntaxNode {
 
     void addChild(SyntaxNode syntaxNode);
 
-    //分析token是否可以解析,如果可以解析就会调用buildStatement
+    /**
+     * 分析token是否可以解析,如果可以解析就会调用buildStatement
+     * 
+     * @param tokens Token列表（只读，不会修改）
+     * @return 如果可以解析返回true，否则返回false
+     */
     boolean analystToken(List<Token> tokens);
 
+    /**
+     * 构建语法节点语句
+     * 
+     * <p>注意：此方法会直接修改传入的tokens列表，已解析的tokens会被移除。
+     * 这是解析器的核心设计，目的是高效地逐步解析剩余的tokens。
+     * 实现时应该：1. 识别并提取当前语句的tokens；2. 从原列表中移除已解析的tokens。</p>
+     * 
+     * @param tokens Token列表（会被修改，已解析的部分会被移除）
+     * @param syntaxNodeList 语法节点列表（用于添加新构建的节点）
+     * @return 如果成功构建返回true，否则返回false
+     */
     boolean buildStatement(List<Token> tokens, List<SyntaxNode> syntaxNodeList);
 
     //部分语法节点需要构建子节点或者平级节点 , 特别是块结构的语法基本都需要
@@ -54,10 +70,6 @@ public interface SyntaxNode {
         return true;
     }
 
-
-    //分析语法节点是否可以执行如果可以执行就会调用run
-     boolean analystSyntax(SyntaxNode syntaxNode);
-
     //运行语法节点
-     void run(NfContext context, SyntaxNode syntaxNode) ;
+    void run(NfContext context, SyntaxNode syntaxNode);
 }
