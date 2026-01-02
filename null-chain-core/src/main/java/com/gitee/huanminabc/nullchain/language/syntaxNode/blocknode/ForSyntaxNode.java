@@ -2,6 +2,7 @@ package com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode;
 
 import com.gitee.huanminabc.nullchain.common.NullConstants;
 import com.gitee.huanminabc.nullchain.language.NfException;
+import com.gitee.huanminabc.nullchain.language.NfSyntaxException;
 import com.gitee.huanminabc.nullchain.language.NfSynta;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
@@ -75,6 +76,20 @@ public class ForSyntaxNode extends BlockSyntaxNode {
         return false;
     }
 
+    /**
+     * 构建for语句的子节点
+     * 
+     * <p>此方法会解析for语句的tokens，提取循环条件和循环体，构建子节点。
+     * 
+     * <p><b>副作用说明</b>：此方法会修改传入的 syntaxNode 节点：
+     * <ul>
+     *   <li>会修改 syntaxNode.getValue() 返回的 tokens 列表（移除已解析的 tokens）</li>
+     *   <li>会将原始的 tokens 分解，条件部分保留在父节点的 value 中，循环体部分构建为子节点</li>
+     * </ul>
+     * 
+     * @param syntaxNode for语句节点（会被修改）
+     * @return 如果成功构建返回 true，否则返回 false
+     */
     @Override
     public boolean buildChildStatement(SyntaxNode syntaxNode) {
         //for的token
@@ -98,12 +113,26 @@ public class ForSyntaxNode extends BlockSyntaxNode {
 
         //必须存在In
         if (forTokens.stream().noneMatch(t -> t.type == TokenType.IN)) {
-            throw new NfException("Line:{} ,for表达式必须包含in, syntax: {}",forTokens.get(0).line,printFor(forTokens));
+            String context = printFor(forTokens);
+            throw new NfSyntaxException(
+                forTokens.get(0).line,
+                "for表达式语法错误",
+                "for表达式必须包含 'in' 关键字",
+                context,
+                "正确的格式：for variable in start..end { ... }"
+            );
         }
 
         //判断必须存在DOT2
         if (forTokens.stream().noneMatch(t -> t.type == TokenType.DOT2)) {
-           throw new NfException("Line:{} ,for表达式必须包含.., syntax: {}",forTokens.get(0).line,printFor(forTokens));
+            String context = printFor(forTokens);
+            throw new NfSyntaxException(
+                forTokens.get(0).line,
+                "for表达式语法错误",
+                "for表达式必须包含范围操作符 '..'",
+                context,
+                "正确的格式：for variable in start..end { ... }"
+            );
         }
         //DOT2前后必须是INTEGER
         //找到DOT2的位置
@@ -120,16 +149,37 @@ public class ForSyntaxNode extends BlockSyntaxNode {
         Token startToken = forTokens.get(dot2Index - 1);
         //如果长度不够那么就是语法错误
         if (dot2Index + 1 >= forTokens.size()) {
-            throw new NfException("Line:{} ,for表达式的..前后必须是整数, syntax: {}",forTokens.get(0).line,printFor(forTokens));
+            String context = printFor(forTokens);
+            throw new NfSyntaxException(
+                forTokens.get(0).line,
+                "for表达式语法错误",
+                "范围操作符 '..' 后面缺少结束值",
+                context,
+                "正确的格式：for variable in start..end { ... }，其中 start 和 end 必须是整数"
+            );
         }
         Token endToken = forTokens.get(dot2Index + 1);
         //判断是否是整数
         if (startToken.type != TokenType.INTEGER || endToken.type != TokenType.INTEGER) {
-            throw new NfException("Line:{} ,for表达式的..前后必须是整数, syntax: {}",forTokens.get(0).line,printFor(forTokens));
+            String context = printFor(forTokens);
+            throw new NfSyntaxException(
+                forTokens.get(0).line,
+                "for表达式类型错误",
+                "范围操作符 '..' 前后必须是整数",
+                context,
+                "正确的格式：for variable in start..end { ... }，其中 start 和 end 必须是整数"
+            );
         }
         //校验第一个整数必须小于或者等于第二个
         if (Integer.parseInt(startToken.value) > Integer.parseInt(endToken.value)) {
-            throw new NfException("Line:{} ,for表达式的..前面的整数必须小于等于后面的整数, syntax: {}",forTokens.get(0).line,printFor(forTokens));
+            String context = printFor(forTokens);
+            throw new NfSyntaxException(
+                forTokens.get(0).line,
+                "for表达式范围错误",
+                "范围操作符 '..' 前面的整数必须小于等于后面的整数",
+                context,
+                "请确保起始值 <= 结束值，例如：for i in 1..10 { ... }"
+            );
         }
         //删除
         tokenList.subList(0, endIndex).clear();

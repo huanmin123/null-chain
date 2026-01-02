@@ -88,7 +88,20 @@ public class SwitchSyntaxNode extends BlockSyntaxNode {
         }
         return false;
     }
-    //分解case
+    /**
+     * 构建switch语句的子节点
+     * 
+     * <p>此方法会解析switch语句的tokens，将其分解为 switch 条件值和多个 case、default 子节点。
+     * 
+     * <p><b>副作用说明</b>：此方法会修改传入的 syntaxNode 节点：
+     * <ul>
+     *   <li>会修改 syntaxNode.getValue() 返回的 tokens 列表（移除已解析的 tokens）</li>
+     *   <li>会将原始的 tokens 分解，条件值保留在父节点的 value 中，case 和 default 构建为子节点</li>
+     * </ul>
+     * 
+     * @param syntaxNode switch语句节点（会被修改）
+     * @return 如果成功构建返回 true，否则返回 false
+     */
     @Override
     public boolean buildChildStatement(SyntaxNode syntaxNode) {
         //取出来switch的标记序列

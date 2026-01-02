@@ -45,7 +45,15 @@ public class NfSynta {
             if (!success) {
                 //如果无法识别，抛出异常
                 int errorTokenCount = Math.min(tokens.size(), 20);
-                throw new NfException("语法构建错误: {} ......", TokenUtil.mergeToken(tokens.subList(0, errorTokenCount)));
+                String context = TokenUtil.mergeToken(tokens.subList(0, errorTokenCount)).toString();
+                String suggestion = "期望: import, task, assign, declare, run, export, echo, if, switch, for, while, break, breakAll, continue 等关键字";
+                throw new NfSyntaxException(
+                    firstToken.getLine(),
+                    "无法识别的语法",
+                    "无法识别此位置的语法结构",
+                    context,
+                    suggestion
+                );
             }
         }
         return syntaxNodeList;

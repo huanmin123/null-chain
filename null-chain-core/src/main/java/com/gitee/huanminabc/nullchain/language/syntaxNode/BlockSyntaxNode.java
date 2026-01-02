@@ -97,6 +97,82 @@ public abstract class BlockSyntaxNode extends SyntaxNodeAbs implements SyntaxNod
     }
     
     /**
+     * 构建块语句的公共模板方法
+     * 
+     * <p>提供块节点 buildStatement 的公共实现模板，减少代码重复。
+     * 子类可以通过重写特定方法来定制行为。</p>
+     * 
+     * @param tokens Token列表
+     * @param syntaxNodeList 语法节点列表
+     * @param targetTokenType 目标Token类型
+     * @param nodeFactory 节点工厂方法，用于创建节点实例
+     * @param skipEndFunction 计算结束位置的函数
+     * @return 如果成功构建返回 true，否则返回 false
+     */
+    protected boolean buildBlockStatementTemplate(
+        List<Token> tokens,
+        List<SyntaxNode> syntaxNodeList,
+        TokenType targetTokenType,
+        java.util.function.Function<Token, ? extends BlockSyntaxNode> nodeFactory,
+        java.util.function.BiFunction<List<Token>, Integer, Integer> skipEndFunction
+    ) {
+        int tokensSize = tokens.size();
+        for (int i = 0; i < tokensSize; i++) {
+            Token token = tokens.get(i);
+            if (token.type == targetTokenType) {
+                // 计算结束位置
+                int endIndex = skipEndFunction.apply(tokens, i);
+                // 截取tokens
+                List<Token> blockTokens = new java.util.ArrayList<>(tokens.subList(i, endIndex));
+                
+                // 验证tokens不为空（子类可以重写 validateTokens 方法自定义验证）
+                if (!validateTokens(blockTokens, token)) {
+                    return false;
+                }
+                
+                // 删除已解析的tokens
+                tokens.subList(i, endIndex).clear();
+                
+                // 创建节点
+                BlockSyntaxNode blockNode = nodeFactory.apply(token);
+                blockNode.setValue(blockTokens);
+                blockNode.setLine(token.getLine());
+                
+                // 构建子节点
+                if (!buildChildStatement(blockNode)) {
+                    return false;
+                }
+                
+                syntaxNodeList.add(blockNode);
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * 验证tokens是否有效
+     * 子类可以重写此方法进行自定义验证
+     * 
+     * @param tokens 要验证的tokens
+     * @param firstToken 第一个token
+     * @return 如果有效返回 true，否则返回 false（会抛出异常）
+     */
+    protected boolean validateTokens(List<Token> tokens, Token firstToken) {
+        // 默认实现：检查tokens不为空
+        if (tokens.isEmpty()) {
+            throw new com.gitee.huanminabc.nullchain.language.NfSyntaxException(
+                firstToken.getLine(),
+                "块语句语法错误",
+                "块语句的tokens为空，无法解析",
+                firstToken.getValue(),
+                "请检查块语句的语法格式"
+            );
+        }
+        return true;
+    }
+    
+    /**
      * 跳到块结束位置获取结束下标
      * 通过深度计算找到匹配的块结束位置（RBRACE）
      * 

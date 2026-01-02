@@ -65,7 +65,28 @@ public interface SyntaxNode {
      */
     boolean buildStatement(List<Token> tokens, List<SyntaxNode> syntaxNodeList);
 
-    //部分语法节点需要构建子节点或者平级节点 , 特别是块结构的语法基本都需要
+    /**
+     * 构建子节点或平级节点
+     * 
+     * <p>部分语法节点需要构建子节点或平级节点，特别是块结构的语法（如 if、for、switch）基本都需要。
+     * 
+     * <h3>重要说明：</h3>
+     * <ul>
+     *   <li><b>副作用行为</b>：此方法可能会修改传入的 syntaxNode 节点，特别是会修改或清空节点的 value（tokens列表）。
+     *   这是因为在构建子节点时，原始的 tokens 会被分解到各个子节点中，父节点不再需要保留完整的原始 tokens。</li>
+     *   <li><b>行为规范</b>：
+     *     <ul>
+     *       <li>块节点（BlockSyntaxNode）：必须实现此方法，会修改传入节点的 value，将 tokens 分解到子节点中</li>
+     *       <li>行节点（LineSyntaxNode）：默认实现返回 true，不修改传入节点</li>
+     *     </ul>
+     *   </li>
+     *   <li><b>调用时机</b>：在 buildStatement 方法中，创建节点并设置 value 后，会立即调用此方法构建子节点</li>
+     *   <li><b>注意事项</b>：如果需要在构建子节点后访问父节点的原始 tokens，请在调用此方法前保存副本</li>
+     * </ul>
+     * 
+     * @param syntaxNode 需要构建子节点的语法节点（可能会被修改）
+     * @return 如果成功构建返回 true，否则返回 false
+     */
     default boolean buildChildStatement(SyntaxNode syntaxNode) {
         return true;
     }

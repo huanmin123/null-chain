@@ -89,7 +89,7 @@ public class TemplateStringTest {
         String result = Null.of(input)
                 .nfTask(NullGroupNfTask.task("String result = ```\n```; export result"))
                 .type(String.class)
-                .get();
+                .orElse("");
         
         assertNotNull(result);
         // 空模板字符串应该返回空字符串或只包含换行
@@ -223,14 +223,17 @@ public class TemplateStringTest {
     @Test
     public void testTemplateStringWithOnlyNewline() {
         // 测试只有换行的模板字符串
+        // 注意：如果模板字符串只包含换行符，处理后的结果可能是空字符串
+        // 空字符串会被 Null.is() 判断为空，导致链变成空链，get() 会抛出异常
+        // 因此使用 orElse("") 来处理可能返回空字符串的情况
         String input = "test";
         String result = Null.of(input)
                 .nfTask(NullGroupNfTask.task("String result = ```\n\n```; export result"))
                 .type(String.class)
-                .get();
+                .orElse(""); // 使用 orElse 而不是 get，因为结果可能是空字符串
         
         assertNotNull(result);
-        // 应该包含换行符
+        // 应该包含换行符或者是空字符串
         assertTrue(result.contains("\n") || result.isEmpty());
     }
 

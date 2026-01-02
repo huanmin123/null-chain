@@ -24,6 +24,9 @@ import java.util.Map;
 public class NfRun {
 
     public static Object run(List<SyntaxNode> syntaxNodes, NfContext context, Logger logger, Map<String,Object> mainSystemContext) {
+        // 在执行前进行语法验证，提前发现语法错误
+        SyntaxValidator.validate(syntaxNodes);
+        
         String mainScopeId = NfContext.generateScopeId();
         //设置全局作用域
         context.setMainScopeId(mainScopeId);

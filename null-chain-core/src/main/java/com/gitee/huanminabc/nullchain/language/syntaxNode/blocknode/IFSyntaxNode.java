@@ -2,6 +2,7 @@ package com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode;
 
 import com.gitee.huanminabc.nullchain.language.NfCalculator;
 import com.gitee.huanminabc.nullchain.language.NfException;
+import com.gitee.huanminabc.nullchain.language.NfSyntaxException;
 import com.gitee.huanminabc.nullchain.language.NfSynta;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
@@ -74,8 +75,13 @@ public class IFSyntaxNode extends BlockSyntaxNode {
                 List<Token> ifTokens = new ArrayList<>(tokens.subList(i, endIndex));
                 //如果是0那么就是语法有问题
                 if (ifTokens.isEmpty()) {
-                    throw new NfException("Line:{} , if表达式语法错误 , syntax: {}", 
-                        token.getLine(), ifTokens);
+                    throw new NfSyntaxException(
+                        token.getLine(),
+                        "if表达式语法错误",
+                        "if语句的tokens为空，无法解析",
+                        token.getValue(),
+                        "请检查if语句的语法格式：if condition { ... }"
+                    );
                 }
                 //删除
                 tokens.subList(i, endIndex).clear();
@@ -154,13 +160,33 @@ public class IFSyntaxNode extends BlockSyntaxNode {
     }
 
 
-    //构建子节点
+    /**
+     * 构建if语句的子节点
+     * 
+     * <p>此方法会解析if语句的tokens，将其分解为 if、else if、else 等子节点。
+     * 
+     * <p><b>副作用说明</b>：此方法会修改传入的 syntaxNode 节点：
+     * <ul>
+     *   <li>会修改 syntaxNode.getValue() 返回的 tokens 列表（移除已解析的 tokens）</li>
+     *   <li>构建完成后会清空父节点的 value（调用 clearParentNodeValue）</li>
+     *   <li>原始的 tokens 会被分解到各个子节点中</li>
+     * </ul>
+     * 
+     * @param syntaxNode if语句节点（会被修改）
+     * @return 如果成功构建返回 true，否则返回 false
+     */
     @Override
     public boolean buildChildStatement(SyntaxNode syntaxNode) {
         //第一步需要先将全部的if else if else 语句分割出来
         List<Token> tokenList = syntaxNode.getValue();
         if (tokenList == null || tokenList.isEmpty()) {
-            throw new NfException("Line:{} ,if表达式tokens不能为空", syntaxNode.getLine());
+            throw new NfSyntaxException(
+                syntaxNode.getLine(),
+                "if表达式tokens为空",
+                "if表达式的tokens列表不能为空",
+                "",
+                "请检查if语句的语法格式"
+            );
         }
         //去掉IF
         tokenList.remove(0);
