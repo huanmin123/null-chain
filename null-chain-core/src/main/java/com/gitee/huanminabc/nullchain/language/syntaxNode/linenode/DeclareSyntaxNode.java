@@ -53,7 +53,7 @@ public class DeclareSyntaxNode extends LineSyntaxNode {
             //IDENTIFIER +IDENTIFIER +LINE_END
             if (token.type == TokenType.IDENTIFIER && tokens.get(i + 1).type == TokenType.IDENTIFIER && tokens.get(i + 2).type == TokenType.LINE_END) {
                 //截取声明语句的标记序列,不包含LINE_END
-                List<Token> newToken = new ArrayList(tokens.subList(i, i + 2));
+                List<Token> newToken = new ArrayList<>(tokens.subList(i, i + 2));
                 //删除已经解析的标记
                 tokens.subList(i, i + 2).clear();
                 //拿到第1个变量名称
@@ -64,7 +64,7 @@ public class DeclareSyntaxNode extends LineSyntaxNode {
                 }
 
                 //去掉注释
-                newToken.removeIf(t -> t.type == TokenType.COMMENT);
+                removeComments(newToken);
                 DeclareSyntaxNode declareSyntaxNode = new DeclareSyntaxNode(SyntaxNodeType.DECLARE_EXP);
                 declareSyntaxNode.setValue(newToken);
                 //设置行号

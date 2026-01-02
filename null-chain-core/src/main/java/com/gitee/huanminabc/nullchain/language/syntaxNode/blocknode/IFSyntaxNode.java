@@ -62,8 +62,10 @@ public class IFSyntaxNode extends BlockSyntaxNode {
 
     @Override
     public boolean buildStatement(List<Token> tokens, List<SyntaxNode> syntaxNodeList) {
+        //优化：缓存size，避免在循环中重复调用
+        int tokensSize = tokens.size();
         // 遍历标记序列
-        for (int i = 0; i < tokens.size(); i++) {
+        for (int i = 0; i < tokensSize; i++) {
             Token token = tokens.get(i);
             if (token.type == TokenType.IF) {
                 //获取语句结束下标, 用于截取和删除
@@ -233,7 +235,7 @@ public class IFSyntaxNode extends BlockSyntaxNode {
         //记录结束下标, 用于截取和删除
         int endIndex = skipIf1Block(tokens);
         //截取if表达式的标记序列
-        List<Token> ifTokens = new ArrayList(tokens.subList(0, endIndex));
+        List<Token> ifTokens = new ArrayList<>(tokens.subList(0, endIndex));
         //删除
         tokens.subList(0, endIndex).clear();
         //删除}
@@ -249,7 +251,7 @@ public class IFSyntaxNode extends BlockSyntaxNode {
             }
         }
         //截取if表达式的条件
-        List<Token> conditionTokens = new ArrayList(ifTokens.subList(0, endIndex2));
+        List<Token> conditionTokens = new ArrayList<>(ifTokens.subList(0, endIndex2));
         //删除条件
         ifTokens.subList(0, endIndex2).clear();
         //去掉{

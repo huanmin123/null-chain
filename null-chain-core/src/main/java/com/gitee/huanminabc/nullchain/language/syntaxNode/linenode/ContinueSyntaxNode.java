@@ -35,7 +35,7 @@ public class ContinueSyntaxNode extends LineSyntaxNode {
     @Override
     public boolean buildStatement(List<Token> tokens, List<SyntaxNode> syntaxNodeList) {
         Token token = tokens.get(0);
-        List<Token> newToken = new ArrayList(Collections.singletonList(token));
+        List<Token> newToken = new ArrayList<>(Collections.singletonList(token));
         //为了防止在break后面还有注释,那么一直删除到不是注释为止
         do {
             tokens.remove(0);

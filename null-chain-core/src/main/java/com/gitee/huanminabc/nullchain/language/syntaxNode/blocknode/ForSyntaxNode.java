@@ -94,7 +94,7 @@ public class ForSyntaxNode extends BlockSyntaxNode {
             }
         }
         //截取for表达式条件
-        List<Token> forTokens = new ArrayList(tokenList.subList(0, endIndex));
+        List<Token> forTokens = new ArrayList<>(tokenList.subList(0, endIndex));
 
         //必须存在In
         if (forTokens.stream().noneMatch(t -> t.type == TokenType.IN)) {

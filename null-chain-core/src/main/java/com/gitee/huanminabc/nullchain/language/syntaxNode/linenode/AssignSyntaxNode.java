@@ -90,8 +90,10 @@ public class AssignSyntaxNode extends LineSyntaxNode {
      */
     @Override
     public boolean buildStatement(List<Token> tokens, List<SyntaxNode> syntaxNodeList) {
+        //优化：缓存size，避免在循环中重复调用
+        int tokensSize = tokens.size();
         // 遍历标记序列
-        for (int i = 0; i < tokens.size(); i++) {
+        for (int i = 0; i < tokensSize; i++) {
             Token token = tokens.get(i);
             if (token.type == TokenType.ASSIGN) {
                 // 判断是哪种格式的赋值
@@ -114,19 +116,12 @@ public class AssignSyntaxNode extends LineSyntaxNode {
                 }
                 
                 // 确保 startIndex 有效
-                if (startIndex < 0 || startIndex >= tokens.size()) {
+                if (startIndex < 0 || startIndex >= tokensSize) {
                     continue;
                 }
                 
                 //记录结束下标, 用于截取和删除
-                int endIndex = tokens.size(); // 默认到列表末尾，避免找不到 LINE_END 时出错
-                //遇到LINE_END结束
-                for (int j = startIndex; j < tokens.size(); j++) {
-                    if (tokens.get(j).type == TokenType.LINE_END) {
-                        endIndex = j;
-                        break;
-                    }
-                }
+                int endIndex = findLineEndIndex(tokens, startIndex);
                 //截取赋值语句的标记序列,不包含LINE_END
                 List<Token> newToken = new ArrayList<>(tokens.subList(startIndex, endIndex));
                 //删除已经解析的标记
@@ -140,7 +135,7 @@ public class AssignSyntaxNode extends LineSyntaxNode {
                 }
 
                 //去掉注释
-                newToken.removeIf(t -> t.type == TokenType.COMMENT);
+                removeComments(newToken);
                 AssignSyntaxNode assignSyntaxNode = new AssignSyntaxNode(SyntaxNodeType.ASSIGN_EXP);
                 assignSyntaxNode.setValue(newToken);
                 //设置行号

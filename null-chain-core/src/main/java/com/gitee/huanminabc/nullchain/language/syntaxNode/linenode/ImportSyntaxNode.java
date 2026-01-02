@@ -43,27 +43,21 @@ public  class ImportSyntaxNode extends LineSyntaxNode {
 
     @Override
     public boolean buildStatement(List<Token> tokens,List<SyntaxNode> syntaxNodeList) {
-
+        //优化：缓存size，避免在循环中重复调用
+        int tokensSize = tokens.size();
         // 遍历标记序列
-        for (int i = 0; i < tokens.size(); i++) {
+        for (int i = 0; i < tokensSize; i++) {
             Token token = tokens.get(i);
             if (token.type == TokenType.IMPORT) {
                 //记录结束下标, 用于截取和删除
-                int endIndex = 0;
-                //遇到LINE_END结束
-                for (int j = i; j < tokens.size(); j++) {
-                    if (tokens.get(j).type == TokenType.LINE_END) {
-                        endIndex = j;
-                        break;
-                    }
-                }
+                int endIndex = findLineEndIndex(tokens, i);
                 //截取import语句的标记序列 不包含import和LINE_END
-                List<Token> newToken = new ArrayList(tokens.subList(i + 1, endIndex));
+                List<Token> newToken = new ArrayList<>(tokens.subList(i + 1, endIndex));
                 //删除已经解析的标记
                 tokens.subList(i, endIndex).clear();
 
                 //去掉注释
-                newToken.removeIf(t -> t.type == TokenType.COMMENT);
+                removeComments(newToken);
 
                 //校验import语句是否合法
                 String imp = TokenUtil.mergeToken(newToken).toString();

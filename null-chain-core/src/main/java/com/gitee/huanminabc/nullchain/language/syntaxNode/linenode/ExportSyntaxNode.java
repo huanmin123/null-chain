@@ -50,23 +50,18 @@ public class ExportSyntaxNode extends LineSyntaxNode {
 
     @Override
     public boolean buildStatement(List<Token> tokens,List<SyntaxNode> syntaxNodeList) {
+        //优化：缓存size，避免在循环中重复调用
+        int tokensSize = tokens.size();
         // 遍历标记序列
-        for (int i = 0; i < tokens.size(); i++) {
+        for (int i = 0; i < tokensSize; i++) {
             Token token = tokens.get(i);
             if (token.type == TokenType.EXPORT) {
                 //记录结束下标, 用于截取和删除
-                int endIndex = tokens.size(); // 默认到列表末尾
-                //遇到LINE_END结束
-                for (int j = i; j < tokens.size(); j++) {
-                    if (tokens.get(j).type == TokenType.LINE_END) {
-                        endIndex = j;
-                        break;
-                    }
-                }
+                int endIndex = findLineEndIndex(tokens, i);
                 //截取Export语句的标记序列 不包含Export和LINE_END
                 List<Token> newToken = new ArrayList<>(tokens.subList(i + 1, endIndex));
                 //去掉注释
-                newToken.removeIf(t -> t.type == TokenType.COMMENT);
+                removeComments(newToken);
 
                 //如果是空的export, 抛出异常
                 if (newToken.isEmpty()) {

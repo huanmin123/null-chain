@@ -68,22 +68,17 @@ public class RunSyntaxNode extends LineSyntaxNode {
 
             //判断是否是RUN
             if (token.type == TokenType.RUN) {
+                //优化：缓存size，避免在循环中重复调用
+                int tokensSize = tokens.size();
                 //记录结束下标, 用于截取和删除
-                int endIndex = 0;
-                //遇到LINE_END结束
-                for (int j = i; j < tokens.size(); j++) {
-                    if (tokens.get(j).type == TokenType.LINE_END) {
-                        endIndex = j;
-                        break;
-                    }
-                }
+                int endIndex = findLineEndIndex(tokens, i);
                 //截取Run语句的标记序列 不包含Run和LINE_END
-                List<Token> newToken = new ArrayList(tokens.subList(i + 1, endIndex));
+                List<Token> newToken = new ArrayList<>(tokens.subList(i + 1, endIndex));
                 //删除已经解析的标记
                 tokens.subList(i, endIndex).clear();
 
                 //去掉注释
-                newToken.removeIf(t -> t.type == TokenType.COMMENT);
+                removeComments(newToken);
 
                 //判断是否存在-> 我们需要把->后面的变量转化为DeclareSyntaxNode
                 for (int j = 0; j < newToken.size(); j++) {
@@ -91,7 +86,7 @@ public class RunSyntaxNode extends LineSyntaxNode {
                     if (t.type == TokenType.ARROW_ASSIGN) {
 
                         //截取->后面的标记序列
-                        List<Token> newToken2 = new ArrayList(newToken.subList(j + 1, newToken.size()));
+                        List<Token> newToken2 = new ArrayList<>(newToken.subList(j + 1, newToken.size()));
                         //判断长度是否为3
                         if (newToken2.size() != 3) {
                             throw new NfException("Line:{}, run语句错误,箭头后面的变量声明错误,tokens: {}", token.line, TokenUtil.mergeToken(newToken).toString());
@@ -167,7 +162,7 @@ public class RunSyntaxNode extends LineSyntaxNode {
                 //跳过(
                 i++;
                 //参数
-                List<Object> params = new ArrayList();
+                List<Object> params = new ArrayList<>();
                 for (int j = i; j < value.size(); j++) {
                     Token token1 = value.get(j);
                     //如果是逗号就跳过

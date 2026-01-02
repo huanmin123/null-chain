@@ -46,26 +46,20 @@ public class TaskSyntaxNode extends LineSyntaxNode {
 
     @Override
     public boolean buildStatement(List<Token> tokens,List<SyntaxNode> syntaxNodeList) {
-
+        //优化：缓存size，避免在循环中重复调用
+        int tokensSize = tokens.size();
         // 遍历标记序列
-        for (int i = 0; i < tokens.size(); i++) {
+        for (int i = 0; i < tokensSize; i++) {
             Token token = tokens.get(i);
             if (token.type == TokenType.TASK) {
                 //记录结束下标, 用于截取和删除
-                int endIndex = 0;
-                //遇到LINE_END结束
-                for (int j = i; j < tokens.size(); j++) {
-                    if (tokens.get(j).type == TokenType.LINE_END) {
-                        endIndex = j;
-                        break;
-                    }
-                }
+                int endIndex = findLineEndIndex(tokens, i);
                 //截取task语句的标记序列 不包含task和LINE_END
-                List<Token> newToken = new ArrayList(tokens.subList(i + 1, endIndex));
+                List<Token> newToken = new ArrayList<>(tokens.subList(i + 1, endIndex));
                 //删除已经解析的标记
                 tokens.subList(i, endIndex).clear();
                 //去掉注释
-                newToken.removeIf(t -> t.type == TokenType.COMMENT);
+                removeComments(newToken);
                 //如果是newToken的长度小于3,那么就是语法错误
                 if (newToken.size() < 3) {
                     throw new NfException("Line:{} ,task 语句错误,语法错误 , syntax: task {} ???", token.getLine(), TokenUtil.mergeToken(newToken).toString());
@@ -88,7 +82,7 @@ public class TaskSyntaxNode extends LineSyntaxNode {
                     throw new NfException("Line:{} ,task 语句错误,as关键字后面必须是标识符 , syntax: task {}", token.getLine(), TokenUtil.mergeToken(newToken).toString());
                 }
 
-                List<Token> taskToken = new ArrayList(newToken.subList(0, asIndex));
+                List<Token> taskToken = new ArrayList<>(newToken.subList(0, asIndex));
 
                 //校验import语句是否合法
                 String imp = TokenUtil.mergeToken(taskToken).toString();
@@ -128,7 +122,7 @@ public class TaskSyntaxNode extends LineSyntaxNode {
             }
         }
         //截取到as的位置
-        List<Token> taskToken = new ArrayList(value.subList(0, asIndex));
+        List<Token> taskToken = new ArrayList<>(value.subList(0, asIndex));
         StringBuilder sb = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         for (Token token : taskToken) {
             sb.append(token.value);

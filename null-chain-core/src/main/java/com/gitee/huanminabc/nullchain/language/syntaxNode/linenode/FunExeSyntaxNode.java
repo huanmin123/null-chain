@@ -50,22 +50,17 @@ public class FunExeSyntaxNode extends LineSyntaxNode {
 
             //判断是否是函数执行 IDENTIFIER+DOT+IDENTIFIER+LPAREN
             if (token.type == TokenType.IDENTIFIER&&tokens.get(i+1).type==TokenType.DOT&&tokens.get(i+2).type==TokenType.IDENTIFIER&&tokens.get(i+3).type==TokenType.LPAREN) {
+                //优化：缓存size，避免在循环中重复调用
+                int tokensSize = tokens.size();
                 //记录结束下标, 用于截取和删除
-                int endIndex = 0;
-                //遇到LINE_END结束
-                for (int j = i; j < tokens.size(); j++) {
-                    if (tokens.get(j).type == TokenType.LINE_END) {
-                        endIndex = j;
-                        break;
-                    }
-                }
+                int endIndex = findLineEndIndex(tokens, i);
                 //截取函数执行语句的标记序列,不包含LINE_END
-                List<Token> newToken = new ArrayList(tokens.subList(i , endIndex));
+                List<Token> newToken = new ArrayList<>(tokens.subList(i , endIndex));
                 //删除已经解析的标记
                 tokens.subList(i, endIndex).clear();
 
                 //去掉注释
-                newToken.removeIf(t -> t.type == TokenType.COMMENT);
+                removeComments(newToken);
                 FunExeSyntaxNode runSyntaxNode = new FunExeSyntaxNode(SyntaxNodeType.FUN_EXE_EXP);
                 runSyntaxNode.setValue(newToken);
                 //设置行号

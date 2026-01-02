@@ -54,18 +54,11 @@ public class EchoSyntaxNode extends LineSyntaxNode {
             Token token = tokens.get(i);
             if (token.type == TokenType.ECHO) {
                 //记录结束下标, 用于截取和删除
-                int endIndex = tokensSize; // 默认到列表末尾，避免找不到 LINE_END 时出错
-                //遇到LINE_END结束
-                for (int j = i; j < tokensSize; j++) {
-                    if (tokens.get(j).type == TokenType.LINE_END) {
-                        endIndex = j;
-                        break;
-                    }
-                }
+                int endIndex = findLineEndIndex(tokens, i);
                 //截取ECHO语句的标记序列 不包含ECHO
                 List<Token> newToken = new ArrayList<>(tokens.subList(i + 1, endIndex));
                 //去掉注释
-                newToken.removeIf(t -> t.type == TokenType.COMMENT);
+                removeComments(newToken);
                 EchoSyntaxNode exportExpNode = new EchoSyntaxNode(SyntaxNodeType.ECHO_EXP);
                 exportExpNode.setValue(newToken);
                 //设置行号
