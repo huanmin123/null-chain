@@ -323,6 +323,18 @@ public class IFSyntaxNode extends BlockSyntaxNode {
         }
         //if表达式的条件
         ifStatement.setValue(conditionTokens);
+        
+        //验证条件不能为空（else语句除外，else没有条件）
+        if ((ifType == IFType.IF || ifType == IFType.ELSE_IF) && 
+            (conditionTokens == null || conditionTokens.isEmpty())) {
+            throw new NfSyntaxException(
+                ifStatement.getLine(),
+                "if表达式语法错误",
+                "if语句的条件不能为空",
+                "",
+                "请检查if语句的语法格式：if condition { ... }"
+            );
+        }
 
         //继续构建代码体
         List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(ifTokens);

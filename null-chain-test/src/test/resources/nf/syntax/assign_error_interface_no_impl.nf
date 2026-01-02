@@ -1,3 +1,3 @@
-List list = new List
+List list = new
 export list
 
