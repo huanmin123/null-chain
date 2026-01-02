@@ -1,0 +1,948 @@
+﻿Apache Maven 3.6.3 (cecedd343002696d0abb50b32b541b8a6ba2883f)
+Maven home: E:\apache-maven-3.6.3\bin\..
+Java version: 1.8.0_372, vendor: Amazon.com Inc., runtime: E:\jdk\java8\jre
+Default locale: zh_CN, platform encoding: GBK
+OS name: "windows 11", version: "10.0", arch: "amd64", family: "windows"
+[DEBUG] Created new class realm maven.api
+[DEBUG] Importing foreign packages into class realm maven.api
+[DEBUG]   Imported: javax.annotation.* < plexus.core
+[DEBUG]   Imported: javax.annotation.security.* < plexus.core
+[DEBUG]   Imported: javax.enterprise.inject.* < plexus.core
+[DEBUG]   Imported: javax.enterprise.util.* < plexus.core
+[DEBUG]   Imported: javax.inject.* < plexus.core
+[DEBUG]   Imported: org.apache.maven.* < plexus.core
+[DEBUG]   Imported: org.apache.maven.artifact < plexus.core
+[DEBUG]   Imported: org.apache.maven.classrealm < plexus.core
+[DEBUG]   Imported: org.apache.maven.cli < plexus.core
+[DEBUG]   Imported: org.apache.maven.configuration < plexus.core
+[DEBUG]   Imported: org.apache.maven.exception < plexus.core
+[DEBUG]   Imported: org.apache.maven.execution < plexus.core
+[DEBUG]   Imported: org.apache.maven.execution.scope < plexus.core
+[DEBUG]   Imported: org.apache.maven.lifecycle < plexus.core
+[DEBUG]   Imported: org.apache.maven.model < plexus.core
+[DEBUG]   Imported: org.apache.maven.monitor < plexus.core
+[DEBUG]   Imported: org.apache.maven.plugin < plexus.core
+[DEBUG]   Imported: org.apache.maven.profiles < plexus.core
+[DEBUG]   Imported: org.apache.maven.project < plexus.core
+[DEBUG]   Imported: org.apache.maven.reporting < plexus.core
+[DEBUG]   Imported: org.apache.maven.repository < plexus.core
+[DEBUG]   Imported: org.apache.maven.rtinfo < plexus.core
+[DEBUG]   Imported: org.apache.maven.settings < plexus.core
+[DEBUG]   Imported: org.apache.maven.toolchain < plexus.core
+[DEBUG]   Imported: org.apache.maven.usability < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.* < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.authentication < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.authorization < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.events < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.observers < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.proxy < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.repository < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.resource < plexus.core
+[DEBUG]   Imported: org.codehaus.classworlds < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.* < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.classworlds < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.component < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.configuration < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.container < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.context < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.lifecycle < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.logging < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.personality < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.util.xml.Xpp3Dom < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.util.xml.pull.XmlPullParser < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.util.xml.pull.XmlPullParserException < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.util.xml.pull.XmlSerializer < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.* < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.artifact < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.collection < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.deployment < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.graph < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.impl < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.installation < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.internal.impl < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.metadata < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.repository < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.resolution < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.spi < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.transfer < plexus.core
+[DEBUG]   Imported: org.eclipse.aether.version < plexus.core
+[DEBUG]   Imported: org.fusesource.jansi.* < plexus.core
+[DEBUG]   Imported: org.slf4j.* < plexus.core
+[DEBUG]   Imported: org.slf4j.event.* < plexus.core
+[DEBUG]   Imported: org.slf4j.helpers.* < plexus.core
+[DEBUG]   Imported: org.slf4j.spi.* < plexus.core
+[DEBUG] Populating class realm maven.api
+[INFO] Error stacktraces are turned on.
+[DEBUG] Message scheme: color
+[DEBUG] Message styles: debug info warning error success failure strong mojo project
+[DEBUG] Reading global settings from E:\apache-maven-3.6.3\bin\..\conf\settings.xml
+[DEBUG] Reading user settings from C:\Users\Administrator\.m2\settings.xml
+[DEBUG] Reading global toolchains from E:\apache-maven-3.6.3\bin\..\conf\toolchains.xml
+[DEBUG] Reading user toolchains from C:\Users\Administrator\.m2\toolchains.xml
+[DEBUG] Using local repository at E:\apache-maven-3.6.3\kucun
+[DEBUG] Using manager EnhancedLocalRepositoryManager with priority 10.0 for E:\apache-maven-3.6.3\kucun
+[INFO] Scanning for projects...
+[DEBUG] Using mirror mirror (https://maven.aliyun.com/nexus/content/groups/public) for central (https://repo.maven.apache.org/maven2).
+[DEBUG] Dependency collection stats: {ConflictMarker.analyzeTime=259600, ConflictMarker.markTime=164500, ConflictMarker.nodeCount=20, ConflictIdSorter.graphTime=166300, ConflictIdSorter.topsortTime=127800, ConflictIdSorter.conflictIdCount=19, ConflictIdSorter.conflictIdCycleCount=0, ConflictResolver.totalTime=1325100, ConflictResolver.conflictItemCount=20, DefaultDependencyCollector.collectTime=71196300, DefaultDependencyCollector.transformTime=2973300}
+[DEBUG] org.sonatype.central:central-publishing-maven-plugin:jar:0.9.0
+[DEBUG]    org.codehaus.plexus:plexus-utils:jar:3.5.1:compile
+[DEBUG]    com.github.package-url:packageurl-java:jar:1.4.1:compile
+[DEBUG]    com.google.guava:guava:jar:32.1.0-jre:compile
+[DEBUG]       com.google.guava:failureaccess:jar:1.0.1:compile
+[DEBUG]       com.google.guava:listenablefuture:jar:9999.0-empty-to-avoid-conflict-with-guava:compile
+[DEBUG]       com.google.code.findbugs:jsr305:jar:3.0.2:compile
+[DEBUG]       org.checkerframework:checker-qual:jar:3.33.0:compile
+[DEBUG]       com.google.errorprone:error_prone_annotations:jar:2.18.0:compile
+[DEBUG]       com.google.j2objc:j2objc-annotations:jar:2.8:compile
+[DEBUG]    commons-io:commons-io:jar:2.15.1:compile
+[DEBUG]    org.apache.commons:commons-lang3:jar:3.18.0:compile
+[DEBUG]    com.fasterxml.jackson.core:jackson-databind:jar:2.16.1:compile
+[DEBUG]       com.fasterxml.jackson.core:jackson-annotations:jar:2.16.1:compile
+[DEBUG]       com.fasterxml.jackson.core:jackson-core:jar:2.16.1:compile
+[DEBUG]    org.apache.httpcomponents.client5:httpclient5:jar:5.3.1:compile
+[DEBUG]       org.apache.httpcomponents.core5:httpcore5:jar:5.2.4:compile
+[DEBUG]       org.apache.httpcomponents.core5:httpcore5-h2:jar:5.2.4:compile
+[DEBUG]       org.slf4j:slf4j-api:jar:1.7.36:compile
+[DEBUG] Created new class realm extension>org.sonatype.central:central-publishing-maven-plugin:0.9.0
+[DEBUG] Importing foreign packages into class realm extension>org.sonatype.central:central-publishing-maven-plugin:0.9.0
+[DEBUG]   Imported:  < maven.api
+[DEBUG] Populating class realm extension>org.sonatype.central:central-publishing-maven-plugin:0.9.0
+[DEBUG]   Included: org.sonatype.central:central-publishing-maven-plugin:jar:0.9.0
+[DEBUG]   Included: org.codehaus.plexus:plexus-utils:jar:3.5.1
+[DEBUG]   Included: com.github.package-url:packageurl-java:jar:1.4.1
+[DEBUG]   Included: com.google.guava:guava:jar:32.1.0-jre
+[DEBUG]   Included: com.google.guava:failureaccess:jar:1.0.1
+[DEBUG]   Included: com.google.guava:listenablefuture:jar:9999.0-empty-to-avoid-conflict-with-guava
+[DEBUG]   Included: com.google.code.findbugs:jsr305:jar:3.0.2
+[DEBUG]   Included: org.checkerframework:checker-qual:jar:3.33.0
+[DEBUG]   Included: com.google.errorprone:error_prone_annotations:jar:2.18.0
+[DEBUG]   Included: com.google.j2objc:j2objc-annotations:jar:2.8
+[DEBUG]   Included: commons-io:commons-io:jar:2.15.1
+[DEBUG]   Included: org.apache.commons:commons-lang3:jar:3.18.0
+[DEBUG]   Included: com.fasterxml.jackson.core:jackson-databind:jar:2.16.1
+[DEBUG]   Included: com.fasterxml.jackson.core:jackson-annotations:jar:2.16.1
+[DEBUG]   Included: com.fasterxml.jackson.core:jackson-core:jar:2.16.1
+[DEBUG]   Included: org.apache.httpcomponents.client5:httpclient5:jar:5.3.1
+[DEBUG]   Included: org.apache.httpcomponents.core5:httpcore5:jar:5.2.4
+[DEBUG]   Included: org.apache.httpcomponents.core5:httpcore5-h2:jar:5.2.4
+[DEBUG] Extension realms for project com.gitee.huanminabc:null-chain-test:jar:1.1.4-RELEASE: [ClassRealm[extension>org.sonatype.central:central-publishing-maven-plugin:0.9.0, parent: sun.misc.Launcher$AppClassLoader@70dea4e]]
+[DEBUG] Created new class realm project>com.gitee.huanminabc:null-chain-test:1.1.4-RELEASE
+[DEBUG] Populating class realm project>com.gitee.huanminabc:null-chain-test:1.1.4-RELEASE
+[DEBUG] Looking up lifecycle mappings for packaging jar from ClassRealm[project>com.gitee.huanminabc:null-chain-test:1.1.4-RELEASE, parent: ClassRealm[maven.api, parent: null]]
+[DEBUG] Extension realms for project com.gitee.huanminabc:null-chain:pom:1.1.4-RELEASE: [ClassRealm[extension>org.sonatype.central:central-publishing-maven-plugin:0.9.0, parent: sun.misc.Launcher$AppClassLoader@70dea4e]]
+[DEBUG] Looking up lifecycle mappings for packaging pom from ClassRealm[project>com.gitee.huanminabc:null-chain-test:1.1.4-RELEASE, parent: ClassRealm[maven.api, parent: null]]
+[DEBUG] Extension realms for project com.gitee.huanminabc:jparent:pom:1.1.5-RELEASE: [ClassRealm[extension>org.sonatype.central:central-publishing-maven-plugin:0.9.0, parent: sun.misc.Launcher$AppClassLoader@70dea4e]]
+[DEBUG] Looking up lifecycle mappings for packaging pom from ClassRealm[project>com.gitee.huanminabc:null-chain-test:1.1.4-RELEASE, parent: ClassRealm[maven.api, parent: null]]
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for com.gitee.huanminabc:null-chain-test:jar:1.1.4-RELEASE
+[WARNING] 'build.plugins.plugin.version' for org.apache.maven.plugins:maven-install-plugin is missing. @ line 38, column 21
+[WARNING] 'build.plugins.plugin.version' for org.apache.maven.plugins:maven-site-plugin is missing. @ line 31, column 21
+[WARNING] 'build.plugins.plugin.version' for org.apache.maven.plugins:maven-deploy-plugin is missing. @ line 45, column 21
+[WARNING] The expression ${version} is deprecated. Please use ${project.version} instead.
+[WARNING] 
+[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
+[WARNING] 
+[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
+[WARNING] 
+[INFO] Inspecting build with total of 1 modules
+[INFO] Installing Central Publishing features
+[DEBUG] === REACTOR BUILD PLAN ================================================
+[DEBUG] Project: com.gitee.huanminabc:null-chain-test:jar:1.1.4-RELEASE
+[DEBUG] Tasks:   [test]
+[DEBUG] Style:   Regular
+[DEBUG] =======================================================================
+[INFO] 
+[INFO] ----------------< com.gitee.huanminabc:null-chain-test >----------------
+[INFO] Building com.gitee.huanminabc:null-chain-test 1.1.4-RELEASE
+[INFO] --------------------------------[ jar ]---------------------------------
+[DEBUG] Lifecycle default -> [validate, initialize, generate-sources, process-sources, generate-resources, process-resources, compile, process-classes, generate-test-sources, process-test-sources, generate-test-resources, process-test-resources, test-compile, process-test-classes, test, prepare-package, package, pre-integration-test, integration-test, post-integration-test, verify, install, deploy]
+[DEBUG] Lifecycle clean -> [pre-clean, clean, post-clean]
+[DEBUG] Lifecycle site -> [pre-site, site, post-site, site-deploy]
+[DEBUG] Lifecycle default -> [validate, initialize, generate-sources, process-sources, generate-resources, process-resources, compile, process-classes, generate-test-sources, process-test-sources, generate-test-resources, process-test-resources, test-compile, process-test-classes, test, prepare-package, package, pre-integration-test, integration-test, post-integration-test, verify, install, deploy]
+[DEBUG] Lifecycle clean -> [pre-clean, clean, post-clean]
+[DEBUG] Lifecycle site -> [pre-site, site, post-site, site-deploy]
+[DEBUG] Lifecycle default -> [validate, initialize, generate-sources, process-sources, generate-resources, process-resources, compile, process-classes, generate-test-sources, process-test-sources, generate-test-resources, process-test-resources, test-compile, process-test-classes, test, prepare-package, package, pre-integration-test, integration-test, post-integration-test, verify, install, deploy]
+[DEBUG] Lifecycle clean -> [pre-clean, clean, post-clean]
+[DEBUG] Lifecycle site -> [pre-site, site, post-site, site-deploy]
+[DEBUG] Lifecycle default -> [validate, initialize, generate-sources, process-sources, generate-resources, process-resources, compile, process-classes, generate-test-sources, process-test-sources, generate-test-resources, process-test-resources, test-compile, process-test-classes, test, prepare-package, package, pre-integration-test, integration-test, post-integration-test, verify, install, deploy]
+[DEBUG] Lifecycle clean -> [pre-clean, clean, post-clean]
+[DEBUG] Lifecycle site -> [pre-site, site, post-site, site-deploy]
+[DEBUG] Lifecycle default -> [validate, initialize, generate-sources, process-sources, generate-resources, process-resources, compile, process-classes, generate-test-sources, process-test-sources, generate-test-resources, process-test-resources, test-compile, process-test-classes, test, prepare-package, package, pre-integration-test, integration-test, post-integration-test, verify, install, deploy]
+[DEBUG] Lifecycle clean -> [pre-clean, clean, post-clean]
+[DEBUG] Lifecycle site -> [pre-site, site, post-site, site-deploy]
+[DEBUG] Lifecycle default -> [validate, initialize, generate-sources, process-sources, generate-resources, process-resources, compile, process-classes, generate-test-sources, process-test-sources, generate-test-resources, process-test-resources, test-compile, process-test-classes, test, prepare-package, package, pre-integration-test, integration-test, post-integration-test, verify, install, deploy]
+[DEBUG] Lifecycle clean -> [pre-clean, clean, post-clean]
+[DEBUG] Lifecycle site -> [pre-site, site, post-site, site-deploy]
+[DEBUG] === PROJECT BUILD PLAN ================================================
+[DEBUG] Project:       com.gitee.huanminabc:null-chain-test:1.1.4-RELEASE
+[DEBUG] Dependencies (collect): []
+[DEBUG] Dependencies (resolve): [compile, test]
+[DEBUG] Repositories (dependencies): [mirror (https://maven.aliyun.com/nexus/content/groups/public, default, releases)]
+[DEBUG] Repositories (plugins)     : [mirror (https://maven.aliyun.com/nexus/content/groups/public, default, releases)]
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Goal:          org.apache.maven.plugins:maven-resources-plugin:2.6:resources (default-resources)
+[DEBUG] Style:         Regular
+[DEBUG] Configuration: <?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <buildFilters default-value="${project.build.filters}"/>
+  <encoding default-value="${project.build.sourceEncoding}">${encoding}</encoding>
+  <escapeString>${maven.resources.escapeString}</escapeString>
+  <escapeWindowsPaths default-value="true">${maven.resources.escapeWindowsPaths}</escapeWindowsPaths>
+  <includeEmptyDirs default-value="false">${maven.resources.includeEmptyDirs}</includeEmptyDirs>
+  <outputDirectory default-value="${project.build.outputDirectory}"/>
+  <overwrite default-value="false">${maven.resources.overwrite}</overwrite>
+  <project default-value="${project}"/>
+  <resources default-value="${project.resources}"/>
+  <session default-value="${session}"/>
+  <supportMultiLineFiltering default-value="false">${maven.resources.supportMultiLineFiltering}</supportMultiLineFiltering>
+  <useBuildFilters default-value="true"/>
+  <useDefaultDelimiters default-value="true"/>
+</configuration>
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Goal:          org.apache.maven.plugins:maven-compiler-plugin:3.8.1:compile (default-compile)
+[DEBUG] Style:         Regular
+[DEBUG] Configuration: <?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <basedir default-value="${basedir}"/>
+  <buildDirectory default-value="${project.build.directory}"/>
+  <compilePath default-value="${project.compileClasspathElements}"/>
+  <compileSourceRoots default-value="${project.compileSourceRoots}"/>
+  <compilerId default-value="javac">${maven.compiler.compilerId}</compilerId>
+  <compilerReuseStrategy default-value="${reuseCreated}">${maven.compiler.compilerReuseStrategy}</compilerReuseStrategy>
+  <compilerVersion>${maven.compiler.compilerVersion}</compilerVersion>
+  <debug default-value="true">${maven.compiler.debug}</debug>
+  <debuglevel>${maven.compiler.debuglevel}</debuglevel>
+  <encoding default-value="${project.build.sourceEncoding}">${encoding}</encoding>
+  <executable>${maven.compiler.executable}</executable>
+  <failOnError default-value="true">${maven.compiler.failOnError}</failOnError>
+  <failOnWarning default-value="false">${maven.compiler.failOnWarning}</failOnWarning>
+  <forceJavacCompilerUse default-value="false">${maven.compiler.forceJavacCompilerUse}</forceJavacCompilerUse>
+  <fork default-value="false">${maven.compiler.fork}</fork>
+  <generatedSourcesDirectory default-value="${project.build.directory}/generated-sources/annotations"/>
+  <maxmem>${maven.compiler.maxmem}</maxmem>
+  <meminitial>${maven.compiler.meminitial}</meminitial>
+  <mojoExecution default-value="${mojoExecution}"/>
+  <optimize default-value="false">${maven.compiler.optimize}</optimize>
+  <outputDirectory default-value="${project.build.outputDirectory}"/>
+  <parameters default-value="false">true</parameters>
+  <project default-value="${project}"/>
+  <projectArtifact default-value="${project.artifact}"/>
+  <release>${maven.compiler.release}</release>
+  <session default-value="${session}"/>
+  <showDeprecation default-value="false">${maven.compiler.showDeprecation}</showDeprecation>
+  <showWarnings default-value="false">${maven.compiler.showWarnings}</showWarnings>
+  <skipMain>${maven.main.skip}</skipMain>
+  <skipMultiThreadWarning default-value="false">${maven.compiler.skipMultiThreadWarning}</skipMultiThreadWarning>
+  <source default-value="1.6">8</source>
+  <staleMillis default-value="0">${lastModGranularityMs}</staleMillis>
+  <target default-value="1.6">8</target>
+  <useIncrementalCompilation default-value="true">${maven.compiler.useIncrementalCompilation}</useIncrementalCompilation>
+  <verbose default-value="false">${maven.compiler.verbose}</verbose>
+</configuration>
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Goal:          org.apache.maven.plugins:maven-resources-plugin:2.6:testResources (default-testResources)
+[DEBUG] Style:         Regular
+[DEBUG] Configuration: <?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <buildFilters default-value="${project.build.filters}"/>
+  <encoding default-value="${project.build.sourceEncoding}">${encoding}</encoding>
+  <escapeString>${maven.resources.escapeString}</escapeString>
+  <escapeWindowsPaths default-value="true">${maven.resources.escapeWindowsPaths}</escapeWindowsPaths>
+  <includeEmptyDirs default-value="false">${maven.resources.includeEmptyDirs}</includeEmptyDirs>
+  <outputDirectory default-value="${project.build.testOutputDirectory}"/>
+  <overwrite default-value="false">${maven.resources.overwrite}</overwrite>
+  <project default-value="${project}"/>
+  <resources default-value="${project.testResources}"/>
+  <session default-value="${session}"/>
+  <skip>${maven.test.skip}</skip>
+  <supportMultiLineFiltering default-value="false">${maven.resources.supportMultiLineFiltering}</supportMultiLineFiltering>
+  <useBuildFilters default-value="true"/>
+  <useDefaultDelimiters default-value="true"/>
+</configuration>
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Goal:          org.apache.maven.plugins:maven-compiler-plugin:3.8.1:testCompile (default-testCompile)
+[DEBUG] Style:         Regular
+[DEBUG] Configuration: <?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <basedir default-value="${basedir}"/>
+  <buildDirectory default-value="${project.build.directory}"/>
+  <compilePath default-value="${project.compileClasspathElements}"/>
+  <compileSourceRoots default-value="${project.testCompileSourceRoots}"/>
+  <compilerId default-value="javac">${maven.compiler.compilerId}</compilerId>
+  <compilerReuseStrategy default-value="${reuseCreated}">${maven.compiler.compilerReuseStrategy}</compilerReuseStrategy>
+  <compilerVersion>${maven.compiler.compilerVersion}</compilerVersion>
+  <debug default-value="true">${maven.compiler.debug}</debug>
+  <debuglevel>${maven.compiler.debuglevel}</debuglevel>
+  <encoding default-value="${project.build.sourceEncoding}">${encoding}</encoding>
+  <executable>${maven.compiler.executable}</executable>
+  <failOnError default-value="true">${maven.compiler.failOnError}</failOnError>
+  <failOnWarning default-value="false">${maven.compiler.failOnWarning}</failOnWarning>
+  <forceJavacCompilerUse default-value="false">${maven.compiler.forceJavacCompilerUse}</forceJavacCompilerUse>
+  <fork default-value="false">${maven.compiler.fork}</fork>
+  <generatedTestSourcesDirectory default-value="${project.build.directory}/generated-test-sources/test-annotations"/>
+  <maxmem>${maven.compiler.maxmem}</maxmem>
+  <meminitial>${maven.compiler.meminitial}</meminitial>
+  <mojoExecution default-value="${mojoExecution}"/>
+  <optimize default-value="false">${maven.compiler.optimize}</optimize>
+  <outputDirectory default-value="${project.build.testOutputDirectory}"/>
+  <parameters default-value="false">true</parameters>
+  <project default-value="${project}"/>
+  <release>${maven.compiler.release}</release>
+  <session default-value="${session}"/>
+  <showDeprecation default-value="false">${maven.compiler.showDeprecation}</showDeprecation>
+  <showWarnings default-value="false">${maven.compiler.showWarnings}</showWarnings>
+  <skip>${maven.test.skip}</skip>
+  <skipMultiThreadWarning default-value="false">${maven.compiler.skipMultiThreadWarning}</skipMultiThreadWarning>
+  <source default-value="1.6">8</source>
+  <staleMillis default-value="0">${lastModGranularityMs}</staleMillis>
+  <target default-value="1.6">8</target>
+  <testPath default-value="${project.testClasspathElements}"/>
+  <testRelease>${maven.compiler.testRelease}</testRelease>
+  <testSource>${maven.compiler.testSource}</testSource>
+  <testTarget>${maven.compiler.testTarget}</testTarget>
+  <useIncrementalCompilation default-value="true">${maven.compiler.useIncrementalCompilation}</useIncrementalCompilation>
+  <verbose default-value="false">${maven.compiler.verbose}</verbose>
+</configuration>
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Goal:          org.apache.maven.plugins:maven-surefire-plugin:2.22.2:test (default-test)
+[DEBUG] Style:         Regular
+[DEBUG] Configuration: <?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <additionalClasspathElements>${maven.test.additionalClasspath}</additionalClasspathElements>
+  <argLine>${argLine}</argLine>
+  <basedir default-value="${basedir}"/>
+  <childDelegation default-value="false">${childDelegation}</childDelegation>
+  <classesDirectory default-value="${project.build.outputDirectory}"/>
+  <classpathDependencyExcludes>${maven.test.dependency.excludes}</classpathDependencyExcludes>
+  <debugForkedProcess>${maven.surefire.debug}</debugForkedProcess>
+  <dependenciesToScan>${dependenciesToScan}</dependenciesToScan>
+  <disableXmlReport default-value="false">${disableXmlReport}</disableXmlReport>
+  <enableAssertions default-value="true">${enableAssertions}</enableAssertions>
+  <encoding default-value="${project.reporting.outputEncoding}">${surefire.encoding}</encoding>
+  <excludedGroups>${excludedGroups}</excludedGroups>
+  <excludesFile>${surefire.excludesFile}</excludesFile>
+  <failIfNoSpecifiedTests>${surefire.failIfNoSpecifiedTests}</failIfNoSpecifiedTests>
+  <failIfNoTests>${failIfNoTests}</failIfNoTests>
+  <forkCount default-value="1">${forkCount}</forkCount>
+  <forkMode default-value="once">${forkMode}</forkMode>
+  <forkedProcessExitTimeoutInSeconds default-value="30">${surefire.exitTimeout}</forkedProcessExitTimeoutInSeconds>
+  <forkedProcessTimeoutInSeconds>${surefire.timeout}</forkedProcessTimeoutInSeconds>
+  <groups>${groups}</groups>
+  <includesFile>${surefire.includesFile}</includesFile>
+  <junitArtifactName default-value="junit:junit">${junitArtifactName}</junitArtifactName>
+  <junitPlatformArtifactName default-value="org.junit.platform:junit-platform-engine">${junitPlatformArtifactName}</junitPlatformArtifactName>
+  <jvm>${jvm}</jvm>
+  <localRepository default-value="${localRepository}"/>
+  <objectFactory>${objectFactory}</objectFactory>
+  <parallel>${parallel}</parallel>
+  <parallelMavenExecution default-value="${session.parallel}"/>
+  <parallelOptimized default-value="true">${parallelOptimized}</parallelOptimized>
+  <parallelTestsTimeoutForcedInSeconds>${surefire.parallel.forcedTimeout}</parallelTestsTimeoutForcedInSeconds>
+  <parallelTestsTimeoutInSeconds>${surefire.parallel.timeout}</parallelTestsTimeoutInSeconds>
+  <perCoreThreadCount default-value="true">${perCoreThreadCount}</perCoreThreadCount>
+  <pluginArtifactMap>${plugin.artifactMap}</pluginArtifactMap>
+  <pluginDescriptor default-value="${plugin}"/>
+  <printSummary default-value="true">${surefire.printSummary}</printSummary>
+  <projectArtifactMap>${project.artifactMap}</projectArtifactMap>
+  <projectBuildDirectory default-value="${project.build.directory}"/>
+  <redirectTestOutputToFile default-value="false">${maven.test.redirectTestOutputToFile}</redirectTestOutputToFile>
+  <remoteRepositories default-value="${project.pluginArtifactRepositories}"/>
+  <reportFormat default-value="brief">${surefire.reportFormat}</reportFormat>
+  <reportNameSuffix default-value="">${surefire.reportNameSuffix}</reportNameSuffix>
+  <reportsDirectory default-value="${project.build.directory}/surefire-reports"/>
+  <rerunFailingTestsCount default-value="0">${surefire.rerunFailingTestsCount}</rerunFailingTestsCount>
+  <reuseForks default-value="true">${reuseForks}</reuseForks>
+  <runOrder default-value="filesystem">${surefire.runOrder}</runOrder>
+  <shutdown default-value="testset">${surefire.shutdown}</shutdown>
+  <skip default-value="false">false</skip>
+  <skipAfterFailureCount default-value="0">${surefire.skipAfterFailureCount}</skipAfterFailureCount>
+  <skipExec>${maven.test.skip.exec}</skipExec>
+  <skipTests default-value="false">${skipTests}</skipTests>
+  <suiteXmlFiles>${surefire.suiteXmlFiles}</suiteXmlFiles>
+  <tempDir default-value="surefire">${tempDir}</tempDir>
+  <test>${test}</test>
+  <testClassesDirectory default-value="${project.build.testOutputDirectory}"/>
+  <testFailureIgnore default-value="false">${maven.test.failure.ignore}</testFailureIgnore>
+  <testNGArtifactName default-value="org.testng:testng">${testNGArtifactName}</testNGArtifactName>
+  <testSourceDirectory default-value="${project.build.testSourceDirectory}"/>
+  <threadCount>${threadCount}</threadCount>
+  <threadCountClasses default-value="0">${threadCountClasses}</threadCountClasses>
+  <threadCountMethods default-value="0">${threadCountMethods}</threadCountMethods>
+  <threadCountSuites default-value="0">${threadCountSuites}</threadCountSuites>
+  <trimStackTrace default-value="true">${trimStackTrace}</trimStackTrace>
+  <useFile default-value="true">${surefire.useFile}</useFile>
+  <useManifestOnlyJar default-value="true">${surefire.useManifestOnlyJar}</useManifestOnlyJar>
+  <useSystemClassLoader default-value="true">${surefire.useSystemClassLoader}</useSystemClassLoader>
+  <useUnlimitedThreads default-value="false">${useUnlimitedThreads}</useUnlimitedThreads>
+  <workingDirectory>${basedir}</workingDirectory>
+  <project default-value="${project}"/>
+  <session default-value="${session}"/>
+</configuration>
+[DEBUG] =======================================================================
+[DEBUG] Dependency collection stats: {ConflictMarker.analyzeTime=61600, ConflictMarker.markTime=28100, ConflictMarker.nodeCount=34, ConflictIdSorter.graphTime=19200, ConflictIdSorter.topsortTime=7200, ConflictIdSorter.conflictIdCount=22, ConflictIdSorter.conflictIdCycleCount=0, ConflictResolver.totalTime=453900, ConflictResolver.conflictItemCount=33, DefaultDependencyCollector.collectTime=64323700, DefaultDependencyCollector.transformTime=611000}
+[DEBUG] com.gitee.huanminabc:null-chain-test:jar:1.1.4-RELEASE
+[DEBUG]    com.gitee.huanminabc:null-chain-work:jar:1.1.4-RELEASE:compile
+[DEBUG]       com.gitee.huanminabc:null-chain-core:jar:1.1.4-RELEASE:compile (version managed from 1.1.4-RELEASE)
+[DEBUG]          org.apache.commons:commons-jexl3:jar:3.1:compile (version managed from 3.1)
+[DEBUG]             commons-logging:commons-logging:jar:1.1.3:compile (version managed from 1.2)
+[DEBUG]          com.squareup.okhttp3:okhttp:jar:3.14.9:compile (version managed from 3.14.9)
+[DEBUG]             com.squareup.okio:okio:jar:1.17.2:compile
+[DEBUG]          com.fasterxml.jackson.core:jackson-annotations:jar:2.12.3:compile (version managed from 2.12.3)
+[DEBUG]          net.bytebuddy:byte-buddy:jar:1.15.0:compile (version managed from 1.15.0)
+[DEBUG]    com.gitee.huanminabc:jcommon:jar:1.1.2-RELEASE:compile
+[DEBUG]       com.alibaba:fastjson:jar:1.2.83_noneautotype:compile (version managed from 1.2.83_noneautotype)
+[DEBUG]    org.projectlombok:lombok:jar:1.18.38:provided
+[DEBUG]    org.junit.jupiter:junit-jupiter:jar:5.7.2:test
+[DEBUG]       org.junit.jupiter:junit-jupiter-api:jar:5.7.2:provided (scope managed from compile) (version managed from 5.7.2)
+[DEBUG]          org.apiguardian:apiguardian-api:jar:1.1.0:provided
+[DEBUG]          org.opentest4j:opentest4j:jar:1.2.0:provided
+[DEBUG]          org.junit.platform:junit-platform-commons:jar:1.7.2:provided (version managed from 1.7.2)
+[DEBUG]       org.junit.jupiter:junit-jupiter-params:jar:5.7.2:test (version managed from 5.7.2)
+[DEBUG]       org.junit.jupiter:junit-jupiter-engine:jar:5.7.2:test (version managed from 5.7.2)
+[DEBUG]          org.junit.platform:junit-platform-engine:jar:1.7.2:test (version managed from 1.7.2)
+[DEBUG]    ch.qos.logback:logback-core:jar:1.2.7:provided
+[DEBUG]    ch.qos.logback:logback-classic:jar:1.2.7:provided
+[DEBUG]       org.slf4j:slf4j-api:jar:1.7.32:provided (version managed from 1.7.32)
+[INFO] 
+[INFO] --- maven-resources-plugin:2.6:resources (default-resources) @ null-chain-test ---
+[DEBUG] Using mirror mirror (https://maven.aliyun.com/nexus/content/groups/public) for central (http://repo1.maven.org/maven2).
+[DEBUG] Dependency collection stats: {ConflictMarker.analyzeTime=85600, ConflictMarker.markTime=46300, ConflictMarker.nodeCount=77, ConflictIdSorter.graphTime=40000, ConflictIdSorter.topsortTime=8900, ConflictIdSorter.conflictIdCount=26, ConflictIdSorter.conflictIdCycleCount=0, ConflictResolver.totalTime=405300, ConflictResolver.conflictItemCount=74, DefaultDependencyCollector.collectTime=33701800, DefaultDependencyCollector.transformTime=599800}
+[DEBUG] org.apache.maven.plugins:maven-resources-plugin:jar:2.6
+[DEBUG]    org.apache.maven:maven-plugin-api:jar:2.0.6:compile
+[DEBUG]    org.apache.maven:maven-project:jar:2.0.6:compile
+[DEBUG]       org.apache.maven:maven-profile:jar:2.0.6:compile
+[DEBUG]       org.apache.maven:maven-artifact-manager:jar:2.0.6:compile
+[DEBUG]       org.apache.maven:maven-plugin-registry:jar:2.0.6:compile
+[DEBUG]    org.apache.maven:maven-core:jar:2.0.6:compile
+[DEBUG]       org.apache.maven:maven-plugin-parameter-documenter:jar:2.0.6:compile
+[DEBUG]       org.apache.maven.reporting:maven-reporting-api:jar:2.0.6:compile
+[DEBUG]          org.apache.maven.doxia:doxia-sink-api:jar:1.0-alpha-7:compile
+[DEBUG]       org.apache.maven:maven-repository-metadata:jar:2.0.6:compile
+[DEBUG]       org.apache.maven:maven-error-diagnostics:jar:2.0.6:compile
+[DEBUG]       commons-cli:commons-cli:jar:1.0:compile
+[DEBUG]       org.apache.maven:maven-plugin-descriptor:jar:2.0.6:compile
+[DEBUG]       org.codehaus.plexus:plexus-interactivity-api:jar:1.0-alpha-4:compile
+[DEBUG]       classworlds:classworlds:jar:1.1:compile
+[DEBUG]    org.apache.maven:maven-artifact:jar:2.0.6:compile
+[DEBUG]    org.apache.maven:maven-settings:jar:2.0.6:compile
+[DEBUG]    org.apache.maven:maven-model:jar:2.0.6:compile
+[DEBUG]    org.apache.maven:maven-monitor:jar:2.0.6:compile
+[DEBUG]    org.codehaus.plexus:plexus-container-default:jar:1.0-alpha-9-stable-1:compile
+[DEBUG]       junit:junit:jar:3.8.1:compile
+[DEBUG]    org.codehaus.plexus:plexus-utils:jar:2.0.5:compile
+[DEBUG]    org.apache.maven.shared:maven-filtering:jar:1.1:compile
+[DEBUG]       org.sonatype.plexus:plexus-build-api:jar:0.0.4:compile
+[DEBUG]    org.codehaus.plexus:plexus-interpolation:jar:1.13:compile
+[DEBUG] Created new class realm plugin>org.apache.maven.plugins:maven-resources-plugin:2.6
+[DEBUG] Importing foreign packages into class realm plugin>org.apache.maven.plugins:maven-resources-plugin:2.6
+[DEBUG]   Imported:  < project>com.gitee.huanminabc:null-chain-test:1.1.4-RELEASE
+[DEBUG] Populating class realm plugin>org.apache.maven.plugins:maven-resources-plugin:2.6
+[DEBUG]   Included: org.apache.maven.plugins:maven-resources-plugin:jar:2.6
+[DEBUG]   Included: org.apache.maven.reporting:maven-reporting-api:jar:2.0.6
+[DEBUG]   Included: org.apache.maven.doxia:doxia-sink-api:jar:1.0-alpha-7
+[DEBUG]   Included: commons-cli:commons-cli:jar:1.0
+[DEBUG]   Included: org.codehaus.plexus:plexus-interactivity-api:jar:1.0-alpha-4
+[DEBUG]   Included: junit:junit:jar:3.8.1
+[DEBUG]   Included: org.codehaus.plexus:plexus-utils:jar:2.0.5
+[DEBUG]   Included: org.apache.maven.shared:maven-filtering:jar:1.1
+[DEBUG]   Included: org.sonatype.plexus:plexus-build-api:jar:0.0.4
+[DEBUG]   Included: org.codehaus.plexus:plexus-interpolation:jar:1.13
+[DEBUG] Configuring mojo org.apache.maven.plugins:maven-resources-plugin:2.6:resources from plugin realm ClassRealm[plugin>org.apache.maven.plugins:maven-resources-plugin:2.6, parent: sun.misc.Launcher$AppClassLoader@70dea4e]
+[DEBUG] Configuring mojo 'org.apache.maven.plugins:maven-resources-plugin:2.6:resources' with basic configurator -->
+[DEBUG]   (f) buildFilters = []
+[DEBUG]   (f) encoding = UTF-8
+[DEBUG]   (f) escapeWindowsPaths = true
+[DEBUG]   (s) includeEmptyDirs = false
+[DEBUG]   (s) outputDirectory = F:\java-project\null-chain\null-chain-test\target\classes
+[DEBUG]   (s) overwrite = false
+[DEBUG]   (f) project = MavenProject: com.gitee.huanminabc:null-chain-test:1.1.4-RELEASE @ F:\java-project\null-chain\null-chain-test\pom.xml
+[DEBUG]   (s) resources = [Resource {targetPath: null, filtering: false, FileSet {directory: F:\java-project\null-chain\null-chain-test\src\main\resources, PatternSet [includes: {}, excludes: {}]}}]
+[DEBUG]   (f) session = org.apache.maven.execution.MavenSession@654b72c0
+[DEBUG]   (f) supportMultiLineFiltering = false
+[DEBUG]   (f) useBuildFilters = true
+[DEBUG]   (s) useDefaultDelimiters = true
+[DEBUG] -- end configuration --
+[DEBUG] properties used {file.encoding.pkg=sun.io, env.PROMPT=$P$G, java.home=E:\jdk\java8\jre, classworlds.conf=E:\apache-maven-3.6.3\bin\..\bin\m2.conf, env.VSCODE_PID=13536, java.endorsed.dirs=E:\jdk\java8\jre\lib\endorsed, env.USERNAME=Administrator, env._ZO_DOCTOR=0, sun.os.patch.level=, test=NfSyntaTest#NfSynta, env.MIC_LD_LIBRARY_PATH=C:\Program Files (x86)\Common Files\Intel\Shared Libraries\compiler\lib\mic, java.vendor.url=https://aws.amazon.com/corretto/, env.COMPUTERNAME=PC-20230602DNMH, env.GO111MODULE=on, java.version=1.8.0_372, env.DRIVERDATA=C:\Windows\System32\Drivers\DriverData, env.HDC_SERVER_PORT=65037, java.vendor.url.bug=https://github.com/corretto/corretto-8/issues/, env.USERPROFILE=C:\Users\Administrator, skipTests=false, env.CURSOR_AGENT=1, user.name=Administrator, sun.io.unicode.encoding=UnicodeLittle, sun.jnu.encoding=GBK, java.runtime.name=OpenJDK Runtime Environment, env.LOCALAPPDATA=C:\Users\Administrator\AppData\Local, env.ASL.LOG=Destination=file, env.COMMONPROGRAMW6432=C:\Program Files\Common Files, java.specification.name=Java Platform API Specification, user.timezone=, user.script=, path.separator=;, env.MAVEN_CMD_LINE_ARGS=test -Dtest=NfSyntaTest#NfSynta -X, env.PROCESSOR_IDENTIFIER=Intel64 Family 6 Model 183 Stepping 1, GenuineIntel, env.CHROME_CRASHPAD_PIPE_NAME=\\.\pipe\crashpad_13536_UYCWAMZGTQJGWFGO, file.encoding=GBK, sun.java.command=org.codehaus.plexus.classworlds.launcher.Launcher test -Dtest=NfSyntaTest#NfSynta -X, env.COMPOSER_NO_INTERACTION=1, env.NUMBER_OF_PROCESSORS=32, env.APPDATA=C:\Users\Administrator\AppData\Roaming, env.WINDIR=C:\Windows, java.io.tmpdir=C:\Users\ADMINI~1\AppData\Local\Temp\, user.language=zh, env.GOROOT=E:\gosdk\go1.23.0, line.separator=
+, env.COMMONPROGRAMFILES=C:\Program Files\Common Files, java.vm.info=mixed mode, sun.desktop=windows, java.vm.specification.name=Java Virtual Machine Specification, env.FORCE_COLOR=0, env.PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC;.CPL, env.WDIR=F:\, env.NO_COLOR=1, env.VSCODE_HANDLES_UNCAUGHT_ERRORS=true, env.USERDOMAIN_ROAMINGPROFILE=PC-20230602DNMH, env.LOGONSERVER=\\PC-20230602DNMH, env.PSMODULEPATH=d:\Documents\WindowsPowerShell\Modules;C:\Program Files\WindowsPowerShell\Modules;C:\Windows\system32\WindowsPowerShell\v1.0\Modules;C:\Program Files\Windows Kits\10\Microsoft Application Virtualization\Sequencer\AppvPkgConverter;C:\Program Files\Windows Kits\10\Microsoft Application Virtualization\Sequencer\AppvSequencer;C:\Program Files (x86)\Windows Kits\10\Microsoft Application Virtualization\, env.GOPROXY=https://goproxy.cn, java.awt.printerjob=sun.awt.windows.WPrinterJob, env.RUSTUP_HOME=C:\Users\Administrator\.rustup, env.JAVACMD=E:\jdk\java8\bin\java.exe, env.JVMCONFIG=\.mvn\jvm.config, env.PSEXECUTIONPOLICYPREFERENCE=Bypass, env.PUBLIC=C:\Users\Public, env.RUSTUP_DIST_SERVER=https://mirrors.tuna.tsinghua.edu.cn/rustup, env.USERDOMAIN=PC-20230602DNMH, jcommon-version=1.1.2-RELEASE, env.PROCESSOR_LEVEL=6, env.PROGRAMFILES(X86)=C:\Program Files (x86), jtimerwheel-version=1.1.1-RELEASE, env.CLASSPATH=.;E:\jdk\java8\lib;E:\jdk\java8\lib\tools.jar, os.name=Windows 11, env.VSCODE_IPC_HOOK=\\.\pipe\93418a4c-2.2.44-main-sock, java.specification.vendor=Oracle Corporation, env.TMP=C:\Users\ADMINI~1\AppData\Local\Temp, env.TERM=dumb, java.vm.name=OpenJDK 64-Bit Server VM, env.OS=Windows_NT, java.library.path=E:\jdk\java8\bin;C:\Windows\Sun\Java\bin;C:\Windows\system32;C:\Windows;C:\Program Files (x86)\Common Files\Intel\Shared Libraries\redist\intel64\compiler;C:\Program Files (x86)\VMware\VMware Workstation\bin\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;E:\Git\cmd;E:\gosdk\go1.23.0\bin;E:\Git\bin;E:\upx-4.0.2-win64;E:\jdk\java8\bin;E:\GnuWin32\bin;E:\nasm;E:\jdk\java8\jre\bin;E:\CMake\bin;D:\QT\6.2.4\mingw_64\bin;D:\QT\Tools\QtCreator\bin;C:\Users\Administrator\.cargo\bin;E:\apache-maven-3.6.3\bin;node_global;yarn_global;C:\Users\Administrator\go\bin;E:\xshell\;E:\gradle-8.3\bin;E:\x86_64-8.1.0-release-win32-seh-rt_v6-rev0\mingw64\include;E:\x86_64-8.1.0-release-win32-seh-rt_v6-rev0\mingw64\lib;E:\x86_64-8.1.0-release-win32-seh-rt_v6-rev0\mingw64\bin;E:\微信web开发者工具\dll;E:\ffmpeg-7.0.1\ffmpeg-7.0.1-essentials_build\bin;E:\Gpg4win\..\GnuPG\bin;E:\DevEco Studio\sdk\default\openharmony\toolchains;E:\flutter_windows_3.29.0-stable\flutter\bin;E:\apache-maven-3.6.3\bin;e:\cursor\resources\app\bin;E:\nvm;C:\nvm4w\nodejs;E:\nvm\v22.19.0;E:\OpenVPN\bin;E:\node\node_global;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;C:\Program Files\Windows Kits\10\Microsoft Application Virtualization\Sequencer\;E:\cursor\resources\app\bin;e:\Trae\bin;C:\Users\Administrator\.cargo\bin;C:\Users\Administrator\AppData\Local\Programs\Python\Python313\Scripts\;C:\Users\Administrator\AppData\Local\Programs\Python\Python313\;C:\Users\Administrator\AppData\Local\Programs\Python\Python311\Scripts\;C:\Users\Administrator\AppData\Local\Programs\Python\Python311\;C:\Users\Administrator\AppData\Local\Microsoft\WindowsApps;C:\Users\Administrator\AppData\Local\JetBrains\Toolbox\scripts;C:\Users\Administrator\AppData\Roaming\npm;%DevEco Studio%;E:\nvm;C:\nvm4w\nodejs;E:\Microsoft VS Code\bin;C:\Users\Administrator;., env.PROGRAMW6432=C:\Program Files, env.PATH=C:\Program Files (x86)\Common Files\Intel\Shared Libraries\redist\intel64\compiler;C:\Program Files (x86)\VMware\VMware Workstation\bin\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;E:\Git\cmd;E:\gosdk\go1.23.0\bin;E:\Git\bin;E:\upx-4.0.2-win64;E:\jdk\java8\bin;E:\GnuWin32\bin;E:\nasm;E:\jdk\java8\jre\bin;E:\CMake\bin;D:\QT\6.2.4\mingw_64\bin;D:\QT\Tools\QtCreator\bin;C:\Users\Administrator\.cargo\bin;E:\apache-maven-3.6.3\bin;node_global;yarn_global;C:\Users\Administrator\go\bin;E:\xshell\;E:\gradle-8.3\bin;E:\x86_64-8.1.0-release-win32-seh-rt_v6-rev0\mingw64\include;E:\x86_64-8.1.0-release-win32-seh-rt_v6-rev0\mingw64\lib;E:\x86_64-8.1.0-release-win32-seh-rt_v6-rev0\mingw64\bin;E:\微信web开发者工具\dll;E:\ffmpeg-7.0.1\ffmpeg-7.0.1-essentials_build\bin;E:\Gpg4win\..\GnuPG\bin;E:\DevEco Studio\sdk\default\openharmony\toolchains;E:\flutter_windows_3.29.0-stable\flutter\bin;E:\apache-maven-3.6.3\bin;e:\cursor\resources\app\bin;E:\nvm;C:\nvm4w\nodejs;E:\nvm\v22.19.0;E:\OpenVPN\bin;E:\node\node_global;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;C:\Program Files\Windows Kits\10\Microsoft Application Virtualization\Sequencer\;E:\cursor\resources\app\bin;e:\Trae\bin;C:\Users\Administrator\.cargo\bin;C:\Users\Administrator\AppData\Local\Programs\Python\Python313\Scripts\;C:\Users\Administrator\AppData\Local\Programs\Python\Python313\;C:\Users\Administrator\AppData\Local\Programs\Python\Python311\Scripts\;C:\Users\Administrator\AppData\Local\Programs\Python\Python311\;C:\Users\Administrator\AppData\Local\Microsoft\WindowsApps;C:\Users\Administrator\AppData\Local\JetBrains\Toolbox\scripts;C:\Users\Administrator\AppData\Roaming\npm;%DevEco Studio%;E:\nvm;C:\nvm4w\nodejs;E:\Microsoft VS Code\bin;C:\Users\Administrator, env.VSCODE_CWD=E:\cursor, library.jansi.path=E:\apache-maven-3.6.3\bin\..\lib\jansi-native, java.class.version=52.0, maven.multiModuleProjectDirectory=F:\java-project\null-chain\null-chain-test, env.VSCODE_CODE_CACHE_PATH=C:\Users\Administrator\AppData\Roaming\Cursor\CachedData\20adc1003928b0f1b99305dbaf845656ff81f5d0, env.HOMEDRIVE=C:, env.SYSTEMROOT=C:\Windows, env.INTEL_DEV_REDIST=C:\Program Files (x86)\Common Files\Intel\Shared Libraries\, env.COMSPEC=C:\Windows\system32\cmd.exe, jlambda-sql-version=1.1.1-RELEASE, sun.boot.library.path=E:\jdk\java8\jre\bin, project.build.sourceEncoding=UTF-8, env.SYSTEMDRIVE=C:, env.PROCESSOR_REVISION=b701, sun.management.compiler=HotSpot 64-Bit Tiered Compilers, java.awt.graphicsenv=sun.awt.Win32GraphicsEnvironment, user.variant=, env.ORIGINAL_XDG_CURRENT_DESKTOP=undefined, fast-boot-version=1.1.3-RELEASE, env.VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess, env.CURSOR_TRACE_ID=ceeace8bc3324d2d99c2eee210f54823, env.PROGRAMFILES=C:\Program Files, java.vm.specification.version=1.8, env.PROGRAMDATA=C:\ProgramData, awt.toolkit=sun.awt.windows.WToolkit, env.MAVEN_HOME=E:\apache-maven-3.6.3\bin\.., sun.cpu.isalist=amd64, env.MAVEN_PROJECTBASEDIR=F:\java-project\null-chain\null-chain-test, java.ext.dirs=E:\jdk\java8\jre\lib\ext;C:\Windows\Sun\Java\lib\ext, os.version=10.0, null-chain-version=1.1.3-RELEASE, env.ERROR_CODE=0, user.home=C:\Users\Administrator, java.vm.vendor=Amazon.com Inc., jfast-cache-version=1.1.1-RELEASE, env.JAVA_HOME=E:\jdk\java8, env.VSCODE_PROCESS_TITLE=extension-host  [2-3], user.dir=F:\java-project\null-chain\null-chain-test, maven.conf=E:\apache-maven-3.6.3\bin\../conf, env.COMMONPROGRAMFILES(X86)=C:\Program Files (x86)\Common Files, env.CARGO_HOME=C:\Users\Administrator\.cargo, sun.cpu.endian=little, env.ZES_ENABLE_SYSMAN=1, env.ALLUSERSPROFILE=C:\ProgramData, env.NVM_SYMLINK=C:\nvm4w\nodejs, env.CLASSWORLDS_LAUNCHER=org.codehaus.plexus.classworlds.launcher.Launcher, env.PROCESSOR_ARCHITECTURE=AMD64, java.vm.version=25.372-b07, java.class.path=E:\apache-maven-3.6.3\bin\..\boot\plexus-classworlds-2.6.0.jar, env.HOMEPATH=\Users\Administrator, env.EXEC_DIR=F:\java-project\null-chain\null-chain-test, env.NVM_HOME=E:\nvm, os.arch=amd64, env.MING_HOME=E:\x86_64-8.1.0-release-win32-seh-rt_v6-rev0\mingw64, maven.build.version=Apache Maven 3.6.3 (cecedd343002696d0abb50b32b541b8a6ba2883f), env.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1, env.SESSIONNAME=Console, env.=F:=F:\java-project\null-chain\null-chain-test, sun.java.launcher=SUN_STANDARD, java.specification.maintenance.version=4, jmapstruct-extend-version=1.1.1-RELEASE, java.vm.specification.vendor=Oracle Corporation, file.separator=\, java.runtime.version=1.8.0_372-b07, sun.boot.class.path=E:\jdk\java8\jre\lib\resources.jar;E:\jdk\java8\jre\lib\rt.jar;E:\jdk\java8\jre\lib\sunrsasign.jar;E:\jdk\java8\jre\lib\jsse.jar;E:\jdk\java8\jre\lib\jce.jar;E:\jdk\java8\jre\lib\charsets.jar;E:\jdk\java8\jre\lib\jfr.jar;E:\jdk\java8\jre\classes, env.VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost, env.VSCODE_NLS_CONFIG={"userLocale":"zh-cn","osLocale":"zh-cn","resolvedLanguage":"zh-cn","defaultMessagesFile":"E:\\cursor\\resources\\app\\out\\nls.messages.json","languagePack":{"translationsConfigFile":"C:\\Users\\Administrator\\AppData\\Roaming\\Cursor\\clp\\3bfb7f1471a52e527cfc1587dd57c7c1.zh-cn\\tcf.json","messagesFile":"C:\\Users\\Administrator\\AppData\\Roaming\\Cursor\\clp\\3bfb7f1471a52e527cfc1587dd57c7c1.zh-cn\\20adc1003928b0f1b99305dbaf845656ff81f5d0\\nls.messages.json","corruptMarkerFile":"C:\\Users\\Administrator\\AppData\\Roaming\\Cursor\\clp\\3bfb7f1471a52e527cfc1587dd57c7c1.zh-cn\\corrupted.info"},"locale":"zh-cn","availableLanguages":{"*":"zh-cn"},"_languagePackId":"3bfb7f1471a52e527cfc1587dd57c7c1.zh-cn","_languagePackSupport":true,"_translationsConfigFile":"C:\\Users\\Administrator\\AppData\\Roaming\\Cursor\\clp\\3bfb7f1471a52e527cfc1587dd57c7c1.zh-cn\\tcf.json","_cacheRoot":"C:\\Users\\Administrator\\AppData\\Roaming\\Cursor\\clp\\3bfb7f1471a52e527cfc1587dd57c7c1.zh-cn","_resolvedLanguagePackCoreLocation":"C:\\Users\\Administrator\\AppData\\Roaming\\Cursor\\clp\\3bfb7f1471a52e527cfc1587dd57c7c1.zh-cn\\20adc1003928b0f1b99305dbaf845656ff81f5d0","_corruptedFile":"C:\\Users\\Administrator\\AppData\\Roaming\\Cursor\\clp\\3bfb7f1471a52e527cfc1587dd57c7c1.zh-cn\\corrupted.info"}, maven.version=3.6.3, env.TEMP=C:\Users\ADMINI~1\AppData\Local\Temp, user.country=CN, maven.home=E:\apache-maven-3.6.3\bin\.., maven.compiler.target=8, env.VSCODE_L10N_BUNDLE_LOCATION=file:///c%3A/Users/Administrator/.cursor/extensions/ms-ceintl.vscode-language-pack-zh-hans-1.105.0-universal/translations/extensions/vscode.markdown-language-features.i18n.json, java.vendor=Amazon.com Inc., env.CLASSWORLDS_JAR="E:\apache-maven-3.6.3\bin\..\boot\plexus-classworlds-2.6.0.jar", env.GRADLE_HOME=E:\gradle-8.3, jnetty-version=1.1.1-RELEASE, maven.compiler.source=8, java.specification.version=1.8, env.RUSTUP_UPDATE_ROOT=https://mirrors.tuna.tsinghua.edu.cn/rustup/rustup, sun.arch.data.model=64}
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[DEBUG] resource with targetPath null
+directory F:\java-project\null-chain\null-chain-test\src\main\resources
+excludes []
+includes []
+[INFO] skip non existing resourceDirectory F:\java-project\null-chain\null-chain-test\src\main\resources
+[DEBUG] no use filter components
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.8.1:compile (default-compile) @ null-chain-test ---
+[DEBUG] Dependency collection stats: {ConflictMarker.analyzeTime=123300, ConflictMarker.markTime=27700, ConflictMarker.nodeCount=118, ConflictIdSorter.graphTime=85000, ConflictIdSorter.topsortTime=22000, ConflictIdSorter.conflictIdCount=45, ConflictIdSorter.conflictIdCycleCount=0, ConflictResolver.totalTime=854800, ConflictResolver.conflictItemCount=72, DefaultDependencyCollector.collectTime=65560400, DefaultDependencyCollector.transformTime=1127400}
+[DEBUG] org.apache.maven.plugins:maven-compiler-plugin:jar:3.8.1
+[DEBUG]    org.apache.maven:maven-plugin-api:jar:3.0:compile
+[DEBUG]       org.apache.maven:maven-model:jar:3.0:compile
+[DEBUG]       org.sonatype.sisu:sisu-inject-plexus:jar:1.4.2:compile
+[DEBUG]          org.sonatype.sisu:sisu-inject-bean:jar:1.4.2:compile
+[DEBUG]             org.sonatype.sisu:sisu-guice:jar:noaop:2.1.7:compile
+[DEBUG]    org.apache.maven:maven-artifact:jar:3.0:compile
+[DEBUG]       org.codehaus.plexus:plexus-utils:jar:2.0.4:compile
+[DEBUG]    org.apache.maven:maven-core:jar:3.0:compile
+[DEBUG]       org.apache.maven:maven-settings:jar:3.0:compile
+[DEBUG]       org.apache.maven:maven-settings-builder:jar:3.0:compile
+[DEBUG]       org.apache.maven:maven-repository-metadata:jar:3.0:compile
+[DEBUG]       org.apache.maven:maven-model-builder:jar:3.0:compile
+[DEBUG]       org.apache.maven:maven-aether-provider:jar:3.0:runtime
+[DEBUG]       org.sonatype.aether:aether-impl:jar:1.7:compile
+[DEBUG]          org.sonatype.aether:aether-spi:jar:1.7:compile
+[DEBUG]       org.sonatype.aether:aether-api:jar:1.7:compile
+[DEBUG]       org.sonatype.aether:aether-util:jar:1.7:compile
+[DEBUG]       org.codehaus.plexus:plexus-interpolation:jar:1.14:compile
+[DEBUG]       org.codehaus.plexus:plexus-classworlds:jar:2.2.3:compile
+[DEBUG]       org.codehaus.plexus:plexus-component-annotations:jar:1.7.1:compile (version managed from default)
+[DEBUG]       org.sonatype.plexus:plexus-sec-dispatcher:jar:1.3:compile
+[DEBUG]          org.sonatype.plexus:plexus-cipher:jar:1.4:compile
+[DEBUG]    org.apache.maven.shared:maven-shared-utils:jar:3.2.1:compile
+[DEBUG]       commons-io:commons-io:jar:2.5:compile
+[DEBUG]    org.apache.maven.shared:maven-shared-incremental:jar:1.1:compile
+[DEBUG]    org.codehaus.plexus:plexus-java:jar:0.9.10:compile
+[DEBUG]       org.ow2.asm:asm:jar:6.2:compile
+[DEBUG]       com.thoughtworks.qdox:qdox:jar:2.0-M9:compile (version managed from default)
+[DEBUG]    org.codehaus.plexus:plexus-compiler-api:jar:2.8.4:compile
+[DEBUG]    org.codehaus.plexus:plexus-compiler-manager:jar:2.8.4:compile
+[DEBUG]    org.codehaus.plexus:plexus-compiler-javac:jar:2.8.4:runtime
+[DEBUG] Created new class realm plugin>org.apache.maven.plugins:maven-compiler-plugin:3.8.1
+[DEBUG] Importing foreign packages into class realm plugin>org.apache.maven.plugins:maven-compiler-plugin:3.8.1
+[DEBUG]   Imported:  < project>com.gitee.huanminabc:null-chain-test:1.1.4-RELEASE
+[DEBUG] Populating class realm plugin>org.apache.maven.plugins:maven-compiler-plugin:3.8.1
+[DEBUG]   Included: org.apache.maven.plugins:maven-compiler-plugin:jar:3.8.1
+[DEBUG]   Included: org.sonatype.sisu:sisu-inject-bean:jar:1.4.2
+[DEBUG]   Included: org.sonatype.sisu:sisu-guice:jar:noaop:2.1.7
+[DEBUG]   Included: org.codehaus.plexus:plexus-utils:jar:2.0.4
+[DEBUG]   Included: org.sonatype.aether:aether-util:jar:1.7
+[DEBUG]   Included: org.codehaus.plexus:plexus-interpolation:jar:1.14
+[DEBUG]   Included: org.codehaus.plexus:plexus-component-annotations:jar:1.7.1
+[DEBUG]   Included: org.sonatype.plexus:plexus-sec-dispatcher:jar:1.3
+[DEBUG]   Included: org.sonatype.plexus:plexus-cipher:jar:1.4
+[DEBUG]   Included: org.apache.maven.shared:maven-shared-utils:jar:3.2.1
+[DEBUG]   Included: commons-io:commons-io:jar:2.5
+[DEBUG]   Included: org.apache.maven.shared:maven-shared-incremental:jar:1.1
+[DEBUG]   Included: org.codehaus.plexus:plexus-java:jar:0.9.10
+[DEBUG]   Included: org.ow2.asm:asm:jar:6.2
+[DEBUG]   Included: com.thoughtworks.qdox:qdox:jar:2.0-M9
+[DEBUG]   Included: org.codehaus.plexus:plexus-compiler-api:jar:2.8.4
+[DEBUG]   Included: org.codehaus.plexus:plexus-compiler-manager:jar:2.8.4
+[DEBUG]   Included: org.codehaus.plexus:plexus-compiler-javac:jar:2.8.4
+[DEBUG] Configuring mojo org.apache.maven.plugins:maven-compiler-plugin:3.8.1:compile from plugin realm ClassRealm[plugin>org.apache.maven.plugins:maven-compiler-plugin:3.8.1, parent: sun.misc.Launcher$AppClassLoader@70dea4e]
+[DEBUG] Configuring mojo 'org.apache.maven.plugins:maven-compiler-plugin:3.8.1:compile' with basic configurator -->
+[DEBUG]   (f) basedir = F:\java-project\null-chain\null-chain-test
+[DEBUG]   (f) buildDirectory = F:\java-project\null-chain\null-chain-test\target
+[DEBUG]   (f) compilePath = [F:\java-project\null-chain\null-chain-test\target\classes, E:\apache-maven-3.6.3\kucun\com\gitee\huanminabc\null-chain-work\1.1.4-RELEASE\null-chain-work-1.1.4-RELEASE.jar, E:\apache-maven-3.6.3\kucun\com\gitee\huanminabc\null-chain-core\1.1.4-RELEASE\null-chain-core-1.1.4-RELEASE.jar, E:\apache-maven-3.6.3\kucun\org\apache\commons\commons-jexl3\3.1\commons-jexl3-3.1.jar, E:\apache-maven-3.6.3\kucun\commons-logging\commons-logging\1.1.3\commons-logging-1.1.3.jar, E:\apache-maven-3.6.3\kucun\com\squareup\okhttp3\okhttp\3.14.9\okhttp-3.14.9.jar, E:\apache-maven-3.6.3\kucun\com\squareup\okio\okio\1.17.2\okio-1.17.2.jar, E:\apache-maven-3.6.3\kucun\com\fasterxml\jackson\core\jackson-annotations\2.12.3\jackson-annotations-2.12.3.jar, E:\apache-maven-3.6.3\kucun\net\bytebuddy\byte-buddy\1.15.0\byte-buddy-1.15.0.jar, E:\apache-maven-3.6.3\kucun\com\gitee\huanminabc\jcommon\1.1.2-RELEASE\jcommon-1.1.2-RELEASE.jar, E:\apache-maven-3.6.3\kucun\com\alibaba\fastjson\1.2.83_noneautotype\fastjson-1.2.83_noneautotype.jar, E:\apache-maven-3.6.3\kucun\org\projectlombok\lombok\1.18.38\lombok-1.18.38.jar, E:\apache-maven-3.6.3\kucun\org\junit\jupiter\junit-jupiter-api\5.7.2\junit-jupiter-api-5.7.2.jar, E:\apache-maven-3.6.3\kucun\org\apiguardian\apiguardian-api\1.1.0\apiguardian-api-1.1.0.jar, E:\apache-maven-3.6.3\kucun\org\opentest4j\opentest4j\1.2.0\opentest4j-1.2.0.jar, E:\apache-maven-3.6.3\kucun\org\junit\platform\junit-platform-commons\1.7.2\junit-platform-commons-1.7.2.jar, E:\apache-maven-3.6.3\kucun\ch\qos\logback\logback-core\1.2.7\logback-core-1.2.7.jar, E:\apache-maven-3.6.3\kucun\ch\qos\logback\logback-classic\1.2.7\logback-classic-1.2.7.jar, E:\apache-maven-3.6.3\kucun\org\slf4j\slf4j-api\1.7.32\slf4j-api-1.7.32.jar]
+[DEBUG]   (f) compileSourceRoots = [F:\java-project\null-chain\null-chain-test\src\main\java]
+[DEBUG]   (f) compilerId = javac
+[DEBUG]   (f) debug = true
+[DEBUG]   (f) encoding = UTF-8
+[DEBUG]   (f) failOnError = true
+[DEBUG]   (f) failOnWarning = false
+[DEBUG]   (f) forceJavacCompilerUse = false
+[DEBUG]   (f) fork = false
+[DEBUG]   (f) generatedSourcesDirectory = F:\java-project\null-chain\null-chain-test\target\generated-sources\annotations
+[DEBUG]   (f) mojoExecution = org.apache.maven.plugins:maven-compiler-plugin:3.8.1:compile {execution: default-compile}
+[DEBUG]   (f) optimize = false
+[DEBUG]   (f) outputDirectory = F:\java-project\null-chain\null-chain-test\target\classes
+[DEBUG]   (f) parameters = true
+[DEBUG]   (f) project = MavenProject: com.gitee.huanminabc:null-chain-test:1.1.4-RELEASE @ F:\java-project\null-chain\null-chain-test\pom.xml
+[DEBUG]   (f) projectArtifact = com.gitee.huanminabc:null-chain-test:jar:1.1.4-RELEASE
+[DEBUG]   (f) session = org.apache.maven.execution.MavenSession@654b72c0
+[DEBUG]   (f) showDeprecation = false
+[DEBUG]   (f) showWarnings = false
+[DEBUG]   (f) skipMultiThreadWarning = false
+[DEBUG]   (f) source = 8
+[DEBUG]   (f) staleMillis = 0
+[DEBUG]   (s) target = 8
+[DEBUG]   (f) useIncrementalCompilation = true
+[DEBUG]   (f) verbose = false
+[DEBUG] -- end configuration --
+[DEBUG] Using compiler 'javac'.
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- maven-resources-plugin:2.6:testResources (default-testResources) @ null-chain-test ---
+[DEBUG] Configuring mojo org.apache.maven.plugins:maven-resources-plugin:2.6:testResources from plugin realm ClassRealm[plugin>org.apache.maven.plugins:maven-resources-plugin:2.6, parent: sun.misc.Launcher$AppClassLoader@70dea4e]
+[DEBUG] Configuring mojo 'org.apache.maven.plugins:maven-resources-plugin:2.6:testResources' with basic configurator -->
+[DEBUG]   (f) buildFilters = []
+[DEBUG]   (f) encoding = UTF-8
+[DEBUG]   (f) escapeWindowsPaths = true
+[DEBUG]   (s) includeEmptyDirs = false
+[DEBUG]   (s) outputDirectory = F:\java-project\null-chain\null-chain-test\target\test-classes
+[DEBUG]   (s) overwrite = false
+[DEBUG]   (f) project = MavenProject: com.gitee.huanminabc:null-chain-test:1.1.4-RELEASE @ F:\java-project\null-chain\null-chain-test\pom.xml
+[DEBUG]   (s) resources = [Resource {targetPath: null, filtering: false, FileSet {directory: F:\java-project\null-chain\null-chain-test\src\test\resources, PatternSet [includes: {}, excludes: {}]}}]
+[DEBUG]   (f) session = org.apache.maven.execution.MavenSession@654b72c0
+[DEBUG]   (f) supportMultiLineFiltering = false
+[DEBUG]   (f) useBuildFilters = true
+[DEBUG]   (s) useDefaultDelimiters = true
+[DEBUG] -- end configuration --
+[DEBUG] properties used {file.encoding.pkg=sun.io, env.PROMPT=$P$G, java.home=E:\jdk\java8\jre, classworlds.conf=E:\apache-maven-3.6.3\bin\..\bin\m2.conf, env.VSCODE_PID=13536, java.endorsed.dirs=E:\jdk\java8\jre\lib\endorsed, env.USERNAME=Administrator, env._ZO_DOCTOR=0, sun.os.patch.level=, test=NfSyntaTest#NfSynta, env.MIC_LD_LIBRARY_PATH=C:\Program Files (x86)\Common Files\Intel\Shared Libraries\compiler\lib\mic, java.vendor.url=https://aws.amazon.com/corretto/, env.COMPUTERNAME=PC-20230602DNMH, env.GO111MODULE=on, java.version=1.8.0_372, env.DRIVERDATA=C:\Windows\System32\Drivers\DriverData, env.HDC_SERVER_PORT=65037, java.vendor.url.bug=https://github.com/corretto/corretto-8/issues/, env.USERPROFILE=C:\Users\Administrator, skipTests=false, env.CURSOR_AGENT=1, user.name=Administrator, sun.io.unicode.encoding=UnicodeLittle, sun.jnu.encoding=GBK, java.runtime.name=OpenJDK Runtime Environment, env.LOCALAPPDATA=C:\Users\Administrator\AppData\Local, env.ASL.LOG=Destination=file, env.COMMONPROGRAMW6432=C:\Program Files\Common Files, java.specification.name=Java Platform API Specification, user.timezone=, user.script=, path.separator=;, env.MAVEN_CMD_LINE_ARGS=test -Dtest=NfSyntaTest#NfSynta -X, env.PROCESSOR_IDENTIFIER=Intel64 Family 6 Model 183 Stepping 1, GenuineIntel, env.CHROME_CRASHPAD_PIPE_NAME=\\.\pipe\crashpad_13536_UYCWAMZGTQJGWFGO, file.encoding=GBK, sun.java.command=org.codehaus.plexus.classworlds.launcher.Launcher test -Dtest=NfSyntaTest#NfSynta -X, env.COMPOSER_NO_INTERACTION=1, env.NUMBER_OF_PROCESSORS=32, env.APPDATA=C:\Users\Administrator\AppData\Roaming, env.WINDIR=C:\Windows, java.io.tmpdir=C:\Users\ADMINI~1\AppData\Local\Temp\, user.language=zh, env.GOROOT=E:\gosdk\go1.23.0, line.separator=
+, env.COMMONPROGRAMFILES=C:\Program Files\Common Files, java.vm.info=mixed mode, sun.desktop=windows, java.vm.specification.name=Java Virtual Machine Specification, env.FORCE_COLOR=0, env.PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC;.CPL, env.WDIR=F:\, env.NO_COLOR=1, env.VSCODE_HANDLES_UNCAUGHT_ERRORS=true, env.USERDOMAIN_ROAMINGPROFILE=PC-20230602DNMH, env.LOGONSERVER=\\PC-20230602DNMH, env.PSMODULEPATH=d:\Documents\WindowsPowerShell\Modules;C:\Program Files\WindowsPowerShell\Modules;C:\Windows\system32\WindowsPowerShell\v1.0\Modules;C:\Program Files\Windows Kits\10\Microsoft Application Virtualization\Sequencer\AppvPkgConverter;C:\Program Files\Windows Kits\10\Microsoft Application Virtualization\Sequencer\AppvSequencer;C:\Program Files (x86)\Windows Kits\10\Microsoft Application Virtualization\, env.GOPROXY=https://goproxy.cn, java.awt.printerjob=sun.awt.windows.WPrinterJob, env.RUSTUP_HOME=C:\Users\Administrator\.rustup, env.JAVACMD=E:\jdk\java8\bin\java.exe, env.JVMCONFIG=\.mvn\jvm.config, env.PSEXECUTIONPOLICYPREFERENCE=Bypass, env.PUBLIC=C:\Users\Public, env.RUSTUP_DIST_SERVER=https://mirrors.tuna.tsinghua.edu.cn/rustup, env.USERDOMAIN=PC-20230602DNMH, jcommon-version=1.1.2-RELEASE, env.PROCESSOR_LEVEL=6, env.PROGRAMFILES(X86)=C:\Program Files (x86), jtimerwheel-version=1.1.1-RELEASE, env.CLASSPATH=.;E:\jdk\java8\lib;E:\jdk\java8\lib\tools.jar, os.name=Windows 11, env.VSCODE_IPC_HOOK=\\.\pipe\93418a4c-2.2.44-main-sock, java.specification.vendor=Oracle Corporation, env.TMP=C:\Users\ADMINI~1\AppData\Local\Temp, env.TERM=dumb, java.vm.name=OpenJDK 64-Bit Server VM, env.OS=Windows_NT, java.library.path=E:\jdk\java8\bin;C:\Windows\Sun\Java\bin;C:\Windows\system32;C:\Windows;C:\Program Files (x86)\Common Files\Intel\Shared Libraries\redist\intel64\compiler;C:\Program Files (x86)\VMware\VMware Workstation\bin\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;E:\Git\cmd;E:\gosdk\go1.23.0\bin;E:\Git\bin;E:\upx-4.0.2-win64;E:\jdk\java8\bin;E:\GnuWin32\bin;E:\nasm;E:\jdk\java8\jre\bin;E:\CMake\bin;D:\QT\6.2.4\mingw_64\bin;D:\QT\Tools\QtCreator\bin;C:\Users\Administrator\.cargo\bin;E:\apache-maven-3.6.3\bin;node_global;yarn_global;C:\Users\Administrator\go\bin;E:\xshell\;E:\gradle-8.3\bin;E:\x86_64-8.1.0-release-win32-seh-rt_v6-rev0\mingw64\include;E:\x86_64-8.1.0-release-win32-seh-rt_v6-rev0\mingw64\lib;E:\x86_64-8.1.0-release-win32-seh-rt_v6-rev0\mingw64\bin;E:\微信web开发者工具\dll;E:\ffmpeg-7.0.1\ffmpeg-7.0.1-essentials_build\bin;E:\Gpg4win\..\GnuPG\bin;E:\DevEco Studio\sdk\default\openharmony\toolchains;E:\flutter_windows_3.29.0-stable\flutter\bin;E:\apache-maven-3.6.3\bin;e:\cursor\resources\app\bin;E:\nvm;C:\nvm4w\nodejs;E:\nvm\v22.19.0;E:\OpenVPN\bin;E:\node\node_global;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;C:\Program Files\Windows Kits\10\Microsoft Application Virtualization\Sequencer\;E:\cursor\resources\app\bin;e:\Trae\bin;C:\Users\Administrator\.cargo\bin;C:\Users\Administrator\AppData\Local\Programs\Python\Python313\Scripts\;C:\Users\Administrator\AppData\Local\Programs\Python\Python313\;C:\Users\Administrator\AppData\Local\Programs\Python\Python311\Scripts\;C:\Users\Administrator\AppData\Local\Programs\Python\Python311\;C:\Users\Administrator\AppData\Local\Microsoft\WindowsApps;C:\Users\Administrator\AppData\Local\JetBrains\Toolbox\scripts;C:\Users\Administrator\AppData\Roaming\npm;%DevEco Studio%;E:\nvm;C:\nvm4w\nodejs;E:\Microsoft VS Code\bin;C:\Users\Administrator;., env.PROGRAMW6432=C:\Program Files, env.PATH=C:\Program Files (x86)\Common Files\Intel\Shared Libraries\redist\intel64\compiler;C:\Program Files (x86)\VMware\VMware Workstation\bin\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;E:\Git\cmd;E:\gosdk\go1.23.0\bin;E:\Git\bin;E:\upx-4.0.2-win64;E:\jdk\java8\bin;E:\GnuWin32\bin;E:\nasm;E:\jdk\java8\jre\bin;E:\CMake\bin;D:\QT\6.2.4\mingw_64\bin;D:\QT\Tools\QtCreator\bin;C:\Users\Administrator\.cargo\bin;E:\apache-maven-3.6.3\bin;node_global;yarn_global;C:\Users\Administrator\go\bin;E:\xshell\;E:\gradle-8.3\bin;E:\x86_64-8.1.0-release-win32-seh-rt_v6-rev0\mingw64\include;E:\x86_64-8.1.0-release-win32-seh-rt_v6-rev0\mingw64\lib;E:\x86_64-8.1.0-release-win32-seh-rt_v6-rev0\mingw64\bin;E:\微信web开发者工具\dll;E:\ffmpeg-7.0.1\ffmpeg-7.0.1-essentials_build\bin;E:\Gpg4win\..\GnuPG\bin;E:\DevEco Studio\sdk\default\openharmony\toolchains;E:\flutter_windows_3.29.0-stable\flutter\bin;E:\apache-maven-3.6.3\bin;e:\cursor\resources\app\bin;E:\nvm;C:\nvm4w\nodejs;E:\nvm\v22.19.0;E:\OpenVPN\bin;E:\node\node_global;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;C:\Program Files\Windows Kits\10\Microsoft Application Virtualization\Sequencer\;E:\cursor\resources\app\bin;e:\Trae\bin;C:\Users\Administrator\.cargo\bin;C:\Users\Administrator\AppData\Local\Programs\Python\Python313\Scripts\;C:\Users\Administrator\AppData\Local\Programs\Python\Python313\;C:\Users\Administrator\AppData\Local\Programs\Python\Python311\Scripts\;C:\Users\Administrator\AppData\Local\Programs\Python\Python311\;C:\Users\Administrator\AppData\Local\Microsoft\WindowsApps;C:\Users\Administrator\AppData\Local\JetBrains\Toolbox\scripts;C:\Users\Administrator\AppData\Roaming\npm;%DevEco Studio%;E:\nvm;C:\nvm4w\nodejs;E:\Microsoft VS Code\bin;C:\Users\Administrator, env.VSCODE_CWD=E:\cursor, library.jansi.path=E:\apache-maven-3.6.3\bin\..\lib\jansi-native, java.class.version=52.0, maven.multiModuleProjectDirectory=F:\java-project\null-chain\null-chain-test, env.VSCODE_CODE_CACHE_PATH=C:\Users\Administrator\AppData\Roaming\Cursor\CachedData\20adc1003928b0f1b99305dbaf845656ff81f5d0, env.HOMEDRIVE=C:, env.SYSTEMROOT=C:\Windows, env.INTEL_DEV_REDIST=C:\Program Files (x86)\Common Files\Intel\Shared Libraries\, env.COMSPEC=C:\Windows\system32\cmd.exe, jlambda-sql-version=1.1.1-RELEASE, sun.boot.library.path=E:\jdk\java8\jre\bin, project.build.sourceEncoding=UTF-8, env.SYSTEMDRIVE=C:, env.PROCESSOR_REVISION=b701, sun.management.compiler=HotSpot 64-Bit Tiered Compilers, java.awt.graphicsenv=sun.awt.Win32GraphicsEnvironment, user.variant=, env.ORIGINAL_XDG_CURRENT_DESKTOP=undefined, fast-boot-version=1.1.3-RELEASE, env.VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess, env.CURSOR_TRACE_ID=ceeace8bc3324d2d99c2eee210f54823, env.PROGRAMFILES=C:\Program Files, java.vm.specification.version=1.8, env.PROGRAMDATA=C:\ProgramData, awt.toolkit=sun.awt.windows.WToolkit, env.MAVEN_HOME=E:\apache-maven-3.6.3\bin\.., sun.cpu.isalist=amd64, env.MAVEN_PROJECTBASEDIR=F:\java-project\null-chain\null-chain-test, java.ext.dirs=E:\jdk\java8\jre\lib\ext;C:\Windows\Sun\Java\lib\ext, os.version=10.0, null-chain-version=1.1.3-RELEASE, env.ERROR_CODE=0, user.home=C:\Users\Administrator, java.vm.vendor=Amazon.com Inc., jfast-cache-version=1.1.1-RELEASE, env.JAVA_HOME=E:\jdk\java8, env.VSCODE_PROCESS_TITLE=extension-host  [2-3], user.dir=F:\java-project\null-chain\null-chain-test, maven.conf=E:\apache-maven-3.6.3\bin\../conf, env.COMMONPROGRAMFILES(X86)=C:\Program Files (x86)\Common Files, env.CARGO_HOME=C:\Users\Administrator\.cargo, sun.cpu.endian=little, env.ZES_ENABLE_SYSMAN=1, env.ALLUSERSPROFILE=C:\ProgramData, env.NVM_SYMLINK=C:\nvm4w\nodejs, env.CLASSWORLDS_LAUNCHER=org.codehaus.plexus.classworlds.launcher.Launcher, env.PROCESSOR_ARCHITECTURE=AMD64, java.vm.version=25.372-b07, java.class.path=E:\apache-maven-3.6.3\bin\..\boot\plexus-classworlds-2.6.0.jar, env.HOMEPATH=\Users\Administrator, env.EXEC_DIR=F:\java-project\null-chain\null-chain-test, env.NVM_HOME=E:\nvm, os.arch=amd64, env.MING_HOME=E:\x86_64-8.1.0-release-win32-seh-rt_v6-rev0\mingw64, maven.build.version=Apache Maven 3.6.3 (cecedd343002696d0abb50b32b541b8a6ba2883f), env.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1, env.SESSIONNAME=Console, env.=F:=F:\java-project\null-chain\null-chain-test, sun.java.launcher=SUN_STANDARD, java.specification.maintenance.version=4, jmapstruct-extend-version=1.1.1-RELEASE, java.vm.specification.vendor=Oracle Corporation, file.separator=\, java.runtime.version=1.8.0_372-b07, sun.boot.class.path=E:\jdk\java8\jre\lib\resources.jar;E:\jdk\java8\jre\lib\rt.jar;E:\jdk\java8\jre\lib\sunrsasign.jar;E:\jdk\java8\jre\lib\jsse.jar;E:\jdk\java8\jre\lib\jce.jar;E:\jdk\java8\jre\lib\charsets.jar;E:\jdk\java8\jre\lib\jfr.jar;E:\jdk\java8\jre\classes, env.VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost, env.VSCODE_NLS_CONFIG={"userLocale":"zh-cn","osLocale":"zh-cn","resolvedLanguage":"zh-cn","defaultMessagesFile":"E:\\cursor\\resources\\app\\out\\nls.messages.json","languagePack":{"translationsConfigFile":"C:\\Users\\Administrator\\AppData\\Roaming\\Cursor\\clp\\3bfb7f1471a52e527cfc1587dd57c7c1.zh-cn\\tcf.json","messagesFile":"C:\\Users\\Administrator\\AppData\\Roaming\\Cursor\\clp\\3bfb7f1471a52e527cfc1587dd57c7c1.zh-cn\\20adc1003928b0f1b99305dbaf845656ff81f5d0\\nls.messages.json","corruptMarkerFile":"C:\\Users\\Administrator\\AppData\\Roaming\\Cursor\\clp\\3bfb7f1471a52e527cfc1587dd57c7c1.zh-cn\\corrupted.info"},"locale":"zh-cn","availableLanguages":{"*":"zh-cn"},"_languagePackId":"3bfb7f1471a52e527cfc1587dd57c7c1.zh-cn","_languagePackSupport":true,"_translationsConfigFile":"C:\\Users\\Administrator\\AppData\\Roaming\\Cursor\\clp\\3bfb7f1471a52e527cfc1587dd57c7c1.zh-cn\\tcf.json","_cacheRoot":"C:\\Users\\Administrator\\AppData\\Roaming\\Cursor\\clp\\3bfb7f1471a52e527cfc1587dd57c7c1.zh-cn","_resolvedLanguagePackCoreLocation":"C:\\Users\\Administrator\\AppData\\Roaming\\Cursor\\clp\\3bfb7f1471a52e527cfc1587dd57c7c1.zh-cn\\20adc1003928b0f1b99305dbaf845656ff81f5d0","_corruptedFile":"C:\\Users\\Administrator\\AppData\\Roaming\\Cursor\\clp\\3bfb7f1471a52e527cfc1587dd57c7c1.zh-cn\\corrupted.info"}, maven.version=3.6.3, env.TEMP=C:\Users\ADMINI~1\AppData\Local\Temp, user.country=CN, maven.home=E:\apache-maven-3.6.3\bin\.., maven.compiler.target=8, env.VSCODE_L10N_BUNDLE_LOCATION=file:///c%3A/Users/Administrator/.cursor/extensions/ms-ceintl.vscode-language-pack-zh-hans-1.105.0-universal/translations/extensions/vscode.markdown-language-features.i18n.json, java.vendor=Amazon.com Inc., env.CLASSWORLDS_JAR="E:\apache-maven-3.6.3\bin\..\boot\plexus-classworlds-2.6.0.jar", env.GRADLE_HOME=E:\gradle-8.3, jnetty-version=1.1.1-RELEASE, maven.compiler.source=8, java.specification.version=1.8, env.RUSTUP_UPDATE_ROOT=https://mirrors.tuna.tsinghua.edu.cn/rustup/rustup, sun.arch.data.model=64}
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[DEBUG] resource with targetPath null
+directory F:\java-project\null-chain\null-chain-test\src\test\resources
+excludes []
+includes []
+[DEBUG] ignoreDelta true
+[INFO] Copying 28 resources
+[DEBUG] file a has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\nf\a to F:\java-project\null-chain\null-chain-test\target\test-classes\nf\a
+[DEBUG] file advanced_examples.nf has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\nf\student\advanced_examples.nf to F:\java-project\null-chain\null-chain-test\target\test-classes\nf\student\advanced_examples.nf
+[DEBUG] file basic_syntax.nf has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\nf\student\basic_syntax.nf to F:\java-project\null-chain\null-chain-test\target\test-classes\nf\student\basic_syntax.nf
+[DEBUG] file .package-lock.json has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\node_modules\.package-lock.json to F:\java-project\null-chain\null-chain-test\target\test-classes\node_modules\.package-lock.json
+[DEBUG] file browser.js has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\node_modules\ws\browser.js to F:\java-project\null-chain\null-chain-test\target\test-classes\node_modules\ws\browser.js
+[DEBUG] file index.js has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\node_modules\ws\index.js to F:\java-project\null-chain\null-chain-test\target\test-classes\node_modules\ws\index.js
+[DEBUG] file buffer-util.js has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\node_modules\ws\lib\buffer-util.js to F:\java-project\null-chain\null-chain-test\target\test-classes\node_modules\ws\lib\buffer-util.js
+[DEBUG] file constants.js has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\node_modules\ws\lib\constants.js to F:\java-project\null-chain\null-chain-test\target\test-classes\node_modules\ws\lib\constants.js
+[DEBUG] file event-target.js has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\node_modules\ws\lib\event-target.js to F:\java-project\null-chain\null-chain-test\target\test-classes\node_modules\ws\lib\event-target.js
+[DEBUG] file extension.js has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\node_modules\ws\lib\extension.js to F:\java-project\null-chain\null-chain-test\target\test-classes\node_modules\ws\lib\extension.js
+[DEBUG] file limiter.js has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\node_modules\ws\lib\limiter.js to F:\java-project\null-chain\null-chain-test\target\test-classes\node_modules\ws\lib\limiter.js
+[DEBUG] file permessage-deflate.js has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\node_modules\ws\lib\permessage-deflate.js to F:\java-project\null-chain\null-chain-test\target\test-classes\node_modules\ws\lib\permessage-deflate.js
+[DEBUG] file receiver.js has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\node_modules\ws\lib\receiver.js to F:\java-project\null-chain\null-chain-test\target\test-classes\node_modules\ws\lib\receiver.js
+[DEBUG] file sender.js has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\node_modules\ws\lib\sender.js to F:\java-project\null-chain\null-chain-test\target\test-classes\node_modules\ws\lib\sender.js
+[DEBUG] file stream.js has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\node_modules\ws\lib\stream.js to F:\java-project\null-chain\null-chain-test\target\test-classes\node_modules\ws\lib\stream.js
+[DEBUG] file subprotocol.js has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\node_modules\ws\lib\subprotocol.js to F:\java-project\null-chain\null-chain-test\target\test-classes\node_modules\ws\lib\subprotocol.js
+[DEBUG] file validation.js has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\node_modules\ws\lib\validation.js to F:\java-project\null-chain\null-chain-test\target\test-classes\node_modules\ws\lib\validation.js
+[DEBUG] file websocket-server.js has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\node_modules\ws\lib\websocket-server.js to F:\java-project\null-chain\null-chain-test\target\test-classes\node_modules\ws\lib\websocket-server.js
+[DEBUG] file websocket.js has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\node_modules\ws\lib\websocket.js to F:\java-project\null-chain\null-chain-test\target\test-classes\node_modules\ws\lib\websocket.js
+[DEBUG] file LICENSE has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\node_modules\ws\LICENSE to F:\java-project\null-chain\null-chain-test\target\test-classes\node_modules\ws\LICENSE
+[DEBUG] file package.json has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\node_modules\ws\package.json to F:\java-project\null-chain\null-chain-test\target\test-classes\node_modules\ws\package.json
+[DEBUG] file README.md has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\node_modules\ws\README.md to F:\java-project\null-chain\null-chain-test\target\test-classes\node_modules\ws\README.md
+[DEBUG] file wrapper.mjs has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\node_modules\ws\wrapper.mjs to F:\java-project\null-chain\null-chain-test\target\test-classes\node_modules\ws\wrapper.mjs
+[DEBUG] file package-lock.json has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\package-lock.json to F:\java-project\null-chain\null-chain-test\target\test-classes\package-lock.json
+[DEBUG] file package.json has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\package.json to F:\java-project\null-chain\null-chain-test\target\test-classes\package.json
+[DEBUG] file sse-server.js has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\sse-server.js to F:\java-project\null-chain\null-chain-test\target\test-classes\sse-server.js
+[DEBUG] file TEST_ENDPOINTS.md has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\TEST_ENDPOINTS.md to F:\java-project\null-chain\null-chain-test\target\test-classes\TEST_ENDPOINTS.md
+[DEBUG] file websocket-server.js has a filtered file extension
+[DEBUG] copy F:\java-project\null-chain\null-chain-test\src\test\resources\websocket-server.js to F:\java-project\null-chain\null-chain-test\target\test-classes\websocket-server.js
+[DEBUG] no use filter components
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.8.1:testCompile (default-testCompile) @ null-chain-test ---
+[DEBUG] Configuring mojo org.apache.maven.plugins:maven-compiler-plugin:3.8.1:testCompile from plugin realm ClassRealm[plugin>org.apache.maven.plugins:maven-compiler-plugin:3.8.1, parent: sun.misc.Launcher$AppClassLoader@70dea4e]
+[DEBUG] Configuring mojo 'org.apache.maven.plugins:maven-compiler-plugin:3.8.1:testCompile' with basic configurator -->
+[DEBUG]   (f) basedir = F:\java-project\null-chain\null-chain-test
+[DEBUG]   (f) buildDirectory = F:\java-project\null-chain\null-chain-test\target
+[DEBUG]   (f) compilePath = [F:\java-project\null-chain\null-chain-test\target\classes, E:\apache-maven-3.6.3\kucun\com\gitee\huanminabc\null-chain-work\1.1.4-RELEASE\null-chain-work-1.1.4-RELEASE.jar, E:\apache-maven-3.6.3\kucun\com\gitee\huanminabc\null-chain-core\1.1.4-RELEASE\null-chain-core-1.1.4-RELEASE.jar, E:\apache-maven-3.6.3\kucun\org\apache\commons\commons-jexl3\3.1\commons-jexl3-3.1.jar, E:\apache-maven-3.6.3\kucun\commons-logging\commons-logging\1.1.3\commons-logging-1.1.3.jar, E:\apache-maven-3.6.3\kucun\com\squareup\okhttp3\okhttp\3.14.9\okhttp-3.14.9.jar, E:\apache-maven-3.6.3\kucun\com\squareup\okio\okio\1.17.2\okio-1.17.2.jar, E:\apache-maven-3.6.3\kucun\com\fasterxml\jackson\core\jackson-annotations\2.12.3\jackson-annotations-2.12.3.jar, E:\apache-maven-3.6.3\kucun\net\bytebuddy\byte-buddy\1.15.0\byte-buddy-1.15.0.jar, E:\apache-maven-3.6.3\kucun\com\gitee\huanminabc\jcommon\1.1.2-RELEASE\jcommon-1.1.2-RELEASE.jar, E:\apache-maven-3.6.3\kucun\com\alibaba\fastjson\1.2.83_noneautotype\fastjson-1.2.83_noneautotype.jar, E:\apache-maven-3.6.3\kucun\org\projectlombok\lombok\1.18.38\lombok-1.18.38.jar, E:\apache-maven-3.6.3\kucun\org\junit\jupiter\junit-jupiter-api\5.7.2\junit-jupiter-api-5.7.2.jar, E:\apache-maven-3.6.3\kucun\org\apiguardian\apiguardian-api\1.1.0\apiguardian-api-1.1.0.jar, E:\apache-maven-3.6.3\kucun\org\opentest4j\opentest4j\1.2.0\opentest4j-1.2.0.jar, E:\apache-maven-3.6.3\kucun\org\junit\platform\junit-platform-commons\1.7.2\junit-platform-commons-1.7.2.jar, E:\apache-maven-3.6.3\kucun\ch\qos\logback\logback-core\1.2.7\logback-core-1.2.7.jar, E:\apache-maven-3.6.3\kucun\ch\qos\logback\logback-classic\1.2.7\logback-classic-1.2.7.jar, E:\apache-maven-3.6.3\kucun\org\slf4j\slf4j-api\1.7.32\slf4j-api-1.7.32.jar]
+[DEBUG]   (f) compileSourceRoots = [F:\java-project\null-chain\null-chain-test\src\test\java]
+[DEBUG]   (f) compilerId = javac
+[DEBUG]   (f) debug = true
+[DEBUG]   (f) encoding = UTF-8
+[DEBUG]   (f) failOnError = true
+[DEBUG]   (f) failOnWarning = false
+[DEBUG]   (f) forceJavacCompilerUse = false
+[DEBUG]   (f) fork = false
+[DEBUG]   (f) generatedTestSourcesDirectory = F:\java-project\null-chain\null-chain-test\target\generated-test-sources\test-annotations
+[DEBUG]   (f) mojoExecution = org.apache.maven.plugins:maven-compiler-plugin:3.8.1:testCompile {execution: default-testCompile}
+[DEBUG]   (f) optimize = false
+[DEBUG]   (f) outputDirectory = F:\java-project\null-chain\null-chain-test\target\test-classes
+[DEBUG]   (f) parameters = true
+[DEBUG]   (f) project = MavenProject: com.gitee.huanminabc:null-chain-test:1.1.4-RELEASE @ F:\java-project\null-chain\null-chain-test\pom.xml
+[DEBUG]   (f) session = org.apache.maven.execution.MavenSession@654b72c0
+[DEBUG]   (f) showDeprecation = false
+[DEBUG]   (f) showWarnings = false
+[DEBUG]   (f) skipMultiThreadWarning = false
+[DEBUG]   (f) source = 8
+[DEBUG]   (f) staleMillis = 0
+[DEBUG]   (s) target = 8
+[DEBUG]   (f) testPath = [F:\java-project\null-chain\null-chain-test\target\test-classes, F:\java-project\null-chain\null-chain-test\target\classes, E:\apache-maven-3.6.3\kucun\com\gitee\huanminabc\null-chain-work\1.1.4-RELEASE\null-chain-work-1.1.4-RELEASE.jar, E:\apache-maven-3.6.3\kucun\com\gitee\huanminabc\null-chain-core\1.1.4-RELEASE\null-chain-core-1.1.4-RELEASE.jar, E:\apache-maven-3.6.3\kucun\org\apache\commons\commons-jexl3\3.1\commons-jexl3-3.1.jar, E:\apache-maven-3.6.3\kucun\commons-logging\commons-logging\1.1.3\commons-logging-1.1.3.jar, E:\apache-maven-3.6.3\kucun\com\squareup\okhttp3\okhttp\3.14.9\okhttp-3.14.9.jar, E:\apache-maven-3.6.3\kucun\com\squareup\okio\okio\1.17.2\okio-1.17.2.jar, E:\apache-maven-3.6.3\kucun\com\fasterxml\jackson\core\jackson-annotations\2.12.3\jackson-annotations-2.12.3.jar, E:\apache-maven-3.6.3\kucun\net\bytebuddy\byte-buddy\1.15.0\byte-buddy-1.15.0.jar, E:\apache-maven-3.6.3\kucun\com\gitee\huanminabc\jcommon\1.1.2-RELEASE\jcommon-1.1.2-RELEASE.jar, E:\apache-maven-3.6.3\kucun\com\alibaba\fastjson\1.2.83_noneautotype\fastjson-1.2.83_noneautotype.jar, E:\apache-maven-3.6.3\kucun\org\projectlombok\lombok\1.18.38\lombok-1.18.38.jar, E:\apache-maven-3.6.3\kucun\org\junit\jupiter\junit-jupiter\5.7.2\junit-jupiter-5.7.2.jar, E:\apache-maven-3.6.3\kucun\org\junit\jupiter\junit-jupiter-api\5.7.2\junit-jupiter-api-5.7.2.jar, E:\apache-maven-3.6.3\kucun\org\apiguardian\apiguardian-api\1.1.0\apiguardian-api-1.1.0.jar, E:\apache-maven-3.6.3\kucun\org\opentest4j\opentest4j\1.2.0\opentest4j-1.2.0.jar, E:\apache-maven-3.6.3\kucun\org\junit\platform\junit-platform-commons\1.7.2\junit-platform-commons-1.7.2.jar, E:\apache-maven-3.6.3\kucun\org\junit\jupiter\junit-jupiter-params\5.7.2\junit-jupiter-params-5.7.2.jar, E:\apache-maven-3.6.3\kucun\org\junit\jupiter\junit-jupiter-engine\5.7.2\junit-jupiter-engine-5.7.2.jar, E:\apache-maven-3.6.3\kucun\org\junit\platform\junit-platform-engine\1.7.2\junit-platform-engine-1.7.2.jar, E:\apache-maven-3.6.3\kucun\ch\qos\logback\logback-core\1.2.7\logback-core-1.2.7.jar, E:\apache-maven-3.6.3\kucun\ch\qos\logback\logback-classic\1.2.7\logback-classic-1.2.7.jar, E:\apache-maven-3.6.3\kucun\org\slf4j\slf4j-api\1.7.32\slf4j-api-1.7.32.jar]
+[DEBUG]   (f) useIncrementalCompilation = true
+[DEBUG]   (f) verbose = false
+[DEBUG] -- end configuration --
+[DEBUG] Using compiler 'javac'.
+[DEBUG] Adding F:\java-project\null-chain\null-chain-test\target\generated-test-sources\test-annotations to test-compile source roots:
+  F:\java-project\null-chain\null-chain-test\src\test\java
+[DEBUG] New test-compile source roots:
+  F:\java-project\null-chain\null-chain-test\src\test\java
+  F:\java-project\null-chain\null-chain-test\target\generated-test-sources\test-annotations
+[DEBUG] CompilerReuseStrategy: reuseCreated
+[DEBUG] useIncrementalCompilation enabled
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.22.2:test (default-test) @ null-chain-test ---
+[DEBUG] Dependency collection stats: {ConflictMarker.analyzeTime=94000, ConflictMarker.markTime=37000, ConflictMarker.nodeCount=114, ConflictIdSorter.graphTime=55300, ConflictIdSorter.topsortTime=13300, ConflictIdSorter.conflictIdCount=37, ConflictIdSorter.conflictIdCycleCount=0, ConflictResolver.totalTime=413700, ConflictResolver.conflictItemCount=79, DefaultDependencyCollector.collectTime=14373700, DefaultDependencyCollector.transformTime=629400}
+[DEBUG] org.apache.maven.plugins:maven-surefire-plugin:jar:2.22.2
+[DEBUG]    org.apache.maven.surefire:maven-surefire-common:jar:2.22.2:compile
+[DEBUG]       org.apache.maven:maven-plugin-api:jar:2.2.1:compile (version managed from default)
+[DEBUG]       org.apache.maven.plugin-tools:maven-plugin-annotations:jar:3.5.2:compile (scope managed from default) (version managed from default)
+[DEBUG]       org.apache.maven.surefire:surefire-api:jar:2.22.2:compile (version managed from default)
+[DEBUG]          org.apache.maven.surefire:surefire-logger-api:jar:2.22.2:compile (version managed from default)
+[DEBUG]       org.apache.maven.surefire:surefire-booter:jar:2.22.2:compile (version managed from default)
+[DEBUG]       org.apache.maven:maven-artifact:jar:2.2.1:compile (version managed from default)
+[DEBUG]          org.codehaus.plexus:plexus-utils:jar:1.5.15:compile
+[DEBUG]       org.apache.maven:maven-plugin-descriptor:jar:2.2.1:compile (version managed from default)
+[DEBUG]          org.codehaus.plexus:plexus-container-default:jar:1.0-alpha-9-stable-1:compile
+[DEBUG]             junit:junit:jar:4.12:compile (version managed from default)
+[DEBUG]                org.hamcrest:hamcrest-core:jar:1.3:compile
+[DEBUG]       org.apache.maven:maven-project:jar:2.2.1:compile (version managed from default)
+[DEBUG]          org.apache.maven:maven-settings:jar:2.2.1:compile (version managed from default)
+[DEBUG]          org.apache.maven:maven-profile:jar:2.2.1:compile
+[DEBUG]          org.apache.maven:maven-artifact-manager:jar:2.2.1:compile
+[DEBUG]             backport-util-concurrent:backport-util-concurrent:jar:3.1:compile
+[DEBUG]          org.apache.maven:maven-plugin-registry:jar:2.2.1:compile
+[DEBUG]          org.codehaus.plexus:plexus-interpolation:jar:1.11:compile
+[DEBUG]       org.apache.maven:maven-model:jar:2.2.1:compile (version managed from default)
+[DEBUG]       org.apache.maven:maven-core:jar:2.2.1:compile (version managed from default) (exclusions managed from default)
+[DEBUG]          org.apache.maven:maven-plugin-parameter-documenter:jar:2.2.1:compile
+[DEBUG]          org.slf4j:slf4j-jdk14:jar:1.5.6:runtime
+[DEBUG]             org.slf4j:slf4j-api:jar:1.5.6:runtime
+[DEBUG]          org.slf4j:jcl-over-slf4j:jar:1.5.6:runtime
+[DEBUG]          org.apache.maven.reporting:maven-reporting-api:jar:3.0:compile (version managed from default)
+[DEBUG]          org.apache.maven:maven-repository-metadata:jar:2.2.1:compile
+[DEBUG]          org.apache.maven:maven-error-diagnostics:jar:2.2.1:compile
+[DEBUG]          org.apache.maven:maven-monitor:jar:2.2.1:compile
+[DEBUG]          classworlds:classworlds:jar:1.1:compile
+[DEBUG]          org.sonatype.plexus:plexus-sec-dispatcher:jar:1.3:compile
+[DEBUG]             org.sonatype.plexus:plexus-cipher:jar:1.4:compile
+[DEBUG]       org.apache.maven:maven-toolchain:jar:2.2.1:compile (version managed from default)
+[DEBUG]       org.codehaus.plexus:plexus-java:jar:0.9.10:compile (version managed from default)
+[DEBUG]          org.ow2.asm:asm:jar:6.2:compile
+[DEBUG]          com.thoughtworks.qdox:qdox:jar:2.0-M8:compile
+[DEBUG] Created new class realm plugin>org.apache.maven.plugins:maven-surefire-plugin:2.22.2
+[DEBUG] Importing foreign packages into class realm plugin>org.apache.maven.plugins:maven-surefire-plugin:2.22.2
+[DEBUG]   Imported:  < project>com.gitee.huanminabc:null-chain-test:1.1.4-RELEASE
+[DEBUG] Populating class realm plugin>org.apache.maven.plugins:maven-surefire-plugin:2.22.2
+[DEBUG]   Included: org.apache.maven.plugins:maven-surefire-plugin:jar:2.22.2
+[DEBUG]   Included: org.apache.maven.surefire:maven-surefire-common:jar:2.22.2
+[DEBUG]   Included: org.apache.maven.plugin-tools:maven-plugin-annotations:jar:3.5.2
+[DEBUG]   Included: org.apache.maven.surefire:surefire-api:jar:2.22.2
+[DEBUG]   Included: org.apache.maven.surefire:surefire-logger-api:jar:2.22.2
+[DEBUG]   Included: org.apache.maven.surefire:surefire-booter:jar:2.22.2
+[DEBUG]   Included: org.codehaus.plexus:plexus-utils:jar:1.5.15
+[DEBUG]   Included: junit:junit:jar:4.12
+[DEBUG]   Included: org.hamcrest:hamcrest-core:jar:1.3
+[DEBUG]   Included: backport-util-concurrent:backport-util-concurrent:jar:3.1
+[DEBUG]   Included: org.codehaus.plexus:plexus-interpolation:jar:1.11
+[DEBUG]   Included: org.slf4j:slf4j-jdk14:jar:1.5.6
+[DEBUG]   Included: org.slf4j:jcl-over-slf4j:jar:1.5.6
+[DEBUG]   Included: org.apache.maven.reporting:maven-reporting-api:jar:3.0
+[DEBUG]   Included: org.sonatype.plexus:plexus-sec-dispatcher:jar:1.3
+[DEBUG]   Included: org.sonatype.plexus:plexus-cipher:jar:1.4
+[DEBUG]   Included: org.codehaus.plexus:plexus-java:jar:0.9.10
+[DEBUG]   Included: org.ow2.asm:asm:jar:6.2
+[DEBUG]   Included: com.thoughtworks.qdox:qdox:jar:2.0-M8
+[DEBUG] Configuring mojo org.apache.maven.plugins:maven-surefire-plugin:2.22.2:test from plugin realm ClassRealm[plugin>org.apache.maven.plugins:maven-surefire-plugin:2.22.2, parent: sun.misc.Launcher$AppClassLoader@70dea4e]
+[DEBUG] Configuring mojo 'org.apache.maven.plugins:maven-surefire-plugin:2.22.2:test' with basic configurator -->
+[DEBUG]   (s) additionalClasspathElements = []
+[DEBUG]   (s) basedir = F:\java-project\null-chain\null-chain-test
+[DEBUG]   (s) childDelegation = false
+[DEBUG]   (s) classesDirectory = F:\java-project\null-chain\null-chain-test\target\classes
+[DEBUG]   (s) classpathDependencyExcludes = []
+[DEBUG]   (s) dependenciesToScan = []
+[DEBUG]   (s) disableXmlReport = false
+[DEBUG]   (s) enableAssertions = true
+[DEBUG]   (f) forkCount = 1
+[DEBUG]   (s) forkMode = once
+[DEBUG]   (s) forkedProcessExitTimeoutInSeconds = 30
+[DEBUG]   (s) junitArtifactName = junit:junit
+[DEBUG]   (s) junitPlatformArtifactName = org.junit.platform:junit-platform-engine
+[DEBUG]   (s) localRepository =       id: local
+      url: file:///E:/apache-maven-3.6.3/kucun/
+   layout: default
+snapshots: [enabled => true, update => always]
+ releases: [enabled => true, update => always]
+
+[DEBUG]   (f) parallelMavenExecution = false
+[DEBUG]   (s) parallelOptimized = true
+[DEBUG]   (s) perCoreThreadCount = true
+[DEBUG]   (s) pluginArtifactMap = {org.apache.maven.plugins:maven-surefire-plugin=org.apache.maven.plugins:maven-surefire-plugin:maven-plugin:2.22.2:, org.apache.maven.surefire:maven-surefire-common=org.apache.maven.surefire:maven-surefire-common:jar:2.22.2:compile, org.apache.maven:maven-plugin-api=org.apache.maven:maven-plugin-api:jar:2.2.1:compile, org.apache.maven.plugin-tools:maven-plugin-annotations=org.apache.maven.plugin-tools:maven-plugin-annotations:jar:3.5.2:compile, org.apache.maven.surefire:surefire-api=org.apache.maven.surefire:surefire-api:jar:2.22.2:compile, org.apache.maven.surefire:surefire-logger-api=org.apache.maven.surefire:surefire-logger-api:jar:2.22.2:compile, org.apache.maven.surefire:surefire-booter=org.apache.maven.surefire:surefire-booter:jar:2.22.2:compile, org.apache.maven:maven-artifact=org.apache.maven:maven-artifact:jar:2.2.1:compile, org.codehaus.plexus:plexus-utils=org.codehaus.plexus:plexus-utils:jar:1.5.15:compile, org.apache.maven:maven-plugin-descriptor=org.apache.maven:maven-plugin-descriptor:jar:2.2.1:compile, org.codehaus.plexus:plexus-container-default=org.codehaus.plexus:plexus-container-default:jar:1.0-alpha-9-stable-1:compile, junit:junit=junit:junit:jar:4.12:compile, org.hamcrest:hamcrest-core=org.hamcrest:hamcrest-core:jar:1.3:compile, org.apache.maven:maven-project=org.apache.maven:maven-project:jar:2.2.1:compile, org.apache.maven:maven-settings=org.apache.maven:maven-settings:jar:2.2.1:compile, org.apache.maven:maven-profile=org.apache.maven:maven-profile:jar:2.2.1:compile, org.apache.maven:maven-artifact-manager=org.apache.maven:maven-artifact-manager:jar:2.2.1:compile, backport-util-concurrent:backport-util-concurrent=backport-util-concurrent:backport-util-concurrent:jar:3.1:compile, org.apache.maven:maven-plugin-registry=org.apache.maven:maven-plugin-registry:jar:2.2.1:compile, org.codehaus.plexus:plexus-interpolation=org.codehaus.plexus:plexus-interpolation:jar:1.11:compile, org.apache.maven:maven-model=org.apache.maven:maven-model:jar:2.2.1:compile, org.apache.maven:maven-core=org.apache.maven:maven-core:jar:2.2.1:compile, org.apache.maven:maven-plugin-parameter-documenter=org.apache.maven:maven-plugin-parameter-documenter:jar:2.2.1:compile, org.slf4j:slf4j-jdk14=org.slf4j:slf4j-jdk14:jar:1.5.6:runtime, org.slf4j:slf4j-api=org.slf4j:slf4j-api:jar:1.5.6:runtime, org.slf4j:jcl-over-slf4j=org.slf4j:jcl-over-slf4j:jar:1.5.6:runtime, org.apache.maven.reporting:maven-reporting-api=org.apache.maven.reporting:maven-reporting-api:jar:3.0:compile, org.apache.maven:maven-repository-metadata=org.apache.maven:maven-repository-metadata:jar:2.2.1:compile, org.apache.maven:maven-error-diagnostics=org.apache.maven:maven-error-diagnostics:jar:2.2.1:compile, org.apache.maven:maven-monitor=org.apache.maven:maven-monitor:jar:2.2.1:compile, classworlds:classworlds=classworlds:classworlds:jar:1.1:compile, org.sonatype.plexus:plexus-sec-dispatcher=org.sonatype.plexus:plexus-sec-dispatcher:jar:1.3:compile, org.sonatype.plexus:plexus-cipher=org.sonatype.plexus:plexus-cipher:jar:1.4:compile, org.apache.maven:maven-toolchain=org.apache.maven:maven-toolchain:jar:2.2.1:compile, org.codehaus.plexus:plexus-java=org.codehaus.plexus:plexus-java:jar:0.9.10:compile, org.ow2.asm:asm=org.ow2.asm:asm:jar:6.2:compile, com.thoughtworks.qdox:qdox=com.thoughtworks.qdox:qdox:jar:2.0-M8:compile}
+[DEBUG]   (f) pluginDescriptor = Component Descriptor: role: 'org.apache.maven.plugin.Mojo', implementation: 'org.apache.maven.plugin.surefire.HelpMojo', role hint: 'org.apache.maven.plugins:maven-surefire-plugin:2.22.2:help'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'org.apache.maven.plugin.surefire.SurefirePlugin', role hint: 'org.apache.maven.plugins:maven-surefire-plugin:2.22.2:test'
+---
+[DEBUG]   (s) printSummary = true
+[DEBUG]   (s) projectArtifactMap = {com.gitee.huanminabc:null-chain-work=com.gitee.huanminabc:null-chain-work:jar:1.1.4-RELEASE:compile, com.gitee.huanminabc:null-chain-core=com.gitee.huanminabc:null-chain-core:jar:1.1.4-RELEASE:compile, org.apache.commons:commons-jexl3=org.apache.commons:commons-jexl3:jar:3.1:compile, commons-logging:commons-logging=commons-logging:commons-logging:jar:1.1.3:compile, com.squareup.okhttp3:okhttp=com.squareup.okhttp3:okhttp:jar:3.14.9:compile, com.squareup.okio:okio=com.squareup.okio:okio:jar:1.17.2:compile, com.fasterxml.jackson.core:jackson-annotations=com.fasterxml.jackson.core:jackson-annotations:jar:2.12.3:compile, net.bytebuddy:byte-buddy=net.bytebuddy:byte-buddy:jar:1.15.0:compile, com.gitee.huanminabc:jcommon=com.gitee.huanminabc:jcommon:jar:1.1.2-RELEASE:compile, com.alibaba:fastjson=com.alibaba:fastjson:jar:1.2.83_noneautotype:compile, org.projectlombok:lombok=org.projectlombok:lombok:jar:1.18.38:provided, org.junit.jupiter:junit-jupiter=org.junit.jupiter:junit-jupiter:jar:5.7.2:test, org.junit.jupiter:junit-jupiter-api=org.junit.jupiter:junit-jupiter-api:jar:5.7.2:provided, org.apiguardian:apiguardian-api=org.apiguardian:apiguardian-api:jar:1.1.0:provided, org.opentest4j:opentest4j=org.opentest4j:opentest4j:jar:1.2.0:provided, org.junit.platform:junit-platform-commons=org.junit.platform:junit-platform-commons:jar:1.7.2:provided, org.junit.jupiter:junit-jupiter-params=org.junit.jupiter:junit-jupiter-params:jar:5.7.2:test, org.junit.jupiter:junit-jupiter-engine=org.junit.jupiter:junit-jupiter-engine:jar:5.7.2:test, org.junit.platform:junit-platform-engine=org.junit.platform:junit-platform-engine:jar:1.7.2:test, ch.qos.logback:logback-core=ch.qos.logback:logback-core:jar:1.2.7:provided, ch.qos.logback:logback-classic=ch.qos.logback:logback-classic:jar:1.2.7:provided, org.slf4j:slf4j-api=org.slf4j:slf4j-api:jar:1.7.32:provided}
+[DEBUG]   (s) projectBuildDirectory = F:\java-project\null-chain\null-chain-test\target
+[DEBUG]   (s) redirectTestOutputToFile = false
+[DEBUG]   (s) remoteRepositories = [      id: mirror
+      url: https://maven.aliyun.com/nexus/content/groups/public
+   layout: default
+snapshots: [enabled => false, update => daily]
+ releases: [enabled => true, update => never]
+]
+[DEBUG]   (s) reportFormat = brief
+[DEBUG]   (s) reportsDirectory = F:\java-project\null-chain\null-chain-test\target\surefire-reports
+[DEBUG]   (f) rerunFailingTestsCount = 0
+[DEBUG]   (f) reuseForks = true
+[DEBUG]   (s) runOrder = filesystem
+[DEBUG]   (f) shutdown = testset
+[DEBUG]   (s) skip = false
+[DEBUG]   (f) skipAfterFailureCount = 0
+[DEBUG]   (s) skipTests = false
+[DEBUG]   (s) suiteXmlFiles = []
+[DEBUG]   (s) tempDir = surefire
+[DEBUG]   (s) test = NfSyntaTest#NfSynta
+[DEBUG]   (s) testClassesDirectory = F:\java-project\null-chain\null-chain-test\target\test-classes
+[DEBUG]   (s) testFailureIgnore = false
+[DEBUG]   (s) testNGArtifactName = org.testng:testng
+[DEBUG]   (s) testSourceDirectory = F:\java-project\null-chain\null-chain-test\src\test\java
+[DEBUG]   (s) threadCountClasses = 0
+[DEBUG]   (s) threadCountMethods = 0
+[DEBUG]   (s) threadCountSuites = 0
+[DEBUG]   (s) trimStackTrace = true
+[DEBUG]   (s) useFile = true
+[DEBUG]   (s) useManifestOnlyJar = true
+[DEBUG]   (s) useSystemClassLoader = true
+[DEBUG]   (s) useUnlimitedThreads = false
+[DEBUG]   (s) workingDirectory = F:\java-project\null-chain\null-chain-test
+[DEBUG]   (s) project = MavenProject: com.gitee.huanminabc:null-chain-test:1.1.4-RELEASE @ F:\java-project\null-chain\null-chain-test\pom.xml
+[DEBUG]   (s) session = org.apache.maven.execution.MavenSession@654b72c0
+[DEBUG] -- end configuration --
+[DEBUG] Surefire report directory: F:\java-project\null-chain\null-chain-test\target\surefire-reports
+[DEBUG] Setting system property [user.dir]=[F:\java-project\null-chain\null-chain-test]
+[DEBUG] Setting system property [localRepository]=[E:\apache-maven-3.6.3\kucun]
+[DEBUG] Setting system property [basedir]=[F:\java-project\null-chain\null-chain-test]
+[DEBUG] Setting system property [test]=[NfSyntaTest#NfSynta]
+[DEBUG] dummy:dummy:jar:1.0 (selected for null)
+[DEBUG]   org.apache.maven.surefire:surefire-booter:jar:2.22.2:compile (selected for compile)
+[DEBUG]     org.apache.maven.surefire:surefire-api:jar:2.22.2:compile (selected for compile)
+[DEBUG]       org.apache.maven.surefire:surefire-logger-api:jar:2.22.2:compile (selected for compile)
+[DEBUG] Adding to surefire booter test classpath: E:\apache-maven-3.6.3\kucun\org\apache\maven\surefire\surefire-booter\2.22.2\surefire-booter-2.22.2.jar Scope: compile
+[DEBUG] Adding to surefire booter test classpath: E:\apache-maven-3.6.3\kucun\org\apache\maven\surefire\surefire-api\2.22.2\surefire-api-2.22.2.jar Scope: compile
+[DEBUG] Adding to surefire booter test classpath: E:\apache-maven-3.6.3\kucun\org\apache\maven\surefire\surefire-logger-api\2.22.2\surefire-logger-api-2.22.2.jar Scope: compile
+[DEBUG] Using JVM: E:\jdk\java8\jre\bin\java with Java version 1.8
+[DEBUG] dummy:dummy:jar:1.0 (selected for null)
+[DEBUG]   org.apache.maven.surefire:surefire-junit-platform:jar:2.22.2:test (selected for test)
+[DEBUG]     org.junit.platform:junit-platform-launcher:jar:1.3.1:test (selected for test)
+[DEBUG]       org.apiguardian:apiguardian-api:jar:1.0.0:test (selected for test)
+[DEBUG]       org.junit.platform:junit-platform-engine:jar:1.3.1:test (selected for test)
+[DEBUG]         org.junit.platform:junit-platform-commons:jar:1.3.1:test (selected for test)
+[DEBUG]         org.opentest4j:opentest4j:jar:1.1.1:test (selected for test)
+[DEBUG]     org.apache.maven.surefire:surefire-api:jar:2.22.2:test (selected for test)
+[DEBUG]       org.apache.maven.surefire:surefire-logger-api:jar:2.22.2:test (selected for test)
+[DEBUG] Adding to surefire test classpath: E:\apache-maven-3.6.3\kucun\org\apache\maven\surefire\surefire-junit-platform\2.22.2\surefire-junit-platform-2.22.2.jar Scope: test
+[DEBUG] Adding to surefire test classpath: E:\apache-maven-3.6.3\kucun\org\junit\platform\junit-platform-launcher\1.3.1\junit-platform-launcher-1.3.1.jar Scope: test
+[DEBUG] Adding to surefire test classpath: E:\apache-maven-3.6.3\kucun\org\apiguardian\apiguardian-api\1.0.0\apiguardian-api-1.0.0.jar Scope: test
+[DEBUG] Adding to surefire test classpath: E:\apache-maven-3.6.3\kucun\org\junit\platform\junit-platform-engine\1.3.1\junit-platform-engine-1.3.1.jar Scope: test
+[DEBUG] Adding to surefire test classpath: E:\apache-maven-3.6.3\kucun\org\junit\platform\junit-platform-commons\1.3.1\junit-platform-commons-1.3.1.jar Scope: test
+[DEBUG] Adding to surefire test classpath: E:\apache-maven-3.6.3\kucun\org\opentest4j\opentest4j\1.1.1\opentest4j-1.1.1.jar Scope: test
+[DEBUG] Adding to surefire test classpath: E:\apache-maven-3.6.3\kucun\org\apache\maven\surefire\surefire-api\2.22.2\surefire-api-2.22.2.jar Scope: test
+[DEBUG] Adding to surefire test classpath: E:\apache-maven-3.6.3\kucun\org\apache\maven\surefire\surefire-logger-api\2.22.2\surefire-logger-api-2.22.2.jar Scope: test
+[DEBUG] Removed artifact org.apiguardian:apiguardian-api:jar:1.0.0:test from provider. Already appears in test classpath.
+[DEBUG] Removed artifact org.opentest4j:opentest4j:jar:1.1.1:test from provider. Already appears in test classpath.
+[DEBUG] Removed artifact org.junit.platform:junit-platform-commons:jar:1.3.1:test from provider. Already appears in test classpath.
+[DEBUG] Removed artifact org.junit.platform:junit-platform-engine:jar:1.3.1:test from provider. Already appears in test classpath.
+[DEBUG] test classpath:  F:\java-project\null-chain\null-chain-test\target\test-classes  F:\java-project\null-chain\null-chain-test\target\classes  E:\apache-maven-3.6.3\kucun\com\gitee\huanminabc\null-chain-work\1.1.4-RELEASE\null-chain-work-1.1.4-RELEASE.jar  E:\apache-maven-3.6.3\kucun\com\gitee\huanminabc\null-chain-core\1.1.4-RELEASE\null-chain-core-1.1.4-RELEASE.jar  E:\apache-maven-3.6.3\kucun\org\apache\commons\commons-jexl3\3.1\commons-jexl3-3.1.jar  E:\apache-maven-3.6.3\kucun\commons-logging\commons-logging\1.1.3\commons-logging-1.1.3.jar  E:\apache-maven-3.6.3\kucun\com\squareup\okhttp3\okhttp\3.14.9\okhttp-3.14.9.jar  E:\apache-maven-3.6.3\kucun\com\squareup\okio\okio\1.17.2\okio-1.17.2.jar  E:\apache-maven-3.6.3\kucun\com\fasterxml\jackson\core\jackson-annotations\2.12.3\jackson-annotations-2.12.3.jar  E:\apache-maven-3.6.3\kucun\net\bytebuddy\byte-buddy\1.15.0\byte-buddy-1.15.0.jar  E:\apache-maven-3.6.3\kucun\com\gitee\huanminabc\jcommon\1.1.2-RELEASE\jcommon-1.1.2-RELEASE.jar  E:\apache-maven-3.6.3\kucun\com\alibaba\fastjson\1.2.83_noneautotype\fastjson-1.2.83_noneautotype.jar  E:\apache-maven-3.6.3\kucun\org\projectlombok\lombok\1.18.38\lombok-1.18.38.jar  E:\apache-maven-3.6.3\kucun\org\junit\jupiter\junit-jupiter\5.7.2\junit-jupiter-5.7.2.jar  E:\apache-maven-3.6.3\kucun\org\junit\jupiter\junit-jupiter-api\5.7.2\junit-jupiter-api-5.7.2.jar  E:\apache-maven-3.6.3\kucun\org\apiguardian\apiguardian-api\1.1.0\apiguardian-api-1.1.0.jar  E:\apache-maven-3.6.3\kucun\org\opentest4j\opentest4j\1.2.0\opentest4j-1.2.0.jar  E:\apache-maven-3.6.3\kucun\org\junit\platform\junit-platform-commons\1.7.2\junit-platform-commons-1.7.2.jar  E:\apache-maven-3.6.3\kucun\org\junit\jupiter\junit-jupiter-params\5.7.2\junit-jupiter-params-5.7.2.jar  E:\apache-maven-3.6.3\kucun\org\junit\jupiter\junit-jupiter-engine\5.7.2\junit-jupiter-engine-5.7.2.jar  E:\apache-maven-3.6.3\kucun\org\junit\platform\junit-platform-engine\1.7.2\junit-platform-engine-1.7.2.jar  E:\apache-maven-3.6.3\kucun\ch\qos\logback\logback-core\1.2.7\logback-core-1.2.7.jar  E:\apache-maven-3.6.3\kucun\ch\qos\logback\logback-classic\1.2.7\logback-classic-1.2.7.jar  E:\apache-maven-3.6.3\kucun\org\slf4j\slf4j-api\1.7.32\slf4j-api-1.7.32.jar
+[DEBUG] provider classpath:  E:\apache-maven-3.6.3\kucun\org\apache\maven\surefire\surefire-junit-platform\2.22.2\surefire-junit-platform-2.22.2.jar  E:\apache-maven-3.6.3\kucun\org\junit\platform\junit-platform-launcher\1.3.1\junit-platform-launcher-1.3.1.jar  E:\apache-maven-3.6.3\kucun\org\apache\maven\surefire\surefire-api\2.22.2\surefire-api-2.22.2.jar  E:\apache-maven-3.6.3\kucun\org\apache\maven\surefire\surefire-logger-api\2.22.2\surefire-logger-api-2.22.2.jar
+[DEBUG] test(compact) classpath:  test-classes  classes  null-chain-work-1.1.4-RELEASE.jar  null-chain-core-1.1.4-RELEASE.jar  commons-jexl3-3.1.jar  commons-logging-1.1.3.jar  okhttp-3.14.9.jar  okio-1.17.2.jar  jackson-annotations-2.12.3.jar  byte-buddy-1.15.0.jar  jcommon-1.1.2-RELEASE.jar  fastjson-1.2.83_noneautotype.jar  lombok-1.18.38.jar  junit-jupiter-5.7.2.jar  junit-jupiter-api-5.7.2.jar  apiguardian-api-1.1.0.jar  opentest4j-1.2.0.jar  junit-platform-commons-1.7.2.jar  junit-jupiter-params-5.7.2.jar  junit-jupiter-engine-5.7.2.jar  junit-platform-engine-1.7.2.jar  logback-core-1.2.7.jar  logback-classic-1.2.7.jar  slf4j-api-1.7.32.jar
+[DEBUG] provider(compact) classpath:  surefire-junit-platform-2.22.2.jar  junit-platform-launcher-1.3.1.jar  surefire-api-2.22.2.jar  surefire-logger-api-2.22.2.jar
+[DEBUG] in-process classpath:  E:\apache-maven-3.6.3\kucun\org\apache\maven\surefire\surefire-junit-platform\2.22.2\surefire-junit-platform-2.22.2.jar  E:\apache-maven-3.6.3\kucun\org\junit\platform\junit-platform-launcher\1.3.1\junit-platform-launcher-1.3.1.jar  E:\apache-maven-3.6.3\kucun\org\apache\maven\surefire\surefire-api\2.22.2\surefire-api-2.22.2.jar  E:\apache-maven-3.6.3\kucun\org\apache\maven\surefire\surefire-logger-api\2.22.2\surefire-logger-api-2.22.2.jar  E:\apache-maven-3.6.3\kucun\org\apache\maven\surefire\maven-surefire-common\2.22.2\maven-surefire-common-2.22.2.jar
+[DEBUG] in-process(compact) classpath:  surefire-junit-platform-2.22.2.jar  junit-platform-launcher-1.3.1.jar  surefire-api-2.22.2.jar  surefire-logger-api-2.22.2.jar  maven-surefire-common-2.22.2.jar
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[DEBUG] Determined Maven Process ID 1720
+[DEBUG] boot classpath:  E:\apache-maven-3.6.3\kucun\org\apache\maven\surefire\surefire-booter\2.22.2\surefire-booter-2.22.2.jar  E:\apache-maven-3.6.3\kucun\org\apache\maven\surefire\surefire-api\2.22.2\surefire-api-2.22.2.jar  E:\apache-maven-3.6.3\kucun\org\apache\maven\surefire\surefire-logger-api\2.22.2\surefire-logger-api-2.22.2.jar  F:\java-project\null-chain\null-chain-test\target\test-classes  F:\java-project\null-chain\null-chain-test\target\classes  E:\apache-maven-3.6.3\kucun\com\gitee\huanminabc\null-chain-work\1.1.4-RELEASE\null-chain-work-1.1.4-RELEASE.jar  E:\apache-maven-3.6.3\kucun\com\gitee\huanminabc\null-chain-core\1.1.4-RELEASE\null-chain-core-1.1.4-RELEASE.jar  E:\apache-maven-3.6.3\kucun\org\apache\commons\commons-jexl3\3.1\commons-jexl3-3.1.jar  E:\apache-maven-3.6.3\kucun\commons-logging\commons-logging\1.1.3\commons-logging-1.1.3.jar  E:\apache-maven-3.6.3\kucun\com\squareup\okhttp3\okhttp\3.14.9\okhttp-3.14.9.jar  E:\apache-maven-3.6.3\kucun\com\squareup\okio\okio\1.17.2\okio-1.17.2.jar  E:\apache-maven-3.6.3\kucun\com\fasterxml\jackson\core\jackson-annotations\2.12.3\jackson-annotations-2.12.3.jar  E:\apache-maven-3.6.3\kucun\net\bytebuddy\byte-buddy\1.15.0\byte-buddy-1.15.0.jar  E:\apache-maven-3.6.3\kucun\com\gitee\huanminabc\jcommon\1.1.2-RELEASE\jcommon-1.1.2-RELEASE.jar  E:\apache-maven-3.6.3\kucun\com\alibaba\fastjson\1.2.83_noneautotype\fastjson-1.2.83_noneautotype.jar  E:\apache-maven-3.6.3\kucun\org\projectlombok\lombok\1.18.38\lombok-1.18.38.jar  E:\apache-maven-3.6.3\kucun\org\junit\jupiter\junit-jupiter\5.7.2\junit-jupiter-5.7.2.jar  E:\apache-maven-3.6.3\kucun\org\junit\jupiter\junit-jupiter-api\5.7.2\junit-jupiter-api-5.7.2.jar  E:\apache-maven-3.6.3\kucun\org\apiguardian\apiguardian-api\1.1.0\apiguardian-api-1.1.0.jar  E:\apache-maven-3.6.3\kucun\org\opentest4j\opentest4j\1.2.0\opentest4j-1.2.0.jar  E:\apache-maven-3.6.3\kucun\org\junit\platform\junit-platform-commons\1.7.2\junit-platform-commons-1.7.2.jar  E:\apache-maven-3.6.3\kucun\org\junit\jupiter\junit-jupiter-params\5.7.2\junit-jupiter-params-5.7.2.jar  E:\apache-maven-3.6.3\kucun\org\junit\jupiter\junit-jupiter-engine\5.7.2\junit-jupiter-engine-5.7.2.jar  E:\apache-maven-3.6.3\kucun\org\junit\platform\junit-platform-engine\1.7.2\junit-platform-engine-1.7.2.jar  E:\apache-maven-3.6.3\kucun\ch\qos\logback\logback-core\1.2.7\logback-core-1.2.7.jar  E:\apache-maven-3.6.3\kucun\ch\qos\logback\logback-classic\1.2.7\logback-classic-1.2.7.jar  E:\apache-maven-3.6.3\kucun\org\slf4j\slf4j-api\1.7.32\slf4j-api-1.7.32.jar  E:\apache-maven-3.6.3\kucun\org\apache\maven\surefire\surefire-junit-platform\2.22.2\surefire-junit-platform-2.22.2.jar  E:\apache-maven-3.6.3\kucun\org\junit\platform\junit-platform-launcher\1.3.1\junit-platform-launcher-1.3.1.jar
+[DEBUG] boot(compact) classpath:  surefire-booter-2.22.2.jar  surefire-api-2.22.2.jar  surefire-logger-api-2.22.2.jar  test-classes  classes  null-chain-work-1.1.4-RELEASE.jar  null-chain-core-1.1.4-RELEASE.jar  commons-jexl3-3.1.jar  commons-logging-1.1.3.jar  okhttp-3.14.9.jar  okio-1.17.2.jar  jackson-annotations-2.12.3.jar  byte-buddy-1.15.0.jar  jcommon-1.1.2-RELEASE.jar  fastjson-1.2.83_noneautotype.jar  lombok-1.18.38.jar  junit-jupiter-5.7.2.jar  junit-jupiter-api-5.7.2.jar  apiguardian-api-1.1.0.jar  opentest4j-1.2.0.jar  junit-platform-commons-1.7.2.jar  junit-jupiter-params-5.7.2.jar  junit-jupiter-engine-5.7.2.jar  junit-platform-engine-1.7.2.jar  logback-core-1.2.7.jar  logback-classic-1.2.7.jar  slf4j-api-1.7.32.jar  surefire-junit-platform-2.22.2.jar  junit-platform-launcher-1.3.1.jar
+[DEBUG] Forking command line: cmd.exe /X /C "E:\jdk\java8\jre\bin\java -jar C:\Users\ADMINI~1\AppData\Local\Temp\surefire4771217767971065174\surefirebooter5669368750608222676.jar C:\Users\Administrator\AppData\Local\Temp\surefire4771217767971065174 2026-01-02T03-19-27_763-jvmRun1 surefire8851357805812009072tmp surefire_07622871495533057124tmp"
+[INFO] Running com.gitee.huanminabc.test.nullchain.nf.NfSyntaTest
+[ERROR] Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.047 s <<< FAILURE! - in com.gitee.huanminabc.test.nullchain.nf.NfSyntaTest
+[ERROR] NfSynta  Time elapsed: 0.044 s  <<< ERROR!
+com.gitee.huanminabc.nullchain.language.NfException: 语法构建错误: factorial=factorial*iecho"i = {i}, factorial = {factorial}" ......
+	at com.gitee.huanminabc.test.nullchain.nf.NfSyntaTest.NfSynta(NfSyntaTest.java:84)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Errors: 
+[ERROR]   NfSyntaTest.NfSynta:84 ? Nf 语法构建错误: factorial=factorial*iecho"i = {i}, factori...
+[INFO] 
+[ERROR] Tests run: 1, Failures: 0, Errors: 1, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  2.390 s
+[INFO] Finished at: 2026-01-02T03:19:29+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:2.22.2:test (default-test) on project null-chain-test: There are test failures.
+[ERROR] 
+[ERROR] Please refer to F:\java-project\null-chain\null-chain-test\target\surefire-reports for the individual test results.
+[ERROR] Please refer to dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+org.apache.maven.lifecycle.LifecycleExecutionException: Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:2.22.2:test (default-test) on project null-chain-test: There are test failures.
+
+Please refer to F:\java-project\null-chain\null-chain-test\target\surefire-reports for the individual test results.
+Please refer to dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:215)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:156)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:148)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:117)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:81)
+    at org.apache.maven.lifecycle.internal.builder.singlethreaded.SingleThreadedBuilder.build (SingleThreadedBuilder.java:56)
+    at org.apache.maven.lifecycle.internal.LifecycleStarter.execute (LifecycleStarter.java:128)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:305)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:192)
+    at org.apache.maven.DefaultMaven.execute (DefaultMaven.java:105)
+    at org.apache.maven.cli.MavenCli.execute (MavenCli.java:957)
+    at org.apache.maven.cli.MavenCli.doMain (MavenCli.java:289)
+    at org.apache.maven.cli.MavenCli.main (MavenCli.java:193)
+    at sun.reflect.NativeMethodAccessorImpl.invoke0 (Native Method)
+    at sun.reflect.NativeMethodAccessorImpl.invoke (NativeMethodAccessorImpl.java:62)
+    at sun.reflect.DelegatingMethodAccessorImpl.invoke (DelegatingMethodAccessorImpl.java:43)
+    at java.lang.reflect.Method.invoke (Method.java:498)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launchEnhanced (Launcher.java:282)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launch (Launcher.java:225)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.mainWithExitCode (Launcher.java:406)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.main (Launcher.java:347)
+Caused by: org.apache.maven.plugin.MojoFailureException: There are test failures.
+
+Please refer to F:\java-project\null-chain\null-chain-test\target\surefire-reports for the individual test results.
+Please refer to dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+    at org.apache.maven.plugin.surefire.SurefireHelper.throwException (SurefireHelper.java:289)
+    at org.apache.maven.plugin.surefire.SurefireHelper.reportExecution (SurefireHelper.java:161)
+    at org.apache.maven.plugin.surefire.SurefirePlugin.handleSummary (SurefirePlugin.java:364)
+    at org.apache.maven.plugin.surefire.AbstractSurefireMojo.executeAfterPreconditionsChecked (AbstractSurefireMojo.java:1041)
+    at org.apache.maven.plugin.surefire.AbstractSurefireMojo.execute (AbstractSurefireMojo.java:857)
+    at org.apache.maven.plugin.DefaultBuildPluginManager.executeMojo (DefaultBuildPluginManager.java:137)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:210)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:156)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:148)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:117)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:81)
+    at org.apache.maven.lifecycle.internal.builder.singlethreaded.SingleThreadedBuilder.build (SingleThreadedBuilder.java:56)
+    at org.apache.maven.lifecycle.internal.LifecycleStarter.execute (LifecycleStarter.java:128)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:305)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:192)
+    at org.apache.maven.DefaultMaven.execute (DefaultMaven.java:105)
+    at org.apache.maven.cli.MavenCli.execute (MavenCli.java:957)
+    at org.apache.maven.cli.MavenCli.doMain (MavenCli.java:289)
+    at org.apache.maven.cli.MavenCli.main (MavenCli.java:193)
+    at sun.reflect.NativeMethodAccessorImpl.invoke0 (Native Method)
+    at sun.reflect.NativeMethodAccessorImpl.invoke (NativeMethodAccessorImpl.java:62)
+    at sun.reflect.DelegatingMethodAccessorImpl.invoke (DelegatingMethodAccessorImpl.java:43)
+    at java.lang.reflect.Method.invoke (Method.java:498)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launchEnhanced (Launcher.java:282)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launch (Launcher.java:225)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.mainWithExitCode (Launcher.java:406)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.main (Launcher.java:347)
+[ERROR] 
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
