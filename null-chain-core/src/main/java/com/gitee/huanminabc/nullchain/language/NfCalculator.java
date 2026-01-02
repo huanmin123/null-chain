@@ -26,6 +26,84 @@ public class NfCalculator {
     //第一次加载的时候需要100~200ms 之后就没有影响了
     private final static JexlEngine jexl = new JexlBuilder().create();
 
+    /**
+     * instanceof 处理结果，包含转换后的表达式和需要的类型类
+     */
+    private static class InstanceofProcessResult {
+        String processedExpression;
+        Set<String> requiredTypeNames;
+
+        InstanceofProcessResult(String expr, Set<String> types) {
+            this.processedExpression = expr;
+            this.requiredTypeNames = types;
+        }
+    }
+
+    /**
+     * 预处理表达式，将 instanceof 转换为 JEXL 支持的语法
+     * instanceof 有两层含义：1.判断类型相等 2.判断是否是子类
+     * 利用 importMap 中已导入的类型信息，自动解析类型名
+     * 例如：value instanceof Integer -> __Integer_Class.isAssignableFrom(value.class)
+     * 例如：value instanceof MyClass (已导入) -> __MyClass_Class.isAssignableFrom(value.class)
+     *
+     * @param expression 原始表达式
+     * @param importMap   导入的类型映射表
+     * @return 处理结果，包含转换后的表达式和需要的类型名称集合
+     */
+    private static InstanceofProcessResult preProcessExpression(String expression, Map<String, String> importMap) {
+        if (expression == null || expression.isEmpty()) {
+            return new InstanceofProcessResult(expression, new java.util.HashSet<>());
+        }
+
+        // 匹配 instanceof 表达式：(\w+)\s+instanceof\s+(\S+)
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("(\\w+)\\s+instanceof\\s+(\\S+)");
+        java.util.regex.Matcher matcher = pattern.matcher(expression);
+        StringBuffer sb = new StringBuffer();
+        Set<String> requiredTypes = new java.util.HashSet<>();
+
+        while (matcher.find()) {
+            String varName = matcher.group(1);
+            String typeName = matcher.group(2);
+
+            // 解析类型全限定名
+            String fullClassName = resolveTypeName(typeName, importMap);
+
+            // 生成类型变量名（避免冲突，使用 __TypeName_Class 格式）
+            String typeVarName = "__" + typeName.replace(".", "_") + "_Class";
+            requiredTypes.add(typeVarName + "=" + fullClassName);
+
+            // 转换为 JEXL 表达式
+            String replacement = String.format("%s.isAssignableFrom(%s.class)", typeVarName, varName);
+            matcher.appendReplacement(sb, replacement);
+        }
+        matcher.appendTail(sb);
+
+        return new InstanceofProcessResult(sb.toString(), requiredTypes);
+    }
+
+    /**
+     * 解析类型名，返回完整的类路径
+     * 优先级：importMap 中的导入 > 全限定名 > java.lang 包
+     *
+     * @param typeName   类型名称（可能是短名称或全限定名）
+     * @param importMap  导入的类型映射表
+     * @return 完整的类路径
+     */
+    private static String resolveTypeName(String typeName, Map<String, String> importMap) {
+        // 1. 如果是全限定名（包含 .），直接返回
+        if (typeName.contains(".")) {
+            return typeName;
+        }
+
+        // 2. 在 importMap 中查找
+        if (importMap != null && importMap.containsKey(typeName)) {
+            return importMap.get(typeName);
+        }
+
+        // 3. 默认为 java.lang 包中的类型
+        return "java.lang." + typeName;
+    }
+
     public static Object arithmetic(String expression, Map<String, Object> params) {
         JexlContext context = new MapContext();
         if (params != null) {
@@ -56,7 +134,24 @@ public class NfCalculator {
         }
 
         try {
-            return jexl.createExpression(expression).evaluate(context);
+            // 预处理表达式，转换 instanceof 等语法（传入 importMap 用于类型解析）
+            InstanceofProcessResult processResult = preProcessExpression(expression, importMap);
+            String processedExpr = processResult.processedExpression;
+
+            // 将需要的类型类设置到上下文中
+            for (String typeDef : processResult.requiredTypeNames) {
+                String[] parts = typeDef.split("=", 2);
+                String varName = parts[0];
+                String className = parts[1];
+                try {
+                    Class<?> typeClass = Class.forName(className);
+                    context.set(varName, typeClass);
+                } catch (ClassNotFoundException e) {
+                    throw new NfException(e, "找不到类: " + className);
+                }
+            }
+
+            return jexl.createExpression(processedExpr).evaluate(context);
         } catch (Exception e) {
             throw new NfException(e, "表达式计算错误: " + expression);
         }
@@ -74,7 +169,7 @@ public class NfCalculator {
     /**
      * 递归合并父作用域
      * 从当前作用域开始，向上遍历所有父作用域，将变量合并到JexlContext中
-     * 
+     *
      * @param nfContext NF上下文
      * @param currentScope 当前作用域
      * @param context Jexl上下文

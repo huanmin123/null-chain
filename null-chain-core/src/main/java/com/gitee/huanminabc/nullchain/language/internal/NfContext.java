@@ -252,6 +252,7 @@ public class NfContext {
         importMap.put("Boolean", Boolean.class.getName());
 
         importMap.put("HashMap", HashMap.class.getName());
+        importMap.put("HashSet", HashSet.class.getName());
         importMap.put("TreeMap", TreeMap.class.getName());
         importMap.put("LinkedList", LinkedList.class.getName());
         importMap.put("ArrayList", ArrayList.class.getName());

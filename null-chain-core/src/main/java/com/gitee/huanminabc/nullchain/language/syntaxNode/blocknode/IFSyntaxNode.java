@@ -301,8 +301,11 @@ public class IFSyntaxNode extends BlockSyntaxNode {
         if (endIndex <= 0 || endIndex > tokens.size()) {
             throw new NfException("Line:{} ,if表达式格式错误，无法找到结束位置", tokens.get(0).getLine());
         }
-        //截取if表达式的标记序列
-        List<Token> ifTokens = new ArrayList<>(tokens.subList(0, endIndex));
+        //截取if表达式的标记序列（手动创建副本，避免subList视图的clear影响原始数据）
+        List<Token> ifTokens = new ArrayList<>();
+        for (int k = 0; k < endIndex; k++) {
+            ifTokens.add(tokens.get(k));
+        }
         //删除
         tokens.subList(0, endIndex).clear();
         //删除}
@@ -396,7 +399,7 @@ public class IFSyntaxNode extends BlockSyntaxNode {
             //删除结尾的}
             tokens.remove(tokens.size()-1);
 
-            //继续构建代码体
+            //继续构建代码体（tokens已被修改，直接使用）
             List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
             ifStatement.setChildSyntaxNodeList(syntaxNodes);
             return ifStatement;

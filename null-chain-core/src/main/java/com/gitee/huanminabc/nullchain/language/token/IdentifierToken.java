@@ -90,6 +90,9 @@ public class IdentifierToken {
             case "new":
                 tokens.add(new Token(TokenType.NEW, value, line));
                 break;
+            case "instanceof":
+                tokens.add(new Token(TokenType.INSTANCEOF, value, line));
+                break;
             default:
                 tokens.add(new Token(TokenType.IDENTIFIER, value, line));
         }

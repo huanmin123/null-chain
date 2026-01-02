@@ -17,14 +17,15 @@ import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * for表达式: for i in 1..10 {}
+ * for表达式支持两种模式:
+ * 1. 数值范围: for i in 1..10 {}
+ * 2. 变量迭代: for item in list {} 或 for k, v in map {}
  */
 /**
  * @author huanmin
@@ -34,14 +35,17 @@ import java.util.List;
 @ToString(callSuper = true)
 @Data
 public class ForSyntaxNode extends BlockSyntaxNode {
+    // 循环类型标识
+    private ForLoopType loopType;
+
     public ForSyntaxNode() {
         super(SyntaxNodeType.FOR_EXP);
     }
-    
+
     public ForSyntaxNode(SyntaxNodeType type) {
         super(type);
     }
-    
+
     @Override
     protected TokenType getTargetTokenType() {
         return TokenType.FOR;
@@ -49,23 +53,23 @@ public class ForSyntaxNode extends BlockSyntaxNode {
 
     @Override
     public boolean buildStatement(List<Token> tokens, List<SyntaxNode> syntaxNodeList) {
-        //优化：缓存size，避免在循环中重复调用
+        // 优化：缓存size，避免在循环中重复调用
         int tokensSize = tokens.size();
         // 遍历标记序列
         for (int i = 0; i < tokensSize; i++) {
             Token token = tokens.get(i);
             if (token.type == TokenType.FOR) {
-                //记录结束下标, 用于截取和删除
-                int endIndex =skipForEnd(tokens, i);
-                //截取for表达式的标记序列
+                // 记录结束下标, 用于截取和删除
+                int endIndex = skipForEnd(tokens, i);
+                // 截取for表达式的标记序列
                 List<Token> forTokens = new ArrayList<>(tokens.subList(i, endIndex));
-                //删除
+                // 删除
                 tokens.subList(i, endIndex).clear();
 
                 ForSyntaxNode forStatement = new ForSyntaxNode(SyntaxNodeType.FOR_EXP);
                 forStatement.setValue(forTokens);
                 forStatement.setLine(token.getLine());
-                //构建子节点
+                // 构建子节点
                 if (!buildChildStatement(forStatement)) {
                     return false;
                 }
@@ -78,28 +82,33 @@ public class ForSyntaxNode extends BlockSyntaxNode {
 
     /**
      * 构建for语句的子节点
-     * 
+     *
      * <p>此方法会解析for语句的tokens，提取循环条件和循环体，构建子节点。
-     * 
+     * 支持两种循环模式：
+     * <ul>
+     *   <li>RANGE: for i in 1..10 { ... }</li>
+     *   <li>VARIABLE_ITERATION: for item in list { ... } 或 for k, v in map { ... }</li>
+     * </ul>
+     *
      * <p><b>副作用说明</b>：此方法会修改传入的 syntaxNode 节点：
      * <ul>
      *   <li>会修改 syntaxNode.getValue() 返回的 tokens 列表（移除已解析的 tokens）</li>
      *   <li>会将原始的 tokens 分解，条件部分保留在父节点的 value 中，循环体部分构建为子节点</li>
      * </ul>
-     * 
+     *
      * @param syntaxNode for语句节点（会被修改）
      * @return 如果成功构建返回 true，否则返回 false
      */
     @Override
     public boolean buildChildStatement(SyntaxNode syntaxNode) {
-        //for的token
+        // for的token
         List<Token> tokenList = syntaxNode.getValue();
-        //将条件提取出来
-        //去掉开头的FOR
+        // 将条件提取出来
+        // 去掉开头的FOR
         tokenList.remove(0);
-        //一直找到第一个{+LINE_END
-        int endIndex=0;
-        //优化：缓存size，避免在循环中重复调用
+        // 一直找到第一个{+LINE_END
+        int endIndex = 0;
+        // 优化：缓存size，避免在循环中重复调用
         int tokenListSize = tokenList.size();
         for (int i = 0; i < tokenListSize; i++) {
             Token token = tokenList.get(i);
@@ -108,107 +117,49 @@ public class ForSyntaxNode extends BlockSyntaxNode {
                 break;
             }
         }
-        //截取for表达式条件
+        // 截取for表达式条件
         List<Token> forTokens = new ArrayList<>(tokenList.subList(0, endIndex));
 
-        //校验变量名必须存在（第一个token必须是IDENTIFIER）
-        if (forTokens.isEmpty() || forTokens.get(0).type != TokenType.IDENTIFIER) {
+        // 判断循环类型并设置loopType
+        boolean hasDot2 = forTokens.stream().anyMatch(t -> t.type == TokenType.DOT2);
+        // 检查第一个token是否为IDENTIFIER（变量名）
+        boolean firstIsIdentifier = !forTokens.isEmpty() && forTokens.get(0).type == TokenType.IDENTIFIER;
+
+        if (hasDot2) {
+            // RANGE模式: for i in 1..10
+            ((ForSyntaxNode) syntaxNode).setLoopType(ForLoopType.RANGE);
+        } else if (firstIsIdentifier) {
+            // VARIABLE_ITERATION模式: for item in list 或 for k, v in map
+            // 在运行时根据变量的实际类型判断是List还是Map
+            ((ForSyntaxNode) syntaxNode).setLoopType(ForLoopType.VARIABLE_ITERATION);
+        } else {
+            // 格式错误
             String context = printFor(forTokens);
             throw new NfSyntaxException(
                 forTokens.isEmpty() ? 0 : forTokens.get(0).line,
                 "for表达式语法错误",
-                "for表达式缺少循环变量名",
+                "无法识别的for循环格式",
                 context,
-                "正确的格式：for variable in start..end { ... }，variable 必须是有效的变量名"
+                "支持的格式：for i in 1..10 {}, for item in list {}, for k, v in map {}"
             );
         }
 
-        //必须存在In
-        if (forTokens.stream().noneMatch(t -> t.type == TokenType.IN)) {
-            String context = printFor(forTokens);
-            throw new NfSyntaxException(
-                forTokens.get(0).line,
-                "for表达式语法错误",
-                "for表达式必须包含 'in' 关键字",
-                context,
-                "正确的格式：for variable in start..end { ... }"
-            );
-        }
-
-        //判断必须存在DOT2
-        if (forTokens.stream().noneMatch(t -> t.type == TokenType.DOT2)) {
-            String context = printFor(forTokens);
-            throw new NfSyntaxException(
-                forTokens.get(0).line,
-                "for表达式语法错误",
-                "for表达式必须包含范围操作符 '..'",
-                context,
-                "正确的格式：for variable in start..end { ... }"
-            );
-        }
-        //DOT2前后必须是INTEGER
-        //找到DOT2的位置
-        int dot2Index = 0;
-        //优化：缓存size，避免在循环中重复调用
-        int forTokensSize = forTokens.size();
-        for (int i = 0; i < forTokensSize; i++) {
-            if (forTokens.get(i).type == TokenType.DOT2) {
-                dot2Index = i;
-                break;
-            }
-        }
-        //取出DOT2前后的token
-        Token startToken = forTokens.get(dot2Index - 1);
-        //如果长度不够那么就是语法错误
-        if (dot2Index + 1 >= forTokens.size()) {
-            String context = printFor(forTokens);
-            throw new NfSyntaxException(
-                forTokens.get(0).line,
-                "for表达式语法错误",
-                "范围操作符 '..' 后面缺少结束值",
-                context,
-                "正确的格式：for variable in start..end { ... }，其中 start 和 end 必须是整数"
-            );
-        }
-        Token endToken = forTokens.get(dot2Index + 1);
-        //判断是否是整数
-        if (startToken.type != TokenType.INTEGER || endToken.type != TokenType.INTEGER) {
-            String context = printFor(forTokens);
-            throw new NfSyntaxException(
-                forTokens.get(0).line,
-                "for表达式类型错误",
-                "范围操作符 '..' 前后必须是整数",
-                context,
-                "正确的格式：for variable in start..end { ... }，其中 start 和 end 必须是整数"
-            );
-        }
-        //校验第一个整数必须小于或者等于第二个
-        if (Integer.parseInt(startToken.value) > Integer.parseInt(endToken.value)) {
-            String context = printFor(forTokens);
-            throw new NfSyntaxException(
-                forTokens.get(0).line,
-                "for表达式范围错误",
-                "范围操作符 '..' 前面的整数必须小于等于后面的整数",
-                context,
-                "请确保起始值 <= 结束值，例如：for i in 1..10 { ... }"
-            );
-        }
-        //删除
+        // 删除
         tokenList.subList(0, endIndex).clear();
-        //删除{+LINE_END
+        // 删除{+LINE_END
         tokenList.remove(0);
         tokenList.remove(0);
-        //删除最后的}
-        tokenList.remove(tokenList.size()-1);
-        //设置for条件
+        // 删除最后的}
+        tokenList.remove(tokenList.size() - 1);
+        // 设置for条件
         syntaxNode.setValue(forTokens);
-        //构建子节点
+        // 构建子节点
         List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokenList);
         if (!(syntaxNode instanceof ForSyntaxNode)) {
-            throw new NfException("Line:{} ,语法节点类型错误，期望ForSyntaxNode，实际:{}", 
+            throw new NfException("Line:{} ,语法节点类型错误，期望ForSyntaxNode，实际:{}",
                 syntaxNode.getLine(), syntaxNode.getClass().getName());
         }
-        ((ForSyntaxNode)syntaxNode).setChildSyntaxNodeList(syntaxNodes);
+        ((ForSyntaxNode) syntaxNode).setChildSyntaxNodeList(syntaxNodes);
         return true;
     }
 
@@ -216,73 +167,353 @@ public class ForSyntaxNode extends BlockSyntaxNode {
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {
         if (!(syntaxNode instanceof ForSyntaxNode)) {
-            throw new NfException("Line:{} ,语法节点类型错误，期望ForSyntaxNode，实际:{}", 
+            throw new NfException("Line:{} ,语法节点类型错误，期望ForSyntaxNode，实际:{}",
                 syntaxNode.getLine(), syntaxNode.getClass().getName());
         }
         ForSyntaxNode forSyntaxNode = (ForSyntaxNode) syntaxNode;
+        ForLoopType loopType = forSyntaxNode.getLoopType();
+        List<SyntaxNode> childList = forSyntaxNode.getChildSyntaxNodeList();
+
+        // 保留当前作用域id
+        String currentScopeId = context.getCurrentScopeId();
+
+        // 根据循环类型执行不同的逻辑
+        if (loopType == ForLoopType.RANGE) {
+            executeRangeLoop(context, forSyntaxNode, childList, currentScopeId);
+        } else if (loopType == ForLoopType.VARIABLE_ITERATION) {
+            executeVariableIteration(context, forSyntaxNode, childList, currentScopeId);
+        }
+    }
+
+    /**
+     * 执行数值范围循环: for i in 1..10 { ... }
+     */
+    private void executeRangeLoop(NfContext context, ForSyntaxNode forSyntaxNode,
+                                   List<SyntaxNode> childList, String currentScopeId) {
         List<Token> forValue = forSyntaxNode.getValue();
         if (forValue == null || forValue.size() < 5) {
-            throw new NfException("Line:{} ,for表达式格式错误，必须包含变量名、in关键字和范围值 , syntax:{} ", 
-                forSyntaxNode.getLine(), syntaxNode);
+            throw new NfException("Line:{} ,for表达式格式错误，必须包含变量名、in关键字和范围值 , syntax:{} ",
+                forSyntaxNode.getLine(), forSyntaxNode);
         }
-        //i in 1..10
-        //取出i
+        // i in 1..10
+        // 取出i
         String i = forValue.get(0).value;
-        //取出start
+        // 取出start
         String start = forValue.get(2).value;
-        //取出end
+        // 取出end
         String end = forValue.get(4).value;
-        //保留当前作用域id
-        String currentScopeId = context.getCurrentScopeId();
-        //优化：提前解析start和end，避免在循环中重复调用parseInt
+        // 优化：提前解析start和end，避免在循环中重复调用parseInt
         int startInt = Integer.parseInt(start);
         int endInt = Integer.parseInt(end);
-        //循环
-        List<SyntaxNode> childList = forSyntaxNode.getChildSyntaxNodeList();
+
+        // 循环
         if (childList == null) {
             // for循环体为空，直接返回
             return;
         }
         for (int j = startInt; j <= endInt; j++) {
-            //检查全局breakAll标志（由breakall语句设置）
+            // 检查全局breakAll标志（由breakall语句设置）
             if (context.isGlobalBreakAll()) {
                 break;
             }
-            //创建子作用域
+            // 创建子作用域
             NfContextScope newScope = context.createChildScope(currentScopeId, NfContextScopeType.FOR);
-            //将i的值赋值
-            newScope.addVariable(new NfVariableInfo(i,j, Integer.class));
-            //执行子节点
+            // 将i的值赋值
+            newScope.addVariable(new NfVariableInfo(i, j, Integer.class));
+            // 执行子节点
             if (childList != null) {
                 SyntaxNodeFactory.executeAll(childList, context);
             }
-            //移除子作用域
+            // 移除子作用域
             context.removeScope(newScope.getScopeId());
 
-            //执行子节点后再次检查globalBreakAll标志（breakall可能在子节点中被触发）
-            //如果globalBreakAll被设置，立即跳出循环，不要执行后续的清除操作
+            // 执行子节点后再次检查globalBreakAll标志（breakall可能在子节点中被触发）
+            // 如果globalBreakAll被设置，立即跳出循环，不要执行后续的清除操作
             if (context.isGlobalBreakAll()) {
                 break;
             }
-            //如果是break,那么就跳出当前的循环
+            // 如果是break,那么就跳出当前的循环
             if (newScope.isBreak()) {
                 break;
             }
-            //如果是breakall,那么就跳出所有循环
+            // 如果是breakall,那么就跳出所有循环
             if (newScope.isBreakAll()) {
-                //传播breakAll标志到所有祖先FOR作用域
-                //这样可以处理嵌套场景，例如：FOR -> FOR -> IF，IF中的breakall需要传播到外层FOR
+                // 传播breakAll标志到所有祖先FOR作用域
+                // 这样可以处理嵌套场景，例如：FOR -> FOR -> IF，IF中的breakall需要传播到外层FOR
                 propagateBreakAllToAncestorFors(context, currentScopeId);
                 break;
             }
         }
-        //循环结束后，清除当前FOR作用域的breakAll标志
+        // 循环结束后，清除当前FOR作用域的breakAll标志
         NfContextScope currentForScope = context.getScope(currentScopeId);
         if (currentForScope != null && currentForScope.getType() == NfContextScopeType.FOR) {
             currentForScope.setBreakAll(false);
         }
-        //只有当父作用域不是FOR类型时，才清除全局breakAll标志
-        //这样可以确保嵌套的FOR循环也能正确响应breakall
+        // 只有当父作用域不是FOR类型时，才清除全局breakAll标志
+        // 这样可以确保嵌套的FOR循环也能正确响应breakall
+        NfContextScope parentScope = context.getScope(currentForScope != null ? currentForScope.getParentScopeId() : null);
+        if (parentScope == null || parentScope.getType() != NfContextScopeType.FOR) {
+            context.setGlobalBreakAll(false);
+        }
+    }
+
+    /**
+     * 执行变量迭代循环（在运行时根据变量实际类型决定是List还是Map）
+     * 支持两种格式：
+     * - for item in list { ... }
+     * - for k, v in map { ... }
+     */
+    private void executeVariableIteration(NfContext context, ForSyntaxNode forSyntaxNode,
+                                        List<SyntaxNode> childList, String currentScopeId) {
+        List<Token> forValue = forSyntaxNode.getValue();
+        if (forValue == null || forValue.isEmpty()) {
+            throw new NfException("Line:{} ,for表达式格式错误，必须包含变量名和in关键字 , syntax:{} ",
+                forSyntaxNode.getLine(), forSyntaxNode);
+        }
+
+        // 判断是单变量还是双变量模式
+        boolean hasComma = forValue.stream().anyMatch(t -> t.type == TokenType.COMMA);
+        String varName1 = forValue.get(0).value;
+        String varName2 = null;
+        String targetVarName = null;
+
+        if (hasComma) {
+            // 双变量模式: for k, v in map
+            // 格式：IDENTIFIER, COMMA, IDENTIFIER, IN, IDENTIFIER
+            if (forValue.size() < 5) {
+                throw new NfException("Line:{} ,for表达式格式错误，双变量模式需要: key, value in map , syntax:{} ",
+                    forSyntaxNode.getLine(), forSyntaxNode);
+            }
+            varName2 = forValue.get(2).value;
+            targetVarName = forValue.get(4).value;
+        } else {
+            // 单变量模式: for item in list
+            // 格式：IDENTIFIER, IN, IDENTIFIER
+            if (forValue.size() < 3) {
+                throw new NfException("Line:{} ,for表达式格式错误，单变量模式需要: item in list , syntax:{} ",
+                    forSyntaxNode.getLine(), forSyntaxNode);
+            }
+            targetVarName = forValue.get(2).value;
+        }
+
+        // 从上下文获取目标变量
+        NfVariableInfo targetVarInfo = context.getVariable(targetVarName);
+        if (targetVarInfo == null) {
+            throw new NfException("Line:{} ,变量 {} 不存在 , syntax:{} ",
+                forSyntaxNode.getLine(), targetVarName, forSyntaxNode);
+        }
+
+        Object targetValue = targetVarInfo.getValue();
+        // 检查是否为null
+        if (targetValue == null) {
+            throw new NfException("Line:{} ,变量 {} 的值为null , syntax:{} ",
+                forSyntaxNode.getLine(), targetVarName, forSyntaxNode);
+        }
+
+        // 根据变量实际类型决定是List、Set还是Map迭代
+        if (targetValue instanceof java.util.Map) {
+            // Map迭代
+            executeMapIteration(context, forSyntaxNode, childList, currentScopeId,
+                                varName1, varName2, targetValue);
+        } else if (targetValue instanceof java.util.List || targetValue.getClass().isArray()) {
+            // List迭代
+            executeListIteration(context, forSyntaxNode, childList, currentScopeId,
+                                 varName1, targetValue);
+        } else if (targetValue instanceof java.util.Set) {
+            // Set迭代
+            executeSetIteration(context, forSyntaxNode, childList, currentScopeId,
+                                varName1, targetValue);
+        } else {
+            throw new NfException("Line:{} ,变量 {} 不是List、Map、Set或数组类型，实际类型: {} , syntax:{} ",
+                forSyntaxNode.getLine(), targetVarName, targetValue.getClass().getSimpleName(), forSyntaxNode);
+        }
+    }
+
+    /**
+     * 执行List迭代（实际执行部分）
+     */
+    private void executeListIteration(NfContext context, ForSyntaxNode forSyntaxNode,
+                                    List<SyntaxNode> childList, String currentScopeId,
+                                    String itemName, Object listValue) {
+        // 转换为List
+        java.util.List<?> list = null;
+        if (listValue instanceof java.util.List) {
+            list = (java.util.List<?>) listValue;
+        } else if (listValue.getClass().isArray()) {
+            // 数组转换为List
+            list = java.util.Arrays.asList((Object[]) listValue);
+        }
+
+        // 循环
+        if (childList == null) {
+            // for循环体为空，直接返回
+            return;
+        }
+
+        for (Object item : list) {
+            // 检查全局breakAll标志（由breakall语句设置）
+            if (context.isGlobalBreakAll()) {
+                break;
+            }
+            // 创建子作用域
+            NfContextScope newScope = context.createChildScope(currentScopeId, NfContextScopeType.FOR);
+            // 将当前元素的值赋给循环变量
+            Class<?> itemClass = item != null ? item.getClass() : Object.class;
+            newScope.addVariable(new NfVariableInfo(itemName, item, itemClass));
+            // 执行子节点
+            if (childList != null) {
+                SyntaxNodeFactory.executeAll(childList, context);
+            }
+            // 移除子作用域
+            context.removeScope(newScope.getScopeId());
+
+            // 执行子节点后再次检查globalBreakAll标志
+            if (context.isGlobalBreakAll()) {
+                break;
+            }
+            // 如果是break,那么就跳出当前的循环
+            if (newScope.isBreak()) {
+                break;
+            }
+            // 如果是breakall,那么就跳出所有循环
+            if (newScope.isBreakAll()) {
+                propagateBreakAllToAncestorFors(context, currentScopeId);
+                break;
+            }
+        }
+        // 循环结束后，清除当前FOR作用域的breakAll标志
+        NfContextScope currentForScope = context.getScope(currentScopeId);
+        if (currentForScope != null && currentForScope.getType() == NfContextScopeType.FOR) {
+            currentForScope.setBreakAll(false);
+        }
+        // 只有当父作用域不是FOR类型时，才清除全局breakAll标志
+        NfContextScope parentScope = context.getScope(currentForScope != null ? currentForScope.getParentScopeId() : null);
+        if (parentScope == null || parentScope.getType() != NfContextScopeType.FOR) {
+            context.setGlobalBreakAll(false);
+        }
+    }
+
+    /**
+     * 执行Map迭代（实际执行部分）
+     */
+    private void executeMapIteration(NfContext context, ForSyntaxNode forSyntaxNode,
+                                    List<SyntaxNode> childList, String currentScopeId,
+                                    String keyName, String valueName, Object mapValue) {
+        @SuppressWarnings("unchecked")
+        java.util.Map<Object, Object> map = (java.util.Map<Object, Object>) mapValue;
+
+        // 循环
+        if (childList == null) {
+            // for循环体为空，直接返回
+            return;
+        }
+
+        for (java.util.Map.Entry<Object, Object> entry : map.entrySet()) {
+            // 检查全局breakAll标志（由breakall语句设置）
+            if (context.isGlobalBreakAll()) {
+                break;
+            }
+            // 创建子作用域
+            NfContextScope newScope = context.createChildScope(currentScopeId, NfContextScopeType.FOR);
+            // 将键的值赋给键变量
+            Object key = entry.getKey();
+            Class<?> keyClass = key != null ? key.getClass() : Object.class;
+            newScope.addVariable(new NfVariableInfo(keyName, key, keyClass));
+            // 将值的值赋给值变量
+            Object value = entry.getValue();
+            Class<?> valueClass = value != null ? value.getClass() : Object.class;
+            newScope.addVariable(new NfVariableInfo(valueName, value, valueClass));
+            // 执行子节点
+            if (childList != null) {
+                SyntaxNodeFactory.executeAll(childList, context);
+            }
+            // 移除子作用域
+            context.removeScope(newScope.getScopeId());
+
+            // 执行子节点后再次检查globalBreakAll标志
+            if (context.isGlobalBreakAll()) {
+                break;
+            }
+            // 如果是break,那么就跳出当前的循环
+            if (newScope.isBreak()) {
+                break;
+            }
+            // 如果是breakall,那么就跳出所有循环
+            if (newScope.isBreakAll()) {
+                propagateBreakAllToAncestorFors(context, currentScopeId);
+                break;
+            }
+        }
+        // 循环结束后，清除当前FOR作用域的breakAll标志
+        NfContextScope currentForScope = context.getScope(currentScopeId);
+        if (currentForScope != null && currentForScope.getType() == NfContextScopeType.FOR) {
+            currentForScope.setBreakAll(false);
+        }
+        // 只有当父作用域不是FOR类型时，才清除全局breakAll标志
+        NfContextScope parentScope = context.getScope(currentForScope != null ? currentForScope.getParentScopeId() : null);
+        if (parentScope == null || parentScope.getType() != NfContextScopeType.FOR) {
+            context.setGlobalBreakAll(false);
+        }
+    }
+
+    /**
+     * 执行Set迭代（实际执行部分）
+     */
+    private void executeSetIteration(NfContext context, ForSyntaxNode forSyntaxNode,
+                                     List<SyntaxNode> childList, String currentScopeId,
+                                     String itemName, Object setValue) {
+        // 转换为Set
+        java.util.Set<?> set = null;
+        if (setValue instanceof java.util.Set) {
+            set = (java.util.Set<?>) setValue;
+        } else {
+            throw new NfException("Line:{} ,变量 {} 不是Set类型，实际类型: {} , syntax:{} ",
+                    forSyntaxNode.getLine(), itemName, setValue.getClass().getSimpleName(), forSyntaxNode);
+        }
+
+        // 循环
+        if (childList == null) {
+            // for循环体为空，直接返回
+            return;
+        }
+
+        for (Object item : set) {
+            // 检查全局breakAll标志（由breakall语句设置）
+            if (context.isGlobalBreakAll()) {
+                break;
+            }
+            // 创建子作用域
+            NfContextScope newScope = context.createChildScope(currentScopeId, NfContextScopeType.FOR);
+            // 将当前元素的值赋给循环变量
+            Class<?> itemClass = item != null ? item.getClass() : Object.class;
+            newScope.addVariable(new NfVariableInfo(itemName, item, itemClass));
+            // 执行子节点
+            if (childList != null) {
+                SyntaxNodeFactory.executeAll(childList, context);
+            }
+            // 移除子作用域
+            context.removeScope(newScope.getScopeId());
+
+            // 执行子节点后再次检查globalBreakAll标志
+            if (context.isGlobalBreakAll()) {
+                break;
+            }
+            // 如果是break,那么就跳出当前的循环
+            if (newScope.isBreak()) {
+                break;
+            }
+            // 如果是breakall,那么就跳出所有循环
+            if (newScope.isBreakAll()) {
+                propagateBreakAllToAncestorFors(context, currentScopeId);
+                break;
+            }
+        }
+        // 循环结束后，清除当前FOR作用域的breakAll标志
+        NfContextScope currentForScope = context.getScope(currentScopeId);
+        if (currentForScope != null && currentForScope.getType() == NfContextScopeType.FOR) {
+            currentForScope.setBreakAll(false);
+        }
+        // 只有当父作用域不是FOR类型时，才清除全局breakAll标志
         NfContextScope parentScope = context.getScope(currentForScope != null ? currentForScope.getParentScopeId() : null);
         if (parentScope == null || parentScope.getType() != NfContextScopeType.FOR) {
             context.setGlobalBreakAll(false);

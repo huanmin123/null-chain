@@ -25,6 +25,7 @@ public class KeywordUtil {
      *   <li>逻辑运算符：and, or</li>
      *   <li>布尔常量：true, false</li>
      *   <li>对象创建：new</li>
+     *   <li>类型判断：instanceof</li>
      *   <li>其他：this</li>
      * </ul>
      * 
@@ -64,6 +65,8 @@ public class KeywordUtil {
         keywords.add("false");
         // 对象创建
         keywords.add("new");
+        // 类型判断
+        keywords.add("instanceof");
         // 其他
         keywords.add("this");
         forbidKeywords = Collections.unmodifiableSet(keywords);
