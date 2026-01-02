@@ -504,8 +504,8 @@ public class NullChainExceptionTest {
         String input = "test";
         // export 现在支持表达式计算，可以直接使用表达式
         NullGroupNfTask nullGroupNfTask = NullGroupNfTask.buildGroup(
-                NullGroupNfTask.task("export preValue + '_1'"),
-                NullGroupNfTask.task("export preValue + '_2'")
+                NullGroupNfTask.task("export $preValue + '_1'"),
+                NullGroupNfTask.task("export $preValue + '_2'")
         );
 
         try {

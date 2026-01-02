@@ -39,9 +39,10 @@ public class NfRun {
         }
 
         //因为任务的缘故需要把系统上下文传递给语法树 先给默认值,便于测试, 后面的循环会覆盖的如果有的话
-        scope.addVariable(new NfVariableInfo("params", null, null));
-        scope.addVariable(new NfVariableInfo("preValue", null, null));
-        scope.addVariable(new NfVariableInfo("threadFactoryName", ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME , String.class));
+        // 使用 $ 前缀标识系统变量，避免与用户定义的变量名冲突
+        scope.addVariable(new NfVariableInfo("$params", null, null));
+        scope.addVariable(new NfVariableInfo("$preValue", null, null));
+        scope.addVariable(new NfVariableInfo("$threadFactoryName", ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME , String.class));
 
         //添加系统上下文
         if (mainSystemContext != null) {

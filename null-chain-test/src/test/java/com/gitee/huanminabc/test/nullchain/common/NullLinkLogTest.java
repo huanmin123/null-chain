@@ -270,8 +270,8 @@ public class NullLinkLogTest {
         // 创建 NF 任务组
         // export 现在支持表达式计算，可以直接使用表达式
         NullGroupNfTask nullGroupNfTask = NullGroupNfTask.buildGroup(
-                NullGroupNfTask.task("export preValue + \"_nf1\""),
-                NullGroupNfTask.task("export preValue + \"_nf2\"")
+                NullGroupNfTask.task("export $preValue + \"_nf1\""),
+                NullGroupNfTask.task("export $preValue + \"_nf2\"")
         );
 
         NullChain<Map<String, Object>> chain = Null.of(input)

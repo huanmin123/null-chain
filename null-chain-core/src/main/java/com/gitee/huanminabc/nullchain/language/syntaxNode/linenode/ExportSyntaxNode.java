@@ -23,7 +23,7 @@ import java.util.List;
   export语句
   支持两种形式：
   1. export 变量名 - 导出变量（如：export result）
-  2. export 表达式 - 导出表达式计算结果（如：export preValue + "_nf1"）
+  2. export 表达式 - 导出表达式计算结果（如：export $preValue + "_nf1"）
  */
 
 /**

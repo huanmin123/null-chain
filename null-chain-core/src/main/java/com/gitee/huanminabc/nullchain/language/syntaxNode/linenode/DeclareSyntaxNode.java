@@ -59,6 +59,11 @@ public class DeclareSyntaxNode extends LineSyntaxNode {
                 tokens.subList(i, i + 2).clear();
                 //拿到第1个变量名称
                 Token varName = newToken.get(1);
+                // 禁止用户定义以 $ 开头的变量（$ 前缀保留给系统变量使用）
+                if (varName.value != null && varName.value.startsWith("$")) {
+                    throw new NfException("Line:{} ,变量名 {} 不能以 $ 开头，$ 前缀保留给系统变量使用, syntax: {}", 
+                        varName.line, varName.value, printExp(newToken));
+                }
                 boolean forbidKeyword = KeywordUtil.isForbidKeyword(varName.value);
                 if (forbidKeyword) {
                     throw new NfException("Line:{} ,变量名 {} 不能是禁用的关键字, syntax: {}",varName.line,varName.value,printExp(newToken));

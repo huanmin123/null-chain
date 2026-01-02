@@ -86,7 +86,8 @@ public class NfToken {
                 continue;
             }
             // 处理标识符、关键字和常量
-            if (Character.isLetter(currentChar) || currentChar == '_') {
+            // 支持 $ 前缀的系统变量（如 $preValue、$params、$threadFactoryName）
+            if (Character.isLetter(currentChar) || currentChar == '_' || currentChar == '$') {
                 i = IdentifierToken.identifier(input, currentChar, i, tokens, line);
                 continue;
             }

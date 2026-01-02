@@ -9,10 +9,12 @@ import java.util.List;
  */
 public class IdentifierToken {
     // 处理标识符、关键字和常量
+    // 支持 $ 前缀的系统变量（如 $preValue、$params、$threadFactoryName）
     public static int identifier(String input, char currentChar, int i, List<Token> tokens, Integer line) {
         StringBuilder sb = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         sb.append(currentChar);
         i++;
+        // 支持 $ 前缀的标识符（系统变量，如 $preValue、$params、$threadFactoryName）
         while (i < input.length() && (Character.isLetterOrDigit(input.charAt(i)) || input.charAt(i) == '_')) {
             sb.append(input.charAt(i));
             i++;

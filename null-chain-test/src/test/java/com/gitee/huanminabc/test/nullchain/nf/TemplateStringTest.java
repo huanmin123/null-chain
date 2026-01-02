@@ -28,7 +28,7 @@ public class TemplateStringTest {
         // 测试基本模板字符串功能
         String input = "test";
         String result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("String result = ```\n{preValue}\n```; export result"))
+                .nfTask(NullGroupNfTask.task("String result = ```\n{$preValue}\n```; export result"))
                 .type(String.class)
                 .get();
         
@@ -41,7 +41,7 @@ public class TemplateStringTest {
         // 测试模板字符串中的变量占位符
         String input = "world";
         String result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("String name = \"hello\"; String result = ```\n{name} {preValue}\n```; export result"))
+                .nfTask(NullGroupNfTask.task("String name = \"hello\"; String result = ```\n{name} {$preValue}\n```; export result"))
                 .type(String.class)
                 .get();
         
@@ -55,7 +55,7 @@ public class TemplateStringTest {
         // 测试模板字符串中的表达式占位符
         Integer input = 10;
         String result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("String result = ```\nValue: {preValue + 5}\n```; export result"))
+                .nfTask(NullGroupNfTask.task("String result = ```\nValue: {$preValue + 5}\n```; export result"))
                 .type(String.class)
                 .get();
         
@@ -70,7 +70,7 @@ public class TemplateStringTest {
         // 测试多行模板字符串保留换行
         String input = "test";
         String result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("String result = ```\nLine 1: {preValue}\nLine 2: {preValue}\nLine 3: {preValue}\n```; export result"))
+                .nfTask(NullGroupNfTask.task("String result = ```\nLine 1: {$preValue}\nLine 2: {$preValue}\nLine 3: {$preValue}\n```; export result"))
                 .type(String.class)
                 .get();
         
@@ -103,7 +103,7 @@ public class TemplateStringTest {
         // 测试在 export 中直接使用模板字符串
         String input = "test";
         String result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("export ```\n{preValue}\n```"))
+                .nfTask(NullGroupNfTask.task("export ```\n{$preValue}\n```"))
                 .type(String.class)
                 .get();
         
@@ -116,7 +116,7 @@ public class TemplateStringTest {
         // 测试在 export 中使用带变量的模板字符串
         String input = "world";
         String result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("String name = \"hello\"; export ```\n{name} {preValue}\n```"))
+                .nfTask(NullGroupNfTask.task("String name = \"hello\"; export ```\n{name} {$preValue}\n```"))
                 .type(String.class)
                 .get();
         
@@ -132,7 +132,7 @@ public class TemplateStringTest {
         // 测试在赋值中使用模板字符串
         String input = "test";
         String result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("String result = ```\nValue: {preValue}\n```; export result"))
+                .nfTask(NullGroupNfTask.task("String result = ```\nValue: {$preValue}\n```; export result"))
                 .type(String.class)
                 .get();
         
@@ -146,7 +146,7 @@ public class TemplateStringTest {
         // 测试赋值中使用多个占位符的模板字符串
         String input = "world";
         String result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("String greeting = \"Hello\"; String result = ```\n{greeting} {preValue}!\n```; export result"))
+                .nfTask(NullGroupNfTask.task("String greeting = \"Hello\"; String result = ```\n{greeting} {$preValue}!\n```; export result"))
                 .type(String.class)
                 .get();
         
@@ -165,7 +165,7 @@ public class TemplateStringTest {
             // echo 不会返回值，需要添加 export 或者使用 orElse 处理
             // 这里添加一个 export 语句来避免链式调用返回 null
             String result = Null.of(input)
-                    .nfTask(NullGroupNfTask.task("echo ```\nEc       h      o: {preValue}\n```; export \"success\""))
+                    .nfTask(NullGroupNfTask.task("echo ```\nEc       h      o: {$preValue}\n```; export \"success\""))
                     .type(String.class)
                     .orElse("failed");
             // echo 执行成功
@@ -182,7 +182,7 @@ public class TemplateStringTest {
         // 测试模板字符串中使用复杂表达式
         Integer input = 10;
         String result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("String result = ```\nResult: {(preValue + 5) * 2}\n```; export result"))
+                .nfTask(NullGroupNfTask.task("String result = ```\nResult: {($preValue + 5) * 2}\n```; export result"))
                 .type(String.class)
                 .get();
         
@@ -195,7 +195,7 @@ public class TemplateStringTest {
         // 测试模板字符串中使用字符串拼接表达式
         String input = "test";
         String result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("String result = ```\n{preValue + \"_suffix\"}\n```; export result"))
+                .nfTask(NullGroupNfTask.task("String result = ```\n{$preValue + \"_suffix\"}\n```; export result"))
                 .type(String.class)
                 .get();
         
@@ -208,7 +208,7 @@ public class TemplateStringTest {
         // 测试在链式调用中使用模板字符串
         String input = "test";
         String result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("String step1 = ```\nStep1: {preValue}\n```; String step2 = step1 + \"_step2\"; export step2"))
+                .nfTask(NullGroupNfTask.task("String step1 = ```\nStep1: {$preValue}\n```; String step2 = step1 + \"_step2\"; export step2"))
                 .type(String.class)
                 .get();
         
@@ -277,7 +277,7 @@ public class TemplateStringTest {
         
         for (int i = 0; i < 100; i++) {
             String result = Null.of(input)
-                    .nfTask(NullGroupNfTask.task("String result = ```\n{preValue}\n```; export result"))
+                    .nfTask(NullGroupNfTask.task("String result = ```\n{$preValue}\n```; export result"))
                     .type(String.class)
                     .get();
             assertNotNull(result);

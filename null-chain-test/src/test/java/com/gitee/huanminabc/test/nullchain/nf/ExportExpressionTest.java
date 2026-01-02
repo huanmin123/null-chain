@@ -32,7 +32,7 @@ public class ExportExpressionTest {
         // 测试导出变量（向后兼容）
         String input = "test_input";
         String result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("String result = preValue + '_suffix'; export result"))
+                .nfTask(NullGroupNfTask.task("String result = $preValue + '_suffix'; export result"))
                 .type(String.class)
                 .get();
         
@@ -45,7 +45,7 @@ public class ExportExpressionTest {
         // 测试直接导出变量
         String input = "test";
         String result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("String value = preValue; export value"))
+                .nfTask(NullGroupNfTask.task("String value = $preValue; export value"))
                 .type(String.class)
                 .get();
         
@@ -60,7 +60,7 @@ public class ExportExpressionTest {
         // 测试导出字符串拼接表达式
         String input = "test";
         String result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("export preValue + \"_suffix\""))
+                .nfTask(NullGroupNfTask.task("export $preValue + \"_suffix\""))
                 .type(String.class)
                 .get();
         
@@ -73,7 +73,7 @@ public class ExportExpressionTest {
         // 测试导出多个字符串拼接表达式
         String input = "hello";
         String result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("export preValue + \"_\" + \"world\" + \"_\" + \"test\""))
+                .nfTask(NullGroupNfTask.task("export $preValue + \"_\" + \"world\" + \"_\" + \"test\""))
                 .type(String.class)
                 .get();
         
@@ -86,7 +86,7 @@ public class ExportExpressionTest {
         // 测试导出数学运算表达式
         Integer input = 10;
         Integer result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("export preValue + 5 * 2"))
+                .nfTask(NullGroupNfTask.task("export $preValue + 5 * 2"))
                 .type(Integer.class)
                 .get();
         
@@ -99,7 +99,7 @@ public class ExportExpressionTest {
         // 测试导出复杂数学运算表达式
         Integer input = 10;
         Integer result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("export (preValue + 5) * 2 - 3"))
+                .nfTask(NullGroupNfTask.task("export ($preValue + 5) * 2 - 3"))
                 .type(Integer.class)
                 .get();
         
@@ -112,7 +112,7 @@ public class ExportExpressionTest {
         // 测试导出包含变量的表达式
         String input = "test";
         String result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("String prefix = \"prefix_\"; export prefix + preValue"))
+                .nfTask(NullGroupNfTask.task("String prefix = \"prefix_\"; export prefix + $preValue"))
                 .type(String.class)
                 .get();
         
@@ -125,7 +125,7 @@ public class ExportExpressionTest {
         // 测试导出包含多个变量的表达式
         String input = "test";
         String result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("String prefix = \"prefix_\"; String suffix = \"_suffix\"; export prefix + preValue + suffix"))
+                .nfTask(NullGroupNfTask.task("String prefix = \"prefix_\"; String suffix = \"_suffix\"; export prefix + $preValue + suffix"))
                 .type(String.class)
                 .get();
         
@@ -138,7 +138,7 @@ public class ExportExpressionTest {
         // 测试导出布尔表达式
         Integer input = 10;
         Boolean result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("export preValue > 5"))
+                .nfTask(NullGroupNfTask.task("export $preValue > 5"))
                 .type(Boolean.class)
                 .get();
         
@@ -151,7 +151,7 @@ public class ExportExpressionTest {
         // 测试导出比较表达式
         Integer input = 10;
         Boolean result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("export preValue == 10"))
+                .nfTask(NullGroupNfTask.task("export $preValue == 10"))
                 .type(Boolean.class)
                 .get();
         
@@ -166,9 +166,9 @@ public class ExportExpressionTest {
         // 测试并发任务中的表达式导出
         String input = "test";
         NullGroupNfTask nullGroupNfTask = NullGroupNfTask.buildGroup(
-                NullGroupNfTask.task("export preValue + \"_task1\""),
-                NullGroupNfTask.task("export preValue + \"_task2\""),
-                NullGroupNfTask.task("export preValue + \"_task3\"")
+                NullGroupNfTask.task("export $preValue + \"_task1\""),
+                NullGroupNfTask.task("export $preValue + \"_task2\""),
+                NullGroupNfTask.task("export $preValue + \"_task3\"")
         );
 
         Map<String, Object> result = Null.of(input)
@@ -186,9 +186,9 @@ public class ExportExpressionTest {
         // 测试并发任务中的数学表达式导出
         Integer input = 10;
         NullGroupNfTask nullGroupNfTask = NullGroupNfTask.buildGroup(
-                NullGroupNfTask.task("export preValue + 1"),
-                NullGroupNfTask.task("export preValue * 2"),
-                NullGroupNfTask.task("export preValue - 5")
+                NullGroupNfTask.task("export $preValue + 1"),
+                NullGroupNfTask.task("export $preValue * 2"),
+                NullGroupNfTask.task("export $preValue - 5")
         );
 
         Map<String, Object> result = Null.of(input)
@@ -306,7 +306,7 @@ public class ExportExpressionTest {
         // 测试导出变量和字面量混合的表达式
         String input = "test";
         String result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("String suffix = \"_end\"; export preValue + suffix + \"_literal\""))
+                .nfTask(NullGroupNfTask.task("String suffix = \"_end\"; export $preValue + suffix + \"_literal\""))
                 .type(String.class)
                 .get();
         
@@ -319,7 +319,7 @@ public class ExportExpressionTest {
         // 测试导出算术和字符串混合的表达式
         Integer input = 10;
         String result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("export \"value:\" + (preValue + 5)"))
+                .nfTask(NullGroupNfTask.task("export \"value:\" + ($preValue + 5)"))
                 .type(String.class)
                 .get();
         
@@ -332,7 +332,7 @@ public class ExportExpressionTest {
         // 测试导出表达式链式调用
         String input = "test";
         String result = Null.of(input)
-                .nfTask(NullGroupNfTask.task("String step1 = preValue + \"_step1\"; String step2 = step1 + \"_step2\"; export step2 + \"_final\""))
+                .nfTask(NullGroupNfTask.task("String step1 = $preValue + \"_step1\"; String step2 = step1 + \"_step2\"; export step2 + \"_final\""))
                 .type(String.class)
                 .get();
         
@@ -350,7 +350,7 @@ public class ExportExpressionTest {
         
         for (int i = 0; i < 100; i++) {
             String result = Null.of(input)
-                    .nfTask(NullGroupNfTask.task("export preValue + \"_\" + " + i))
+                    .nfTask(NullGroupNfTask.task("export $preValue + \"_\" + " + i))
                     .type(String.class)
                     .get();
             assertNotNull(result);

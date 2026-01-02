@@ -233,8 +233,8 @@ public class RunSyntaxNode extends LineSyntaxNode {
             }
             Map<String, Object> nullChainMap = new ConcurrentHashMap<>();
 
-            //获取线程池名称
-            NfVariableInfo threadFactory = mainScope.getVariable("threadFactoryName");
+            //获取线程池名称（使用 $ 前缀的系统变量）
+            NfVariableInfo threadFactory = mainScope.getVariable("$threadFactoryName");
             String threadFactoryName = (String) threadFactory.getValue();
             ThreadPoolExecutor executor = ThreadFactoryUtil.getExecutor(threadFactoryName);
             List<Future<?>> futures = new ArrayList<>();
@@ -323,8 +323,8 @@ public class RunSyntaxNode extends LineSyntaxNode {
     private Object runTask(String taskName, NfContext context, List<Object> args, SyntaxNode syntaxNode) throws NfCheckException {
         NullTask nullTask = NullTaskFactory.getTask(taskName);
         NfContextScope mainScope = context.getMainScope();
-        //必然有值,不然就进不来这里
-        NfVariableInfo preValue= mainScope.getVariable("preValue");
+        //必然有值,不然就进不来这里（使用 $ 前缀的系统变量）
+        NfVariableInfo preValue= mainScope.getVariable("$preValue");
         Map<String, Object> mainScopeMap = new HashMap<>();
         //函数的参数
         Object[] array = args.toArray();

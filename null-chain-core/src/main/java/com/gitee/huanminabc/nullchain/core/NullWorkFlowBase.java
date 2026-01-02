@@ -361,9 +361,10 @@ public class NullWorkFlowBase<T> extends NullFinalityBase<T> implements NullWork
         //校验线程池是否存在
         ThreadFactoryUtil.addExecutor(threadFactoryName);
         Map<String, Object> mainSystemContext = new HashMap<>();
-        mainSystemContext.put("threadFactoryName", threadFactoryName);
-        mainSystemContext.put("preValue", preValue);//上一个任务的值
-        mainSystemContext.put("params", params == null ? NullConstants.EMPTY_OBJECT_ARRAY : params);
+        // 使用 $ 前缀标识系统变量，避免与用户定义的变量名冲突
+        mainSystemContext.put("$threadFactoryName", threadFactoryName);
+        mainSystemContext.put("$preValue", preValue);//上一个任务的值
+        mainSystemContext.put("$params", params == null ? NullConstants.EMPTY_OBJECT_ARRAY : params);
         return NfMain.run(nfContext, logger, mainSystemContext);
     }
 

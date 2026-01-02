@@ -121,6 +121,11 @@ public class AssignSyntaxNode extends LineSyntaxNode {
 
                 //拿到变量名称（根据是否有类型声明，位置不同）
                 Token varName = hasTypeDeclaration ? newToken.get(1) : newToken.get(0);
+                // 禁止用户定义以 $ 开头的变量（$ 前缀保留给系统变量使用）
+                if (varName.value != null && varName.value.startsWith("$")) {
+                    throw new NfException("Line:{} ,变量名 {} 不能以 $ 开头，$ 前缀保留给系统变量使用, syntax: {}", 
+                        varName.line, varName.value, printExp(newToken));
+                }
                 boolean forbidKeyword = KeywordUtil.isForbidKeyword(varName.value);
                 if (forbidKeyword) {
                     throw new NfException("Line:{} ,变量名 {} 不能是禁用的关键字: {}",varName.line,varName.value,printExp(newToken));

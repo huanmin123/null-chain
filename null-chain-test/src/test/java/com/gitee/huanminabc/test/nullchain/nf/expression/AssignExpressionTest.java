@@ -72,5 +72,49 @@ public class AssignExpressionTest {
         assertEquals(10, result); // level1 最终值应该是 10
         log.info("赋值表达式作用域测试通过，结果: {}", result);
     }
+
+    /**
+     * 测试创建新对象（使用内置类型，无需导入）
+     */
+    @Test
+    public void testAssignNewObject() {
+        String file = TestUtil.readFile("syntax/assign_new_object.nf");
+        List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(file);
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
+        
+        NfContext context = new NfContext();
+        Object result = NfRun.run(syntaxNodes, context, log, null);
+        
+        assertNotNull(result);
+        assertTrue(result instanceof java.util.ArrayList);
+        java.util.ArrayList<?> list = (java.util.ArrayList<?>) result;
+        assertEquals(2, list.size());
+        assertEquals("hello", list.get(0));
+        assertEquals("world", list.get(1));
+        log.info("创建新对象测试通过，结果: {}", result);
+    }
+
+    /**
+     * 测试导入自定义类型并创建对象
+     */
+    @Test
+    public void testAssignImportUserEntity() {
+        String file = TestUtil.readFile("syntax/assign_import_user_entity.nf");
+        List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(file);
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
+        
+        NfContext context = new NfContext();
+        Object result = NfRun.run(syntaxNodes, context, log, null);
+        
+        assertNotNull(result);
+        assertTrue(result instanceof com.gitee.huanminabc.test.nullchain.entity.UserEntity);
+        com.gitee.huanminabc.test.nullchain.entity.UserEntity user = 
+            (com.gitee.huanminabc.test.nullchain.entity.UserEntity) result;
+        assertEquals(1, user.getId());
+        assertEquals("huanmin", user.getName());
+        assertEquals(25, user.getAge());
+        assertEquals("男", user.getSex());
+        log.info("导入自定义类型并创建对象测试通过，结果: {}", user);
+    }
 }
 
