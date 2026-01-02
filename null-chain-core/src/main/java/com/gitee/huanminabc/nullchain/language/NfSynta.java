@@ -10,13 +10,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 语法分析器 ,将Token解析成语法节点
- */
-/**
+ * 语法分析器，将Token解析成语法节点
+ *
  * @author huanmin
  * @date 2024/11/22
  */
 public class NfSynta {
+    
+    /**
+     * 错误上下文最大Token数量
+     * 当语法错误发生时，最多显示此数量的Token作为错误上下文
+     */
+    private static final int MAX_ERROR_CONTEXT_TOKENS = 20;
+    
     public List<SyntaxNode> syntaxNodeList = new ArrayList<>();
 
     /**
@@ -44,7 +50,7 @@ public class NfSynta {
             boolean success = SyntaxNodeFactory.forEachNode(tokens, syntaxNodeList);
             if (!success) {
                 //如果无法识别，抛出异常
-                int errorTokenCount = Math.min(tokens.size(), 20);
+                int errorTokenCount = Math.min(tokens.size(), MAX_ERROR_CONTEXT_TOKENS);
                 String context = TokenUtil.mergeToken(tokens.subList(0, errorTokenCount)).toString();
                 String suggestion = "期望: import, task, assign, declare, run, export, echo, if, switch, for, while, break, breakAll, continue 等关键字";
                 throw new NfSyntaxException(

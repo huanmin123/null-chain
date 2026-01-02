@@ -1,6 +1,7 @@
 package com.gitee.huanminabc.nullchain.language.internal;
 
 import com.gitee.huanminabc.nullchain.core.NullChain;
+import com.gitee.huanminabc.nullchain.language.NfMain;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -326,15 +327,28 @@ public class NfContext {
         interfaceDefaultImplMap.put(interfaceType, implType);
     }
 
-    //清理上下文,减轻gc的自己释放的压力
+    /**
+     * 销毁上下文并释放资源
+     * 
+     * <p><b>重要：</b>此方法会将内部字段置为 null，调用后对象不可再使用。
+     * 此方法仅在脚本执行完成后调用，用于释放资源和减轻 GC 压力。</p>
+     * 
+     * <p><b>注意：</b>此方法与普通的 clear() 方法不同，它会彻底销毁对象状态。
+     * 如果需要重用上下文，请创建新的 NfContext 实例。</p>
+     * 
+     * @see NfMain#run
+     */
     public void clear() {
+        // 销毁所有作用域
         for (Map.Entry<String, NfContextScope> entry : scopeMap.entrySet()) {
             entry.getValue().clear();
         }
+        // 清空并释放所有内部 Map
         scopeMap.clear();
         importMap.clear();
         importMap = null;
         scopeMap = null;
+        // 释放接口映射
         if (interfaceDefaultImplMap != null) {
             interfaceDefaultImplMap.clear();
             interfaceDefaultImplMap = null;

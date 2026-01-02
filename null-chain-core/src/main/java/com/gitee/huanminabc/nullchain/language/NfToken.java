@@ -10,55 +10,99 @@ import java.util.List;
  */
 
 /**
+ * NF脚本词法分析器
+ * 将源代码解析为Token序列
+ *
  * @author huanmin
  * @date 2024/11/22
  */
 public class NfToken {
 
-    //括号检测  {} [] () "" '' 个数是否是偶数
+    /**
+     * 括号匹配检测
+     * 只检查结构性括号 {}[]() 是否匹配
+     * 注：字符串和注释中的引号由词法分析器正确处理，无需在此处检查
+     *
+     * @param input 输入的脚本内容
+     * @throws NfException 如果括号不匹配
+     */
     public static void checkBrackets(String input) {
         int length = input.length();
         int count1 = 0; // {}
         int count2 = 0; // []
         int count3 = 0; // ()
-        int count4 = 0; // ""
-        int count5 = 0; // ''
+
         for (int i = 0; i < length; i++) {
             char currentChar = input.charAt(i);
-            if (currentChar == '{') {
-                count1++;
-            }
-            if (currentChar == '}') {
-                count1--;
-            }
-            if (currentChar == '[') {
-                count2++;
-            }
-            if (currentChar == ']') {
-                count2--;
-            }
-            if (currentChar == '(') {
-                count3++;
-            }
-            if (currentChar == ')') {
-                count3--;
-            }
+
+            // 跳过字符串和注释中的字符（简单处理）
+            // 注意：这只是预检，完整的字符串处理在词法分析阶段
             if (currentChar == '"') {
-                count4++;
+                // 跳过双引号字符串内容（处理转义）
+                i++;
+                while (i < length) {
+                    char c = input.charAt(i);
+                    if (c == '\'' && i + 1 < length) {
+                        // 转义字符，跳过下一个字符
+                        i += 2;
+                        continue;
+                    }
+                    if (c == '"') {
+                        break;
+                    }
+                    i++;
+                }
+                continue;
             }
             if (currentChar == '\'') {
-                count5++;
+                // 跳过单引号字符串内容（处理转义）
+                i++;
+                while (i < length) {
+                    char c = input.charAt(i);
+                    if (c == '\'' && i + 1 < length) {
+                        // 转义字符，跳过下一个字符
+                        i += 2;
+                        continue;
+                    }
+                    if (c == '\'') {
+                        break;
+                    }
+                    i++;
+                }
+                continue;
+            }
+
+            // 检查结构性括号
+            if (currentChar == '{') {
+                count1++;
+            } else if (currentChar == '}') {
+                count1--;
+            } else if (currentChar == '[') {
+                count2++;
+            } else if (currentChar == ']') {
+                count2--;
+            } else if (currentChar == '(') {
+                count3++;
+            } else if (currentChar == ')') {
+                count3--;
             }
         }
-        if (count1 != 0 || count2 != 0 || count3 != 0 || count4 % 2 != 0 || count5 % 2 != 0) {
-            throw new NfException("{}不匹配", "{} [] () \"\" '' ");
+
+        if (count1 != 0 || count2 != 0 || count3 != 0) {
+            throw new NfException("括号不匹配: {}[]()");
         }
     }
 
 
-    //构建Token
+    /**
+     * 构建Token序列
+     *
+     * @param input 输入的脚本内容
+     * @return Token列表
+     * @throws NfException 如果语法错误
+     */
     public static List<Token> tokens(String input) {
-        //检查{} [] () "" 是否匹配, 不然会出现死循环
+        //检查{} [] () 是否匹配, 不然会出现死循环
         checkBrackets(input);
         List<Token> tokens = new ArrayList<>();
         int i = 0;
@@ -97,7 +141,7 @@ public class NfToken {
                 continue;
             }
             // 处理模板字符串（``` 开头，必须在普通字符串之前检测）
-            if (currentChar == '`' && i + 2 < length && 
+            if (currentChar == '`' && i + 2 < length &&
                 input.charAt(i + 1) == '`' && input.charAt(i + 2) == '`') {
                 i = StringToken.templateString(input, i, tokens, line);
                 continue;
@@ -117,7 +161,7 @@ public class NfToken {
     /**
      * 去掉开头的换行
      * 如果列表为空，直接返回，避免IndexOutOfBoundsException
-     * 
+     *
      * @param tokens Token列表
      */
     public static void skipLineEnd(List<Token> tokens) {
