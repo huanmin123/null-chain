@@ -11,19 +11,19 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
 import com.gitee.huanminabc.nullchain.language.utils.DataType;
+import com.gitee.huanminabc.nullchain.language.utils.SyntaxNodeUtil;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * export语句 
- * 支持两种形式：
- * 1. export 变量名 - 导出变量（如：export result）
- * 2. export 表达式 - 导出表达式计算结果（如：export preValue + "_nf1"）
+/*
+  export语句
+  支持两种形式：
+  1. export 变量名 - 导出变量（如：export result）
+  2. export 表达式 - 导出表达式计算结果（如：export preValue + "_nf1"）
  */
 
 /**
@@ -57,11 +57,11 @@ public class ExportSyntaxNode extends LineSyntaxNode {
             Token token = tokens.get(i);
             if (token.type == TokenType.EXPORT) {
                 //记录结束下标, 用于截取和删除
-                int endIndex = findLineEndIndex(tokens, i);
+                int endIndex = SyntaxNodeUtil.findLineEndIndex(tokens, i);
                 //截取Export语句的标记序列 不包含Export和LINE_END
                 List<Token> newToken = new ArrayList<>(tokens.subList(i + 1, endIndex));
                 //去掉注释
-                removeComments(newToken);
+                SyntaxNodeUtil.removeComments(newToken);
 
                 //如果是空的export, 抛出异常
                 if (newToken.isEmpty()) {
@@ -99,7 +99,7 @@ public class ExportSyntaxNode extends LineSyntaxNode {
             Token token = tokens.get(0);
             // 去除首尾的 ```，并处理占位符
             String templateValue = (String) DataType.realType(TokenType.TEMPLATE_STRING, token.value);
-            exportValue = EchoSyntaxNode.replaceTemplate(templateValue, context, syntaxNode);
+            exportValue = EchoSyntaxNode.replaceTemplate(templateValue, context);
             exportType = String.class;
         }
         // 如果只有一个 IDENTIFIER token，优先作为变量名处理（向后兼容）
@@ -118,7 +118,7 @@ public class ExportSyntaxNode extends LineSyntaxNode {
                     exportType = exportValue != null ? exportValue.getClass() : null;
                     // 如果计算结果是字符串且包含占位符，进行替换
                     if (exportValue instanceof String && ((String) exportValue).contains("{") && ((String) exportValue).contains("}")) {
-                        exportValue = EchoSyntaxNode.replaceTemplate((String) exportValue, context, syntaxNode);
+                        exportValue = EchoSyntaxNode.replaceTemplate((String) exportValue, context);
                     }
                 } catch (Exception e) {
                     throw new NfException(e, "Line:{} ,export 变量 {} 未定义,且表达式计算失败, syntax: {}", token.line, token.value, syntaxNode);
@@ -132,7 +132,7 @@ public class ExportSyntaxNode extends LineSyntaxNode {
                 exportType = exportValue != null ? exportValue.getClass() : null;
                 // 如果计算结果是字符串且包含占位符，进行替换
                 if (exportValue instanceof String && ((String) exportValue).contains("{") && ((String) exportValue).contains("}")) {
-                    exportValue = EchoSyntaxNode.replaceTemplate((String) exportValue, context, syntaxNode);
+                    exportValue = EchoSyntaxNode.replaceTemplate((String) exportValue, context);
                 }
             } catch (Exception e) {
                 throw new NfException(e, "Line:{} ,export 表达式计算错误: {} , syntax: {}", 
@@ -151,7 +151,7 @@ public class ExportSyntaxNode extends LineSyntaxNode {
         if (getValue() == null || getValue().isEmpty()) {
             return "export";
         }
-        return "export " + TokenUtil.mergeToken(getValue()).toString();
+        return "export " + TokenUtil.mergeToken(getValue());
     }
 
 }

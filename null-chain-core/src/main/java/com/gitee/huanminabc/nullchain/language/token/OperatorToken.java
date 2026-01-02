@@ -1,5 +1,7 @@
 package com.gitee.huanminabc.nullchain.language.token;
 
+import com.gitee.huanminabc.nullchain.language.NfException;
+
 import java.util.List;
 /**
  * @author huanmin
@@ -46,7 +48,7 @@ public class OperatorToken {
                     tokens.add(new Token(TokenType.NE, "!=", line));
                     i += 2;
                 } else {
-                    throw new IllegalArgumentException("Illegal character  line: " + line + " char: " + currentChar);
+                    throw new NfException("非法字符  行: {} 字符: {}", line, currentChar);
                 }
                 break;
             case '-':
@@ -83,12 +85,15 @@ public class OperatorToken {
                 i++;
                 break;
             case '.':
-                //判断后一个如果也是.那么就表示.. 就是语法错误
+                //判断后一个如果也是.那么就表示.. 应该识别为DOT2 token（范围操作符）
+                //语法检查会在语法分析阶段进行，这里只负责词法分析
                 if (i + 1 < length && input.charAt(i + 1) == '.') {
-                    throw new IllegalArgumentException("Illegal character  line: " + line + " char: " + "..");
+                    tokens.add(new Token(TokenType.DOT2, "..", line));
+                    i += 2;
+                } else {
+                    tokens.add(new Token(TokenType.DOT, ".", line));
+                    i++;
                 }
-                tokens.add(new Token(TokenType.DOT, ".", line));
-                i++;
                 break;
             case '(':
                 tokens.add(new Token(TokenType.LPAREN, "(", line));
@@ -112,7 +117,7 @@ public class OperatorToken {
                     tokens.add(new Token(TokenType.AND, "&&", line));
                     i += 2;
                 } else {
-                    throw new IllegalArgumentException("Illegal character  line: " + line + " char: " + currentChar);
+                    throw new NfException("非法字符  行: {} 字符: {}", line, currentChar);
                 }
                 break;
             case '|':
@@ -121,7 +126,7 @@ public class OperatorToken {
                     tokens.add(new Token(TokenType.OR, "||", line));
                     i += 2;
                 } else {
-                    throw new IllegalArgumentException("Illegal character  line: " + line + " char: " + currentChar);
+                    throw new NfException("非法字符  行: {} 字符: {}", line, currentChar);
                 }
                 break;
             case '\\':
@@ -132,14 +137,14 @@ public class OperatorToken {
                     tokens.add(new Token(TokenType.TAB_SYMBOL, "\\t", line));
                     i += 2;
                 } else {
-                    throw new IllegalArgumentException("Illegal character  line: " + line + " char: " + currentChar);
+                    throw new NfException("非法字符  行: {} 字符: {}", line, currentChar);
                 }
                 break;
             case '`':
                 // 单个反引号不被支持，需要使用三个反引号 ``` 来表示模板字符串
-                throw new IllegalArgumentException("Illegal character  line: " + line + " char: " + currentChar + " (单个反引号不被支持，请使用三个反引号 ``` 来表示模板字符串)");
+                throw new NfException("非法字符  行: {} 字符: {} (单个反引号不被支持，请使用三个反引号 ``` 来表示模板字符串)", line, currentChar);
             default:
-                throw new IllegalArgumentException("Illegal character  line: " + line + " char: " + currentChar);
+                throw new NfException("非法字符  行: {} 字符: {}", line, currentChar);
         }
         return i;
     }

@@ -22,10 +22,11 @@ import java.util.List;
  * @since 1.1.4
  */
 public abstract class BlockSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
-    
+
     /**
-     * 默认构造函数（Lombok要求）
-     * 注意：使用此构造函数后需要手动设置type和structType
+     * 默认构造函数
+     * 用于支持 Lombok 生成子类的无参构造函数
+     * 注意：使用此构造函数时，type 需要后续手动设置
      */
     protected BlockSyntaxNode() {
         super();
@@ -149,16 +150,6 @@ public abstract class BlockSyntaxNode extends SyntaxNodeAbs implements SyntaxNod
         }
         return endIndex;
     }
-    
-    /**
-     * 跳到块结束位置获取结束下标（不检查ELSE）
-     * 
-     * @param tokens Token列表
-     * @param startIndex 开始查找的位置
-     * @return 块结束位置的下标（包含 RBRACE），如果未找到则返回 tokens.size()
-     */
-    protected static int skipBlockEnd(List<Token> tokens, int startIndex) {
-        return skipBlockEnd(tokens, startIndex, false);
-    }
+
 }
 

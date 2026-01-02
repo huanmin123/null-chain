@@ -13,6 +13,7 @@ import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
 import com.gitee.huanminabc.nullchain.language.utils.DataType;
 import com.gitee.huanminabc.nullchain.language.utils.KeywordUtil;
+import com.gitee.huanminabc.nullchain.language.utils.SyntaxNodeUtil;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -22,8 +23,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 赋值表达式 例如: int a=1
+/*
+  赋值表达式 例如: int a=1
  */
 
 /**
@@ -68,12 +69,9 @@ public class AssignSyntaxNode extends LineSyntaxNode {
             return true;
         }
         // 检查是否是带类型声明的赋值：IDENTIFIER IDENTIFIER ASSIGN ...
-        if (size >= 3 && tokens.get(0).type == TokenType.IDENTIFIER &&
+        return size >= 3 && tokens.get(0).type == TokenType.IDENTIFIER &&
                 tokens.get(1).type == TokenType.IDENTIFIER &&
-                tokens.get(2).type == TokenType.ASSIGN) {
-            return true;
-        }
-        return false;
+                tokens.get(2).type == TokenType.ASSIGN;
     }
 
 
@@ -113,14 +111,9 @@ public class AssignSyntaxNode extends LineSyntaxNode {
                     }
                     startIndex = i - 1;
                 }
-                
-                // 确保 startIndex 有效
-                if (startIndex < 0 || startIndex >= tokensSize) {
-                    continue;
-                }
-                
+
                 //记录结束下标, 用于截取和删除
-                int endIndex = findLineEndIndex(tokens, startIndex);
+                int endIndex = SyntaxNodeUtil.findLineEndIndex(tokens, startIndex);
                 //截取赋值语句的标记序列,不包含LINE_END
                 List<Token> newToken = new ArrayList<>(tokens.subList(startIndex, endIndex));
                 //删除已经解析的标记
@@ -134,7 +127,7 @@ public class AssignSyntaxNode extends LineSyntaxNode {
                 }
 
                 //去掉注释
-                removeComments(newToken);
+                SyntaxNodeUtil.removeComments(newToken);
                 AssignSyntaxNode assignSyntaxNode = new AssignSyntaxNode(SyntaxNodeType.ASSIGN_EXP);
                 assignSyntaxNode.setValue(newToken);
                 //设置行号
@@ -203,7 +196,7 @@ public class AssignSyntaxNode extends LineSyntaxNode {
         }
         //如果是空的那么就报错
         if (expTokens.isEmpty()) {
-            int line = hasTypeDeclaration ? valueTokens.get(0).line : valueTokens.get(0).line;
+            int line = valueTokens.get(0).line;
             throw new NfException("Line:{} ,赋值表达式为空 , syntax: {}", line, syntaxNode);
         }
         //取出来上下文
@@ -245,14 +238,14 @@ public class AssignSyntaxNode extends LineSyntaxNode {
                 hasTemplateString = true;
                 // 去除首尾的 ```，并处理占位符
                 templateStringValue = (String) DataType.realType(TokenType.TEMPLATE_STRING, expToken.value);
-                templateStringValue = EchoSyntaxNode.replaceTemplate(templateStringValue, context, syntaxNode);
+                templateStringValue = EchoSyntaxNode.replaceTemplate(templateStringValue, context);
                 break;
             }
         }
         
         //计算表达式
         StringBuilder exp = TokenUtil.mergeToken(expTokens);
-        Object arithmetic = null;
+        Object arithmetic;
         try {
             // 如果表达式只包含模板字符串，直接使用处理后的值
             if (hasTemplateString && expTokens.size() == 1 && expTokens.get(0).type == TokenType.TEMPLATE_STRING) {
@@ -261,11 +254,11 @@ public class AssignSyntaxNode extends LineSyntaxNode {
                 arithmetic = NfCalculator.arithmetic(exp.toString(), context);
                 // 如果计算结果是字符串且包含占位符，进行替换
                 if (arithmetic instanceof String && ((String) arithmetic).contains("{") && ((String) arithmetic).contains("}")) {
-                    arithmetic = EchoSyntaxNode.replaceTemplate((String) arithmetic, context, syntaxNode);
+                    arithmetic = EchoSyntaxNode.replaceTemplate((String) arithmetic, context);
                 }
             }
         } catch (Exception e) {
-            int line = hasTypeDeclaration ? valueTokens.get(0).line : valueTokens.get(0).line;
+            int line = valueTokens.get(0).line;
             throw new NfException(e, "Line:{} , syntax: {}", line, syntaxNode);
         }
         //判断类型值和类型是否一致（支持接口类型兼容性）
@@ -273,7 +266,7 @@ public class AssignSyntaxNode extends LineSyntaxNode {
             Class<?> declaredType = Class.forName(importType);
             Class<?> actualType = arithmetic.getClass();
             if (!declaredType.isAssignableFrom(actualType)) {
-                int line = hasTypeDeclaration ? valueTokens.get(0).line : valueTokens.get(0).line;
+                int line = valueTokens.get(0).line;
                 throw new NfException("Line:{} ,变量 {} 值类型和声明的型不匹配 {} vs {} ,syntax: {}", 
                     line, varName, importType, arithmetic.getClass(), syntaxNode);
             }
@@ -293,7 +286,7 @@ public class AssignSyntaxNode extends LineSyntaxNode {
                 }
             }
         } catch (ClassNotFoundException e) {
-            int line = hasTypeDeclaration ? valueTokens.get(0).line : valueTokens.get(0).line;
+            int line = valueTokens.get(0).line;
             throw new NfException("Line:{} ,未找到类型 {} , syntax: {}", line, importType, syntaxNode);
         }
     }

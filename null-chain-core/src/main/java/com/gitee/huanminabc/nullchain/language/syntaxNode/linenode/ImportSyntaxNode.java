@@ -8,17 +8,17 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
+import com.gitee.huanminabc.nullchain.language.utils.SyntaxNodeUtil;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * import语句 例如: import com.gitee.huanminabc.nullchain.language.syntaxNode.node.TaskNode
+/*
+  import语句 例如: import com.gitee.huanminabc.nullchain.language.syntaxNode.node.TaskNode
  */
 /**
  * @author huanmin
@@ -50,14 +50,14 @@ public  class ImportSyntaxNode extends LineSyntaxNode {
             Token token = tokens.get(i);
             if (token.type == TokenType.IMPORT) {
                 //记录结束下标, 用于截取和删除
-                int endIndex = findLineEndIndex(tokens, i);
+                int endIndex = SyntaxNodeUtil.findLineEndIndex(tokens, i);
                 //截取import语句的标记序列 不包含import和LINE_END
                 List<Token> newToken = new ArrayList<>(tokens.subList(i + 1, endIndex));
                 //删除已经解析的标记
                 tokens.subList(i, endIndex).clear();
 
                 //去掉注释
-                removeComments(newToken);
+                SyntaxNodeUtil.removeComments(newToken);
 
                 //校验import语句是否合法
                 String imp = TokenUtil.mergeToken(newToken).toString();

@@ -11,18 +11,18 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
+import com.gitee.huanminabc.nullchain.language.utils.SyntaxNodeUtil;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * echo语句 例如: echo "测试打印: ","____","123:{c}",\t,c,\t,123
- * 每次打印一行, 多个参数用逗号隔开 字符串支持模版占位符, 支持\n 和 \t
+/*
+  echo语句 例如: echo "测试打印: ","____","123:{c}",\t,c,\t,123
+  每次打印一行, 多个参数用逗号隔开 字符串支持模版占位符, 支持\n 和 \t
  */
 
 /**
@@ -54,11 +54,11 @@ public class EchoSyntaxNode extends LineSyntaxNode {
             Token token = tokens.get(i);
             if (token.type == TokenType.ECHO) {
                 //记录结束下标, 用于截取和删除
-                int endIndex = findLineEndIndex(tokens, i);
+                int endIndex = SyntaxNodeUtil.findLineEndIndex(tokens, i);
                 //截取ECHO语句的标记序列 不包含ECHO
                 List<Token> newToken = new ArrayList<>(tokens.subList(i + 1, endIndex));
                 //去掉注释
-                removeComments(newToken);
+                SyntaxNodeUtil.removeComments(newToken);
                 EchoSyntaxNode exportExpNode = new EchoSyntaxNode(SyntaxNodeType.ECHO_EXP);
                 exportExpNode.setValue(newToken);
                 //设置行号
@@ -119,7 +119,7 @@ public class EchoSyntaxNode extends LineSyntaxNode {
                     String value = token.value;
                     //如果是模版占位符
                     if (value.contains("{")&&value.contains("}")) {
-                        value = replaceTemplate(value, context,syntaxNode);
+                        value = replaceTemplate(value, context);
                     }
                     exp.append(value);
                     break;
@@ -133,7 +133,7 @@ public class EchoSyntaxNode extends LineSyntaxNode {
                     }
                     // 替换占位符
                     if (templateValue.contains("{") && templateValue.contains("}")) {
-                        templateValue = replaceTemplate(templateValue, context, syntaxNode);
+                        templateValue = replaceTemplate(templateValue, context);
                     }
                     // 如果 exp 中有内容，先计算并输出
                     if (exp.length() > 0) {
@@ -183,10 +183,9 @@ public class EchoSyntaxNode extends LineSyntaxNode {
      * 
      * @param str 包含占位符的字符串
      * @param context NF上下文
-     * @param syntaxNode 语法节点（用于错误信息）
      * @return 替换后的字符串
      */
-    public static String replaceTemplate(String str, NfContext context, SyntaxNode syntaxNode) {
+    public static String replaceTemplate(String str, NfContext context) {
         //找到所有的模版占位符
         int start = str.indexOf("{");
         int end = str.indexOf("}");

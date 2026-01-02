@@ -5,8 +5,8 @@ import com.gitee.huanminabc.nullchain.language.token.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 解析Token (词法分析器)
+/*
+  解析Token (词法分析器)
  */
 
 /**

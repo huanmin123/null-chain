@@ -17,12 +17,12 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
 import com.gitee.huanminabc.nullchain.language.utils.DataType;
+import com.gitee.huanminabc.nullchain.language.utils.SyntaxNodeUtil;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
 import com.gitee.huanminabc.nullchain.task.NullTask;
 import com.gitee.huanminabc.nullchain.task.NullTaskFactory;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -34,8 +34,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
-/**
- * 运行任务表达式: run test1( a,b )
+/*
+  运行任务表达式: run test1( a,b )
  */
 
 /**
@@ -69,16 +69,15 @@ public class RunSyntaxNode extends LineSyntaxNode {
             //判断是否是RUN
             if (token.type == TokenType.RUN) {
                 //优化：缓存size，避免在循环中重复调用
-                int tokensSize = tokens.size();
                 //记录结束下标, 用于截取和删除
-                int endIndex = findLineEndIndex(tokens, i);
+                int endIndex = SyntaxNodeUtil.findLineEndIndex(tokens, i);
                 //截取Run语句的标记序列 不包含Run和LINE_END
                 List<Token> newToken = new ArrayList<>(tokens.subList(i + 1, endIndex));
                 //删除已经解析的标记
                 tokens.subList(i, endIndex).clear();
 
                 //去掉注释
-                removeComments(newToken);
+                SyntaxNodeUtil.removeComments(newToken);
 
                 //判断是否存在-> 我们需要把->后面的变量转化为DeclareSyntaxNode
                 for (int j = 0; j < newToken.size(); j++) {
@@ -149,10 +148,7 @@ public class RunSyntaxNode extends LineSyntaxNode {
         Token tokenArrowAssign = value.get(value.size() - 2);
         Token tokenVariate = value.get(value.size() - 1);
 
-        boolean isVariate = false;
-        if (tokenArrowAssign.type == TokenType.ARROW_ASSIGN && tokenVariate.type == TokenType.IDENTIFIER) {
-            isVariate = true;
-        }
+        boolean isVariate = tokenArrowAssign.type == TokenType.ARROW_ASSIGN && tokenVariate.type == TokenType.IDENTIFIER;
 
         List<NullNode<String, List<Object>>> nullNodes = new ArrayList<>();
         //是这样解析的   test1( a ,b ),test1( a ,b )
@@ -196,14 +192,14 @@ public class RunSyntaxNode extends LineSyntaxNode {
                                 value1 = value1.substring(1, value1.length() - 1);
                                 // 如果包含占位符，进行替换
                                 if (value1.contains("{") && value1.contains("}")) {
-                                    value1 = EchoSyntaxNode.replaceTemplate(value1, context, syntaxNode);
+                                    value1 = EchoSyntaxNode.replaceTemplate(value1, context);
                                 }
                                 params.add(value1);
                                 break;
                             case TEMPLATE_STRING:
                                 // 处理模板字符串，去除首尾的 ```，然后替换占位符
                                 String templateValue = (String) DataType.realType(TokenType.TEMPLATE_STRING, token1.value);
-                                templateValue = EchoSyntaxNode.replaceTemplate(templateValue, context, syntaxNode);
+                                templateValue = EchoSyntaxNode.replaceTemplate(templateValue, context);
                                 params.add(templateValue);
                                 break;
                             case INTEGER:

@@ -68,7 +68,7 @@ public class StringToken {
         }
         
         // 存储模板字符串内容（包含 ``` 标记，便于后续处理）
-        tokens.add(new Token(TokenType.TEMPLATE_STRING, "```" + sb.toString() + "```", line));
+        tokens.add(new Token(TokenType.TEMPLATE_STRING, "```" + sb + "```", line));
         return i;
     }
 }

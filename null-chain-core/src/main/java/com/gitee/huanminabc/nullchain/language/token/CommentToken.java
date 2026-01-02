@@ -1,6 +1,7 @@
 package com.gitee.huanminabc.nullchain.language.token;
 
 import com.gitee.huanminabc.nullchain.common.NullConstants;
+import com.gitee.huanminabc.nullchain.language.NfException;
 
 import java.util.List;
 /**
@@ -20,7 +21,7 @@ public class CommentToken {
             tokens.add(new Token(TokenType.COMMENT, sb.toString(), line));
         }else{
             //不支持
-            throw new IllegalArgumentException("Illegal character  line: " + line + " char: " + input.charAt(i)+input.charAt(i+1));
+            throw new NfException("非法字符  行: {} 字符: {}", line, input.charAt(i) + String.valueOf(input.charAt(i + 1)));
         }
         return i;
     }

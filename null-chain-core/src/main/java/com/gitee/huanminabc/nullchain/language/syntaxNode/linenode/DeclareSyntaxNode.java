@@ -11,15 +11,15 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
 import com.gitee.huanminabc.nullchain.language.utils.KeywordUtil;
+import com.gitee.huanminabc.nullchain.language.utils.SyntaxNodeUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 声明表达式 例如: int a
+/*
+  声明表达式 例如: int a
  */
 
 /**
@@ -65,7 +65,7 @@ public class DeclareSyntaxNode extends LineSyntaxNode {
                 }
 
                 //去掉注释
-                removeComments(newToken);
+                SyntaxNodeUtil.removeComments(newToken);
                 DeclareSyntaxNode declareSyntaxNode = new DeclareSyntaxNode(SyntaxNodeType.DECLARE_EXP);
                 declareSyntaxNode.setValue(newToken);
                 //设置行号
@@ -83,10 +83,7 @@ public class DeclareSyntaxNode extends LineSyntaxNode {
         if (tokens == null || tokens.size() < 3) {
             return false;
         }
-        if (tokens.get(0).type == TokenType.IDENTIFIER && tokens.get(1).type == TokenType.IDENTIFIER && tokens.get(2).type == TokenType.LINE_END) {
-            return true;
-        }
-        return false;
+        return tokens.get(0).type == TokenType.IDENTIFIER && tokens.get(1).type == TokenType.IDENTIFIER && tokens.get(2).type == TokenType.LINE_END;
     }
 
 

@@ -8,19 +8,19 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
+import com.gitee.huanminabc.nullchain.language.utils.SyntaxNodeUtil;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
 import com.gitee.huanminabc.nullchain.task.NullTask;
 import com.gitee.huanminabc.nullchain.task.NullTaskFactory;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * task语句  例如: task com.xxx.ClassTaskName as test1
+/*
+  task语句  例如: task com.xxx.ClassTaskName as test1
  */
 
 /**
@@ -53,13 +53,13 @@ public class TaskSyntaxNode extends LineSyntaxNode {
             Token token = tokens.get(i);
             if (token.type == TokenType.TASK) {
                 //记录结束下标, 用于截取和删除
-                int endIndex = findLineEndIndex(tokens, i);
+                int endIndex = SyntaxNodeUtil.findLineEndIndex(tokens, i);
                 //截取task语句的标记序列 不包含task和LINE_END
                 List<Token> newToken = new ArrayList<>(tokens.subList(i + 1, endIndex));
                 //删除已经解析的标记
                 tokens.subList(i, endIndex).clear();
                 //去掉注释
-                removeComments(newToken);
+                SyntaxNodeUtil.removeComments(newToken);
                 //如果是newToken的长度小于3,那么就是语法错误
                 if (newToken.size() < 3) {
                     throw new NfException("Line:{} ,task 语句错误,语法错误 , syntax: task {} ???", token.getLine(), TokenUtil.mergeToken(newToken).toString());

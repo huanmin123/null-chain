@@ -8,6 +8,7 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
+import com.gitee.huanminabc.nullchain.language.utils.SyntaxNodeUtil;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -15,8 +16,8 @@ import lombok.EqualsAndHashCode;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 运行函数表达式: a.b()
+/*
+  运行函数表达式: a.b()
  */
 
 /**
@@ -52,14 +53,14 @@ public class FunExeSyntaxNode extends LineSyntaxNode {
             //判断是否是函数执行 IDENTIFIER+DOT+IDENTIFIER+LPAREN
             if (i + 3 < tokensSize && token.type == TokenType.IDENTIFIER&&tokens.get(i+1).type==TokenType.DOT&&tokens.get(i+2).type==TokenType.IDENTIFIER&&tokens.get(i+3).type==TokenType.LPAREN) {
                 //记录结束下标, 用于截取和删除
-                int endIndex = findLineEndIndex(tokens, i);
+                int endIndex = SyntaxNodeUtil.findLineEndIndex(tokens, i);
                 //截取函数执行语句的标记序列,不包含LINE_END
                 List<Token> newToken = new ArrayList<>(tokens.subList(i , endIndex));
                 //删除已经解析的标记
                 tokens.subList(i, endIndex).clear();
 
                 //去掉注释
-                removeComments(newToken);
+                SyntaxNodeUtil.removeComments(newToken);
                 FunExeSyntaxNode runSyntaxNode = new FunExeSyntaxNode(SyntaxNodeType.FUN_EXE_EXP);
                 runSyntaxNode.setValue(newToken);
                 //设置行号
@@ -74,10 +75,7 @@ public class FunExeSyntaxNode extends LineSyntaxNode {
     @Override
     public boolean analystToken(List<Token> tokens) {
         //IDENTIFIER+DOT+IDENTIFIER+LPAREN
-        if (tokens.get(0).type == TokenType.IDENTIFIER&&tokens.get(1).type==TokenType.DOT&&tokens.get(2).type==TokenType.IDENTIFIER&&tokens.get(3).type==TokenType.LPAREN) {
-            return true;
-        }
-        return false;
+        return tokens.get(0).type == TokenType.IDENTIFIER && tokens.get(1).type == TokenType.DOT && tokens.get(2).type == TokenType.IDENTIFIER && tokens.get(3).type == TokenType.LPAREN;
     }
 
 
