@@ -28,6 +28,8 @@ public class NfContext {
     private String mainScopeId;
     //当前作用域的id
     private String currentScopeId;
+    //全局breakAll标志（用于跳出所有FOR循环）
+    private boolean globalBreakAll = false;
 
     public NfContext() {
         //创建默认的导入类型
@@ -126,6 +128,18 @@ public class NfContext {
     public List<NfContextScope> findByTypeScopeList(NfContextScopeType type) {
         List<NfContextScope> list = new ArrayList<>();
         findByTypeScopeList(currentScopeId, type, list);
+        return list;
+    }
+
+    //获取所有指定类型的活动作用域（遍历整个scopeMap）
+    //用于breakall等需要影响所有FOR循环的场景，而不仅仅是当前作用域的祖先
+    public List<NfContextScope> findAllActiveScopesByType(NfContextScopeType type) {
+        List<NfContextScope> list = new ArrayList<>();
+        for (NfContextScope scope : scopeMap.values()) {
+            if (scope.getType() == type) {
+                list.add(scope);
+            }
+        }
         return list;
     }
 
@@ -290,6 +304,15 @@ public class NfContext {
     //获取接口的默认实现类
     public Class<?> getInterfaceDefaultImpl(Class<?> interfaceType) {
         return interfaceDefaultImplMap.get(interfaceType);
+    }
+
+    //全局breakAll标志的getter和setter
+    public boolean isGlobalBreakAll() {
+        return globalBreakAll;
+    }
+
+    public void setGlobalBreakAll(boolean globalBreakAll) {
+        this.globalBreakAll = globalBreakAll;
     }
 
     //添加接口到默认实现类的映射（允许扩展）

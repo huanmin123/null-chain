@@ -111,6 +111,18 @@ public class ForSyntaxNode extends BlockSyntaxNode {
         //截取for表达式条件
         List<Token> forTokens = new ArrayList<>(tokenList.subList(0, endIndex));
 
+        //校验变量名必须存在（第一个token必须是IDENTIFIER）
+        if (forTokens.isEmpty() || forTokens.get(0).type != TokenType.IDENTIFIER) {
+            String context = printFor(forTokens);
+            throw new NfSyntaxException(
+                forTokens.isEmpty() ? 0 : forTokens.get(0).line,
+                "for表达式语法错误",
+                "for表达式缺少循环变量名",
+                context,
+                "正确的格式：for variable in start..end { ... }，variable 必须是有效的变量名"
+            );
+        }
+
         //必须存在In
         if (forTokens.stream().noneMatch(t -> t.type == TokenType.IN)) {
             String context = printFor(forTokens);
@@ -232,6 +244,10 @@ public class ForSyntaxNode extends BlockSyntaxNode {
             return;
         }
         for (int j = startInt; j <= endInt; j++) {
+            //检查全局breakAll标志（由breakall语句设置）
+            if (context.isGlobalBreakAll()) {
+                break;
+            }
             //创建子作用域
             NfContextScope newScope = context.createChildScope(currentScopeId, NfContextScopeType.FOR);
             //将i的值赋值
@@ -242,24 +258,34 @@ public class ForSyntaxNode extends BlockSyntaxNode {
             }
             //移除子作用域
             context.removeScope(newScope.getScopeId());
+
+            //执行子节点后再次检查globalBreakAll标志（breakall可能在子节点中被触发）
+            //如果globalBreakAll被设置，立即跳出循环，不要执行后续的清除操作
+            if (context.isGlobalBreakAll()) {
+                break;
+            }
             //如果是break,那么就跳出当前的循环
             if (newScope.isBreak()) {
                 break;
             }
             //如果是breakall,那么就跳出所有循环
             if (newScope.isBreakAll()) {
-                //只有当父作用域是FOR类型时，才传播breakAll标志，避免影响主作用域（ALL类型）
-                NfContextScope parentScope = context.getScope(newScope.getParentScopeId());
-                if (parentScope != null && parentScope.getType() == NfContextScopeType.FOR) {
-                    parentScope.setBreakAll(true);
-                }
+                //传播breakAll标志到所有祖先FOR作用域
+                //这样可以处理嵌套场景，例如：FOR -> FOR -> IF，IF中的breakall需要传播到外层FOR
+                propagateBreakAllToAncestorFors(context, currentScopeId);
                 break;
             }
         }
-        //循环结束后，清除当前FOR作用域的breakAll标志，避免影响后续执行
+        //循环结束后，清除当前FOR作用域的breakAll标志
         NfContextScope currentForScope = context.getScope(currentScopeId);
         if (currentForScope != null && currentForScope.getType() == NfContextScopeType.FOR) {
             currentForScope.setBreakAll(false);
+        }
+        //只有当父作用域不是FOR类型时，才清除全局breakAll标志
+        //这样可以确保嵌套的FOR循环也能正确响应breakall
+        NfContextScope parentScope = context.getScope(currentForScope != null ? currentForScope.getParentScopeId() : null);
+        if (parentScope == null || parentScope.getType() != NfContextScopeType.FOR) {
+            context.setGlobalBreakAll(false);
         }
     }
 
@@ -295,6 +321,34 @@ public class ForSyntaxNode extends BlockSyntaxNode {
             sb.append(" ").append(token.value);
         }
         return sb.toString();
+    }
+
+    /**
+     * 将breakAll标志传播到所有祖先FOR作用域
+     * 这个方法处理嵌套循环场景，确保breakall能够跳出所有层级的FOR循环
+     *
+     * @param context 上下文
+     * @param scopeId 起始作用域ID（当前FOR作用域）
+     */
+    private void propagateBreakAllToAncestorFors(NfContext context, String scopeId) {
+        String currentScopeId = scopeId;
+        // 向上遍历作用域链，找到所有FOR类型的作用域并设置breakAll标志
+        while (currentScopeId != null) {
+            NfContextScope scope = context.getScope(currentScopeId);
+            if (scope == null) {
+                break;
+            }
+            // 如果是FOR作用域，设置breakAll标志
+            if (scope.getType() == NfContextScopeType.FOR) {
+                scope.setBreakAll(true);
+            }
+            // 如果到达主作用域（ALL类型），停止传播
+            if (scope.getType() == NfContextScopeType.ALL) {
+                break;
+            }
+            // 继续向上遍历
+            currentScopeId = scope.getParentScopeId();
+        }
     }
 
 }

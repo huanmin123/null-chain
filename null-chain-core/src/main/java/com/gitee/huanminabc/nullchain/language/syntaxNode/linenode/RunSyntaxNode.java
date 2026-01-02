@@ -79,6 +79,9 @@ public class RunSyntaxNode extends LineSyntaxNode {
                 //去掉注释
                 SyntaxNodeUtil.removeComments(newToken);
 
+                //校验run语句的参数语法有效性
+                validateRunSyntax(newToken, token.line);
+
                 //判断是否存在-> 我们需要把->后面的变量转化为DeclareSyntaxNode
                 for (int j = 0; j < newToken.size(); j++) {
                     Token t = newToken.get(j);
@@ -350,6 +353,53 @@ public class RunSyntaxNode extends LineSyntaxNode {
         }
     }
 
+
+    /**
+     * 校验run语句的参数语法有效性
+     * @param tokens run语句的token列表（不包含run关键字）
+     * @param line 行号
+     */
+    private void validateRunSyntax(List<Token> tokens, int line) {
+        //遍历tokens，检查每个任务调用的语法
+        for (int i = 0; i < tokens.size(); i++) {
+            Token token = tokens.get(i);
+            //遇到箭头符号那么就结束了,后面不需要处理
+            if (token.type == TokenType.ARROW_ASSIGN) {
+                break;
+            }
+            if (token.type == TokenType.IDENTIFIER) {
+                //跳过IDENTIFIER（任务名）
+                i++;
+                if (i >= tokens.size()) {
+                    throw new NfException("Line:{}, run语句语法错误，任务名后缺少参数列表", line);
+                }
+                //检查下一个是否是左括号
+                if (tokens.get(i).type != TokenType.LPAREN) {
+                    throw new NfException("Line:{}, run语句语法错误，任务名后必须是左括号'('", line);
+                }
+                //找到右括号
+                int rparenIndex = -1;
+                for (int j = i + 1; j < tokens.size(); j++) {
+                    if (tokens.get(j).type == TokenType.RPAREN) {
+                        rparenIndex = j;
+                        break;
+                    }
+                }
+                if (rparenIndex == -1) {
+                    throw new NfException("Line:{}, run语句语法错误，缺少右括号')'", line);
+                }
+                //检查括号内是否有尾随逗号（逗号后直接是右括号）
+                if (rparenIndex > i + 1) {
+                    Token beforeRParen = tokens.get(rparenIndex - 1);
+                    if (beforeRParen.type == TokenType.COMMA) {
+                        throw new NfException("Line:{}, run语句语法错误，参数列表不能以逗号结尾", line);
+                    }
+                }
+                //移动i到右括号位置
+                i = rparenIndex;
+            }
+        }
+    }
 
     @Override
     public String toString() {

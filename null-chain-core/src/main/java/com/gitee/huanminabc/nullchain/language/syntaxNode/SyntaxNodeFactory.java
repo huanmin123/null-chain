@@ -104,9 +104,15 @@ public class SyntaxNodeFactory {
             syntaxNode.run(context, syntaxNode);
             //恢复当前的作用域id
             context.setCurrentScopeId(currentScopeId);
+
+            //检查是否需要中断执行
+            //优先检查全局breakAll标志（由breakall语句设置）
+            if (context.isGlobalBreakAll()) {
+                break;
+            }
+
             NfContextScope currentScope = context.getCurrentScope();
             //判断作用域中是否存在break或者continue,如果存在break或者continue,则跳出当前循环
-            //注意：breakAll只应该在FOR循环中生效，不应该影响主作用域（ALL类型）的后续语句
             boolean shouldBreak = currentScope.isBreak() || currentScope.isContinue();
             //只有当作用域是FOR类型时，breakAll标志才会导致跳出循环
             //主作用域（ALL类型）的breakAll标志应该被忽略

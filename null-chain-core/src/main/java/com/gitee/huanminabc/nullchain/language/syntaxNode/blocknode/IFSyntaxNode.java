@@ -247,6 +247,10 @@ public class IFSyntaxNode extends BlockSyntaxNode {
                 if (elseChildList != null) {
                     SyntaxNodeFactory.executeAll(elseChildList, context);
                 }
+                //检查并传播breakAll标志到父作用域
+                if (childScope.isBreakAll()) {
+                    propagateBreakAllToParentFors(context, childScope.getParentScopeId());
+                }
                 //删除子作用域
                 context.removeScope(childScope.getScopeId());
                 break;
@@ -267,6 +271,10 @@ public class IFSyntaxNode extends BlockSyntaxNode {
                     List<SyntaxNode> ifChildList = nodeIf.getChildSyntaxNodeList();
                     if (ifChildList != null) {
                         SyntaxNodeFactory.executeAll(ifChildList, context);
+                    }
+                    //检查并传播breakAll标志到父作用域
+                    if (childScope.isBreakAll()) {
+                        propagateBreakAllToParentFors(context, childScope.getParentScopeId());
                     }
                     //删除子作用域
                     context.removeScope(childScope.getScopeId());
@@ -311,6 +319,19 @@ public class IFSyntaxNode extends BlockSyntaxNode {
                 break;
             }
         }
+
+        //验证条件不能为空（else语句除外，else没有条件）
+        //必须在截取conditionTokens之前校验，避免endIndex2=0导致的空条件
+        if ((ifType == IFType.IF || ifType == IFType.ELSE_IF) && endIndex2 == 0) {
+            throw new NfSyntaxException(
+                ifStatement.getLine(),
+                "if表达式语法错误",
+                "if语句的条件不能为空",
+                "",
+                "请检查if语句的语法格式：if condition { ... }"
+            );
+        }
+
         //截取if表达式的条件
         List<Token> conditionTokens = new ArrayList<>(ifTokens.subList(0, endIndex2));
         //删除条件
@@ -323,18 +344,6 @@ public class IFSyntaxNode extends BlockSyntaxNode {
         }
         //if表达式的条件
         ifStatement.setValue(conditionTokens);
-        
-        //验证条件不能为空（else语句除外，else没有条件）
-        if ((ifType == IFType.IF || ifType == IFType.ELSE_IF) && 
-            (conditionTokens == null || conditionTokens.isEmpty())) {
-            throw new NfSyntaxException(
-                ifStatement.getLine(),
-                "if表达式语法错误",
-                "if语句的条件不能为空",
-                "",
-                "请检查if语句的语法格式：if condition { ... }"
-            );
-        }
 
         //继续构建代码体
         List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(ifTokens);
@@ -393,6 +402,34 @@ public class IFSyntaxNode extends BlockSyntaxNode {
             return ifStatement;
         }
         return null;
+    }
+
+    /**
+     * 将breakAll标志传播到所有祖先FOR作用域
+     * 这个方法处理breakall在IF语句中触发的场景，确保能够跳出所有层级的FOR循环
+     *
+     * @param context 上下文
+     * @param scopeId 起始作用域ID（子作用域的父作用域）
+     */
+    private void propagateBreakAllToParentFors(NfContext context, String scopeId) {
+        String currentScopeId = scopeId;
+        // 向上遍历作用域链，找到所有FOR类型的作用域并设置breakAll标志
+        while (currentScopeId != null) {
+            NfContextScope scope = context.getScope(currentScopeId);
+            if (scope == null) {
+                break;
+            }
+            // 如果是FOR作用域，设置breakAll标志
+            if (scope.getType() == NfContextScopeType.FOR) {
+                scope.setBreakAll(true);
+            }
+            // 如果到达主作用域（ALL类型），停止传播
+            if (scope.getType() == NfContextScopeType.ALL) {
+                break;
+            }
+            // 继续向上遍历
+            currentScopeId = scope.getParentScopeId();
+        }
     }
 
 }

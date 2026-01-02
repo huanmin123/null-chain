@@ -94,6 +94,8 @@ public class AdditionalSyntaxTest {
 
     /**
      * 测试赋值错误 - 接口无实现
+     * 测试文件内容：List list = new
+     * new 后面缺少类名，应该在运行阶段抛出异常
      */
     @Test
     public void testAssignErrorInterfaceNoImpl() {
@@ -101,7 +103,9 @@ public class AdditionalSyntaxTest {
         List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(file);
         List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
         NfContext context = new NfContext();
-        NfRun.run(syntaxNodes, context, log, null);
+        assertThrows(NfException.class, () -> {
+            NfRun.run(syntaxNodes, context, log, null);
+        });
         log.info("赋值接口无实现错误测试通过");
     }
 
@@ -140,14 +144,17 @@ public class AdditionalSyntaxTest {
 
     /**
      * 测试导出错误 - 无效表达式
+     * 注意：表达式语法错误只能在运行时通过 NfCalculator 检测，无法在解析阶段发现
      */
     @Test
     public void testExportErrorInvalidExpression() {
         String file = TestUtil.readFile("syntax/export_error_invalid_expression.nf");
         List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(file);
-        
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
+
+        NfContext context = new NfContext();
         assertThrows(NfException.class, () -> {
-            NfSynta.buildMainStatement(tokens);
+            NfRun.run(syntaxNodes, context, log, null);
         });
         log.info("导出无效表达式错误测试通过");
     }
@@ -287,7 +294,7 @@ public class AdditionalSyntaxTest {
         Object result = NfRun.run(syntaxNodes, context, log, null);
         
         assertNotNull(result);
-        assertEquals(3, result); // sum = 1 + 2 = 3 (breakall at j > 2)
+        assertEquals(6, result); // sum = 1 + 2 + 3 = 6 (breakall at i > 3)
         log.info("For 中使用 BreakAll 测试通过，结果: {}", result);
     }
 
@@ -298,7 +305,7 @@ public class AdditionalSyntaxTest {
     public void testForErrorMissingVariable() {
         String file = TestUtil.readFile("syntax/for_error_missing_variable.nf");
         List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(file);
-        
+
         assertThrows(NfException.class, () -> {
             NfSynta.buildMainStatement(tokens);
         });

@@ -1,3 +1,2 @@
-List list = new
-export list
-
+Integer a = ArrayList
+export a

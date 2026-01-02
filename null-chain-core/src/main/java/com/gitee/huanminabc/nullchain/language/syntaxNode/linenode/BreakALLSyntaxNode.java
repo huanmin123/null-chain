@@ -50,10 +50,7 @@ public class BreakALLSyntaxNode extends LineSyntaxNode {
 
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {
-        //设置全部的form为breakall
-        List<NfContextScope> byTypeScopeList = context.findByTypeScopeList(NfContextScopeType.FOR);
-        for (NfContextScope nfContextScope : byTypeScopeList) {
-            nfContextScope.setBreakAll(true);
-        }
+        //设置全局breakAll标志，用于跳出所有FOR循环
+        context.setGlobalBreakAll(true);
     }
 }
