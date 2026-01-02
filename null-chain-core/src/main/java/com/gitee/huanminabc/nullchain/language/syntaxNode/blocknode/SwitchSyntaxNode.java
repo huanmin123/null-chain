@@ -79,7 +79,8 @@ public class SwitchSyntaxNode extends BlockSyntaxNode {
                 }
                 List<SyntaxNode> childSyntaxNodeList1 = switchStatement.getChildSyntaxNodeList();
                 if (childSyntaxNodeList1 ==null) {
-                    throw new NfException("问题行号:{} , switch 语法问题:{}", switchStatement.getLine(), printSwitch(switchTokens));
+                    throw new NfException("Line:{} , switch 语法问题: {} , syntax: {}", 
+                        switchStatement.getLine(), printSwitch(switchTokens), switchStatement);
                 }
                 syntaxNodeList.add(switchStatement);
                 return true;
@@ -101,7 +102,8 @@ public class SwitchSyntaxNode extends BlockSyntaxNode {
             switchValueType != TokenType.STRING && 
             switchValueType != TokenType.BOOLEAN && 
             switchValueType != TokenType.FLOAT) {
-            throw new NfException("问题行号:{} , switch的条件值必须是变量或常量（整数、字符串、布尔值、浮点数）", switchValue.get(0).getLine());
+            throw new NfException("Line:{} , switch的条件值必须是变量或常量（整数、字符串、布尔值、浮点数） , syntax: {}", 
+                switchValue.get(0).getLine(), syntaxNode);
         }
         syntaxNode.setValue(switchValue);
         //取出来全部的case

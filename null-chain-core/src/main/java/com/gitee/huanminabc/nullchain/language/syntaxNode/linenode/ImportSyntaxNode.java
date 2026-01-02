@@ -84,6 +84,10 @@ public  class ImportSyntaxNode extends LineSyntaxNode {
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {
         List<Token> value = syntaxNode.getValue();
+        if (value == null || value.isEmpty()) {
+            throw new NfException("Line:{} ,import表达式tokens不能为空 , syntax: {}", 
+                syntaxNode.getLine(), syntaxNode);
+        }
         StringBuilder sb = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
         for (Token token : value) {
             sb.append(token.value);

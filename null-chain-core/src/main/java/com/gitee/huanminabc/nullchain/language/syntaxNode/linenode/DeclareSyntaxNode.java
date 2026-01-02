@@ -93,7 +93,12 @@ public class DeclareSyntaxNode extends LineSyntaxNode {
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {
         //获取类型
-        Token token = syntaxNode.getValue().get(0);
+        List<Token> value = syntaxNode.getValue();
+        if (value == null || value.isEmpty()) {
+            throw new NfException("Line:{} ,声明表达式tokens不能为空 , syntax: {}", 
+                syntaxNode.getLine(), syntaxNode);
+        }
+        Token token = value.get(0);
         String type = token.value;
         //转化为java类型
         String importType = context.getImportType(type);
@@ -104,7 +109,11 @@ public class DeclareSyntaxNode extends LineSyntaxNode {
             Class<?> typeClass = Class.forName(importType);
 
             //获取赋值的变量名
-            String varName = syntaxNode.getValue().get(1).value;
+            if (value.size() < 2) {
+                throw new NfException("Line:{} ,声明表达式格式错误，缺少变量名 , syntax: {}", 
+                    token.line, syntaxNode);
+            }
+            String varName = value.get(1).value;
 
             //取出来上下文
             NfContextScope currentScope = context.getCurrentScope();

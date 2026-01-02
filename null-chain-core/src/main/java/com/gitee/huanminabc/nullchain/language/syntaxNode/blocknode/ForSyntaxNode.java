@@ -177,6 +177,10 @@ public class ForSyntaxNode extends BlockSyntaxNode {
         int endInt = Integer.parseInt(end);
         //循环
         List<SyntaxNode> childList = forSyntaxNode.getChildSyntaxNodeList();
+        if (childList == null) {
+            // for循环体为空，直接返回
+            return;
+        }
         for (int j = startInt; j <= endInt; j++) {
             //创建子作用域
             NfContextScope newScope = context.createChildScope(currentScopeId, NfContextScopeType.FOR);

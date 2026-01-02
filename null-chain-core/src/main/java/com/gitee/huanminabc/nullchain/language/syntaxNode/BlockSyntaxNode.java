@@ -2,6 +2,7 @@ package com.gitee.huanminabc.nullchain.language.syntaxNode;
 
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
+import com.gitee.huanminabc.nullchain.language.utils.SyntaxNodeUtil;
 
 import java.util.List;
 
@@ -76,24 +77,22 @@ public abstract class BlockSyntaxNode extends SyntaxNodeAbs implements SyntaxNod
      * @param tokens Token列表
      * @param startIndex 开始查找的位置
      * @return LINE_END的位置，如果未找到则返回tokens.size()
+     * @deprecated 使用 {@link SyntaxNodeUtil#findLineEndIndex(List, int)} 替代
      */
+    @Deprecated
     protected static int findLineEndIndex(List<Token> tokens, int startIndex) {
-        int size = tokens.size();
-        for (int i = startIndex; i < size; i++) {
-            if (tokens.get(i).type == TokenType.LINE_END) {
-                return i;
-            }
-        }
-        return size; // 默认到列表末尾
+        return SyntaxNodeUtil.findLineEndIndex(tokens, startIndex);
     }
     
     /**
      * 删除Token列表中的注释
      * 
      * @param tokens Token列表
+     * @deprecated 使用 {@link SyntaxNodeUtil#removeComments(List)} 替代
      */
+    @Deprecated
     protected static void removeComments(List<Token> tokens) {
-        tokens.removeIf(t -> t.type == TokenType.COMMENT);
+        SyntaxNodeUtil.removeComments(tokens);
     }
     
     /**

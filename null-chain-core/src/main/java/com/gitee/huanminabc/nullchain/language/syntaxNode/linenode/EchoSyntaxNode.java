@@ -77,6 +77,10 @@ public class EchoSyntaxNode extends LineSyntaxNode {
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {
         List<Token> tokens = syntaxNode.getValue();
+        if (tokens == null) {
+            // echo语句允许tokens为空（空打印）
+            tokens = new ArrayList<>();
+        }
         NfContextScope mainScope = context.getMainScope();
         //获取全局中是否存在log
         NfVariableInfo variable = mainScope.getVariable("log");

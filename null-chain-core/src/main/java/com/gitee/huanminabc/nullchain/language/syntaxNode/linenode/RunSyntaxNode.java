@@ -137,7 +137,15 @@ public class RunSyntaxNode extends LineSyntaxNode {
         NfContextScope mainScope = context.getMainScope();
         NfContextScope currentScope = context.getCurrentScope();
         List<Token> value = syntaxNode.getValue();
+        if (value == null || value.isEmpty()) {
+            throw new NfException("Line:{} ,run表达式tokens不能为空 , syntax: {}", 
+                syntaxNode.getLine(), syntaxNode);
+        }
         //如果最后一位是IDENTIFIER就是需要赋值的变量,需要取出来
+        if (value.size() < 2) {
+            throw new NfException("Line:{} ,run表达式格式错误，tokens数量不足 , syntax: {}", 
+                syntaxNode.getLine(), syntaxNode);
+        }
         Token tokenArrowAssign = value.get(value.size() - 2);
         Token tokenVariate = value.get(value.size() - 1);
 

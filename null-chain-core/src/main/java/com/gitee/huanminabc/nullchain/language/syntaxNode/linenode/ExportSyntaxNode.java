@@ -86,6 +86,10 @@ public class ExportSyntaxNode extends LineSyntaxNode {
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {
         List<Token> tokens = syntaxNode.getValue();
+        if (tokens == null || tokens.isEmpty()) {
+            throw new NfException("Line:{} ,export表达式tokens不能为空 , syntax: {}", 
+                syntaxNode.getLine(), syntaxNode);
+        }
         NfContextScope mainScope = context.getMainScope();
         Object exportValue;
         Class<?> exportType;

@@ -85,6 +85,10 @@ public class FunExeSyntaxNode extends LineSyntaxNode {
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {
         List<Token> value = syntaxNode.getValue();
+        if (value == null || value.isEmpty()) {
+            throw new NfException("Line:{} ,函数执行表达式tokens不能为空 , syntax: {}", 
+                syntaxNode.getLine(), syntaxNode);
+        }
 
         try {
             StringBuilder stringBuilder = TokenUtil.mergeToken(value);

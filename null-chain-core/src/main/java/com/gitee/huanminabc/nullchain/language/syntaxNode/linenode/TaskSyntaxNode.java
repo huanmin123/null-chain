@@ -111,6 +111,10 @@ public class TaskSyntaxNode extends LineSyntaxNode {
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {
         List<Token> value = syntaxNode.getValue();
+        if (value == null || value.isEmpty()) {
+            throw new NfException("Line:{} ,task表达式tokens不能为空 , syntax: {}", 
+                syntaxNode.getLine(), syntaxNode);
+        }
         //最后一个token就是类型
         String type = value.get(value.size() - 1).value;
         //截取到as的位置

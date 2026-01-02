@@ -16,7 +16,6 @@ import com.gitee.huanminabc.nullchain.language.utils.KeywordUtil;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -161,6 +160,10 @@ public class AssignSyntaxNode extends LineSyntaxNode {
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {
         List<Token> valueTokens = syntaxNode.getValue();
+        if (valueTokens == null || valueTokens.isEmpty()) {
+            throw new NfException("Line:{} ,赋值表达式tokens不能为空 , syntax: {}", 
+                syntaxNode.getLine(), syntaxNode);
+        }
         boolean hasTypeDeclaration = valueTokens.size() >= 3 && 
             valueTokens.get(0).type == TokenType.IDENTIFIER && 
             valueTokens.get(1).type == TokenType.IDENTIFIER && 

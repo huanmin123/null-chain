@@ -74,7 +74,8 @@ public class IFSyntaxNode extends BlockSyntaxNode {
                 List<Token> ifTokens = new ArrayList<>(tokens.subList(i, endIndex));
                 //如果是0那么就是语法有问题
                 if (ifTokens.isEmpty()) {
-                    throw new NfException("Line:{}  if表达式语法错误", token.getLine());
+                    throw new NfException("Line:{} , if表达式语法错误 , syntax: {}", 
+                        token.getLine(), ifTokens);
                 }
                 //删除
                 tokens.subList(i, endIndex).clear();
