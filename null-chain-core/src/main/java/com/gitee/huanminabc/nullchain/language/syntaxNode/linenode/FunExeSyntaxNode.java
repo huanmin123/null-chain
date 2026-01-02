@@ -3,16 +3,14 @@ package com.gitee.huanminabc.nullchain.language.syntaxNode.linenode;
 import com.gitee.huanminabc.nullchain.language.NfCalculator;
 import com.gitee.huanminabc.nullchain.language.NfException;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
+import com.gitee.huanminabc.nullchain.language.syntaxNode.LineSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
-import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeAbs;
-import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeStructType;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,11 +25,20 @@ import java.util.List;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@NoArgsConstructor
-public class FunExeSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
+public class FunExeSyntaxNode extends LineSyntaxNode {
+    public FunExeSyntaxNode() {
+        super(SyntaxNodeType.FUN_EXE_EXP);
+    }
+    
     public FunExeSyntaxNode(SyntaxNodeType type) {
         super(type);
-        super.setStructType(SyntaxNodeStructType.LINE_NODE);
+    }
+    
+    @Override
+    protected TokenType getTargetTokenType() {
+        // FunExeSyntaxNode重写了analystToken方法，此方法不会被调用
+        // 但为了满足抽象方法要求，返回null
+        return null;
     }
 
 
@@ -79,10 +86,6 @@ public class FunExeSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         return false;
     }
 
-    @Override
-    public boolean analystSyntax(SyntaxNode syntaxNode) {
-        return syntaxNode instanceof FunExeSyntaxNode;
-    }
 
 
     @Override

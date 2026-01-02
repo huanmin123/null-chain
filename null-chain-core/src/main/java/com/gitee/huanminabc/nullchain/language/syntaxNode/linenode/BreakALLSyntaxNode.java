@@ -3,15 +3,13 @@ package com.gitee.huanminabc.nullchain.language.syntaxNode.linenode;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScopeType;
+import com.gitee.huanminabc.nullchain.language.syntaxNode.LineSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
-import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeAbs;
-import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeStructType;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.util.ArrayList;
@@ -20,16 +18,19 @@ import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-@NoArgsConstructor
 @ToString(callSuper = true)
-public class BreakALLSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
+public class BreakALLSyntaxNode extends LineSyntaxNode {
+    public BreakALLSyntaxNode() {
+        super(SyntaxNodeType.BREAK_ALL_EXP);
+    }
+    
     public BreakALLSyntaxNode(SyntaxNodeType type) {
         super(type);
-        super.setStructType(SyntaxNodeStructType.LINE_NODE);
     }
+    
     @Override
-    public boolean analystToken(List<Token> tokens) {
-        return  tokens.get(0).type == TokenType.BREAK_ALL;
+    protected TokenType getTargetTokenType() {
+        return TokenType.BREAK_ALL;
     }
 
     @Override
@@ -46,10 +47,6 @@ public class BreakALLSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         return true;
     }
 
-    @Override
-    public boolean analystSyntax(SyntaxNode syntaxNode) {
-        return  syntaxNode instanceof BreakALLSyntaxNode;
-    }
 
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {

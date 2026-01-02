@@ -7,7 +7,10 @@ import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScopeType;
 
-import com.gitee.huanminabc.nullchain.language.syntaxNode.*;
+import com.gitee.huanminabc.nullchain.language.syntaxNode.BlockSyntaxNode;
+import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
+import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeFactory;
+import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
@@ -35,13 +38,21 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Data
-@NoArgsConstructor
-public class IFSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
+public class IFSyntaxNode extends BlockSyntaxNode {
     //if表达式类型
     private IFType ifType;
+    
+    public IFSyntaxNode() {
+        super(SyntaxNodeType.IF_EXP);
+    }
+    
     public IFSyntaxNode(SyntaxNodeType type) {
         super(type);
-        super.setStructType(SyntaxNodeStructType.BLOCK_NODE);
+    }
+    
+    @Override
+    protected TokenType getTargetTokenType() {
+        return TokenType.IF;
     }
     public enum IFType {
         IF,
@@ -173,20 +184,6 @@ public class IFSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         return true;
     }
 
-    @Override
-    public boolean analystToken(List<Token> tokens) {
-        Token token = tokens.get(0);
-        if (token.type == TokenType.IF) {
-            return true;
-        }
-        return false;
-    }
-
-
-    @Override
-    public boolean analystSyntax(SyntaxNode syntaxNode) {
-        return syntaxNode instanceof IFSyntaxNode;
-    }
 
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {

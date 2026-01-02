@@ -3,9 +3,8 @@ package com.gitee.huanminabc.nullchain.language.syntaxNode.linenode;
 import com.gitee.huanminabc.nullchain.common.NullConstants;
 import com.gitee.huanminabc.nullchain.language.NfException;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
+import com.gitee.huanminabc.nullchain.language.syntaxNode.LineSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
-import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeAbs;
-import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeStructType;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
@@ -28,11 +27,18 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Data
-@NoArgsConstructor
-public  class ImportSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
+public  class ImportSyntaxNode extends LineSyntaxNode {
+    public ImportSyntaxNode() {
+        super(SyntaxNodeType.IMPORT_EXP);
+    }
+    
     public ImportSyntaxNode(SyntaxNodeType type) {
         super(type);
-        super.setStructType(SyntaxNodeStructType.LINE_NODE);
+    }
+    
+    @Override
+    protected TokenType getTargetTokenType() {
+        return TokenType.IMPORT;
     }
 
     @Override
@@ -80,10 +86,6 @@ public  class ImportSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         return false;
     }
 
-    @Override
-    public boolean analystSyntax(SyntaxNode syntaxNode) {
-        return  syntaxNode instanceof ImportSyntaxNode;
-    }
 
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {
@@ -97,13 +99,5 @@ public  class ImportSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         context.addImport(type,sb.toString());
     }
 
-    @Override
-    public boolean analystToken(List<Token> tokens) {
-        Token token = tokens.get(0);
-        if (token.type == TokenType.IMPORT) {
-            return true;
-        }
-        return false;
-    }
 
 }

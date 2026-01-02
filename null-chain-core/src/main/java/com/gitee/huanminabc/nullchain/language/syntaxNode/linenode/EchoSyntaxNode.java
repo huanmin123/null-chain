@@ -6,9 +6,8 @@ import com.gitee.huanminabc.nullchain.language.NfException;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfVariableInfo;
+import com.gitee.huanminabc.nullchain.language.syntaxNode.LineSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
-import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeAbs;
-import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeStructType;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
@@ -32,11 +31,18 @@ import java.util.List;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@NoArgsConstructor
-public class EchoSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
+public class EchoSyntaxNode extends LineSyntaxNode {
+    public EchoSyntaxNode() {
+        super(SyntaxNodeType.ECHO_EXP);
+    }
+    
     public EchoSyntaxNode(SyntaxNodeType type) {
         super(type);
-        super.setStructType(SyntaxNodeStructType.LINE_NODE);
+    }
+    
+    @Override
+    protected TokenType getTargetTokenType() {
+        return TokenType.ECHO;
     }
 
     @Override
@@ -74,10 +80,6 @@ public class EchoSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         return false;
     }
 
-    @Override
-    public boolean analystSyntax(SyntaxNode syntaxNode) {
-        return syntaxNode instanceof EchoSyntaxNode;
-    }
 
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {
@@ -220,14 +222,6 @@ public class EchoSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
 
 
 
-    @Override
-    public boolean analystToken(List<Token> tokens) {
-        Token token = tokens.get(0);
-        if (token.type == TokenType.ECHO) {
-            return true;
-        }
-        return false;
-    }
 
     @Override
     public String toString() {

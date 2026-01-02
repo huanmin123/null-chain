@@ -6,9 +6,8 @@ import com.gitee.huanminabc.nullchain.language.NfException;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfVariableInfo;
+import com.gitee.huanminabc.nullchain.language.syntaxNode.LineSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
-import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeAbs;
-import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeStructType;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
@@ -34,13 +33,20 @@ import java.util.List;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@NoArgsConstructor
-public class AssignSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
-
+public class AssignSyntaxNode extends LineSyntaxNode {
+    public AssignSyntaxNode() {
+        super(SyntaxNodeType.ASSIGN_EXP);
+    }
 
     public AssignSyntaxNode(SyntaxNodeType type) {
         super(type);
-        super.setStructType(SyntaxNodeStructType.LINE_NODE);
+    }
+    
+    @Override
+    protected TokenType getTargetTokenType() {
+        // AssignSyntaxNode重写了analystToken方法，此方法不会被调用
+        // 但为了满足抽象方法要求，返回null
+        return null;
     }
 
     /**
@@ -294,11 +300,6 @@ public class AssignSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         }
     }
 
-    @Override
-    public boolean analystSyntax(SyntaxNode syntaxNode) {
-        //判断语法是否是赋值表达式
-        return syntaxNode instanceof AssignSyntaxNode;
-    }
 
     /**
      * 打印表达式

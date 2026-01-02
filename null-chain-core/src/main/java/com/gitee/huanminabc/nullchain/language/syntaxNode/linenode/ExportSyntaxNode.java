@@ -5,9 +5,8 @@ import com.gitee.huanminabc.nullchain.language.NfException;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfVariableInfo;
+import com.gitee.huanminabc.nullchain.language.syntaxNode.LineSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
-import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeAbs;
-import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeStructType;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
@@ -33,13 +32,20 @@ import java.util.List;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@NoArgsConstructor
-public class ExportSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
+public class ExportSyntaxNode extends LineSyntaxNode {
     public static  final String EXPORT = "$$nextTaskValue$$";
 
+    public ExportSyntaxNode() {
+        super(SyntaxNodeType.EXPORT_EXP);
+    }
+    
     public ExportSyntaxNode(SyntaxNodeType type) {
         super(type);
-        super.setStructType(SyntaxNodeStructType.LINE_NODE);
+    }
+    
+    @Override
+    protected TokenType getTargetTokenType() {
+        return TokenType.EXPORT;
     }
 
     @Override
@@ -81,10 +87,6 @@ public class ExportSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         return false;
     }
 
-    @Override
-    public boolean analystSyntax(SyntaxNode syntaxNode) {
-        return  syntaxNode instanceof ExportSyntaxNode;
-    }
 
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {
@@ -143,14 +145,6 @@ public class ExportSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
         mainScope.addVariable(new NfVariableInfo(EXPORT, exportValue, exportType));
     }
 
-    @Override
-    public boolean analystToken(List<Token> tokens) {
-        Token token = tokens.get(0);
-        if (token.type == TokenType.EXPORT) {
-            return true;
-        }
-        return false;
-    }
 
 
     @Override

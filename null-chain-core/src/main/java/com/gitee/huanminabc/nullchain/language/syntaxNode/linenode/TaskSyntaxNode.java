@@ -3,9 +3,8 @@ package com.gitee.huanminabc.nullchain.language.syntaxNode.linenode;
 import com.gitee.huanminabc.nullchain.common.NullConstants;
 import com.gitee.huanminabc.nullchain.language.NfException;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
+import com.gitee.huanminabc.nullchain.language.syntaxNode.LineSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
-import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeAbs;
-import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeStructType;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
@@ -31,11 +30,18 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Data
-@NoArgsConstructor
-public class TaskSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
+public class TaskSyntaxNode extends LineSyntaxNode {
+    public TaskSyntaxNode() {
+        super(SyntaxNodeType.TASK_EXP);
+    }
+    
     public TaskSyntaxNode(SyntaxNodeType type) {
         super(type);
-        super.setStructType(SyntaxNodeStructType.LINE_NODE);
+    }
+    
+    @Override
+    protected TokenType getTargetTokenType() {
+        return TokenType.TASK;
     }
 
     @Override
@@ -107,10 +113,6 @@ public class TaskSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
     }
 
 
-    @Override
-    public boolean analystSyntax(SyntaxNode syntaxNode) {
-        return  syntaxNode instanceof TaskSyntaxNode;
-    }
 
     @Override
     public void run(NfContext context, SyntaxNode syntaxNode) {
@@ -146,12 +148,5 @@ public class TaskSyntaxNode extends SyntaxNodeAbs implements SyntaxNode {
 
     }
 
-    //
-
-    @Override
-    public boolean analystToken(List<Token> tokens) {
-        Token token = tokens.get(0);
-        return token.type == TokenType.TASK;
-    }
 
 }
