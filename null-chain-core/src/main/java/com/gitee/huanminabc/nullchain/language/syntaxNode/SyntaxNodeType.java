@@ -22,6 +22,9 @@ public enum SyntaxNodeType {
     BREAK_EXP, // break语句
     BREAK_ALL_EXP, // break语句
     CONTINUE_EXP, // continue语句
+    FUN_DEF_EXP, // 函数定义表达式
+    FUN_CALL_EXP, // 函数调用表达式
+    RETURN_EXP, // return语句表达式
 
 
 }

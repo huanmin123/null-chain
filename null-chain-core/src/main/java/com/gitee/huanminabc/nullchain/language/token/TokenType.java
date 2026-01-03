@@ -64,4 +64,6 @@ public enum TokenType {
     LINE_END_SYMBOL, //\n 换行符号
     TAB_SYMBOL, ////\t 制表符号
     INSTANCEOF, // instanceof 类型判断操作符
+    FUN, // fun 函数定义关键字
+    RETURN, // return 返回语句关键字
 }

@@ -2,6 +2,7 @@ package com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode;
 
 import com.gitee.huanminabc.nullchain.language.NfCalculator;
 import com.gitee.huanminabc.nullchain.language.NfException;
+import com.gitee.huanminabc.nullchain.language.NfReturnException;
 import com.gitee.huanminabc.nullchain.language.NfSyntaxException;
 import com.gitee.huanminabc.nullchain.language.NfSynta;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
@@ -255,7 +256,12 @@ public class IFSyntaxNode extends BlockSyntaxNode {
                 //执行else if代码块内部的语句
                 List<SyntaxNode> elseChildList = nodeIf.getChildSyntaxNodeList();
                 if (elseChildList != null) {
-                    SyntaxNodeFactory.executeAll(elseChildList, context);
+                    try {
+                        SyntaxNodeFactory.executeAll(elseChildList, context);
+                    } catch (NfReturnException e) {
+                        // return语句需要穿透if块，传播到函数调用处
+                        throw e;
+                    }
                 }
                 //检查并传播breakAll标志到父作用域
                 if (childScope.isBreakAll()) {
@@ -280,7 +286,12 @@ public class IFSyntaxNode extends BlockSyntaxNode {
                     //执行if代码块内部的语句
                     List<SyntaxNode> ifChildList = nodeIf.getChildSyntaxNodeList();
                     if (ifChildList != null) {
-                        SyntaxNodeFactory.executeAll(ifChildList, context);
+                        try {
+                            SyntaxNodeFactory.executeAll(ifChildList, context);
+                        } catch (NfReturnException e) {
+                            // return语句需要穿透if块，传播到函数调用处
+                            throw e;
+                        }
                     }
                     //检查并传播breakAll标志到父作用域
                     if (childScope.isBreakAll()) {
@@ -290,6 +301,9 @@ public class IFSyntaxNode extends BlockSyntaxNode {
                     context.removeScope(childScope.getScopeId());
                     break;
                 }
+            } catch (NfReturnException e) {
+                // return语句需要穿透if块，传播到函数调用处
+                throw e;
             } catch (Exception e) {
                 throw new NfException(e,"Line:{}  if表达式计算错误:{} ", ifSyntaxNode.getLine(), ifBuilder.toString());
             }

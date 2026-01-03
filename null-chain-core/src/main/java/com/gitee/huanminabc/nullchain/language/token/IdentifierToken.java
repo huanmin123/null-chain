@@ -99,6 +99,12 @@ public class IdentifierToken {
             case "instanceof":
                 tokens.add(new Token(TokenType.INSTANCEOF, value, line));
                 break;
+            case "fun":
+                tokens.add(new Token(TokenType.FUN, value, line));
+                break;
+            case "return":
+                tokens.add(new Token(TokenType.RETURN, value, line));
+                break;
             default:
                 tokens.add(new Token(TokenType.IDENTIFIER, value, line));
         }

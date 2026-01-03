@@ -44,6 +44,8 @@ public class NfContext {
     //类型和类的全路径映射关系
     private Map<String, String> importMap = new HashMap<>();
     private Map<String, String> taskMap = new HashMap<>();
+    //函数定义映射关系
+    private Map<String, FunDefInfo> functionMap = new HashMap<>();
     //接口类型到默认实现类的映射关系
     private Map<Class<?>, Class<?>> interfaceDefaultImplMap = new HashMap<>();
 
@@ -65,6 +67,21 @@ public class NfContext {
     //添加task
     public void addTask(String taskName, String classPath) {
         taskMap.put(taskName, classPath);
+    }
+
+    //添加函数定义
+    public void addFunction(String functionName, FunDefInfo funDef) {
+        functionMap.put(functionName, funDef);
+    }
+
+    //获取函数定义
+    public FunDefInfo getFunction(String functionName) {
+        return functionMap.get(functionName);
+    }
+
+    //检查函数是否存在
+    public boolean hasFunction(String functionName) {
+        return functionMap.containsKey(functionName);
     }
 
 
@@ -347,8 +364,12 @@ public class NfContext {
         // 清空并释放所有内部 Map
         scopeMap.clear();
         importMap.clear();
+        taskMap.clear();
+        functionMap.clear();
         importMap = null;
         scopeMap = null;
+        taskMap = null;
+        functionMap = null;
         // 释放接口映射
         if (interfaceDefaultImplMap != null) {
             interfaceDefaultImplMap.clear();

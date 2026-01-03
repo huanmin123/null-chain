@@ -5,6 +5,7 @@ import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScopeType;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode.ForSyntaxNode;
+import com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode.FunDefSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode.IFSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode.SwitchSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode.DoWhileSyntaxNode;
@@ -43,12 +44,15 @@ public class SyntaxNodeFactory {
     static {
         syntaxNodeMap.put(SyntaxNodeType.IMPORT_EXP, new ImportSyntaxNode());
         syntaxNodeMap.put(SyntaxNodeType.TASK_EXP, new TaskSyntaxNode());
+        syntaxNodeMap.put(SyntaxNodeType.FUN_DEF_EXP, new FunDefSyntaxNode()); // 函数定义优先级高于函数调用
+        syntaxNodeMap.put(SyntaxNodeType.RETURN_EXP, new ReturnSyntaxNode()); // return语句优先级高于函数调用
         syntaxNodeMap.put(SyntaxNodeType.VAR_EXP, new VarSyntaxNode());
         syntaxNodeMap.put(SyntaxNodeType.ASSIGN_EXP, new AssignSyntaxNode());
         syntaxNodeMap.put(SyntaxNodeType.DECLARE_EXP, new DeclareSyntaxNode());
         syntaxNodeMap.put(SyntaxNodeType.RUN_EXP, new RunSyntaxNode());
         syntaxNodeMap.put(SyntaxNodeType.EXPORT_EXP, new ExportSyntaxNode());
         syntaxNodeMap.put(SyntaxNodeType.ECHO_EXP, new EchoSyntaxNode());
+        syntaxNodeMap.put(SyntaxNodeType.FUN_CALL_EXP, new FunCallSyntaxNode()); // 函数调用
         syntaxNodeMap.put(SyntaxNodeType.FUN_EXE_EXP, new FunExeSyntaxNode());
         syntaxNodeMap.put(SyntaxNodeType.IF_EXP, new IFSyntaxNode());
         syntaxNodeMap.put(SyntaxNodeType.WHILE_EXP, new WhileSyntaxNode());
