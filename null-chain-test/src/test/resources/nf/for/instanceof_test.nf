@@ -2,10 +2,6 @@
 // instanceof 测试 - 测试类型判断和父子关系
 // ============================================
 
-// 导入需要的类型
-import java.lang.Object
-import java.lang.String
-
 // 1. 基本类型判断
 Object obj1 = 100
 echo "obj1 = {obj1}"

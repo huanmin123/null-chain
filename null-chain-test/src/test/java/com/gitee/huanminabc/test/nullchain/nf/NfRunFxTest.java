@@ -13,19 +13,24 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+
 @Slf4j
 public class NfRunFxTest {
     static List<Token> tokens;
     static List<Token> tokens1;
+    static List<Token> tokens2;
 
 
     @BeforeEach
-    public  void before() {
+    public void before() {
         String file = TestUtil.readFile("student/advanced_examples.nf");
         tokens = NfToken.tokens(file);
 
         String file1 = TestUtil.readFile("student/basic_syntax.nf");
         tokens1 = NfToken.tokens(file1);
+
+        String file2 = TestUtil.readFile("student/nullchain.nf");
+        tokens2 = NfToken.tokens(file2);
     }
 
     @Test
@@ -36,22 +41,35 @@ public class NfRunFxTest {
 //            System.out.println(syntaxNode);
 //        }
 //        for (int i = 0; i < 10; i++) {
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 3; i++) {
             CodeTimeUtil.creator(() -> {
                 NfContext context = new NfContext();
-                Object run = NfRun.run(syntaxNodes, context,log, null);
+                Object run = NfRun.run(syntaxNodes, context, log, null);
                 System.out.println(run);
             });
         }
 
     }
+
     @Test
     public void NfSynta1() {
         List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens1);
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 3; i++) {
             CodeTimeUtil.creator(() -> {
                 NfContext context = new NfContext();
-                Object run = NfRun.run(syntaxNodes, context,log, null);
+                Object run = NfRun.run(syntaxNodes, context, log, null);
+                System.out.println(run);
+            });
+        }
+    }
+
+    @Test
+    public void NfSynta2() {
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens2);
+        for (int i = 0; i < 3; i++) {
+            CodeTimeUtil.creator(() -> {
+                NfContext context = new NfContext();
+                Object run = NfRun.run(syntaxNodes, context, log, null);
                 System.out.println(run);
             });
         }

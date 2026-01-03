@@ -1,10 +1,17 @@
 package com.gitee.huanminabc.nullchain.language.internal;
 
+import com.gitee.huanminabc.nullchain.Null;
+import com.gitee.huanminabc.nullchain.NullCheck;
 import com.gitee.huanminabc.nullchain.core.NullChain;
+import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
 import com.gitee.huanminabc.nullchain.language.NfMain;
+import com.gitee.huanminabc.nullchain.leaf.calculate.NullCalculate;
+import com.gitee.huanminabc.nullchain.leaf.http.OkHttp;
+import com.gitee.huanminabc.nullchain.leaf.stream.NullStream;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -260,7 +267,17 @@ public class NfContext {
 
     //java中的常用类型默认导入
     public void initDefaultImportType() {
+        importMap.put("Object", Object.class.getName());
+
+        //空链相关的工具
         importMap.put("NullChain", NullChain.class.getName());
+        importMap.put("NullCheck", NullCheck.class.getName());
+        importMap.put("NullCalculate", NullCalculate.class.getName());
+        importMap.put("NullStream", NullStream.class.getName());
+        importMap.put("OkHttp", OkHttp.class.getName());
+        importMap.put("Null", Null.class.getName());
+        importMap.put("DateFormatEnum", DateFormatEnum.class.getName());
+
 
         importMap.put("String", String.class.getName());
         importMap.put("Integer", Integer.class.getName());
@@ -299,6 +316,10 @@ public class NfContext {
         importMap.put("Arrays", Arrays.class.getName());
         importMap.put("Collections", Collections.class.getName());
         importMap.put("UUID", UUID.class.getName());
+        importMap.put("Files", Files.class.getName());
+
+
+
 
         //8大基本类型, 转化为包装类型
         importMap.put("int", Integer.class.getName());

@@ -34,3 +34,4 @@ echo "testShadow(10) = {shadowResult}, 全局 x = {x}"
 
 export "函数作用域测试完成"
 
+
