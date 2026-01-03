@@ -115,21 +115,32 @@ public class NfCalculator {
     }
 
     public static Object arithmetic(String expression, NfContext nfContext) {
+        if (nfContext == null) {
+            throw new NfException("nfContext为null，无法计算表达式: " + expression);
+        }
         JexlContext context = new MapContext();
         //获取当前作用域
         NfContextScope currentScope = nfContext.getCurrentScope();
+        System.err.println("[NfCalculator] expression=" + expression + ", currentScope=" + currentScope + ", currentScopeId=" + nfContext.getCurrentScopeId());
+        //检查当前作用域是否为null
+        if (currentScope == null) {
+            throw new NfException("当前作用域为null，无法计算表达式: " + expression + "，currentScopeId: " + nfContext.getCurrentScopeId());
+        }
         //合并作用域
         mergeScope(nfContext, currentScope, context);
+        System.err.println("[NfCalculator] After mergeScope, context vars: " + context.get("i") + ", " + context.get("product"));
         //获取类型导入
         Map<String, String> importMap = nfContext.getImportMap();
-        Set<Map.Entry<String, String>> entries = importMap.entrySet();
-        for (Map.Entry<String, String> entry : entries) {
-            //将value转化为实际的类
-            try {
-                Class<?> aClass = Class.forName(entry.getValue());
-                context.set(entry.getKey(), aClass);
-            } catch (ClassNotFoundException e) {
-                throw new NfException(e, "找不到类: " + entry.getValue());
+        if (importMap != null) {
+            Set<Map.Entry<String, String>> entries = importMap.entrySet();
+            for (Map.Entry<String, String> entry : entries) {
+                //将value转化为实际的类
+                try {
+                    Class<?> aClass = Class.forName(entry.getValue());
+                    context.set(entry.getKey(), aClass);
+                } catch (ClassNotFoundException e) {
+                    throw new NfException(e, "找不到类: " + entry.getValue());
+                }
             }
         }
 
@@ -153,12 +164,17 @@ public class NfCalculator {
 
             return jexl.createExpression(processedExpr).evaluate(context);
         } catch (Exception e) {
+            e.printStackTrace();
             throw new NfException(e, "表达式计算错误: " + expression);
         }
     }
 
     private static void mergeScope(NfContext nfContext, NfContextScope currentScope, JexlContext context) {
         mergeScopeRecursively(nfContext, currentScope, context);
+        // 如果当前作用域为null，直接返回
+        if (currentScope == null) {
+            return;
+        }
         //合并当前作用域
         Map<String, Object> currentScopeMap = currentScope.toMap();
         for (Map.Entry<String, Object> entry : currentScopeMap.entrySet()) {
@@ -175,6 +191,10 @@ public class NfCalculator {
      * @param context Jexl上下文
      */
     private static void mergeScopeRecursively(NfContext nfContext, NfContextScope currentScope, JexlContext context) {
+        // 如果当前作用域为null，直接返回
+        if (currentScope == null) {
+            return;
+        }
         //获取父作用域
         NfContextScope parentScope = nfContext.getScope(currentScope.getParentScopeId());
         if (parentScope != null) {

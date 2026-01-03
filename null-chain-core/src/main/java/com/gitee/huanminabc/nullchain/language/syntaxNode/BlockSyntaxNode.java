@@ -191,17 +191,17 @@ public abstract class BlockSyntaxNode extends SyntaxNodeAbs implements SyntaxNod
             return tokensSize; // 如果tokens不足或起始位置无效，返回列表末尾
         }
         //遇到RBRACE + LINE_END结束
-        for (int j = startIndex; j < tokensSize - 1; j++) {
+        for (int j = startIndex; j < tokensSize; j++) {
             Token currentToken = tokens.get(j);
-            Token nextToken = tokens.get(j + 1);
-            if (currentToken.type == TokenType.LBRACE && nextToken.type == TokenType.LINE_END) {
+            Token nextToken = (j + 1 < tokensSize) ? tokens.get(j + 1) : null;
+            if (currentToken.type == TokenType.LBRACE && nextToken != null && nextToken.type == TokenType.LINE_END) {
                 depth++;
             }
             //}  || } else (如果checkElse为true)
             if (currentToken.type == TokenType.RBRACE) {
                 if (checkElse) {
                     // 只有当后面是LINE_END或ELSE时，才减少深度
-                    if (nextToken.type == TokenType.LINE_END || nextToken.type == TokenType.ELSE) {
+                    if (nextToken != null && (nextToken.type == TokenType.LINE_END || nextToken.type == TokenType.ELSE)) {
                         depth--;
                     }
                 } else {
@@ -213,7 +213,7 @@ public abstract class BlockSyntaxNode extends SyntaxNodeAbs implements SyntaxNod
             if (depth == 0 && currentToken.type == TokenType.RBRACE) {
                 // 如果checkElse为true，需要确保后面是LINE_END（if语句的结束必须是 } + 换行）
                 if (checkElse) {
-                    if (nextToken.type == TokenType.LINE_END) {
+                    if (nextToken != null && nextToken.type == TokenType.LINE_END) {
                         endIndex = j + 1;
                         break;
                     }

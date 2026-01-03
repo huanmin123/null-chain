@@ -47,6 +47,7 @@ public class KeywordUtil {
         keywords.add("default");
         keywords.add("while");
         keywords.add("for");
+        keywords.add("do");
         keywords.add("in");
         keywords.add("range");
         // 循环控制

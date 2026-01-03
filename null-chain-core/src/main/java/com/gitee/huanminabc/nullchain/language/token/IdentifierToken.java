@@ -51,6 +51,9 @@ public class IdentifierToken {
             case "while":
                 tokens.add(new Token(TokenType.WHILE, value, line));
                 break;
+            case "do":
+                tokens.add(new Token(TokenType.DO, value, line));
+                break;
             case "for":
                 tokens.add(new Token(TokenType.FOR, value, line));
                 break;

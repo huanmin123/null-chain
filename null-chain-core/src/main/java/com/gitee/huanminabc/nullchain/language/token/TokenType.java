@@ -37,6 +37,7 @@ public enum TokenType {
     CASE, // case
     DEFAULT, // default
     WHILE, // while
+    DO, // do
     FOR, // for
     IN, // in
     RANGE, // range

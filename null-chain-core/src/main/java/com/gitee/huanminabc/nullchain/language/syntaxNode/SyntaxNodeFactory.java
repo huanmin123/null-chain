@@ -7,6 +7,8 @@ import com.gitee.huanminabc.nullchain.language.internal.NfContextScopeType;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode.ForSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode.IFSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode.SwitchSyntaxNode;
+import com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode.DoWhileSyntaxNode;
+import com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode.WhileSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.linenode.*;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 
@@ -49,6 +51,8 @@ public class SyntaxNodeFactory {
         syntaxNodeMap.put(SyntaxNodeType.ECHO_EXP, new EchoSyntaxNode());
         syntaxNodeMap.put(SyntaxNodeType.FUN_EXE_EXP, new FunExeSyntaxNode());
         syntaxNodeMap.put(SyntaxNodeType.IF_EXP, new IFSyntaxNode());
+        syntaxNodeMap.put(SyntaxNodeType.WHILE_EXP, new WhileSyntaxNode());
+        syntaxNodeMap.put(SyntaxNodeType.DO_WHILE_EXP, new DoWhileSyntaxNode());
         syntaxNodeMap.put(SyntaxNodeType.SWITCH_EXP, new SwitchSyntaxNode());
         syntaxNodeMap.put(SyntaxNodeType.FOR_EXP, new ForSyntaxNode());
         syntaxNodeMap.put(SyntaxNodeType.BREAK_EXP, new BreakSyntaxNode());

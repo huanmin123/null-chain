@@ -14,6 +14,7 @@ public enum SyntaxNodeType {
     IF_EXP, // if语句
     SWITCH_EXP, // export语句
     WHILE_EXP, // while语句
+    DO_WHILE_EXP, // do while语句
     FOR_EXP, // for语句
     ECHO_EXP, // echo语句
     FUN_EXE_EXP, // 函数调用
