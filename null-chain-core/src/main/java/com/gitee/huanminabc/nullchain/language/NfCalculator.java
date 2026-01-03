@@ -3,7 +3,6 @@ package com.gitee.huanminabc.nullchain.language;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfVariableInfo;
-import com.gitee.huanminabc.jcommon.encryption.HashUtil;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.linenode.FunCallSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.NfToken;
@@ -51,12 +50,12 @@ public class NfCalculator {
      * <p>设计说明：
      * <ul>
      *   <li>编译后的JEXL表达式是纯语法结构，不包含变量值，可以全局共享</li>
-     *   <li>使用表达式字符串的SHA-256哈希值作为key，节省内存并避免哈希碰撞</li>
+     *   <li>直接使用表达式字符串作为key，Caffeine内部会使用String.hashCode()处理</li>
      *   <li>同一个表达式在不同上下文、不同作用域中都可以复用编译结果</li>
      *   <li>变量值在evaluate时通过JexlContext传入，不影响编译结果</li>
      * </ul>
      * </p>
-     * key: 表达式字符串的SHA-256哈希值, value: 编译后的表达式对象
+     * key: 表达式字符串, value: 编译后的表达式对象
      */
     private static final Cache<String, JexlExpression> globalExpressionCache = Caffeine.newBuilder()
         .maximumSize(10000)
@@ -224,12 +223,11 @@ public class NfCalculator {
 
             // 使用全局缓存的表达式对象，避免重复编译
             // 编译后的表达式是纯语法结构，不依赖变量值，可以全局共享
-            // 使用表达式字符串的SHA-256哈希值作为缓存key
+            // 直接使用表达式字符串作为缓存key，Caffeine内部会处理哈希
 
-            String exprHash = HashUtil.sha256(finalExpr);
-            JexlExpression cachedExpression = globalExpressionCache.get(exprHash, hash -> jexl.createExpression(finalExpr));
+            JexlExpression cachedExpression = globalExpressionCache.get(finalExpr, jexl::createExpression);
             Object evaluate = cachedExpression.evaluate(context);
-            log.info("finalExpr: {}, exprHash: {}, evaluate: {}", finalExpr, exprHash, evaluate);
+//            log.info("finalExpr: {}, evaluate: {}", finalExpr, evaluate);
             return evaluate;
         } catch (NfReturnException e) {
             // return语句需要穿透表达式计算，传播到函数调用处
