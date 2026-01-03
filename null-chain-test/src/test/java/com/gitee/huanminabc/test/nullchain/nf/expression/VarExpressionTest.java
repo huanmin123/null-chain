@@ -26,10 +26,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @Slf4j
 public class VarExpressionTest {
 
-    @BeforeEach
-    public void clearCache() {
-        NfMain.shutdown();
-    }
     /**
      * 测试 var 基础功能 - 自动类型推导和手动类型指定
      */

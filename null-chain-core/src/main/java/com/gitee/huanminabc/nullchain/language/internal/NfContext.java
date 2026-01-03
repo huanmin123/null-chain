@@ -72,6 +72,12 @@ public class NfContext {
     private Map<String, FunDefInfo> functionMap = new HashMap<>();
     //接口类型到默认实现类的映射关系
     private Map<Class<?>, Class<?>> interfaceDefaultImplMap = new HashMap<>();
+    //导入的NF脚本作用域映射关系
+    //key: 脚本名称, value: 脚本执行后的全局作用域
+    private Map<String, NfContextScope> importedScriptScopeMap = new HashMap<>();
+    //导入的NF脚本上下文映射关系
+    //key: 脚本名称, value: 脚本的上下文（用于函数调用时访问脚本的函数定义和作用域）
+    private Map<String, NfContext> importedScriptContextMap = new HashMap<>();
 
     //获取类型的全路径
     public String getImportType(String type) {
@@ -106,6 +112,56 @@ public class NfContext {
     //检查函数是否存在
     public boolean hasFunction(String functionName) {
         return functionMap.containsKey(functionName);
+    }
+
+    /**
+     * 添加导入脚本的作用域
+     * 
+     * @param scriptName 脚本名称
+     * @param scope 脚本的全局作用域
+     */
+    public void addImportedScriptScope(String scriptName, NfContextScope scope) {
+        importedScriptScopeMap.put(scriptName, scope);
+    }
+
+    /**
+     * 获取导入脚本的作用域
+     * 
+     * @param scriptName 脚本名称
+     * @return 脚本的全局作用域，如果不存在返回 null
+     */
+    public NfContextScope getImportedScriptScope(String scriptName) {
+        return importedScriptScopeMap.get(scriptName);
+    }
+
+    /**
+     * 检查导入脚本是否存在
+     * 
+     * @param scriptName 脚本名称
+     * @return 如果脚本已导入返回 true，否则返回 false
+     */
+    public boolean hasImportedScript(String scriptName) {
+        return importedScriptScopeMap.containsKey(scriptName);
+    }
+
+    /**
+     * 添加导入脚本的上下文
+     * 
+     * @param scriptName 脚本名称
+     * @param scriptContext 脚本的上下文
+     */
+    public void addImportedScriptContext(String scriptName, NfContext scriptContext) {
+        importedScriptContextMap.put(scriptName, scriptContext);
+    }
+
+    /**
+     * 获取导入脚本的上下文
+     * 
+     * @param scriptName 脚本名称
+     * @return 脚本的上下文，如果不存在返回 null
+     */
+    public NfContext getImportedScriptContext(String scriptName) {
+        return importedScriptContextMap.get(scriptName);
     }
 
 
@@ -406,10 +462,16 @@ public class NfContext {
         importMap.clear();
         taskMap.clear();
         functionMap.clear();
+        importedScriptScopeMap.clear();
+        if (importedScriptContextMap != null) {
+            importedScriptContextMap.clear();
+            importedScriptContextMap = null;
+        }
         importMap = null;
         scopeMap = null;
         taskMap = null;
         functionMap = null;
+        importedScriptScopeMap = null;
         // 释放接口映射
         if (interfaceDefaultImplMap != null) {
             interfaceDefaultImplMap.clear();

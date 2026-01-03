@@ -2,6 +2,7 @@ package com.gitee.huanminabc.nullchain.language;
 
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
+import com.gitee.huanminabc.nullchain.language.internal.NfVariableInfo;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.linenode.FunCallSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.NfToken;
@@ -163,8 +164,11 @@ public class NfCalculator {
                 tempVarStorage.get().clear();
             }
 
+            // 预处理表达式中的导入脚本变量访问（脚本名称.变量名）
+            String processedExpr = preProcessImportedScriptAccess(expression, nfContext);
+
             // 预处理表达式中的函数调用
-            String processedExpr = preProcessFunctionCalls(expression, nfContext, context);
+            processedExpr = preProcessFunctionCalls(processedExpr, nfContext, context);
 
             // 将临时变量添加到 JexlContext 中
             for (Map.Entry<String, Object> entry : tempVarStorage.get().entrySet()) {
@@ -173,7 +177,7 @@ public class NfCalculator {
 
             // 预处理表达式，转换 instanceof 等语法（传入 importMap 用于类型解析）
             InstanceofProcessResult processResult = preProcessExpression(processedExpr, importMap);
-            processedExpr = processResult.processedExpression;
+            String finalExpr = processResult.processedExpression;
 
             // 将需要的类型类设置到上下文中
             for (String typeDef : processResult.requiredTypeNames) {
@@ -188,11 +192,16 @@ public class NfCalculator {
                 }
             }
 
-            return jexl.createExpression(processedExpr).evaluate(context);
+            Object result = jexl.createExpression(finalExpr).evaluate(context);
+            return result;
         } catch (NfReturnException e) {
             // return语句需要穿透表达式计算，传播到函数调用处
             throw e;
         } catch (Exception e) {
+            // 添加详细错误信息用于调试
+            System.err.println("表达式计算错误 - 原始表达式: " + expression);
+            System.err.println("表达式计算错误 - 异常信息: " + e.getMessage());
+            e.printStackTrace();
             throw new NfException(e, "表达式计算错误: " + expression);
         } finally {
             // 恢复递归深度
@@ -259,6 +268,68 @@ public class NfCalculator {
     }
 
     /**
+     * 预处理表达式中的导入脚本变量访问
+     * 识别 `脚本名称.变量名` 模式，从导入脚本的作用域中获取变量值，替换为临时变量
+     * 
+     * <p>注意：此方法只处理变量访问，函数调用（`脚本名称.函数名()`）由 FunCallSyntaxNode 处理</p>
+     *
+     * @param expression 原始表达式
+     * @param nfContext NF上下文
+     * @return 处理后的表达式
+     */
+    private static String preProcessImportedScriptAccess(String expression, NfContext nfContext) {
+        if (expression == null || expression.isEmpty()) {
+            return expression;
+        }
+
+        // 匹配模式：脚本名称.变量名（但不匹配函数调用，即后面不能跟左括号）
+        // 使用正则表达式：\b([a-zA-Z_$][a-zA-Z0-9_$]*)\.([a-zA-Z_$][a-zA-Z0-9_$]*)(?!\s*\()
+        // (?!\s*\() 是负向前瞻，确保后面不是左括号（即不是函数调用）
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+            "\\b([a-zA-Z_$][a-zA-Z0-9_$]*)\\.([a-zA-Z_$][a-zA-Z0-9_$]*)(?!\\s*\\()"
+        );
+        java.util.regex.Matcher matcher = pattern.matcher(expression);
+        
+        StringBuffer sb = new StringBuffer();
+        boolean found = false;
+        
+        while (matcher.find()) {
+            String scriptName = matcher.group(1);
+            String varName = matcher.group(2);
+            
+            // 检查是否是导入的脚本
+            if (nfContext.hasImportedScript(scriptName)) {
+                // 获取导入脚本的作用域
+                NfContextScope scriptScope = nfContext.getImportedScriptScope(scriptName);
+                if (scriptScope != null) {
+                    // 从脚本作用域中获取变量
+                    NfVariableInfo varInfo = scriptScope.getVariable(varName);
+                    if (varInfo != null) {
+                        // 找到变量，生成临时变量名并存储值
+                        String tempVarName = "__script_" + scriptName + "_" + varName + "_" + System.nanoTime();
+                        tempVarStorage.get().put(tempVarName, varInfo.getValue());
+                        
+                        // 替换为临时变量
+                        matcher.appendReplacement(sb, tempVarName);
+                        found = true;
+                        continue;
+                    }
+                }
+            }
+            
+            // 不是导入脚本访问，保留原样
+            matcher.appendReplacement(sb, matcher.group(0));
+        }
+        
+        if (found) {
+            matcher.appendTail(sb);
+            return sb.toString();
+        }
+        
+        return expression;
+    }
+
+    /**
      * 预处理表达式中的函数调用
      * 如果表达式中包含函数调用，先执行函数调用，将结果替换为临时变量
      * 使用递归方式处理，确保嵌套函数调用被正确处理
@@ -273,15 +344,32 @@ public class NfCalculator {
             return expression;
         }
 
-        // 使用正则表达式匹配函数调用：函数名(参数列表)
-        // 匹配模式：标识符(，但需要确保不是对象方法调用（如 a.b()）
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\b([a-zA-Z_$][a-zA-Z0-9_$]*)\\s*\\(");
-        java.util.regex.Matcher matcher = pattern.matcher(expression);
-
-        // 检查是否有任何已定义的函数调用
+        // 使用正则表达式匹配函数调用：函数名(参数列表) 或 脚本名称.函数名(参数列表)
+        // 匹配模式1：普通函数调用 - 标识符(
+        // 匹配模式2：导入脚本的函数调用 - 标识符.标识符(
+        java.util.regex.Pattern pattern1 = java.util.regex.Pattern.compile("\\b([a-zA-Z_$][a-zA-Z0-9_$]*)\\s*\\(");
+        java.util.regex.Pattern pattern2 = java.util.regex.Pattern.compile("\\b([a-zA-Z_$][a-zA-Z0-9_$]*)\\.([a-zA-Z_$][a-zA-Z0-9_$]*)\\s*\\(");
+        
+        // 先检查是否有导入脚本的函数调用
+        java.util.regex.Matcher matcher2 = pattern2.matcher(expression);
+        boolean hasScriptFunctionCall = false;
+        while (matcher2.find()) {
+            String scriptName = matcher2.group(1);
+            String functionName = matcher2.group(2);
+            if (nfContext.hasImportedScript(scriptName)) {
+                NfContext scriptContext = nfContext.getImportedScriptContext(scriptName);
+                if (scriptContext != null && scriptContext.hasFunction(functionName)) {
+                    hasScriptFunctionCall = true;
+                    break;
+                }
+            }
+        }
+        
+        // 检查是否有当前上下文的函数调用
+        java.util.regex.Matcher matcher1 = pattern1.matcher(expression);
         boolean hasFunctionCall = false;
-        while (matcher.find()) {
-            String functionName = matcher.group(1);
+        while (matcher1.find()) {
+            String functionName = matcher1.group(1);
             if (nfContext.hasFunction(functionName)) {
                 hasFunctionCall = true;
                 break;
@@ -289,25 +377,111 @@ public class NfCalculator {
         }
 
         // 如果没有函数调用，直接返回原表达式
-        if (!hasFunctionCall) {
+        if (!hasFunctionCall && !hasScriptFunctionCall) {
             return expression;
         }
 
         // 找到最内层（最后一个开始的）函数调用并处理它
         // 然后递归处理剩余的函数调用
-        matcher.reset();
+        // 先处理导入脚本的函数调用
+        matcher2.reset();
+        int lastScriptMatchStart = -1;
+        int lastScriptMatchEnd = -1;
+        String lastScriptName = null;
+        String lastScriptFunctionName = null;
+        
+        while (matcher2.find()) {
+            String scriptName = matcher2.group(1);
+            String functionName = matcher2.group(2);
+            if (nfContext.hasImportedScript(scriptName)) {
+                NfContext scriptContext = nfContext.getImportedScriptContext(scriptName);
+                if (scriptContext != null && scriptContext.hasFunction(functionName)) {
+                    lastScriptMatchStart = matcher2.start();
+                    lastScriptName = scriptName;
+                    lastScriptFunctionName = functionName;
+                }
+            }
+        }
+        
+        // 处理当前上下文的函数调用
+        matcher1.reset();
         int lastMatchStart = -1;
         int lastMatchEnd = -1;
         String lastFunctionName = null;
 
-        while (matcher.find()) {
-            String functionName = matcher.group(1);
-            if (!nfContext.hasFunction(functionName)) {
+        while (matcher1.find()) {
+            String functionName = matcher1.group(1);
+            // 跳过导入脚本的函数调用（已经处理过了）
+            if (lastScriptMatchStart >= 0 && matcher1.start() == lastScriptMatchStart) {
                 continue;
             }
-            // 记录最后（最内层）匹配的函数
-            lastMatchStart = matcher.start();
-            lastFunctionName = functionName;
+            if (nfContext.hasFunction(functionName)) {
+                lastMatchStart = matcher1.start();
+                lastFunctionName = functionName;
+            }
+        }
+
+        // 优先处理导入脚本的函数调用（如果存在）
+        if (lastScriptMatchStart >= 0) {
+            // 找到该函数调用的完整范围
+            int startPos = lastScriptMatchStart;
+            int parenDepth = 1;
+            int endPos = startPos + lastScriptName.length() + 1 + lastScriptFunctionName.length() + 1; // 跳过脚本名.函数名和左括号
+            
+            // 找到匹配的右括号
+            while (endPos < expression.length() && parenDepth > 0) {
+                char c = expression.charAt(endPos);
+                if (c == '(') {
+                    parenDepth++;
+                } else if (c == ')') {
+                    parenDepth--;
+                }
+                endPos++;
+            }
+            
+            // 提取函数调用表达式
+            String functionCallExpr = expression.substring(startPos, endPos);
+            
+            // 将函数调用表达式解析为tokens
+            List<Token> tokens;
+            try {
+                tokens = NfToken.tokens(functionCallExpr);
+            } catch (Exception e) {
+                // 如果解析失败，保留原表达式
+                return expression;
+            }
+            
+            // 创建函数调用语法节点
+            FunCallSyntaxNode funCallNode = new FunCallSyntaxNode();
+            funCallNode.setValue(tokens);
+            if (!tokens.isEmpty()) {
+                funCallNode.setLine(tokens.get(0).getLine());
+            }
+            
+            // 保存当前作用域ID
+            String savedScopeIdForPreprocess = nfContext.getCurrentScopeId();
+            
+            // 执行函数调用
+            Object returnValue;
+            try {
+                returnValue = funCallNode.executeFunction(nfContext, funCallNode);
+            } catch (Exception e) {
+                throw new NfException(e, "表达式中的导入脚本函数调用执行失败: " + functionCallExpr);
+            } finally {
+                if (savedScopeIdForPreprocess != null) {
+                    nfContext.switchScope(savedScopeIdForPreprocess);
+                }
+            }
+            
+            // 生成临时变量名并存储值
+            String tempVarName = "__script_fun_call_" + System.nanoTime();
+            tempVarStorage.get().put(tempVarName, returnValue);
+            
+            // 替换函数调用为临时变量
+            String processedExpr = expression.substring(0, startPos) + tempVarName + expression.substring(endPos);
+            
+            // 递归处理剩余的函数调用
+            return preProcessFunctionCalls(processedExpr, nfContext, jexlContext);
         }
 
         if (lastMatchStart == -1) {

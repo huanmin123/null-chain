@@ -20,12 +20,6 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @Slf4j
 public class FunctionTest {
-
-    @BeforeEach
-    public void clearCache() {
-        NfMain.shutdown();
-    }
-
     /**
      * 测试基础函数定义和调用 - 单返回值
      */
