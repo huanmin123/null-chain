@@ -304,9 +304,11 @@ public class AssignSyntaxNode extends LineSyntaxNode {
                 // 这样可以确保在循环中对父作用域变量的修改能够持久化
                 NfContextScope variableScope = context.findVariableScope(varName);
                 if (variableScope != null) {
+                    System.out.println("[DEBUG] Update variable " + varName + " in scope " + variableScope.getScopeId() + " to value " + arithmetic);
                     variableScope.addVariable(new NfVariableInfo(varName, arithmetic, declaredType));
                 } else {
                     // 如果找不到变量所在的作用域（理论上不应该发生），则添加到当前作用域
+                    System.out.println("[DEBUG] WARNING: Variable " + varName + " scope not found, adding to current scope " + currentScope.getScopeId());
                     currentScope.addVariable(new NfVariableInfo(varName, arithmetic, declaredType));
                 }
             }

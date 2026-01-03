@@ -9,12 +9,9 @@ import com.gitee.huanminabc.nullchain.leaf.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.leaf.http.OkHttp;
 import com.gitee.huanminabc.nullchain.leaf.stream.NullStream;
 import com.gitee.huanminabc.nullchain.language.NfTimeoutException;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.concurrent.TimeUnit;
 import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -126,36 +123,6 @@ public class NfContext {
     //上下文是否已被清除的标志
     //clear() 后设置为 true，防止误用导致 NPE
     private boolean cleared = false;
-    
-    /**
-     * 全局变量查找缓存：缓存（作用域ID + 变量名）-> 变量信息的映射
-     * 使用Caffeine缓存，提供高性能和自动管理能力
-     * <p>配置说明：
-     * <ul>
-     *   <li>maximumSize(10000): 最大容量10000个变量查找结果</li>
-     *   <li>expireAfterAccess(30, TimeUnit.MINUTES): 30分钟未访问自动过期</li>
-     *   <li>线程安全：Caffeine自动保证线程安全</li>
-     * </ul>
-     * </p>
-     * <p>注意：由于作用域ID是UUID生成的，全局唯一，因此可以使用全局缓存。
-     * 当作用域被移除时，相关缓存会自动过期，无需手动清理。</p>
-     * key: "scopeId::variableName", value: 变量信息
-     */
-    private static final Cache<String, NfVariableInfo> globalVariableCache = Caffeine.newBuilder()
-        .maximumSize(10000)
-        .expireAfterAccess(30, TimeUnit.MINUTES)
-        .build();
-    
-    /**
-     * 生成变量缓存键
-     * 
-     * @param scopeId 作用域ID
-     * @param variableName 变量名
-     * @return 缓存键
-     */
-    private static String makeCacheKey(String scopeId, String variableName) {
-        return scopeId + "::" + variableName;
-    }
 
     /**
      * 检查上下文是否已被清除
@@ -390,35 +357,20 @@ public class NfContext {
         return getVariable(name, currentScopeId);
     }
 
-    //递归获取变量, 获取父作用域的变量（带全局缓存优化）
+    //递归获取变量, 获取父作用域的变量
     private NfVariableInfo getVariable(String name, String scopeId) {
         if (scopeId == null) {
             return null;
         }
-        
-        // 检查全局缓存
-        String cacheKey = makeCacheKey(scopeId, name);
-        NfVariableInfo cached = globalVariableCache.getIfPresent(cacheKey);
-        if (cached != null) {
-            return cached;
-        }
-        
-        // 缓存未命中，遍历作用域链查找
+
         NfContextScope nfContextScope = scopeMap.get(scopeId);
         if (nfContextScope != null) {
             NfVariableInfo nfVariableInfo = nfContextScope.getVariable(name);
             if (nfVariableInfo != null) {
-                // 找到变量，缓存到全局缓存
-                globalVariableCache.put(cacheKey, nfVariableInfo);
                 return nfVariableInfo;
             }
             //如果当前没有找到,那么就从父作用域获取
-            NfVariableInfo parentVar = getVariable(name, nfContextScope.getParentScopeId());
-            if (parentVar != null) {
-                // 在父作用域找到，缓存结果（使用当前作用域ID作为key，因为这是查找的起点）
-                globalVariableCache.put(cacheKey, parentVar);
-            }
-            return parentVar;
+            return getVariable(name, nfContextScope.getParentScopeId());
         }
         return null;
     }
@@ -462,27 +414,8 @@ public class NfContext {
         NfContextScope nfContextScope = scopeMap.get(id);
         if (nfContextScope != null) {
             nfContextScope.clear();
-            // 清除该作用域相关的全局变量缓存
-            clearVariableCacheForScope(id);
         }
         scopeMap.remove(id);
-    }
-    
-    /**
-     * 清除指定作用域的全局变量缓存
-     * 当作用域被移除时调用，清除所有以该作用域ID开头的缓存项
-     * 
-     * @param scopeId 作用域ID
-     */
-    private void clearVariableCacheForScope(String scopeId) {
-        if (scopeId == null) {
-            return;
-        }
-        // Caffeine 不支持按模式删除，但我们可以通过记录作用域ID来清理
-        // 由于作用域ID是UUID，全局唯一，且缓存会自动过期，这里可以选择性清理
-        // 为了及时清理，我们遍历缓存并删除相关项（虽然性能不是最优，但作用域移除不频繁）
-        String prefix = scopeId + "::";
-        globalVariableCache.asMap().entrySet().removeIf(entry -> entry.getKey().startsWith(prefix));
     }
 
     //生成一个作用域id
@@ -673,29 +606,9 @@ public class NfContext {
         if (tempVarStorage != null) {
             tempVarStorage.clear();
         }
-        
-        // 清理当前上下文相关的全局变量缓存
-        // 遍历所有作用域，清除相关缓存
-        if (scopeMap != null) {
-            for (String scopeId : scopeMap.keySet()) {
-                clearVariableCacheForScope(scopeId);
-            }
-        }
-        
+
         // 重置其他字段
         recursionDepth = 0;
         executionStartTime = 0;
-    }
-    
-    /**
-     * 清除变量缓存（当变量被修改时调用）
-     * 清除当前上下文所有作用域的变量缓存
-     */
-    public void invalidateVariableCache() {
-        if (scopeMap != null) {
-            for (String scopeId : scopeMap.keySet()) {
-                clearVariableCacheForScope(scopeId);
-            }
-        }
     }
 }

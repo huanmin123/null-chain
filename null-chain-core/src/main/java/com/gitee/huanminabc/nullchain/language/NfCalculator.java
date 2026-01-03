@@ -227,9 +227,10 @@ public class NfCalculator {
             // 使用表达式字符串的SHA-256哈希值作为缓存key
 
             String exprHash = HashUtil.sha256(finalExpr);
-            log.error("finalExpr: {}, exprHash: {}", finalExpr, exprHash);
             JexlExpression cachedExpression = globalExpressionCache.get(exprHash, hash -> jexl.createExpression(finalExpr));
-            return cachedExpression.evaluate(context);
+            Object evaluate = cachedExpression.evaluate(context);
+            log.info("finalExpr: {}, exprHash: {}, evaluate: {}", finalExpr, exprHash, evaluate);
+            return evaluate;
         } catch (NfReturnException e) {
             // return语句需要穿透表达式计算，传播到函数调用处
             throw e;
