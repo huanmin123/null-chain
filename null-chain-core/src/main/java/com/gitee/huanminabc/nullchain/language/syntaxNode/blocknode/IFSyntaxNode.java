@@ -114,7 +114,7 @@ public class IFSyntaxNode extends BlockSyntaxNode {
         }
 
         boolean hasElse = false;
-        //识别是否有else如果没有那么最大长度就是结束
+        //识别是否有else（包括 else if 和 else）如果没有那么最大长度就是结束
         int depth_else = 0; //用于找到最外层的else 而不是内部的else
         for (int j = 0; j < tokensSize - 1; j++) {
             Token currentToken = tokens.get(j);
@@ -122,14 +122,15 @@ public class IFSyntaxNode extends BlockSyntaxNode {
             if (currentToken.type == TokenType.LBRACE && nextToken.type == TokenType.LINE_END) {
                 depth_else++;
             }
-            if (currentToken.type == TokenType.RBRACE ) {
+            // RBRACE + (LINE_END | ELSE) 减少深度
+            if (currentToken.type == TokenType.RBRACE && (nextToken.type == TokenType.LINE_END || nextToken.type == TokenType.ELSE)) {
                 depth_else--;
             }
-            //} else {
-            if (depth_else == 0 && j + 2 < tokensSize && 
-                currentToken.type == TokenType.RBRACE && 
-                nextToken.type == TokenType.ELSE && 
-                tokens.get(j + 2).type == TokenType.LBRACE) {
+            //} else { 或 } else if
+            if (depth_else == 0 && j + 2 < tokensSize &&
+                currentToken.type == TokenType.RBRACE &&
+                nextToken.type == TokenType.ELSE &&
+                (tokens.get(j + 2).type == TokenType.LBRACE || tokens.get(j + 2).type == TokenType.IF)) {
                 hasElse = true;
                 break;
             }
@@ -140,18 +141,27 @@ public class IFSyntaxNode extends BlockSyntaxNode {
         //记录深度  每次遇到 LBRACE + LINE_END 深度+1, 遇到 RBRACE 深度-1
         int depth = 0;
         //遇到RBRACE + LINE_END结束
-        for (int j = 0; j < tokensSize - 1; j++) {
+        // 注意：如果tokens以 } else if 开头，需要跳过开头的 }
+        int startIndex = 0;
+        if (tokensSize >= 3 && tokens.get(0).type == TokenType.RBRACE &&
+            tokens.get(1).type == TokenType.ELSE && tokens.get(2).type == TokenType.IF) {
+            startIndex = 1; // 从 else 开始，跳过开头的 }
+            depth = -1; // 补偿跳过的 }
+        }
+        for (int j = startIndex; j < tokensSize - 1; j++) {
             Token currentToken = tokens.get(j);
             Token nextToken = tokens.get(j + 1);
             if (currentToken.type == TokenType.LBRACE && nextToken.type == TokenType.LINE_END) {
                 depth++;
             }
-            //}  || } else
+            //} + (LINE_END | ELSE) 都减少深度
             if (currentToken.type == TokenType.RBRACE && (nextToken.type == TokenType.LINE_END || nextToken.type == TokenType.ELSE)) {
                 depth--;
             }
             //当深度为0时, 说明到了第一个else if 或者 else  位置了
-            if (depth == 0 && currentToken.type == TokenType.RBRACE ) {
+            // 注意：在遇到 } else 后，depth已经变为0，currentToken已经是ELSE了
+            // 所以需要检查是否到了 } 的位置（depth减到0时）
+            if (depth == 0 && currentToken.type == TokenType.RBRACE) {
                 endIndex = j;
                 break;
             }
