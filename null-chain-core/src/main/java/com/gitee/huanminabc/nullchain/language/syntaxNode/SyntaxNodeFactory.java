@@ -121,6 +121,9 @@ public class SyntaxNodeFactory {
      */
     public static void executeAll(List<SyntaxNode> syntaxNodeList, NfContext context, NfPerformanceMonitor monitor) {
         for (SyntaxNode syntaxNode : syntaxNodeList) {
+            //检查超时（在执行节点前检查）
+            context.checkTimeout();
+            
             //保留当前的作用域id
             String currentScopeId = context.getCurrentScopeId();
             
@@ -137,6 +140,9 @@ public class SyntaxNodeFactory {
             
             //恢复当前的作用域id
             context.setCurrentScopeId(currentScopeId);
+            
+            //检查超时（在执行节点后检查）
+            context.checkTimeout();
 
             //检查是否需要中断执行
             //优先检查全局breakAll标志（由breakall语句设置）

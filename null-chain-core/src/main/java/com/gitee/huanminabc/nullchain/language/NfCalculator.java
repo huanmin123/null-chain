@@ -3,18 +3,24 @@ package com.gitee.huanminabc.nullchain.language;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfVariableInfo;
+import com.gitee.huanminabc.jcommon.encryption.HashUtil;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.linenode.FunCallSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.NfToken;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlContext;
 import org.apache.commons.jexl3.JexlEngine;
+import org.apache.commons.jexl3.JexlExpression;
 import org.apache.commons.jexl3.MapContext;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 懒得自己写算术表达式解析器, 直接用现成的, 后期有时间再自己写
@@ -27,15 +33,35 @@ import java.util.Set;
  * @author huanmin
  * @date 2024/11/22
  */
+@Slf4j
 public class NfCalculator {
     //第一次加载的时候需要100~200ms 之后就没有影响了
     private final static JexlEngine jexl = new JexlBuilder().create();
-
-    // 临时变量存储（用于递归处理函数调用时共享临时变量）
-    private static ThreadLocal<Map<String, Object>> tempVarStorage = ThreadLocal.withInitial(java.util.HashMap::new);
-
-    // 递归深度计数器，用于判断是否是最外层调用
-    private static ThreadLocal<Integer> recursionDepth = ThreadLocal.withInitial(() -> 0);
+    
+    /**
+     * 全局表达式缓存：缓存编译后的JEXL表达式
+     * 使用Caffeine缓存，提供高性能和自动管理能力
+     * <p>配置说明：
+     * <ul>
+     *   <li>maximumSize(10000): 最大容量10000个表达式</li>
+     *   <li>expireAfterAccess(1, TimeUnit.HOURS): 1小时未访问自动过期</li>
+     *   <li>线程安全：Caffeine自动保证线程安全</li>
+     * </ul>
+     * </p>
+     * <p>设计说明：
+     * <ul>
+     *   <li>编译后的JEXL表达式是纯语法结构，不包含变量值，可以全局共享</li>
+     *   <li>使用表达式字符串的SHA-256哈希值作为key，节省内存并避免哈希碰撞</li>
+     *   <li>同一个表达式在不同上下文、不同作用域中都可以复用编译结果</li>
+     *   <li>变量值在evaluate时通过JexlContext传入，不影响编译结果</li>
+     * </ul>
+     * </p>
+     * key: 表达式字符串的SHA-256哈希值, value: 编译后的表达式对象
+     */
+    private static final Cache<String, JexlExpression> globalExpressionCache = Caffeine.newBuilder()
+        .maximumSize(10000)
+        .expireAfterAccess(1, TimeUnit.HOURS)
+        .build();
 
     /**
      * instanceof 处理结果，包含转换后的表达式和需要的类型类
@@ -129,6 +155,10 @@ public class NfCalculator {
         if (nfContext == null) {
             throw new NfException("nfContext为null，无法计算表达式: " + expression);
         }
+        
+        //检查超时（表达式计算前检查，防止复杂表达式长时间执行）
+        nfContext.checkTimeout();
+        
         JexlContext context = new MapContext();
         //获取当前作用域
         NfContextScope currentScope = nfContext.getCurrentScope();
@@ -154,14 +184,14 @@ public class NfCalculator {
         }
 
         // 增加递归深度
-        int depth = recursionDepth.get();
-        recursionDepth.set(depth + 1);
+        int depth = nfContext.getRecursionDepth();
+        nfContext.setRecursionDepth(depth + 1);
         boolean isTopLevel = (depth == 0);
 
         try {
             // 只在最外层调用时初始化临时变量存储
             if (isTopLevel) {
-                tempVarStorage.get().clear();
+                nfContext.getTempVarStorage().clear();
             }
 
             // 预处理表达式中的导入脚本变量访问（脚本名称.变量名）
@@ -171,7 +201,7 @@ public class NfCalculator {
             processedExpr = preProcessFunctionCalls(processedExpr, nfContext, context);
 
             // 将临时变量添加到 JexlContext 中
-            for (Map.Entry<String, Object> entry : tempVarStorage.get().entrySet()) {
+            for (Map.Entry<String, Object> entry : nfContext.getTempVarStorage().entrySet()) {
                 context.set(entry.getKey(), entry.getValue());
             }
 
@@ -192,29 +222,34 @@ public class NfCalculator {
                 }
             }
 
-            Object result = jexl.createExpression(finalExpr).evaluate(context);
+            // 使用全局缓存的表达式对象，避免重复编译
+            // 编译后的表达式是纯语法结构，不依赖变量值，可以全局共享
+            // 使用表达式字符串的SHA-256哈希值作为缓存key
+            String exprHash = HashUtil.sha256(finalExpr);
+            JexlExpression cachedExpression = globalExpressionCache.get(exprHash, hash -> jexl.createExpression(finalExpr));
+            
+            Object result = cachedExpression.evaluate(context);
             return result;
         } catch (NfReturnException e) {
             // return语句需要穿透表达式计算，传播到函数调用处
             throw e;
         } catch (Exception e) {
-            // 添加详细错误信息用于调试
-            System.err.println("表达式计算错误 - 原始表达式: " + expression);
-            System.err.println("表达式计算错误 - 异常信息: " + e.getMessage());
-            e.printStackTrace();
-            throw new NfException(e, "表达式计算错误: " + expression);
+            // 记录详细错误信息用于调试
+            log.error("表达式计算错误 - 原始表达式: {}, 异常信息: {}", expression, e.getMessage(), e);
+            throw new NfException(e, "表达式计算错误: {}, 错误详情: {}", expression, e.getMessage());
         } finally {
             // 恢复递归深度
-            recursionDepth.set(depth);
+            nfContext.setRecursionDepth(depth);
             // 只在最外层调用时清理临时变量存储
             if (isTopLevel) {
-                tempVarStorage.get().clear();
+                nfContext.getTempVarStorage().clear();
             }
         }
     }
 
     /**
      * 合并作用域到JEXL上下文（迭代实现，避免递归导致的栈溢出）
+     * 优化：直接遍历作用域的变量Map，避免调用toMap()创建新Map
      *
      * @param nfContext NF上下文
      * @param currentScope 当前作用域
@@ -258,11 +293,15 @@ public class NfCalculator {
 
         // 按照从父作用域到当前作用域的顺序合并变量（这样当前作用域的变量会覆盖父作用域的同名变量）
         // 所以需要反向遍历
+        // 优化：直接访问作用域的value Map，避免调用toMap()创建新Map
         for (int i = scopesToMerge.size() - 1; i >= 0; i--) {
             NfContextScope s = scopesToMerge.get(i);
-            Map<String, Object> scopeMap = s.toMap();
-            for (Map.Entry<String, Object> entry : scopeMap.entrySet()) {
-                context.set(entry.getKey(), entry.getValue());
+            // 直接访问作用域的变量Map，避免创建新Map
+            Map<String, NfVariableInfo> variables = s.getValue();
+            if (variables != null) {
+                for (Map.Entry<String, NfVariableInfo> entry : variables.entrySet()) {
+                    context.set(entry.getKey(), entry.getValue().getValue());
+                }
             }
         }
     }
@@ -307,7 +346,7 @@ public class NfCalculator {
                     if (varInfo != null) {
                         // 找到变量，生成临时变量名并存储值
                         String tempVarName = "__script_" + scriptName + "_" + varName + "_" + System.nanoTime();
-                        tempVarStorage.get().put(tempVarName, varInfo.getValue());
+                        nfContext.getTempVarStorage().put(tempVarName, varInfo.getValue());
                         
                         // 替换为临时变量
                         matcher.appendReplacement(sb, tempVarName);
@@ -344,49 +383,70 @@ public class NfCalculator {
             return expression;
         }
 
-        // 使用正则表达式匹配函数调用：函数名(参数列表) 或 脚本名称.函数名(参数列表)
-        // 匹配模式1：普通函数调用 - 标识符(
-        // 匹配模式2：导入脚本的函数调用 - 标识符.标识符(
-        java.util.regex.Pattern pattern1 = java.util.regex.Pattern.compile("\\b([a-zA-Z_$][a-zA-Z0-9_$]*)\\s*\\(");
-        java.util.regex.Pattern pattern2 = java.util.regex.Pattern.compile("\\b([a-zA-Z_$][a-zA-Z0-9_$]*)\\.([a-zA-Z_$][a-zA-Z0-9_$]*)\\s*\\(");
-        
-        // 先检查是否有导入脚本的函数调用
-        java.util.regex.Matcher matcher2 = pattern2.matcher(expression);
-        boolean hasScriptFunctionCall = false;
-        while (matcher2.find()) {
-            String scriptName = matcher2.group(1);
-            String functionName = matcher2.group(2);
-            if (nfContext.hasImportedScript(scriptName)) {
-                NfContext scriptContext = nfContext.getImportedScriptContext(scriptName);
-                if (scriptContext != null && scriptContext.hasFunction(functionName)) {
-                    hasScriptFunctionCall = true;
-                    break;
-                }
-            }
-        }
-        
-        // 检查是否有当前上下文的函数调用
-        java.util.regex.Matcher matcher1 = pattern1.matcher(expression);
-        boolean hasFunctionCall = false;
-        while (matcher1.find()) {
-            String functionName = matcher1.group(1);
-            if (nfContext.hasFunction(functionName)) {
-                hasFunctionCall = true;
-                break;
-            }
-        }
-
-        // 如果没有函数调用，直接返回原表达式
-        if (!hasFunctionCall && !hasScriptFunctionCall) {
+        // 检查是否有函数调用
+        FunctionCallInfo callInfo = findLastFunctionCall(expression, nfContext);
+        if (callInfo == null) {
             return expression;
         }
 
-        // 找到最内层（最后一个开始的）函数调用并处理它
-        // 然后递归处理剩余的函数调用
-        // 先处理导入脚本的函数调用
-        matcher2.reset();
+        // 提取函数调用表达式
+        String functionCallExpr = extractFunctionCallExpression(expression, callInfo);
+        if (functionCallExpr == null) {
+            return expression;
+        }
+
+        // 执行函数调用
+        Object returnValue = executeFunctionCall(functionCallExpr, nfContext, callInfo.isScriptCall());
+
+        // 替换函数调用为临时变量
+        String tempVarName = callInfo.isScriptCall() ? "__script_fun_call_" + System.nanoTime() : "__fun_call_" + System.nanoTime();
+        nfContext.getTempVarStorage().put(tempVarName, returnValue);
+        String processedExpr = expression.substring(0, callInfo.getStartPos()) + tempVarName + expression.substring(callInfo.getEndPos());
+
+        // 递归处理剩余的函数调用
+        return preProcessFunctionCalls(processedExpr, nfContext, jexlContext);
+    }
+
+    /**
+     * 函数调用信息
+     */
+    private static class FunctionCallInfo {
+        private final int startPos;
+        private final int endPos;
+        private final boolean scriptCall;
+        private final String functionName;
+        private final String scriptName;
+
+        FunctionCallInfo(int startPos, int endPos, boolean scriptCall, String functionName, String scriptName) {
+            this.startPos = startPos;
+            this.endPos = endPos;
+            this.scriptCall = scriptCall;
+            this.functionName = functionName;
+            this.scriptName = scriptName;
+        }
+
+        int getStartPos() { return startPos; }
+        int getEndPos() { return endPos; }
+        boolean isScriptCall() { return scriptCall; }
+        String getFunctionName() { return functionName; }
+        String getScriptName() { return scriptName; }
+    }
+
+    /**
+     * 查找最后一个函数调用（最内层）
+     * 
+     * @param expression 表达式
+     * @param nfContext NF上下文
+     * @return 函数调用信息，如果没有找到返回null
+     */
+    private static FunctionCallInfo findLastFunctionCall(String expression, NfContext nfContext) {
+        // 使用正则表达式匹配函数调用：函数名(参数列表) 或 脚本名称.函数名(参数列表)
+        java.util.regex.Pattern pattern1 = java.util.regex.Pattern.compile("\\b([a-zA-Z_$][a-zA-Z0-9_$]*)\\s*\\(");
+        java.util.regex.Pattern pattern2 = java.util.regex.Pattern.compile("\\b([a-zA-Z_$][a-zA-Z0-9_$]*)\\.([a-zA-Z_$][a-zA-Z0-9_$]*)\\s*\\(");
+        
+        // 先查找导入脚本的函数调用
+        java.util.regex.Matcher matcher2 = pattern2.matcher(expression);
         int lastScriptMatchStart = -1;
-        int lastScriptMatchEnd = -1;
         String lastScriptName = null;
         String lastScriptFunctionName = null;
         
@@ -403,10 +463,9 @@ public class NfCalculator {
             }
         }
         
-        // 处理当前上下文的函数调用
-        matcher1.reset();
+        // 查找当前上下文的函数调用
+        java.util.regex.Matcher matcher1 = pattern1.matcher(expression);
         int lastMatchStart = -1;
-        int lastMatchEnd = -1;
         String lastFunctionName = null;
 
         while (matcher1.find()) {
@@ -423,76 +482,31 @@ public class NfCalculator {
 
         // 优先处理导入脚本的函数调用（如果存在）
         if (lastScriptMatchStart >= 0) {
-            // 找到该函数调用的完整范围
-            int startPos = lastScriptMatchStart;
-            int parenDepth = 1;
-            int endPos = startPos + lastScriptName.length() + 1 + lastScriptFunctionName.length() + 1; // 跳过脚本名.函数名和左括号
-            
-            // 找到匹配的右括号
-            while (endPos < expression.length() && parenDepth > 0) {
-                char c = expression.charAt(endPos);
-                if (c == '(') {
-                    parenDepth++;
-                } else if (c == ')') {
-                    parenDepth--;
-                }
-                endPos++;
-            }
-            
-            // 提取函数调用表达式
-            String functionCallExpr = expression.substring(startPos, endPos);
-            
-            // 将函数调用表达式解析为tokens
-            List<Token> tokens;
-            try {
-                tokens = NfToken.tokens(functionCallExpr);
-            } catch (Exception e) {
-                // 如果解析失败，保留原表达式
-                return expression;
-            }
-            
-            // 创建函数调用语法节点
-            FunCallSyntaxNode funCallNode = new FunCallSyntaxNode();
-            funCallNode.setValue(tokens);
-            if (!tokens.isEmpty()) {
-                funCallNode.setLine(tokens.get(0).getLine());
-            }
-            
-            // 保存当前作用域ID
-            String savedScopeIdForPreprocess = nfContext.getCurrentScopeId();
-            
-            // 执行函数调用
-            Object returnValue;
-            try {
-                returnValue = funCallNode.executeFunction(nfContext, funCallNode);
-            } catch (Exception e) {
-                throw new NfException(e, "表达式中的导入脚本函数调用执行失败: " + functionCallExpr);
-            } finally {
-                if (savedScopeIdForPreprocess != null) {
-                    nfContext.switchScope(savedScopeIdForPreprocess);
-                }
-            }
-            
-            // 生成临时变量名并存储值
-            String tempVarName = "__script_fun_call_" + System.nanoTime();
-            tempVarStorage.get().put(tempVarName, returnValue);
-            
-            // 替换函数调用为临时变量
-            String processedExpr = expression.substring(0, startPos) + tempVarName + expression.substring(endPos);
-            
-            // 递归处理剩余的函数调用
-            return preProcessFunctionCalls(processedExpr, nfContext, jexlContext);
+            int endPos = findFunctionCallEndPos(expression, lastScriptMatchStart, 
+                lastScriptName.length() + 1 + lastScriptFunctionName.length() + 1);
+            return new FunctionCallInfo(lastScriptMatchStart, endPos, true, lastScriptFunctionName, lastScriptName);
         }
 
-        if (lastMatchStart == -1) {
-            return expression;
+        if (lastMatchStart >= 0) {
+            int endPos = findFunctionCallEndPos(expression, lastMatchStart, lastFunctionName.length() + 1);
+            return new FunctionCallInfo(lastMatchStart, endPos, false, lastFunctionName, null);
         }
 
-        // 找到该函数调用的完整范围
-        int startPos = lastMatchStart;
+        return null;
+    }
+
+    /**
+     * 查找函数调用的结束位置（右括号位置）
+     * 
+     * @param expression 表达式
+     * @param startPos 开始位置
+     * @param skipLength 需要跳过的长度（函数名和左括号的长度）
+     * @return 结束位置（右括号后）
+     */
+    private static int findFunctionCallEndPos(String expression, int startPos, int skipLength) {
         int parenDepth = 1;
-        int endPos = startPos + lastFunctionName.length() + 1; // 跳过函数名和左括号
-
+        int endPos = startPos + skipLength;
+        
         // 找到匹配的右括号
         while (endPos < expression.length() && parenDepth > 0) {
             char c = expression.charAt(endPos);
@@ -503,52 +517,69 @@ public class NfCalculator {
             }
             endPos++;
         }
+        
+        return endPos;
+    }
 
-        // 提取函数调用表达式
-        String functionCallExpr = expression.substring(startPos, endPos);
+    /**
+     * 提取函数调用表达式
+     * 
+     * @param expression 原始表达式
+     * @param callInfo 函数调用信息
+     * @return 函数调用表达式，如果解析失败返回null
+     */
+    private static String extractFunctionCallExpression(String expression, FunctionCallInfo callInfo) {
+        String functionCallExpr = expression.substring(callInfo.getStartPos(), callInfo.getEndPos());
+        
+        // 验证表达式是否可以解析为tokens
+        try {
+            NfToken.tokens(functionCallExpr);
+        } catch (Exception e) {
+            // 如果解析失败，保留原表达式
+            return null;
+        }
+        
+        return functionCallExpr;
+    }
 
+    /**
+     * 执行函数调用
+     * 
+     * @param functionCallExpr 函数调用表达式
+     * @param nfContext NF上下文
+     * @param isScriptCall 是否是脚本函数调用
+     * @return 函数返回值
+     */
+    private static Object executeFunctionCall(String functionCallExpr, NfContext nfContext, boolean isScriptCall) {
         // 将函数调用表达式解析为tokens
         List<Token> tokens;
         try {
             tokens = NfToken.tokens(functionCallExpr);
         } catch (Exception e) {
-            // 如果解析失败，保留原表达式
-            return expression;
+            throw new NfException(e, "表达式中的函数调用解析失败: " + functionCallExpr);
         }
-
+        
         // 创建函数调用语法节点
         FunCallSyntaxNode funCallNode = new FunCallSyntaxNode();
         funCallNode.setValue(tokens);
         if (!tokens.isEmpty()) {
             funCallNode.setLine(tokens.get(0).getLine());
         }
-
+        
         // 保存当前作用域ID
         String savedScopeIdForPreprocess = nfContext.getCurrentScopeId();
-
-        // 执行函数调用
-        Object returnValue;
+        
         try {
-            returnValue = funCallNode.executeFunction(nfContext, funCallNode);
+            // 执行函数调用
+            return funCallNode.executeFunction(nfContext, funCallNode);
         } catch (Exception e) {
-            throw new NfException(e, "表达式中的函数调用执行失败: " + functionCallExpr);
+            String errorMsg = isScriptCall ? "表达式中的导入脚本函数调用执行失败: " : "表达式中的函数调用执行失败: ";
+            throw new NfException(e, errorMsg + functionCallExpr);
         } finally {
             if (savedScopeIdForPreprocess != null) {
                 nfContext.switchScope(savedScopeIdForPreprocess);
             }
         }
-
-        // 生成临时变量名（使用计数器确保唯一性）
-        String tempVarName = "__fun_call_" + System.nanoTime();
-
-        // 将返回值存储到临时变量存储中（ThreadLocal，递归调用间共享）
-        tempVarStorage.get().put(tempVarName, returnValue);
-
-        // 替换函数调用为临时变量
-        String processedExpr = expression.substring(0, startPos) + tempVarName + expression.substring(endPos);
-
-        // 递归处理剩余的函数调用
-        return preProcessFunctionCalls(processedExpr, nfContext, jexlContext);
     }
 
     // 临时变量计数器（用于生成唯一变量名）

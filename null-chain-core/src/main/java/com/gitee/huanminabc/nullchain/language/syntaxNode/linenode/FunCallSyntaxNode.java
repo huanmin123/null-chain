@@ -277,69 +277,13 @@ public class FunCallSyntaxNode extends LineSyntaxNode {
             context.switchScope(functionScopeId);
 
             // 设置函数参数
-            List<FunDefInfo.FunParameter> parameters = funDef.getParameters();
-            for (int i = 0; i < parameters.size(); i++) {
-                FunDefInfo.FunParameter param = parameters.get(i);
-                Object paramValue;
-                
-                if (param.isVarArgs()) {
-                    // 可变参数：将剩余的所有参数值组合成数组
-                    List<Object> varArgsValues = new ArrayList<>();
-                    for (int j = i; j < paramValues.size(); j++) {
-                        varArgsValues.add(paramValues.get(j));
-                    }
-                    paramValue = varArgsValues;
-                } else {
-                    // 普通参数
-                    if (i < paramValues.size()) {
-                        paramValue = paramValues.get(i);
-                    } else {
-                        throw new NfException("Line:{} ,函数 {} 参数不足，期望至少 {} 个参数，实际 {} 个 , syntax: {}",
-                            syntaxNode.getLine(), functionName, i + 1, paramValues.size(), syntaxNode);
-                    }
-                }
-
-                // 获取参数类型
-                String paramTypeName = context.getImportType(param.getType());
-                if (paramTypeName == null) {
-                    throw new NfException("Line:{} ,函数 {} 参数 {} 类型 {} 未找到 , syntax: {}",
-                        syntaxNode.getLine(), functionName, param.getName(), param.getType(), syntaxNode);
-                }
-
-                try {
-                    Class<?> paramType = Class.forName(paramTypeName);
-                    functionScope.addVariable(new NfVariableInfo(param.getName(), paramValue, paramType));
-                } catch (ClassNotFoundException e) {
-                    throw new NfException("Line:{} ,函数 {} 参数 {} 类型 {} 类未找到 , syntax: {}",
-                        syntaxNode.getLine(), functionName, param.getName(), paramTypeName, syntaxNode);
-                }
-            }
+            setupFunctionParameters(functionScope, funDef, paramValues, context, functionName, syntaxNode.getLine(), syntaxNode);
 
             // 执行函数体
-            List<SyntaxNode> bodyNodes = funDef.getBodyNodes();
-            if (bodyNodes == null) {
-                throw new NfException("Line:{} ,函数 {} 的函数体未定义 , syntax: {}",
-                    syntaxNode.getLine(), functionName, syntaxNode);
-            }
-
-            try {
-                // 执行函数体内的所有语句
-                // 如果遇到return语句，会抛出NfReturnException来提前终止
-                SyntaxNodeFactory.executeAll(bodyNodes, context);
-            } catch (NfReturnException e) {
-                // 正常的函数返回，return语句已经将返回值存储到$__return__变量中
-                // 这里捕获异常后继续获取返回值
-            }
+            executeFunctionBody(funDef, context, functionName, syntaxNode);
 
             // 获取返回值
-            NfVariableInfo returnVar = functionScope.getVariable("$__return__");
-            if (returnVar == null) {
-                // 没有return语句，返回null
-                return null;
-            }
-
-            Object returnValue = returnVar.getValue();
-            return returnValue;
+            return getReturnValue(functionScope);
 
         } finally {
             // 恢复作用域
@@ -380,69 +324,15 @@ public class FunCallSyntaxNode extends LineSyntaxNode {
             // 切换到函数作用域
             scriptContext.switchScope(functionScopeId);
             
-            // 设置函数参数
-            List<FunDefInfo.FunParameter> parameters = funDef.getParameters();
-            for (int i = 0; i < parameters.size(); i++) {
-                FunDefInfo.FunParameter param = parameters.get(i);
-                Object paramValue;
-                
-                if (param.isVarArgs()) {
-                    // 可变参数：将剩余的所有参数值组合成数组
-                    List<Object> varArgsValues = new ArrayList<>();
-                    for (int j = i; j < paramValues.size(); j++) {
-                        varArgsValues.add(paramValues.get(j));
-                    }
-                    paramValue = varArgsValues;
-                } else {
-                    // 普通参数
-                    if (i < paramValues.size()) {
-                        paramValue = paramValues.get(i);
-                    } else {
-                        throw new NfException("Line:{} ,脚本 '{}' 的函数 {} 参数不足，期望至少 {} 个参数，实际 {} 个 , syntax: {}",
-                            syntaxNode.getLine(), scriptName, funDef.getFunctionName(), i + 1, paramValues.size(), syntaxNode);
-                    }
-                }
-                
-                // 获取参数类型
-                String paramTypeName = scriptContext.getImportType(param.getType());
-                if (paramTypeName == null) {
-                    throw new NfException("Line:{} ,脚本 '{}' 的函数 {} 参数 {} 类型 {} 未找到 , syntax: {}",
-                        syntaxNode.getLine(), scriptName, funDef.getFunctionName(), param.getName(), param.getType(), syntaxNode);
-                }
-                
-                try {
-                    Class<?> paramType = Class.forName(paramTypeName);
-                    functionScope.addVariable(new NfVariableInfo(param.getName(), paramValue, paramType));
-                } catch (ClassNotFoundException e) {
-                    throw new NfException("Line:{} ,脚本 '{}' 的函数 {} 参数 {} 类型 {} 类未找到 , syntax: {}",
-                        syntaxNode.getLine(), scriptName, funDef.getFunctionName(), param.getName(), paramTypeName, syntaxNode);
-                }
-            }
+            // 设置函数参数（使用脚本上下文和脚本名称）
+            setupFunctionParameters(functionScope, funDef, paramValues, scriptContext, 
+                scriptName + "." + funDef.getFunctionName(), syntaxNode.getLine(), syntaxNode, scriptName);
             
             // 执行函数体
-            List<SyntaxNode> bodyNodes = funDef.getBodyNodes();
-            if (bodyNodes == null) {
-                throw new NfException("Line:{} ,脚本 '{}' 的函数 {} 的函数体未定义 , syntax: {}",
-                    syntaxNode.getLine(), scriptName, funDef.getFunctionName(), syntaxNode);
-            }
-            
-            try {
-                // 执行函数体内的所有语句
-                // 如果遇到return语句，会抛出NfReturnException来提前终止
-                SyntaxNodeFactory.executeAll(bodyNodes, scriptContext);
-            } catch (NfReturnException e) {
-                // 正常的函数返回，return语句已经将返回值存储到$__return__变量中
-            }
+            executeFunctionBody(funDef, scriptContext, scriptName + "." + funDef.getFunctionName(), syntaxNode, scriptName);
             
             // 获取返回值
-            NfVariableInfo returnVar = functionScope.getVariable("$__return__");
-            if (returnVar == null) {
-                // 没有return语句，返回null
-                return null;
-            }
-            
-            Object returnValue = returnVar.getValue();
-            return returnValue;
+            return getReturnValue(functionScope);
             
         } finally {
             // 恢复脚本上下文的作用域
@@ -611,6 +501,150 @@ public class FunCallSyntaxNode extends LineSyntaxNode {
         // 注意：函数调用在表达式中时，返回值会被用于表达式计算
         // 这里我们执行函数调用，但返回值需要由调用者处理
         executeFunction(context, syntaxNode);
+    }
+
+    /**
+     * 设置函数参数
+     * 
+     * @param functionScope 函数作用域
+     * @param funDef 函数定义
+     * @param paramValues 参数值列表
+     * @param context 上下文（用于获取类型信息）
+     * @param functionName 函数名称（用于错误信息）
+     * @param line 行号
+     * @param syntaxNode 语法节点
+     */
+    private void setupFunctionParameters(NfContextScope functionScope, FunDefInfo funDef, List<Object> paramValues,
+                                        NfContext context, String functionName, int line, SyntaxNode syntaxNode) {
+        setupFunctionParameters(functionScope, funDef, paramValues, context, functionName, line, syntaxNode, null);
+    }
+
+    /**
+     * 设置函数参数（支持脚本函数）
+     * 
+     * @param functionScope 函数作用域
+     * @param funDef 函数定义
+     * @param paramValues 参数值列表
+     * @param context 上下文（用于获取类型信息）
+     * @param functionName 函数名称（用于错误信息）
+     * @param line 行号
+     * @param syntaxNode 语法节点
+     * @param scriptName 脚本名称（可选，用于脚本函数的错误信息）
+     */
+    private void setupFunctionParameters(NfContextScope functionScope, FunDefInfo funDef, List<Object> paramValues,
+                                        NfContext context, String functionName, int line, SyntaxNode syntaxNode, String scriptName) {
+        List<FunDefInfo.FunParameter> parameters = funDef.getParameters();
+        for (int i = 0; i < parameters.size(); i++) {
+            FunDefInfo.FunParameter param = parameters.get(i);
+            Object paramValue;
+            
+            if (param.isVarArgs()) {
+                // 可变参数：将剩余的所有参数值组合成数组
+                List<Object> varArgsValues = new ArrayList<>();
+                for (int j = i; j < paramValues.size(); j++) {
+                    varArgsValues.add(paramValues.get(j));
+                }
+                paramValue = varArgsValues;
+            } else {
+                // 普通参数
+                if (i < paramValues.size()) {
+                    paramValue = paramValues.get(i);
+                } else {
+                    if (scriptName != null) {
+                        throw new NfException("Line:{} ,脚本 '{}' 的函数 {} 参数不足，期望至少 {} 个参数，实际 {} 个 , syntax: {}",
+                            line, scriptName, funDef.getFunctionName(), i + 1, paramValues.size(), syntaxNode);
+                    } else {
+                        throw new NfException("Line:{} ,函数 {} 参数不足，期望至少 {} 个参数，实际 {} 个 , syntax: {}",
+                            line, functionName, i + 1, paramValues.size(), syntaxNode);
+                    }
+                }
+            }
+
+            // 获取参数类型
+            String paramTypeName = context.getImportType(param.getType());
+            if (paramTypeName == null) {
+                if (scriptName != null) {
+                    throw new NfException("Line:{} ,脚本 '{}' 的函数 {} 参数 {} 类型 {} 未找到 , syntax: {}",
+                        line, scriptName, funDef.getFunctionName(), param.getName(), param.getType(), syntaxNode);
+                } else {
+                    throw new NfException("Line:{} ,函数 {} 参数 {} 类型 {} 未找到 , syntax: {}",
+                        line, functionName, param.getName(), param.getType(), syntaxNode);
+                }
+            }
+
+            try {
+                Class<?> paramType = Class.forName(paramTypeName);
+                functionScope.addVariable(new NfVariableInfo(param.getName(), paramValue, paramType));
+            } catch (ClassNotFoundException e) {
+                if (scriptName != null) {
+                    throw new NfException("Line:{} ,脚本 '{}' 的函数 {} 参数 {} 类型 {} 类未找到 , syntax: {}",
+                        line, scriptName, funDef.getFunctionName(), param.getName(), paramTypeName, syntaxNode);
+                } else {
+                    throw new NfException("Line:{} ,函数 {} 参数 {} 类型 {} 类未找到 , syntax: {}",
+                        line, functionName, param.getName(), paramTypeName, syntaxNode);
+                }
+            }
+        }
+    }
+
+    /**
+     * 执行函数体
+     * 
+     * @param funDef 函数定义
+     * @param context 上下文
+     * @param functionName 函数名称（用于错误信息）
+     * @param syntaxNode 语法节点
+     */
+    private void executeFunctionBody(FunDefInfo funDef, NfContext context, String functionName, SyntaxNode syntaxNode) {
+        executeFunctionBody(funDef, context, functionName, syntaxNode, null);
+    }
+
+    /**
+     * 执行函数体（支持脚本函数）
+     * 
+     * @param funDef 函数定义
+     * @param context 上下文
+     * @param functionName 函数名称（用于错误信息）
+     * @param syntaxNode 语法节点
+     * @param scriptName 脚本名称（可选，用于脚本函数的错误信息）
+     */
+    private void executeFunctionBody(FunDefInfo funDef, NfContext context, String functionName, SyntaxNode syntaxNode, String scriptName) {
+        // 执行函数体
+        List<SyntaxNode> bodyNodes = funDef.getBodyNodes();
+        if (bodyNodes == null) {
+            if (scriptName != null) {
+                throw new NfException("Line:{} ,脚本 '{}' 的函数 {} 的函数体未定义 , syntax: {}",
+                    syntaxNode.getLine(), scriptName, funDef.getFunctionName(), syntaxNode);
+            } else {
+                throw new NfException("Line:{} ,函数 {} 的函数体未定义 , syntax: {}",
+                    syntaxNode.getLine(), functionName, syntaxNode);
+            }
+        }
+
+        try {
+            // 执行函数体内的所有语句
+            // 如果遇到return语句，会抛出NfReturnException来提前终止
+            SyntaxNodeFactory.executeAll(bodyNodes, context);
+        } catch (NfReturnException e) {
+            // 正常的函数返回，return语句已经将返回值存储到$__return__变量中
+            // 这里捕获异常后继续获取返回值
+        }
+    }
+
+    /**
+     * 获取函数返回值
+     * 
+     * @param functionScope 函数作用域
+     * @return 返回值，如果没有return语句返回null
+     */
+    private Object getReturnValue(NfContextScope functionScope) {
+        // 获取返回值
+        NfVariableInfo returnVar = functionScope.getVariable("$__return__");
+        if (returnVar == null) {
+            // 没有return语句，返回null
+            return null;
+        }
+        return returnVar.getValue();
     }
 
     @Override

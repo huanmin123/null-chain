@@ -426,6 +426,9 @@ public class ForSyntaxNode extends BlockSyntaxNode {
             return;
         }
         for (int j = startInt; j <= endInt; j++) {
+            // 检查超时（每次循环迭代检查）
+            context.checkTimeout();
+            
             // 检查全局breakAll标志（由breakall语句设置）
             if (context.isGlobalBreakAll()) {
                 break;
@@ -565,6 +568,9 @@ public class ForSyntaxNode extends BlockSyntaxNode {
         }
 
         for (Object item : list) {
+            // 检查超时（每次循环迭代检查）
+            context.checkTimeout();
+            
             // 检查全局breakAll标志（由breakall语句设置）
             if (context.isGlobalBreakAll()) {
                 break;
@@ -623,6 +629,9 @@ public class ForSyntaxNode extends BlockSyntaxNode {
         }
 
         for (java.util.Map.Entry<Object, Object> entry : map.entrySet()) {
+            // 检查超时（每次循环迭代检查）
+            context.checkTimeout();
+            
             // 检查全局breakAll标志（由breakall语句设置）
             if (context.isGlobalBreakAll()) {
                 break;
@@ -692,6 +701,9 @@ public class ForSyntaxNode extends BlockSyntaxNode {
         }
 
         for (Object item : set) {
+            // 检查超时（每次循环迭代检查）
+            context.checkTimeout();
+            
             // 检查全局breakAll标志（由breakall语句设置）
             if (context.isGlobalBreakAll()) {
                 break;

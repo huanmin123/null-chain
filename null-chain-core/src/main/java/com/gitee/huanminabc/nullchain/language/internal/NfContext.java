@@ -1,5 +1,6 @@
 package com.gitee.huanminabc.nullchain.language.internal;
 
+import com.gitee.huanminabc.jcommon.base.TimestampCache;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.NullCheck;
 import com.gitee.huanminabc.nullchain.core.NullChain;
@@ -8,9 +9,13 @@ import com.gitee.huanminabc.nullchain.language.NfMain;
 import com.gitee.huanminabc.nullchain.leaf.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.leaf.http.OkHttp;
 import com.gitee.huanminabc.nullchain.leaf.stream.NullStream;
+import com.gitee.huanminabc.nullchain.language.NfTimeoutException;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.concurrent.TimeUnit;
 import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -43,6 +48,34 @@ public class NfContext {
      * 使用不可变Map包装，确保线程安全
      */
     private static final Map<Class<?>, Class<?>> DEFAULT_INTERFACE_IMPL_MAP = Collections.unmodifiableMap(initInterfaceDefaultImplMap());
+
+    /**
+     * 全局脚本执行超时时间（毫秒）
+     * 默认 5 分钟，可以通过 setGlobalTimeout() 方法修改
+     */
+    private static long globalTimeoutMillis = 5 * 60 * 1000;
+
+    /**
+     * 设置全局脚本执行超时时间
+     * 
+     * @param timeoutMillis 超时时间（毫秒），必须大于 0
+     * @throws IllegalArgumentException 如果 timeoutMillis <= 0
+     */
+    public static void setGlobalTimeout(long timeoutMillis) {
+        if (timeoutMillis <= 0) {
+            throw new IllegalArgumentException("超时时间必须大于 0，当前值: " + timeoutMillis);
+        }
+        globalTimeoutMillis = timeoutMillis;
+    }
+
+    /**
+     * 获取全局脚本执行超时时间
+     * 
+     * @return 超时时间（毫秒）
+     */
+    public static long getGlobalTimeout() {
+        return globalTimeoutMillis;
+    }
 
     //全局作用域
     private String mainScopeId;
@@ -78,39 +111,103 @@ public class NfContext {
     //导入的NF脚本上下文映射关系
     //key: 脚本名称, value: 脚本的上下文（用于函数调用时访问脚本的函数定义和作用域）
     private Map<String, NfContext> importedScriptContextMap = new HashMap<>();
+    
+    //临时变量存储（用于递归处理函数调用时共享临时变量）
+    //从 ThreadLocal 改为实例字段，因为每个脚本执行都有独立的 NfContext
+    private Map<String, Object> tempVarStorage = new HashMap<>();
+    
+    //递归深度计数器，用于判断是否是最外层调用
+    //从 ThreadLocal 改为实例字段，因为每个脚本执行都有独立的 NfContext
+    private int recursionDepth = 0;
+    
+    //脚本执行开始时间（毫秒时间戳）
+    //用于计算脚本执行总时长，判断是否超时
+    private long executionStartTime = 0;
+    
+    //上下文是否已被清除的标志
+    //clear() 后设置为 true，防止误用导致 NPE
+    private boolean cleared = false;
+    
+    /**
+     * 全局变量查找缓存：缓存（作用域ID + 变量名）-> 变量信息的映射
+     * 使用Caffeine缓存，提供高性能和自动管理能力
+     * <p>配置说明：
+     * <ul>
+     *   <li>maximumSize(10000): 最大容量10000个变量查找结果</li>
+     *   <li>expireAfterAccess(30, TimeUnit.MINUTES): 30分钟未访问自动过期</li>
+     *   <li>线程安全：Caffeine自动保证线程安全</li>
+     * </ul>
+     * </p>
+     * <p>注意：由于作用域ID是UUID生成的，全局唯一，因此可以使用全局缓存。
+     * 当作用域被移除时，相关缓存会自动过期，无需手动清理。</p>
+     * key: "scopeId::variableName", value: 变量信息
+     */
+    private static final Cache<String, NfVariableInfo> globalVariableCache = Caffeine.newBuilder()
+        .maximumSize(10000)
+        .expireAfterAccess(30, TimeUnit.MINUTES)
+        .build();
+    
+    /**
+     * 生成变量缓存键
+     * 
+     * @param scopeId 作用域ID
+     * @param variableName 变量名
+     * @return 缓存键
+     */
+    private static String makeCacheKey(String scopeId, String variableName) {
+        return scopeId + "::" + variableName;
+    }
+
+    /**
+     * 检查上下文是否已被清除
+     * 
+     * @throws IllegalStateException 如果上下文已被清除
+     */
+    private void checkCleared() {
+        if (cleared) {
+            throw new IllegalStateException("Context has been cleared and cannot be used anymore");
+        }
+    }
 
     //获取类型的全路径
     public String getImportType(String type) {
+        checkCleared();
         return importMap.get(type);
     }
 
     //获取task的全路径
     public String getTask(String taskName) {
+        checkCleared();
         return taskMap.get(taskName);
     }
 
     //添加导入
     public void addImport(String type, String classPath) {
+        checkCleared();
         importMap.put(type, classPath);
     }
 
     //添加task
     public void addTask(String taskName, String classPath) {
+        checkCleared();
         taskMap.put(taskName, classPath);
     }
 
     //添加函数定义
     public void addFunction(String functionName, FunDefInfo funDef) {
+        checkCleared();
         functionMap.put(functionName, funDef);
     }
 
     //获取函数定义
     public FunDefInfo getFunction(String functionName) {
+        checkCleared();
         return functionMap.get(functionName);
     }
 
     //检查函数是否存在
     public boolean hasFunction(String functionName) {
+        checkCleared();
         return functionMap.containsKey(functionName);
     }
 
@@ -121,6 +218,7 @@ public class NfContext {
      * @param scope 脚本的全局作用域
      */
     public void addImportedScriptScope(String scriptName, NfContextScope scope) {
+        checkCleared();
         importedScriptScopeMap.put(scriptName, scope);
     }
 
@@ -131,6 +229,7 @@ public class NfContext {
      * @return 脚本的全局作用域，如果不存在返回 null
      */
     public NfContextScope getImportedScriptScope(String scriptName) {
+        checkCleared();
         return importedScriptScopeMap.get(scriptName);
     }
 
@@ -141,6 +240,7 @@ public class NfContext {
      * @return 如果脚本已导入返回 true，否则返回 false
      */
     public boolean hasImportedScript(String scriptName) {
+        checkCleared();
         return importedScriptScopeMap.containsKey(scriptName);
     }
 
@@ -151,6 +251,7 @@ public class NfContext {
      * @param scriptContext 脚本的上下文
      */
     public void addImportedScriptContext(String scriptName, NfContext scriptContext) {
+        checkCleared();
         importedScriptContextMap.put(scriptName, scriptContext);
     }
 
@@ -161,12 +262,14 @@ public class NfContext {
      * @return 脚本的上下文，如果不存在返回 null
      */
     public NfContext getImportedScriptContext(String scriptName) {
+        checkCleared();
         return importedScriptContextMap.get(scriptName);
     }
 
 
     //创建一个作用域
     public NfContextScope createScope(String id, String parentScopeId, NfContextScopeType type) {
+        checkCleared();
         NfContextScope nfContextScope = new NfContextScope(id, parentScopeId, type);
         scopeMap.put(id, nfContextScope);
         return nfContextScope;
@@ -174,28 +277,33 @@ public class NfContext {
 
     //获取当前作用域
     public NfContextScope getCurrentScope() {
+        checkCleared();
         return scopeMap.get(currentScopeId);
     }
 
     //获取全局作用域
     public NfContextScope getMainScope() {
+        checkCleared();
         return scopeMap.get(mainScopeId);
     }
 
 
     //获取一个作用域
     public NfContextScope getScope(String id) {
+        checkCleared();
         return scopeMap.get(id);
     }
 
     //切换作用域
     public void switchScope(String id) {
+        checkCleared();
         currentScopeId = id;
     }
 
     //创建子作用域
     //原理就是将主作用域和父作用域合并到新的作用域
     public NfContextScope createChildScope(String parentScopeId, NfContextScopeType type) {
+        checkCleared();
         //创建一个作用域id
         String scopeId = NfContext.generateScopeId();
         //新的作用域
@@ -207,6 +315,7 @@ public class NfContext {
 
     //向上查找指定类型的作用域
     public NfContextScope findByTypeScope(NfContextScopeType type) {
+        checkCleared();
         return findByTypeScope(currentScopeId, type);
     }
 
@@ -224,6 +333,7 @@ public class NfContext {
 
     //向上查找指定类型的全部作用域返回List
     public List<NfContextScope> findByTypeScopeList(NfContextScopeType type) {
+        checkCleared();
         List<NfContextScope> list = new ArrayList<>();
         findByTypeScopeList(currentScopeId, type, list);
         return list;
@@ -232,6 +342,7 @@ public class NfContext {
     //获取所有指定类型的活动作用域（遍历整个scopeMap）
     //用于breakall等需要影响所有FOR循环的场景，而不仅仅是当前作用域的祖先
     public List<NfContextScope> findAllActiveScopesByType(NfContextScopeType type) {
+        checkCleared();
         List<NfContextScope> list = new ArrayList<>();
         for (NfContextScope scope : scopeMap.values()) {
             if (scope.getType() == type) {
@@ -253,6 +364,7 @@ public class NfContext {
     }
     //递归查找从当前作用域到指定类型的全部作用域返回List
     public List<NfContextScope> findByTypeScopeListRange(NfContextScopeType type) {
+        checkCleared();
         List<NfContextScope> list = new ArrayList<>();
         findByTypeScopeListRange(currentScopeId, type, list);
         return list;
@@ -275,19 +387,39 @@ public class NfContext {
 
     //获取变量,优先从当前作用域获取,如果没有,那么就从父作用域获取直到全局作用域
     public NfVariableInfo getVariable(String name) {
+        checkCleared();
         return getVariable(name, currentScopeId);
     }
 
-    //递归获取变量, 获取父作用域的变量
+    //递归获取变量, 获取父作用域的变量（带全局缓存优化）
     private NfVariableInfo getVariable(String name, String scopeId) {
+        if (scopeId == null) {
+            return null;
+        }
+        
+        // 检查全局缓存
+        String cacheKey = makeCacheKey(scopeId, name);
+        NfVariableInfo cached = globalVariableCache.getIfPresent(cacheKey);
+        if (cached != null) {
+            return cached;
+        }
+        
+        // 缓存未命中，遍历作用域链查找
         NfContextScope nfContextScope = scopeMap.get(scopeId);
         if (nfContextScope != null) {
             NfVariableInfo nfVariableInfo = nfContextScope.getVariable(name);
             if (nfVariableInfo != null) {
+                // 找到变量，缓存到全局缓存
+                globalVariableCache.put(cacheKey, nfVariableInfo);
                 return nfVariableInfo;
             }
             //如果当前没有找到,那么就从父作用域获取
-            return getVariable(name, nfContextScope.getParentScopeId());
+            NfVariableInfo parentVar = getVariable(name, nfContextScope.getParentScopeId());
+            if (parentVar != null) {
+                // 在父作用域找到，缓存结果（使用当前作用域ID作为key，因为这是查找的起点）
+                globalVariableCache.put(cacheKey, parentVar);
+            }
+            return parentVar;
         }
         return null;
     }
@@ -300,6 +432,7 @@ public class NfContext {
      * @return 包含该变量的作用域，如果不存在则返回null
      */
     public NfContextScope findVariableScope(String name) {
+        checkCleared();
         return findVariableScope(name, currentScopeId);
     }
 
@@ -325,17 +458,75 @@ public class NfContext {
 
     //移除一个作用域
     public void removeScope(String id) {
+        checkCleared();
         //需要先将作用域中的变量移除,减少gc的压力
         NfContextScope nfContextScope = scopeMap.get(id);
         if (nfContextScope != null) {
             nfContextScope.clear();
+            // 清除该作用域相关的全局变量缓存
+            clearVariableCacheForScope(id);
         }
         scopeMap.remove(id);
+    }
+    
+    /**
+     * 清除指定作用域的全局变量缓存
+     * 当作用域被移除时调用，清除所有以该作用域ID开头的缓存项
+     * 
+     * @param scopeId 作用域ID
+     */
+    private void clearVariableCacheForScope(String scopeId) {
+        if (scopeId == null) {
+            return;
+        }
+        // Caffeine 不支持按模式删除，但我们可以通过记录作用域ID来清理
+        // 由于作用域ID是UUID，全局唯一，且缓存会自动过期，这里可以选择性清理
+        // 为了及时清理，我们遍历缓存并删除相关项（虽然性能不是最优，但作用域移除不频繁）
+        String prefix = scopeId + "::";
+        globalVariableCache.asMap().entrySet().removeIf(entry -> entry.getKey().startsWith(prefix));
     }
 
     //生成一个作用域id
     public static String generateScopeId() {
         return "scope_" + UUID.randomUUID();
+    }
+
+    /**
+     * 开始脚本执行，记录执行开始时间
+     * 此方法应在脚本执行开始时调用，用于后续的超时检查
+     * 
+     * <p>注意：使用精确时间戳记录开始时间，确保时间计算的准确性。</p>
+     */
+    public void startExecution() {
+        checkCleared();
+        // 使用精确时间戳记录开始时间，确保时间计算的准确性
+        executionStartTime = System.currentTimeMillis();
+    }
+
+    /**
+     * 检查脚本执行是否超时
+     * 如果执行时间超过全局超时限制，抛出 NfTimeoutException
+     * 
+     * <p>优化：使用缓存的时间戳，避免频繁调用 System.currentTimeMillis()。
+     * 在循环场景下，频繁调用会导致性能问题。
+     * 时间精度为100毫秒，对于超时检查场景已经足够。</p>
+     * 
+     * @throws NfTimeoutException 如果脚本执行超时
+     */
+    public void checkTimeout() {
+        if (cleared) {
+            return; // 已清除的上下文不需要检查超时
+        }
+        if (executionStartTime > 0) {
+            // 使用缓存的时间戳，避免频繁调用 System.currentTimeMillis()
+            // 时间精度为100毫秒，对于超时检查场景已经足够
+            long elapsed = TimestampCache.getCurrentTimeMillis() - executionStartTime;
+            if (elapsed > globalTimeoutMillis) {
+                // 超时时使用精确时间戳计算实际耗时，确保错误信息的准确性
+                long exactElapsed = System.currentTimeMillis() - executionStartTime;
+                throw new NfTimeoutException("脚本执行超时，已执行 %d 毫秒，超过限制 %d 毫秒", exactElapsed, globalTimeoutMillis);
+            }
+        }
     }
 
     /**
@@ -444,7 +635,7 @@ public class NfContext {
     /**
      * 销毁上下文并释放资源
      * 
-     * <p><b>重要：</b>此方法会将内部字段置为 null，调用后对象不可再使用。
+     * <p><b>重要：</b>此方法会将内部字段清空并设置 cleared 标志，调用后对象不可再使用。
      * 此方法仅在脚本执行完成后调用，用于释放资源和减轻 GC 压力。</p>
      * 
      * <p><b>注意：</b>此方法与普通的 clear() 方法不同，它会彻底销毁对象状态。
@@ -453,29 +644,62 @@ public class NfContext {
      * @see NfMain#run
      */
     public void clear() {
+        // 设置清除标志，防止后续误用
+        cleared = true;
+        
         // 销毁所有作用域
-        for (Map.Entry<String, NfContextScope> entry : scopeMap.entrySet()) {
-            entry.getValue().clear();
+        if (scopeMap != null) {
+            for (Map.Entry<String, NfContextScope> entry : scopeMap.entrySet()) {
+                entry.getValue().clear();
+            }
+            scopeMap.clear();
         }
-        // 清空并释放所有内部 Map
-        scopeMap.clear();
-        importMap.clear();
-        taskMap.clear();
-        functionMap.clear();
-        importedScriptScopeMap.clear();
+        
+        // 清空所有内部 Map（不清空，避免 NPE，但清空内容）
+        if (importMap != null) {
+            importMap.clear();
+        }
+        if (taskMap != null) {
+            taskMap.clear();
+        }
+        if (functionMap != null) {
+            functionMap.clear();
+        }
+        if (importedScriptScopeMap != null) {
+            importedScriptScopeMap.clear();
+        }
         if (importedScriptContextMap != null) {
             importedScriptContextMap.clear();
-            importedScriptContextMap = null;
         }
-        importMap = null;
-        scopeMap = null;
-        taskMap = null;
-        functionMap = null;
-        importedScriptScopeMap = null;
-        // 释放接口映射
         if (interfaceDefaultImplMap != null) {
             interfaceDefaultImplMap.clear();
-            interfaceDefaultImplMap = null;
+        }
+        if (tempVarStorage != null) {
+            tempVarStorage.clear();
+        }
+        
+        // 清理当前上下文相关的全局变量缓存
+        // 遍历所有作用域，清除相关缓存
+        if (scopeMap != null) {
+            for (String scopeId : scopeMap.keySet()) {
+                clearVariableCacheForScope(scopeId);
+            }
+        }
+        
+        // 重置其他字段
+        recursionDepth = 0;
+        executionStartTime = 0;
+    }
+    
+    /**
+     * 清除变量缓存（当变量被修改时调用）
+     * 清除当前上下文所有作用域的变量缓存
+     */
+    public void invalidateVariableCache() {
+        if (scopeMap != null) {
+            for (String scopeId : scopeMap.keySet()) {
+                clearVariableCacheForScope(scopeId);
+            }
         }
     }
 }

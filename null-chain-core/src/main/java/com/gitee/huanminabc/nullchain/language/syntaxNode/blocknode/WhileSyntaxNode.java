@@ -156,26 +156,22 @@ public class WhileSyntaxNode extends BlockSyntaxNode {
         String currentScopeId = context.getCurrentScopeId();
 
         StringBuilder conditionBuilder = TokenUtil.mergeToken(condition);
-        System.out.println("[DEBUG] Before while loop - currentScopeId: " + context.getCurrentScopeId());
-        NfContextScope debugScope = context.getCurrentScope();
-        System.out.println("[DEBUG] Before while loop - currentScope: " + (debugScope != null ? debugScope.toMap() : "null"));
 
         while (true) {
+            // 检查超时（每次循环迭代检查）
+            context.checkTimeout();
+            
             if (context.isGlobalBreakAll()) {
                 break;
             }
 
             boolean isTrue = false;
             try {
-                System.out.println("[DEBUG] Before calculate - currentScopeId: " + context.getCurrentScopeId());
-                debugScope = context.getCurrentScope();
-                System.out.println("[DEBUG] Before calculate - currentScope: " + (debugScope != null ? debugScope.toMap() : "null"));
                 Object result = NfCalculator.arithmetic(conditionBuilder.toString(), context);
                 if (result instanceof Boolean) {
                     isTrue = (Boolean) result;
                 }
             } catch (Exception e) {
-                e.printStackTrace();
                 throw new NfException(e, "Line:{}  while表达式计算错误: {} ",
                     whileSyntaxNode.getLine(), conditionBuilder.toString());
             }

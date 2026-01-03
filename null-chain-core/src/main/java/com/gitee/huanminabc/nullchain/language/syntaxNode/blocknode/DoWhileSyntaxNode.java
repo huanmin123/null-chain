@@ -189,6 +189,9 @@ public class DoWhileSyntaxNode extends BlockSyntaxNode {
 
         // do-while循环：先执行一次，再判断条件
         while (true) {
+            // 检查超时（每次循环迭代检查）
+            context.checkTimeout();
+            
             // 第一次执行（无条件）
             if (context.isGlobalBreakAll()) {
                 break;
