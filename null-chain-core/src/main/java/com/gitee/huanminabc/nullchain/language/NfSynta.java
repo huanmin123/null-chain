@@ -54,7 +54,7 @@ public class NfSynta {
                 //如果无法识别，立即抛出异常
                 int errorTokenCount = Math.min(tokens.size(), MAX_ERROR_CONTEXT_TOKENS);
                 String context = TokenUtil.mergeToken(tokens.subList(0, errorTokenCount)).toString();
-                String suggestion = "期望: import, task, assign, declare, run, export, echo, if, switch, for, while, break, breakAll, continue 等关键字";
+                String suggestion = "期望: import, task, var, assign, declare, run, export, echo, if, switch, for, while, break, breakAll, continue 等关键字";
                 throw new NfSyntaxException(
                     firstToken.getLine(),
                     "无法识别的语法",

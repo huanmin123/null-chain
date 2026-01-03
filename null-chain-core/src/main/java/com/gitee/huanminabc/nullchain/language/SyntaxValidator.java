@@ -69,6 +69,7 @@ public class SyntaxValidator {
                 break;
             case ASSIGN_EXP:
             case DECLARE_EXP:
+            case VAR_EXP:
                 validateVariableOperation(node, context);
                 break;
             case IF_EXP:

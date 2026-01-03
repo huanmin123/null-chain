@@ -41,9 +41,9 @@ public class SyntaxNodeFactory {
     private static final Map<SyntaxNodeType, SyntaxNode> syntaxNodeMap = new LinkedHashMap<>();
     
     static {
-        // 初始化所有语法节点的识别器实例
         syntaxNodeMap.put(SyntaxNodeType.IMPORT_EXP, new ImportSyntaxNode());
         syntaxNodeMap.put(SyntaxNodeType.TASK_EXP, new TaskSyntaxNode());
+        syntaxNodeMap.put(SyntaxNodeType.VAR_EXP, new VarSyntaxNode());
         syntaxNodeMap.put(SyntaxNodeType.ASSIGN_EXP, new AssignSyntaxNode());
         syntaxNodeMap.put(SyntaxNodeType.DECLARE_EXP, new DeclareSyntaxNode());
         syntaxNodeMap.put(SyntaxNodeType.RUN_EXP, new RunSyntaxNode());

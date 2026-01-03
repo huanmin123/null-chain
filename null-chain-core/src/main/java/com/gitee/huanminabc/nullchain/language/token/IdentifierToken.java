@@ -30,6 +30,9 @@ public class IdentifierToken {
             case "as":
                 tokens.add(new Token(TokenType.AS, value, line));
                 break;
+            case "var":
+                tokens.add(new Token(TokenType.VAR, value, line));
+                break;
             case "run":
                 tokens.add(new Token(TokenType.RUN, value, line));
                 break;

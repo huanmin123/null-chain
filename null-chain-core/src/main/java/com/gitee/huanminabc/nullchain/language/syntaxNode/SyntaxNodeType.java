@@ -9,6 +9,7 @@ public enum SyntaxNodeType {
     TASK_EXP, // task语句
     ASSIGN_EXP, // 赋值表达式
     DECLARE_EXP, // 声明表达式
+    VAR_EXP, // var变量声明表达式
     RUN_EXP, // 运行任务表达式
     EXPORT_EXP, // export语句
     IF_EXP, // if语句

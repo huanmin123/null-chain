@@ -1,0 +1,337 @@
+package com.gitee.huanminabc.nullchain.language.syntaxNode.linenode;
+
+import com.gitee.huanminabc.nullchain.common.NullConstants;
+import com.gitee.huanminabc.nullchain.language.NfCalculator;
+import com.gitee.huanminabc.nullchain.language.NfException;
+import com.gitee.huanminabc.nullchain.language.internal.NfContext;
+import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
+import com.gitee.huanminabc.nullchain.language.internal.NfVariableInfo;
+import com.gitee.huanminabc.nullchain.language.syntaxNode.LineSyntaxNode;
+import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
+import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
+import com.gitee.huanminabc.nullchain.language.token.Token;
+import com.gitee.huanminabc.nullchain.language.token.TokenType;
+import com.gitee.huanminabc.nullchain.language.utils.DataType;
+import com.gitee.huanminabc.nullchain.language.utils.KeywordUtil;
+import com.gitee.huanminabc.nullchain.language.utils.SyntaxNodeUtil;
+import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
+import com.gitee.huanminabc.nullchain.language.syntaxNode.linenode.EchoSyntaxNode;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * var变量声明表达式节点
+ *
+ * <p>支持两种格式：
+ * <ul>
+ *   <li>自动类型推导：var name="12312"</li>
+ *   <li>手动指定类型：var name:String="1231"</li>
+ * </ul>
+ * </p>
+ *
+ * <p>语法格式：
+ * <ul>
+ *   <li>VAR IDENTIFIER ASSIGN ...（自动推导）</li>
+ *   <li>VAR IDENTIFIER COLON IDENTIFIER ASSIGN ...（手动指定类型）</li>
+ * </ul>
+ * </p>
+ *
+ * @author huanmin
+ * @date 2024/11/22
+ */
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class VarSyntaxNode extends LineSyntaxNode {
+
+    public VarSyntaxNode() {
+        super(SyntaxNodeType.VAR_EXP);
+    }
+
+    public VarSyntaxNode(SyntaxNodeType type) {
+        super(type);
+    }
+
+    @Override
+    protected TokenType getTargetTokenType() {
+        // VarSyntaxNode重写了analystToken方法，此方法不会被调用
+        // 但为了满足抽象方法要求，返回null
+        return null;
+    }
+
+    /**
+     * 分析Token是否可以解析为var变量声明表达式
+     * 支持两种格式：
+     * 1. 自动类型推导：VAR IDENTIFIER ASSIGN ... (例如：var name="12312")
+     * 2. 手动指定类型：VAR IDENTIFIER COLON IDENTIFIER ASSIGN ... (例如：var name:String="1231")
+     *
+     * @param tokens Token列表
+     * @return 是否可以解析为var变量声明表达式
+     */
+    @Override
+    public boolean analystToken(List<Token> tokens) {
+        int size = tokens.size();
+        if (size < 3) {
+            return false;
+        }
+        // 检查第一个token是否是VAR
+        if (tokens.get(0).type != TokenType.VAR) {
+            return false;
+        }
+        // 检查第二个token是否是IDENTIFIER（变量名）
+        if (tokens.get(1).type != TokenType.IDENTIFIER) {
+            return false;
+        }
+        // 检查是否是自动推导格式：VAR IDENTIFIER ASSIGN ...
+        if (tokens.get(2).type == TokenType.ASSIGN) {
+            return true;
+        }
+        // 检查是否是手动指定类型格式：VAR IDENTIFIER COLON IDENTIFIER ASSIGN ...
+        if (size >= 5 && tokens.get(2).type == TokenType.COLON &&
+            tokens.get(3).type == TokenType.IDENTIFIER &&
+            tokens.get(4).type == TokenType.ASSIGN) {
+            return true;
+        }
+        return false;
+    }
+    /**
+     * 构建var变量声明语句
+     * 支持两种格式：
+     * 1. 自动类型推导：VAR IDENTIFIER ASSIGN ... (例如：var name="12312")
+     * 2. 手动指定类型：VAR IDENTIFIER COLON IDENTIFIER ASSIGN ... (例如：var name:String="1231")
+     *
+     * @param tokens Token列表
+     * @param syntaxNodeList 语法节点列表
+     * @return 是否成功构建
+     */
+    @Override
+    public boolean buildStatement(List<Token> tokens, List<SyntaxNode> syntaxNodeList) {
+        int tokensSize = tokens.size();
+        if (tokensSize < 3) {
+            return false;
+        }
+
+        // 检查第一个token是否是VAR
+        if (tokens.get(0).type != TokenType.VAR) {
+            return false;
+        }
+
+        // 检查是否是自动推导格式：VAR IDENTIFIER ASSIGN ...
+        boolean isAutoInfer = tokensSize >= 3 &&
+            tokens.get(1).type == TokenType.IDENTIFIER &&
+            tokens.get(2).type == TokenType.ASSIGN;
+
+        // 检查是否是手动指定类型格式：VAR IDENTIFIER COLON IDENTIFIER ASSIGN ...
+        boolean isManualType = tokensSize >= 5 &&
+            tokens.get(1).type == TokenType.IDENTIFIER &&
+            tokens.get(2).type == TokenType.COLON &&
+            tokens.get(3).type == TokenType.IDENTIFIER &&
+            tokens.get(4).type == TokenType.ASSIGN;
+
+        if (!isAutoInfer && !isManualType) {
+            return false;
+        }
+
+        // 确定结束位置
+        int startIndex = 0;
+        int endIndex = SyntaxNodeUtil.findLineEndIndex(tokens, startIndex);
+
+        // 截取var语句的标记序列,不包含LINE_END
+        List<Token> newToken = new ArrayList<>(tokens.subList(startIndex, endIndex));
+        // 删除已经解析的标记
+        tokens.subList(startIndex, endIndex).clear();
+
+        // 获取变量名
+        Token varName = newToken.get(1);
+        // 禁止用户定义以 $ 开头的变量（$ 前缀保留给系统变量使用）
+        if (varName.value != null && varName.value.startsWith("$")) {
+            throw new NfException("Line:{} ,变量名 {} 不能以 $ 开头，$ 前缀保留给系统变量使用, syntax: {}",
+                varName.line, varName.value, printExp(newToken));
+        }
+        boolean forbidKeyword = KeywordUtil.isForbidKeyword(varName.value);
+        if (forbidKeyword) {
+            throw new NfException("Line:{} ,变量名 {} 不能是禁用的关键字, syntax: {}",
+                varName.line, varName.value, printExp(newToken));
+        }
+
+        // 去掉注释
+        SyntaxNodeUtil.removeComments(newToken);
+        VarSyntaxNode varSyntaxNode = new VarSyntaxNode(SyntaxNodeType.VAR_EXP);
+        varSyntaxNode.setValue(newToken);
+        // 设置行号
+        varSyntaxNode.setLine(newToken.get(0).getLine());
+        syntaxNodeList.add(varSyntaxNode);
+
+        return true;
+    }
+
+    /**
+     * 执行var变量声明语句
+     * 支持两种格式：
+     * 1. 自动类型推导：VAR IDENTIFIER ASSIGN ... (例如：var name="12312")
+     * 2. 手动指定类型：VAR IDENTIFIER COLON IDENTIFIER ASSIGN ... (例如：var name:String="1231")
+     *
+     * @param context 上下文
+     * @param syntaxNode 语法节点
+     */
+    @Override
+    public void run(NfContext context, SyntaxNode syntaxNode) {
+        List<Token> valueTokens = syntaxNode.getValue();
+        if (valueTokens == null || valueTokens.isEmpty()) {
+            throw new NfException("Line:{} ,var变量声明表达式tokens不能为空 , syntax: {}",
+                syntaxNode.getLine(), syntaxNode);
+        }
+
+        // 判断是否有手动指定类型
+        boolean hasManualType = valueTokens.size() >= 5 &&
+            valueTokens.get(0).type == TokenType.VAR &&
+            valueTokens.get(1).type == TokenType.IDENTIFIER &&
+            valueTokens.get(2).type == TokenType.COLON &&
+            valueTokens.get(3).type == TokenType.IDENTIFIER &&
+            valueTokens.get(4).type == TokenType.ASSIGN;
+
+        String importType;
+        String varName;
+        List<Token> expTokens;
+
+        if (hasManualType) {
+            // 手动指定类型：VAR IDENTIFIER COLON IDENTIFIER ASSIGN xxx
+            // 获取变量名
+            varName = valueTokens.get(1).value;
+            // 获取类型
+            Token typeToken = valueTokens.get(3);
+            String type = typeToken.value;
+            // 转化为java类型
+            importType = context.getImportType(type);
+            if (importType == null) {
+                throw new NfException("Line:{} ,未找到类型 {} , syntax: {}",
+                    typeToken.line, type, syntaxNode);
+            }
+            // 获取赋值的表达式
+            expTokens = valueTokens.subList(5, valueTokens.size());
+        } else {
+            // 自动类型推导：VAR IDENTIFIER ASSIGN xxx
+            // 获取变量名
+            varName = valueTokens.get(1).value;
+            // 获取赋值的表达式
+            expTokens = valueTokens.subList(3, valueTokens.size());
+            // importType将在计算表达式后通过arithmetic.getClass()获取
+            importType = null;
+        }
+
+        // 如果是空的那么就报错
+        if (expTokens.isEmpty()) {
+            int line = valueTokens.get(0).line;
+            throw new NfException("Line:{} ,var变量声明表达式为空 , syntax: {}", line, syntaxNode);
+        }
+
+        // 取出来上下文
+        NfContextScope currentScope = context.getCurrentScope();
+
+        // 检查表达式中是否包含模板字符串，如果有则先处理模板字符串
+        boolean hasTemplateString = false;
+        String templateStringValue = null;
+        for (Token expToken : expTokens) {
+            if (expToken.type == TokenType.TEMPLATE_STRING) {
+                hasTemplateString = true;
+                // 去除首尾的 ```，并处理占位符
+                templateStringValue = (String) DataType.realType(TokenType.TEMPLATE_STRING, expToken.value);
+                templateStringValue = EchoSyntaxNode.replaceTemplate(templateStringValue, context);
+                break;
+            }
+        }
+
+        // 计算表达式
+        StringBuilder exp = TokenUtil.mergeToken(expTokens);
+        Object arithmetic;
+        try {
+            // 如果表达式只包含模板字符串，直接使用处理后的值
+            if (hasTemplateString && expTokens.size() == 1 && expTokens.get(0).type == TokenType.TEMPLATE_STRING) {
+                arithmetic = templateStringValue;
+            } else {
+                arithmetic = NfCalculator.arithmetic(exp.toString(), context);
+                // 如果计算结果是字符串且包含占位符，进行替换
+                if (arithmetic instanceof String && ((String) arithmetic).contains("{") && ((String) arithmetic).contains("}")) {
+                    arithmetic = EchoSyntaxNode.replaceTemplate((String) arithmetic, context);
+                }
+            }
+        } catch (Exception e) {
+            int line = valueTokens.get(0).line;
+            throw new NfException(e, "Line:{} ,表达式计算错误 , syntax: {}", line, syntaxNode);
+        }
+
+        // 确定最终类型
+        Class<?> declaredType;
+        try {
+            if (hasManualType) {
+                // 手动指定类型：使用指定的类型
+                declaredType = Class.forName(importType);
+                // 验证类型兼容性
+                Class<?> actualType = arithmetic.getClass();
+                if (!declaredType.isAssignableFrom(actualType)) {
+                    int line = valueTokens.get(0).line;
+                    throw new NfException("Line:{} ,变量 {} 值类型和声明的类型不匹配 {} vs {} ,syntax: {}",
+                        line, varName, importType, arithmetic.getClass(), syntaxNode);
+                }
+            } else {
+                // 自动类型推导：使用表达式计算结果的类型
+                declaredType = arithmetic.getClass();
+            }
+
+            // 将变量添加到当前作用域
+            currentScope.addVariable(new NfVariableInfo(varName, arithmetic, declaredType));
+        } catch (ClassNotFoundException e) {
+            int line = valueTokens.get(0).line;
+            throw new NfException("Line:{} ,未找到类型 {} , syntax: {}", line, importType, syntaxNode);
+        }
+    }
+
+    /**
+     * 打印表达式
+     * 根据是否有手动指定类型，格式不同：
+     * 1. 自动推导：var 变量名 = 表达式
+     * 2. 手动指定类型：var 变量名 : 类型 = 表达式
+     *
+     * @param tokens Token列表
+     * @return 表达式字符串
+     */
+    private String printExp(List<Token> tokens) {
+        StringBuilder sb = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
+        boolean hasManualType = tokens.size() >= 5 &&
+            tokens.get(0).type == TokenType.VAR &&
+            tokens.get(1).type == TokenType.IDENTIFIER &&
+            tokens.get(2).type == TokenType.COLON &&
+            tokens.get(3).type == TokenType.IDENTIFIER &&
+            tokens.get(4).type == TokenType.ASSIGN;
+
+        if (hasManualType) {
+            // 前5个是var,变量名,冒号,类型,赋值符号 需要空格
+            sb.append(tokens.get(0).value).append(" "); // var
+            sb.append(tokens.get(1).value).append(" "); // 变量名
+            sb.append(tokens.get(2).value).append(" "); // :
+            sb.append(tokens.get(3).value).append(" "); // 类型
+            sb.append(tokens.get(4).value).append(" "); // =
+            // 后面的是表达式
+            for (int i = 5; i < tokens.size(); i++) {
+                sb.append(tokens.get(i).value);
+            }
+        } else {
+            // 前3个是var,变量名,赋值符号 需要空格
+            sb.append(tokens.get(0).value).append(" "); // var
+            sb.append(tokens.get(1).value).append(" "); // 变量名
+            sb.append(tokens.get(2).value).append(" "); // =
+            // 后面的是表达式
+            for (int i = 3; i < tokens.size(); i++) {
+                sb.append(tokens.get(i).value);
+            }
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        return printExp(getValue());
+    }
+}

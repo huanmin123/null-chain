@@ -105,8 +105,8 @@ public class TokenUtil {
                token.type == TokenType.LE ||
                token.type == TokenType.EQ ||
                token.type == TokenType.NE ||
-               token.type == TokenType.AND ||
-               token.type == TokenType.OR ||
+               // 注意：AND 和 OR 是关键字运算符，需要前后有空格（如 true and false）
+               // 因此不将它们视为"不需要空格的运算符"
                token.type == TokenType.DOT2; // 范围运算符 .. 不需要空格
     }
 }

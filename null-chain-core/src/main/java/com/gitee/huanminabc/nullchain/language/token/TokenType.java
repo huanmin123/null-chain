@@ -9,6 +9,7 @@ public enum TokenType {
     IMPORT,  // 导入
     AS, // as 别名
     TASK, // 导入任务
+    VAR, // var 变量声明
     IDENTIFIER, // 标识符
     STRING, // 字符串
     TEMPLATE_STRING, // 模板字符串 ```
