@@ -1,6 +1,5 @@
 package com.gitee.huanminabc.nullchain.language.internal;
 
-import com.gitee.huanminabc.jcommon.base.TimestampCache;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.NullCheck;
 import com.gitee.huanminabc.nullchain.core.NullChain;
@@ -518,13 +517,10 @@ public class NfContext {
             return; // 已清除的上下文不需要检查超时
         }
         if (executionStartTime > 0) {
-            // 使用缓存的时间戳，避免频繁调用 System.currentTimeMillis()
-            // 时间精度为100毫秒，对于超时检查场景已经足够
-            long elapsed = TimestampCache.getCurrentTimeMillis() - executionStartTime;
+            // 直接使用 System.currentTimeMillis()，因为 TimestampCache 已被移除
+            long elapsed = System.currentTimeMillis() - executionStartTime;
             if (elapsed > globalTimeoutMillis) {
-                // 超时时使用精确时间戳计算实际耗时，确保错误信息的准确性
-                long exactElapsed = System.currentTimeMillis() - executionStartTime;
-                throw new NfTimeoutException("脚本执行超时，已执行 %d 毫秒，超过限制 %d 毫秒", exactElapsed, globalTimeoutMillis);
+                throw new NfTimeoutException("脚本执行超时，已执行 %d 毫秒，超过限制 %d 毫秒", elapsed, globalTimeoutMillis);
             }
         }
     }

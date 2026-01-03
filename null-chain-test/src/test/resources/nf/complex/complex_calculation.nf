@@ -71,13 +71,13 @@ echo "最终 accumulator = {accumulator}"
 
 // 8. 平均值计算
 Integer count = 0
-Integer total = 0
+Integer totalSum = 0
 for i in 1..10 {
-    total = total + i
+    totalSum = totalSum + i
     count = count + 1
 }
-Integer average = total / count
-echo "total = {total}, count = {count}, average = {average}"
+Integer average = totalSum / count
+echo "totalSum = {totalSum}, count = {count}, average = {average}"
 
 export average
 

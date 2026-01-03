@@ -225,11 +225,11 @@ public class NfCalculator {
             // 使用全局缓存的表达式对象，避免重复编译
             // 编译后的表达式是纯语法结构，不依赖变量值，可以全局共享
             // 使用表达式字符串的SHA-256哈希值作为缓存key
+
             String exprHash = HashUtil.sha256(finalExpr);
+            log.error("finalExpr: {}, exprHash: {}", finalExpr, exprHash);
             JexlExpression cachedExpression = globalExpressionCache.get(exprHash, hash -> jexl.createExpression(finalExpr));
-            
-            Object result = cachedExpression.evaluate(context);
-            return result;
+            return cachedExpression.evaluate(context);
         } catch (NfReturnException e) {
             // return语句需要穿透表达式计算，传播到函数调用处
             throw e;

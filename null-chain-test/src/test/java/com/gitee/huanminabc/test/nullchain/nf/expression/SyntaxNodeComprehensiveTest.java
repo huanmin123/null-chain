@@ -179,6 +179,22 @@ public class SyntaxNodeComprehensiveTest {
         log.info("Declare禁用关键字异常测试通过");
     }
 
+    /**
+     * 测试Declare异常情况 - 重复变量声明
+     */
+    @Test
+    public void testDeclareDuplicateVariable() {
+        String file = TestUtil.readFile("syntax/declare_error_duplicate_var.nf");
+        List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(file);
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
+        
+        NfContext context = new NfContext();
+        assertThrows(NfException.class, () -> {
+            NfRun.run(syntaxNodes, context, log, null);
+        });
+        log.info("Declare重复变量声明异常测试通过");
+    }
+
     // ==================== Assign语法节点测试 ====================
     
     /**

@@ -119,6 +119,12 @@ public class DeclareSyntaxNode extends LineSyntaxNode {
 
             //取出来上下文
             NfContextScope currentScope = context.getCurrentScope();
+            // 检查当前作用域中是否已存在同名变量
+            NfVariableInfo existingVar = currentScope.getVariable(varName);
+            if (existingVar != null) {
+                throw new NfException("Line:{} ,变量 {} 在当前作用域中已声明，不能重复声明 , syntax: {}", 
+                    token.line, varName, syntaxNode);
+            }
             //将计算的值放入上下文
             currentScope.addVariable(new NfVariableInfo(varName, null, typeClass));
         } catch (ClassNotFoundException e) {

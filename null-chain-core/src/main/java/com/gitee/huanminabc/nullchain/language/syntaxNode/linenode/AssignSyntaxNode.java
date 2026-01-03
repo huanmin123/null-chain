@@ -223,6 +223,13 @@ public class AssignSyntaxNode extends LineSyntaxNode {
                     }
                 }
                 
+                // 检查当前作用域中是否已存在同名变量
+                NfVariableInfo existingVar = currentScope.getVariable(varName);
+                if (existingVar != null) {
+                    int line = valueTokens.get(0).line;
+                    throw new NfException("Line:{} ,变量 {} 在当前作用域中已声明，不能重复声明 , syntax: {}", 
+                        line, varName, syntaxNode);
+                }
                 // 获取无参构造函数
                 Constructor<?> constructor = actualType.getConstructor();
                 Object o = constructor.newInstance();
@@ -277,6 +284,13 @@ public class AssignSyntaxNode extends LineSyntaxNode {
             }
             //将计算的值放入上下文，类型保持为声明的类型（如果是接口，保持接口类型）
             if (hasTypeDeclaration) {
+                // 检查当前作用域中是否已存在同名变量
+                NfVariableInfo existingVar = currentScope.getVariable(varName);
+                if (existingVar != null) {
+                    int line = valueTokens.get(0).line;
+                    throw new NfException("Line:{} ,变量 {} 在当前作用域中已声明，不能重复声明 , syntax: {}", 
+                        line, varName, syntaxNode);
+                }
                 // 新变量声明：添加到当前作用域
                 currentScope.addVariable(new NfVariableInfo(varName, arithmetic, declaredType));
             } else {

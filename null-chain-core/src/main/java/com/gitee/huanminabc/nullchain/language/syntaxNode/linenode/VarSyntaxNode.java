@@ -410,6 +410,12 @@ public class VarSyntaxNode extends LineSyntaxNode {
                     }
                 }
 
+                // 检查当前作用域中是否已存在同名变量
+                NfVariableInfo existingVar = currentScope.getVariable(name);
+                if (existingVar != null) {
+                    throw new NfException("Line:{} ,变量 {} 在当前作用域中已声明，不能重复声明 , syntax: {}",
+                        syntaxNode.getLine(), name, syntaxNode);
+                }
                 currentScope.addVariable(new NfVariableInfo(name, value, declaredType));
             }
             
@@ -498,6 +504,13 @@ public class VarSyntaxNode extends LineSyntaxNode {
                 declaredType = arithmetic.getClass();
             }
 
+            // 检查当前作用域中是否已存在同名变量
+            NfVariableInfo existingVar = currentScope.getVariable(varName);
+            if (existingVar != null) {
+                int line = valueTokens.get(0).line;
+                throw new NfException("Line:{} ,变量 {} 在当前作用域中已声明，不能重复声明 , syntax: {}",
+                    line, varName, syntaxNode);
+            }
             // 将变量添加到当前作用域
             currentScope.addVariable(new NfVariableInfo(varName, arithmetic, declaredType));
         } catch (ClassNotFoundException e) {
