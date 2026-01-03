@@ -69,7 +69,7 @@ public class NfScriptImportTest {
     @Test
     public void testScriptRegistrationEmptyContent() {
         assertThrows(Exception.class, () -> {
-            NfScriptRegistry.registerScript("utils", "");
+            NfScriptRegistry.registerScript("testEmptyContent", "");
         });
     }
 
@@ -139,12 +139,12 @@ public class NfScriptImportTest {
         // 注册脚本
         String scriptContent = "Integer count = 100\n" +
                               "String name = \"test\"";
-        NfScriptRegistry.registerScript("config", scriptContent);
+        NfScriptRegistry.registerScript("testConfig", scriptContent);
         
         // 导入并使用变量
-        String mainScript = "import nf config\n" +
-                           "Integer total = config.count + 50\n" +
-                           "String info = config.name\n" +
+        String mainScript = "import nf testConfig\n" +
+                           "Integer total = testConfig.count + 50\n" +
+                           "String info = testConfig.name\n" +
                            "export total";
         
         Object result = NfMain.run(mainScript, null, null);
@@ -161,11 +161,11 @@ public class NfScriptImportTest {
                               "    return name + \"-\" + age\n" +
                               "}\n" +
                               "String prefix = \"User\"";
-        NfScriptRegistry.registerScript("testUtils", scriptContent);
+        NfScriptRegistry.registerScript("testUtils1", scriptContent);
         
         // 导入并调用函数
-        String mainScript = "import nf testUtils\n" +
-                           "String result = testUtils.format(\"张三\", 25)\n" +
+        String mainScript = "import nf testUtils1\n" +
+                           "String result = testUtils1.format(\"张三\", 25)\n" +
                            "export result";
         
         Object result = NfMain.run(mainScript, null, null);
@@ -182,11 +182,11 @@ public class NfScriptImportTest {
                               "fun format(String name)String {\n" +
                               "    return prefix + \":\" + name\n" +
                               "}";
-        NfScriptRegistry.registerScript("testUtils", scriptContent);
+        NfScriptRegistry.registerScript("testUtils2", scriptContent);
         
         // 导入并调用函数
-        String mainScript = "import nf testUtils\n" +
-                           "String result = testUtils.format(\"张三\")\n" +
+        String mainScript = "import nf testUtils2\n" +
+                           "String result = testUtils2.format(\"张三\")\n" +
                            "export result";
         
         Object result = NfMain.run(mainScript, null, null);
@@ -202,12 +202,12 @@ public class NfScriptImportTest {
         String scriptContent = "fun format(String name)String {\n" +
                               "    return externalVar + \":\" + name\n" +
                               "}";
-        NfScriptRegistry.registerScript("testUtils", scriptContent);
+        NfScriptRegistry.registerScript("testUtils3", scriptContent);
         
         // 导入并调用函数（外部变量不存在）
-        String mainScript = "import nf testUtils\n" +
+        String mainScript = "import nf testUtils3\n" +
                            "String externalVar = \"External\"\n" +
-                           "String result = testUtils.format(\"张三\")\n" +
+                           "String result = testUtils3.format(\"张三\")\n" +
                            "export result";
         
         // 应该抛出异常，因为导入脚本的函数无法访问当前脚本的变量
@@ -271,11 +271,11 @@ public class NfScriptImportTest {
     @Test
     public void testAccessNonExistentVariable() {
         // 注册脚本
-        NfScriptRegistry.registerScript("utils", "String var1 = \"test\"");
+        NfScriptRegistry.registerScript("testUtils4", "String var1 = \"test\"");
         
         // 尝试访问不存在的变量
-        String mainScript = "import nf utils\n" +
-                           "String result = utils.nonexistent\n" +
+        String mainScript = "import nf testUtils4\n" +
+                           "String result = testUtils4.nonexistent\n" +
                            "export result";
         
         assertThrows(Exception.class, () -> {
@@ -289,11 +289,11 @@ public class NfScriptImportTest {
     @Test
     public void testCallNonExistentFunction() {
         // 注册脚本
-        NfScriptRegistry.registerScript("utils", "String var1 = \"test\"");
-        
+        NfScriptRegistry.registerScript("testUtils5", "String var1 = \"test\"");
+
         // 尝试调用不存在的函数
-        String mainScript = "import nf utils\n" +
-                           "String result = utils.nonexistent()\n" +
+        String mainScript = "import nf testUtils5\n" +
+                           "String result = testUtils5.nonexistent()\n" +
                            "export result";
         
         assertThrows(Exception.class, () -> {
@@ -307,12 +307,12 @@ public class NfScriptImportTest {
     @Test
     public void testDuplicateImport() {
         // 注册脚本
-        NfScriptRegistry.registerScript("testUtils", "String testVar = \"test\"");
+        NfScriptRegistry.registerScript("testUtils6", "String testVar = \"test\"");
         
         // 重复导入
-        String mainScript = "import nf testUtils\n" +
-                           "import nf testUtils\n" +
-                           "String result = testUtils.testVar\n" +
+        String mainScript = "import nf testUtils6\n" +
+                           "import nf testUtils6\n" +
+                           "String result = testUtils6.testVar\n" +
                            "export result";
         
         // 应该成功（重复导入被忽略）
