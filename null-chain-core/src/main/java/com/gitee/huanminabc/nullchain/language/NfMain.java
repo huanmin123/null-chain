@@ -39,52 +39,18 @@ public class NfMain {
     /**
      * 语法缓存,防止对同一个语法重复解析
      * 使用Caffeine缓存，提供高性能和自动管理能力
-     * 
      * <p>配置说明：
      * <ul>
      *   <li>maximumSize(1000): 最大容量1000个脚本</li>
      *   <li>expireAfterAccess(1, TimeUnit.HOURS): 1小时未访问自动过期</li>
-     *   <li>recordStats(): 记录缓存统计信息，便于监控</li>
      * </ul>
      * </p>
-     * 
      * key: 内容的SHA-256哈希, value: 语法节点
      */
     private static final Cache<String, List<SyntaxNode>> syntaxCache = Caffeine.newBuilder()
         .maximumSize(1000)
         .expireAfterAccess(1, TimeUnit.HOURS)
-        .recordStats()
         .build();
-
-    /**
-     * 关闭缓存（可选的优雅关闭方法）
-     * 通常在应用关闭时调用，确保资源正确释放
-     * 
-     * <p>注意：Caffeine缓存会自动管理，通常不需要手动关闭。
-     * 但如果需要强制清理缓存，可以调用此方法。</p>
-     */
-    public static void shutdown() {
-        syntaxCache.invalidateAll();
-        log.info("NF脚本缓存已清理");
-    }
-    
-    /**
-     * 获取缓存统计信息
-     * 用于监控缓存命中率、大小等信息
-     * 
-     * @return 缓存统计信息字符串
-     */
-    public static String getCacheStats() {
-        CacheStats stats = syntaxCache.stats();
-        return String.format(
-            "NF脚本缓存统计: 命中率=%.2f%%, 命中=%d, 未命中=%d, 大小=%d, 驱逐=%d",
-            stats.hitRate() * 100,
-            stats.hitCount(),
-            stats.missCount(),
-            syntaxCache.estimatedSize(),
-            stats.evictionCount()
-        );
-    }
 
     /**
      * 运行脚本
