@@ -43,7 +43,6 @@ public class SyntaxNodeFactory {
     
     static {
         syntaxNodeMap.put(SyntaxNodeType.IMPORT_EXP, new ImportSyntaxNode());
-        syntaxNodeMap.put(SyntaxNodeType.TASK_EXP, new TaskSyntaxNode());
         syntaxNodeMap.put(SyntaxNodeType.FUN_DEF_EXP, new FunDefSyntaxNode()); // 函数定义优先级高于函数调用
         syntaxNodeMap.put(SyntaxNodeType.RETURN_EXP, new ReturnSyntaxNode()); // return语句优先级高于函数调用
         syntaxNodeMap.put(SyntaxNodeType.VAR_EXP, new VarSyntaxNode());

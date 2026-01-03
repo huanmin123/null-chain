@@ -8,7 +8,8 @@ package com.gitee.huanminabc.nullchain.language.token;
 public enum TokenType {
     IMPORT,  // 导入
     AS, // as 别名
-    TASK, // 导入任务
+    TYPE, // 导入类型修饰符
+    TASK, // 导入任务修饰符
     VAR, // var 变量声明
     IDENTIFIER, // 标识符
     STRING, // 字符串

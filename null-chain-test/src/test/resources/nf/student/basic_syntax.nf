@@ -7,13 +7,13 @@
 // 单行注释：使用 // 开头
 // 注释可以出现在代码的任何位置
 
-// ========== 2. 导入 Java 类型 ==========
+// ========== 2. 导入类型 ==========
 // 导入自定义 Java 类型（常用内置类型如 String、Integer 等无需导入）
-// import com.example.UserEntity
+// import type com.example.UserEntity
 
 // ========== 3. 导入任务 ==========
 // 导入任务并起别名，方便后续调用
-// task com.example.TestTask as testTask
+// import task com.example.TestTask as testTask
 
 // ========== 4. 变量声明和赋值 ==========
 

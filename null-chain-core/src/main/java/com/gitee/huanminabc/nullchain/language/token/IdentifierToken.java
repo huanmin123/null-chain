@@ -24,6 +24,9 @@ public class IdentifierToken {
             case "import":
                 tokens.add(new Token(TokenType.IMPORT, value, line));
                 break;
+            case "type":
+                tokens.add(new Token(TokenType.TYPE, value, line));
+                break;
             case "task":
                 tokens.add(new Token(TokenType.TASK, value, line));
                 break;

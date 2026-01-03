@@ -5,8 +5,7 @@ package com.gitee.huanminabc.nullchain.language.syntaxNode;
  * @date 2024/11/22
  */
 public enum SyntaxNodeType {
-    IMPORT_EXP, // import语句
-    TASK_EXP, // task语句
+    IMPORT_EXP, // import语句（支持 type 和 task 导入）
     ASSIGN_EXP, // 赋值表达式
     DECLARE_EXP, // 声明表达式
     VAR_EXP, // var变量声明表达式

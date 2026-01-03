@@ -5,11 +5,11 @@
 
 // ========== 导入示例 ==========
 // 导入 Java 类型
-// import com.gitee.huanminabc.test.nullchain.entity.UserEntity
+import type com.gitee.huanminabc.test.nullchain.entity.UserEntity
 
 // 导入任务并起别名
-// task com.gitee.huanminabc.test.nullchain.task.Test1Task as test1
-// task com.gitee.huanminabc.test.nullchain.task.Test2Task as test2
+import task com.gitee.huanminabc.test.nullchain.task.Test1Task as test1
+import task com.gitee.huanminabc.test.nullchain.task.Test2Task as test2
 
 // ========== 变量定义和复杂表达式 ==========
 
@@ -204,20 +204,22 @@ echo "所有分数: {scores}"
 // ========== 任务调用示例 ==========
 
 // 1. 基本任务调用
-// run test1(name, age)
+run test1(name, age)
 
 // 2. 任务调用并保存结果
-// run test1(name, age) -> result1:String
+run test1(name, age) -> result1:String
 
 // 3. 多任务并发执行
-// run test1(name, age), test2(salary, netSalary) -> results:Map
+run test1(name, age), test2(salary, netSalary) -> results:Map
 
 // 4. 循环中调用任务
-// Map taskResults = new
-// for i in 1..5 {
-//     run test1("param" + i) -> result:String
-//     taskResults.put("task" + i, result)
-// }
+Map taskResults = new
+for i in 1..5 {
+    String param = "param" + i
+    run test1(param) -> result:String
+    String key = "task" + i
+    taskResults.put(key, result)
+}
 
 // ========== Echo 高级用法 ==========
 

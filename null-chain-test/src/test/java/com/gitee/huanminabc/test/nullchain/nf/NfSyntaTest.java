@@ -36,11 +36,6 @@ public class NfSyntaTest {
         syntaxNode.buildStatement(tokens,syntaxNodeList);
     }
 
-    @Test
-    public void TaskNode() {
-        SyntaxNode syntaxNode= SyntaxNodeFactory.getSyntaxNode(SyntaxNodeType.TASK_EXP);
-        syntaxNode.buildStatement(tokens,syntaxNodeList);
-    }
 
     @Test
     public void AssignExpNode() {

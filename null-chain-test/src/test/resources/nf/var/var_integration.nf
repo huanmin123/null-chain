@@ -54,16 +54,16 @@ var status = "成功"
 export result
 export status
 
-// 7. var 与 run 结合（需要先定义 task）
+// 7. var 与 run 结合（需要先使用 import task 导入）
 // var taskResult = run myTask(param1, param2)
 
 // 8. var 与函数调用结合
-import java.util.UUID
+import type java.util.UUID
 var uuid:String = UUID.randomUUID().toString()
 echo "UUID: {uuid}"
 
 // 9. var 与对象创建结合（使用显式类型声明）
-import java.util.HashMap
+import type java.util.HashMap
 HashMap map = new
 map.put("key1", "value1")
 map.put("key2", "value2")

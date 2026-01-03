@@ -1,3 +1,3 @@
-task as testTask
+import task as testTask
 Integer a = 10
 

@@ -18,7 +18,7 @@ public class KeywordUtil {
      * 
      * <p>关键字分类：
      * <ul>
-     *   <li>导入相关：import, task, as</li>
+     *   <li>导入相关：import, type, task, as</li>
      *   <li>控制流：if, else, switch, case, default, while, for, in, range</li>
      *   <li>循环控制：break, breakall, continue</li>
      *   <li>执行相关：run, export, echo</li>
@@ -38,6 +38,7 @@ public class KeywordUtil {
         // 导入相关
         keywords.add("import");
         keywords.add("task");
+        keywords.add("type");
         keywords.add("as");
         // 控制流
         keywords.add("if");

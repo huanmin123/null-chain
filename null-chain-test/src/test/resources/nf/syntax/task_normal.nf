@@ -1,4 +1,4 @@
-task java.util.ArrayList as listTask
+import task java.util.ArrayList as listTask
 Integer a = 10
 export a
 
