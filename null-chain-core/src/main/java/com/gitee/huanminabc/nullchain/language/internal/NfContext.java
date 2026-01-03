@@ -32,18 +32,35 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 @Data
 public class NfContext {
+    /**
+     * 默认导入类型映射（静态常量，类加载时初始化一次）
+     * 使用不可变Map包装，确保线程安全
+     */
+    private static final Map<String, String> DEFAULT_IMPORT_MAP = Collections.unmodifiableMap(initDefaultImportType());
+
+    /**
+     * 接口到默认实现类的映射（静态常量，类加载时初始化一次）
+     * 使用不可变Map包装，确保线程安全
+     */
+    private static final Map<Class<?>, Class<?>> DEFAULT_INTERFACE_IMPL_MAP = Collections.unmodifiableMap(initInterfaceDefaultImplMap());
+
     //全局作用域
     private String mainScopeId;
     //当前作用域的id
     private String currentScopeId;
+    //全局breakAll标志的getter和setter
     //全局breakAll标志（用于跳出所有FOR循环）
     private boolean globalBreakAll = false;
 
+    /**
+     * 构造函数：初始化上下文
+     * 从静态常量复制默认导入和接口映射到实例Map，保证每个实例有独立的Map
+     */
     public NfContext() {
-        //创建默认的导入类型
-        initDefaultImportType();
-        //初始化接口到默认实现类的映射
-        initInterfaceDefaultImplMap();
+        //从静态常量复制默认导入类型
+        importMap.putAll(DEFAULT_IMPORT_MAP);
+        //从静态常量复制接口到默认实现类的映射
+        interfaceDefaultImplMap.putAll(DEFAULT_INTERFACE_IMPL_MAP);
     }
 
     //key:是作用域的id, 当作用域结束时, 从map中移除
@@ -265,94 +282,96 @@ public class NfContext {
         return "scope_" + UUID.randomUUID();
     }
 
-    //java中的常用类型默认导入
-    public void initDefaultImportType() {
-        importMap.put("Object", Object.class.getName());
+    /**
+     * 初始化默认导入类型映射（私有静态方法）
+     * 用于初始化静态常量 DEFAULT_IMPORT_MAP
+     * 
+     * @return 包含所有默认导入类型的Map
+     */
+    private static Map<String, String> initDefaultImportType() {
+        Map<String, String> map = new HashMap<>();
+        
+        map.put("Object", Object.class.getName());
 
         //空链相关的工具
-        importMap.put("NullChain", NullChain.class.getName());
-        importMap.put("NullCheck", NullCheck.class.getName());
-        importMap.put("NullCalculate", NullCalculate.class.getName());
-        importMap.put("NullStream", NullStream.class.getName());
-        importMap.put("OkHttp", OkHttp.class.getName());
-        importMap.put("Null", Null.class.getName());
-        importMap.put("DateFormatEnum", DateFormatEnum.class.getName());
+        map.put("NullChain", NullChain.class.getName());
+        map.put("NullCheck", NullCheck.class.getName());
+        map.put("NullCalculate", NullCalculate.class.getName());
+        map.put("NullStream", NullStream.class.getName());
+        map.put("OkHttp", OkHttp.class.getName());
+        map.put("Null", Null.class.getName());
+        map.put("DateFormatEnum", DateFormatEnum.class.getName());
 
+        map.put("String", String.class.getName());
+        map.put("Integer", Integer.class.getName());
+        map.put("Float", Float.class.getName());
+        map.put("Double", Double.class.getName());
+        map.put("Boolean", Boolean.class.getName());
 
-        importMap.put("String", String.class.getName());
-        importMap.put("Integer", Integer.class.getName());
-        importMap.put("Float", Float.class.getName());
-        importMap.put("Double", Double.class.getName());
-        importMap.put("Boolean", Boolean.class.getName());
+        map.put("HashMap", HashMap.class.getName());
+        map.put("HashSet", HashSet.class.getName());
+        map.put("TreeMap", TreeMap.class.getName());
+        map.put("LinkedList", LinkedList.class.getName());
+        map.put("ArrayList", ArrayList.class.getName());
 
-        importMap.put("HashMap", HashMap.class.getName());
-        importMap.put("HashSet", HashSet.class.getName());
-        importMap.put("TreeMap", TreeMap.class.getName());
-        importMap.put("LinkedList", LinkedList.class.getName());
-        importMap.put("ArrayList", ArrayList.class.getName());
+        map.put("Map", Map.class.getName());
+        map.put("Set", Set.class.getName());
+        map.put("List", List.class.getName());
 
-        importMap.put("Map", Map.class.getName());
-        importMap.put("Set", Set.class.getName());
-        importMap.put("List", List.class.getName());
-
-        importMap.put("CopyOnWriteArrayList", CopyOnWriteArrayList.class.getName());
-        importMap.put("ConcurrentHashMap", ConcurrentHashMap.class.getName());
+        map.put("CopyOnWriteArrayList", CopyOnWriteArrayList.class.getName());
+        map.put("ConcurrentHashMap", ConcurrentHashMap.class.getName());
 
         //Date
-        importMap.put("Date", Date.class.getName());
+        map.put("Date", Date.class.getName());
         //BigDecimal
-        importMap.put("BigDecimal", BigDecimal.class.getName());
+        map.put("BigDecimal", BigDecimal.class.getName());
         //LocalDate
-        importMap.put("LocalDate", LocalDate.class.getName());
+        map.put("LocalDate", LocalDate.class.getName());
         //LocalDateTime
-        importMap.put("LocalDateTime", LocalDateTime.class.getName());
+        map.put("LocalDateTime", LocalDateTime.class.getName());
         //LocalTime
-        importMap.put("LocalTime", LocalTime.class.getName());
+        map.put("LocalTime", LocalTime.class.getName());
         //DateTimeFormatter
-        importMap.put("DateTimeFormatter", DateTimeFormatter.class.getName());
+        map.put("DateTimeFormatter", DateTimeFormatter.class.getName());
 
         //工具包
-        importMap.put("Objects", Objects.class.getName());
-        importMap.put("Arrays", Arrays.class.getName());
-        importMap.put("Collections", Collections.class.getName());
-        importMap.put("UUID", UUID.class.getName());
-        importMap.put("Files", Files.class.getName());
-
-
-
+        map.put("Objects", Objects.class.getName());
+        map.put("Arrays", Arrays.class.getName());
+        map.put("Collections", Collections.class.getName());
+        map.put("UUID", UUID.class.getName());
+        map.put("Files", Files.class.getName());
 
         //8大基本类型, 转化为包装类型
-        importMap.put("int", Integer.class.getName());
-        importMap.put("long", Long.class.getName());
-        importMap.put("short", Short.class.getName());
-        importMap.put("byte", Byte.class.getName());
-        importMap.put("char", Character.class.getName());
-        importMap.put("float", Float.class.getName());
-        importMap.put("double", Double.class.getName());
-        importMap.put("boolean", Boolean.class.getName());
-        importMap.put("bool", Boolean.class.getName());
+        map.put("int", Integer.class.getName());
+        map.put("long", Long.class.getName());
+        map.put("short", Short.class.getName());
+        map.put("byte", Byte.class.getName());
+        map.put("char", Character.class.getName());
+        map.put("float", Float.class.getName());
+        map.put("double", Double.class.getName());
+        map.put("boolean", Boolean.class.getName());
+        map.put("bool", Boolean.class.getName());
 
+        return map;
     }
 
-    //初始化接口到默认实现类的映射
-    private void initInterfaceDefaultImplMap() {
-        interfaceDefaultImplMap.put(Map.class, HashMap.class);
-        interfaceDefaultImplMap.put(List.class, ArrayList.class);
-        interfaceDefaultImplMap.put(Set.class, HashSet.class);
+    /**
+     * 初始化接口到默认实现类的映射（私有静态方法）
+     * 用于初始化静态常量 DEFAULT_INTERFACE_IMPL_MAP
+     * 
+     * @return 包含接口到默认实现类映射的Map
+     */
+    private static Map<Class<?>, Class<?>> initInterfaceDefaultImplMap() {
+        Map<Class<?>, Class<?>> map = new HashMap<>();
+        map.put(Map.class, HashMap.class);
+        map.put(List.class, ArrayList.class);
+        map.put(Set.class, HashSet.class);
+        return map;
     }
 
     //获取接口的默认实现类
     public Class<?> getInterfaceDefaultImpl(Class<?> interfaceType) {
         return interfaceDefaultImplMap.get(interfaceType);
-    }
-
-    //全局breakAll标志的getter和setter
-    public boolean isGlobalBreakAll() {
-        return globalBreakAll;
-    }
-
-    public void setGlobalBreakAll(boolean globalBreakAll) {
-        this.globalBreakAll = globalBreakAll;
     }
 
     //添加接口到默认实现类的映射（允许扩展）
