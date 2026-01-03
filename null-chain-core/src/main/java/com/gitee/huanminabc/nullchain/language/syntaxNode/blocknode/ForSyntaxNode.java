@@ -121,28 +121,179 @@ public class ForSyntaxNode extends BlockSyntaxNode {
         // 截取for表达式条件
         List<Token> forTokens = new ArrayList<>(tokenList.subList(0, endIndex));
 
-        // 判断循环类型并设置loopType
-        boolean hasDot2 = forTokens.stream().anyMatch(t -> t.type == TokenType.DOT2);
-        // 检查第一个token是否为IDENTIFIER（变量名）
-        boolean firstIsIdentifier = !forTokens.isEmpty() && forTokens.get(0).type == TokenType.IDENTIFIER;
-
-        if (hasDot2) {
-            // RANGE模式: for i in 1..10
-            ((ForSyntaxNode) syntaxNode).setLoopType(ForLoopType.RANGE);
-        } else if (firstIsIdentifier) {
-            // VARIABLE_ITERATION模式: for item in list 或 for k, v in map
-            // 在运行时根据变量的实际类型判断是List还是Map
-            ((ForSyntaxNode) syntaxNode).setLoopType(ForLoopType.VARIABLE_ITERATION);
-        } else {
-            // 格式错误
+        // 基本语法验证：for语句至少需要3个token: 变量名 in ...
+        if (forTokens.size() < 3) {
             String context = printFor(forTokens);
             throw new NfSyntaxException(
                     forTokens.isEmpty() ? 0 : forTokens.get(0).line,
                     "for表达式语法错误",
-                    "无法识别的for循环格式",
+                    "for语句格式不完整",
                     context,
                     "支持的格式：for i in 1..10 {}, for item in list {}, for k, v in map {}"
             );
+        }
+
+        // 检查第一个token是否为IDENTIFIER（变量名）
+        if (forTokens.get(0).type != TokenType.IDENTIFIER) {
+            String context = printFor(forTokens);
+            throw new NfSyntaxException(
+                    forTokens.get(0).line,
+                    "for表达式语法错误",
+                    "for循环变量名必须是标识符",
+                    context,
+                    "支持的格式：for i in 1..10 {}, for item in list {}, for k, v in map {}"
+            );
+        }
+
+        // 判断是否为双变量模式（Map迭代）: for k, v in map
+        boolean isDoubleVariable = forTokens.size() >= 5 && forTokens.get(1).type == TokenType.COMMA;
+
+        // 根据模式验证语法
+        if (isDoubleVariable) {
+            // 双变量模式: IDENTIFIER, COMMA, IDENTIFIER, IN, IDENTIFIER
+            if (forTokens.size() < 5) {
+                String context = printFor(forTokens);
+                throw new NfSyntaxException(
+                        forTokens.get(0).line,
+                        "for表达式语法错误",
+                        "双变量模式格式不完整，应为：for k, v in map",
+                        context,
+                        "正确格式：for k, v in map"
+                );
+            }
+            // 检查第3个token是否为IDENTIFIER
+            if (forTokens.get(2).type != TokenType.IDENTIFIER) {
+                String context = printFor(forTokens);
+                throw new NfSyntaxException(
+                        forTokens.get(2).line,
+                        "for表达式语法错误",
+                        "双变量模式中，逗号后必须是标识符",
+                        context,
+                        "正确格式：for k, v in map"
+                );
+            }
+            // 检查第4个token是否为IN
+            if (forTokens.get(3).type != TokenType.IN) {
+                String context = printFor(forTokens);
+                throw new NfSyntaxException(
+                        forTokens.get(3).line,
+                        "for表达式语法错误",
+                        "for语句缺少in关键字",
+                        context,
+                        "正确格式：for k, v in map"
+                );
+            }
+            // 检查第5个token是否为IDENTIFIER（目标变量）
+            if (forTokens.get(4).type != TokenType.IDENTIFIER) {
+                String context = printFor(forTokens);
+                throw new NfSyntaxException(
+                        forTokens.get(4).line,
+                        "for表达式语法错误",
+                        "in关键字后必须是变量名",
+                        context,
+                        "正确格式：for k, v in map"
+                );
+            }
+            // 双变量模式使用VARIABLE_ITERATION
+            ((ForSyntaxNode) syntaxNode).setLoopType(ForLoopType.VARIABLE_ITERATION);
+        } else {
+            // 单变量模式: IDENTIFIER IN ...
+            // 检查第二个token是否为IN关键字
+            if (forTokens.get(1).type != TokenType.IN) {
+                String context = printFor(forTokens);
+                throw new NfSyntaxException(
+                        forTokens.get(1).line,
+                        "for表达式语法错误",
+                        "for语句缺少in关键字",
+                        context,
+                        "正确格式：for i in 1..10 或 for item in list"
+                );
+            }
+
+            // 判断循环类型：检查是否有..符号
+            boolean hasDot2 = forTokens.stream().anyMatch(t -> t.type == TokenType.DOT2);
+
+            if (hasDot2) {
+                // RANGE模式: for i in 1..10
+                ((ForSyntaxNode) syntaxNode).setLoopType(ForLoopType.RANGE);
+                // 验证格式：IDENTIFIER IN INTEGER DOT2 INTEGER
+                if (forTokens.size() != 5) {
+                    String context = printFor(forTokens);
+                    throw new NfSyntaxException(
+                            forTokens.get(0).line,
+                            "for范围循环语法错误",
+                            "范围循环格式应为：for i in 起始值..结束值",
+                            context,
+                            "正确格式：for i in 1..10"
+                    );
+                }
+                // 检查第3个和第5个token的类型
+                Token startToken = forTokens.get(2);
+                Token endToken = forTokens.get(4);
+                // 第3个token必须是整数或标识符
+                if (startToken.type != TokenType.INTEGER && startToken.type != TokenType.IDENTIFIER) {
+                    String context = printFor(forTokens);
+                    throw new NfSyntaxException(
+                            startToken.line,
+                            "for范围循环语法错误",
+                            "范围起始值必须是整数或变量名",
+                            context,
+                            "正确格式：for i in 1..10 或 for i in start..end"
+                    );
+                }
+                // 第4个token必须是DOT2
+                if (forTokens.get(3).type != TokenType.DOT2) {
+                    String context = printFor(forTokens);
+                    throw new NfSyntaxException(
+                            forTokens.get(3).line,
+                            "for范围循环语法错误",
+                            "范围值之间必须使用..符号连接",
+                            context,
+                            "正确格式：for i in 1..10"
+                    );
+                }
+                // 第5个token必须是整数或标识符
+                if (endToken.type != TokenType.INTEGER && endToken.type != TokenType.IDENTIFIER) {
+                    String context = printFor(forTokens);
+                    throw new NfSyntaxException(
+                            endToken.line,
+                            "for范围循环语法错误",
+                            "范围结束值必须是整数或变量名",
+                            context,
+                            "正确格式：for i in 1..10 或 for i in start..end"
+                    );
+                }
+                // 验证范围顺序：如果起始值和结束值都是整数字面量，检查起始值是否大于结束值
+                if (startToken.type == TokenType.INTEGER && endToken.type == TokenType.INTEGER) {
+                    int start = Integer.parseInt(startToken.value);
+                    int end = Integer.parseInt(endToken.value);
+                    if (start > end) {
+                        String context = printFor(forTokens);
+                        throw new NfSyntaxException(
+                                startToken.line,
+                                "for范围循环错误",
+                                "起始值不能大于结束值",
+                                context,
+                                "请修正范围顺序，例如: for i in 1..10"
+                        );
+                    }
+                }
+            } else {
+                // VARIABLE_ITERATION模式: for item in list
+                // 验证格式：第3个token必须是IDENTIFIER（目标变量名）
+                if (forTokens.size() < 3 || forTokens.get(2).type != TokenType.IDENTIFIER) {
+                    String context = printFor(forTokens);
+                    throw new NfSyntaxException(
+                            forTokens.size() >= 3 ? forTokens.get(2).line : forTokens.get(0).line,
+                            "for表达式语法错误",
+                            "集合迭代的目标必须是变量名",
+                            context,
+                            "正确格式：for item in list"
+                    );
+                }
+                // 在运行时根据变量的实际类型判断是List还是Map
+                ((ForSyntaxNode) syntaxNode).setLoopType(ForLoopType.VARIABLE_ITERATION);
+            }
         }
 
         // 删除
@@ -231,11 +382,18 @@ public class ForSyntaxNode extends BlockSyntaxNode {
                         line, valueStr
                 );
             }
+            // 浮点数类型直接报错（必须在整数检查之前）
+            if (value instanceof Double || value instanceof Float) {
+                throw new NfException(
+                        "Line:{} ,for范围循环不支持小数，变量 '{}' 的值为小数: {}",
+                        line, valueStr, value
+                );
+            }
             // 只支持整数类型（Integer, Long, Short, Byte）
-            if (value instanceof Number) {
+            if (value instanceof Integer || value instanceof Long ||
+                value instanceof Short || value instanceof Byte) {
                 return ((Number) value).intValue();
             }
-            // 浮点数类型直接报错
             throw new NfException("Line:{} ,变量 '{}' 的值不是整数类型，实际类型: {}", line, valueStr, value.getClass().getSimpleName()
             );
         }

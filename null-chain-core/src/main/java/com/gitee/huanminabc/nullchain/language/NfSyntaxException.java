@@ -35,7 +35,7 @@ public class NfSyntaxException extends NfException {
     
     /**
      * 构造函数
-     * 
+     *
      * @param line 行号
      * @param errorType 错误类型
      * @param message 错误描述
@@ -43,7 +43,9 @@ public class NfSyntaxException extends NfException {
      * @param suggestion 建议信息
      */
     public NfSyntaxException(Integer line, String errorType, String message, String context, String suggestion) {
-        super(buildErrorMessage(line, errorType, message, context, suggestion));
+        // 注意：这里传递空数组避免格式化处理，因为suggestion中可能包含代码示例如"for i in 1..10 {}"
+        // 如果进行格式化会导致MissingFormatArgumentException
+        super(buildErrorMessage(line, errorType, message, context, suggestion), new Object[0]);
         this.line = line;
         this.errorType = errorType;
         this.context = context;
