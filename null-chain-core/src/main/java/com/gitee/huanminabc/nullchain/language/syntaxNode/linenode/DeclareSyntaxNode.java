@@ -2,9 +2,11 @@ package com.gitee.huanminabc.nullchain.language.syntaxNode.linenode;
 
 import com.gitee.huanminabc.nullchain.common.NullConstants;
 import com.gitee.huanminabc.nullchain.language.NfException;
+import com.gitee.huanminabc.nullchain.language.NfSynta;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfVariableInfo;
+import com.gitee.huanminabc.nullchain.language.internal.ParseScopeTracker;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.LineSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
@@ -69,6 +71,14 @@ public class DeclareSyntaxNode extends LineSyntaxNode {
                     throw new NfException("Line:{} ,变量名 {} 不能是禁用的关键字, syntax: {}",varName.line,varName.value,printExp(newToken));
                 }
 
+                // 解析时检查变量名重复
+                ParseScopeTracker tracker = NfSynta.getCurrentTracker();
+                if (tracker != null) {
+                    String syntaxStr = printExp(newToken);
+                    tracker.checkDuplicateVariable(varName.value, varName.line, syntaxStr);
+                    tracker.addVariable(varName.value, varName.line);
+                }
+
                 //去掉注释
                 SyntaxNodeUtil.removeComments(newToken);
                 DeclareSyntaxNode declareSyntaxNode = new DeclareSyntaxNode(SyntaxNodeType.DECLARE_EXP);
@@ -119,13 +129,8 @@ public class DeclareSyntaxNode extends LineSyntaxNode {
 
             //取出来上下文
             NfContextScope currentScope = context.getCurrentScope();
-            // 检查当前作用域中是否已存在同名变量
-            NfVariableInfo existingVar = currentScope.getVariable(varName);
-            if (existingVar != null) {
-                throw new NfException("Line:{} ,变量 {} 在当前作用域中已声明，不能重复声明 , syntax: {}", 
-                    token.line, varName, syntaxNode);
-            }
             //将计算的值放入上下文
+            // 注意：重复变量检查已在解析阶段完成，此处不再检查
             currentScope.addVariable(new NfVariableInfo(varName, null, typeClass));
         } catch (ClassNotFoundException e) {
             throw new NfException("Line:{} ,未找到类型: {} , syntax: {}",token.line,type,syntaxNode);

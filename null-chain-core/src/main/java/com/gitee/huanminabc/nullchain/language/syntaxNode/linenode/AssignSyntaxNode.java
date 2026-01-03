@@ -3,9 +3,12 @@ package com.gitee.huanminabc.nullchain.language.syntaxNode.linenode;
 import com.gitee.huanminabc.nullchain.common.NullConstants;
 import com.gitee.huanminabc.nullchain.language.NfCalculator;
 import com.gitee.huanminabc.nullchain.language.NfException;
+import com.gitee.huanminabc.nullchain.language.NfSynta;
+import com.gitee.huanminabc.nullchain.language.NfSyntaxException;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfVariableInfo;
+import com.gitee.huanminabc.nullchain.language.internal.ParseScopeTracker;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.LineSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
@@ -131,6 +134,21 @@ public class AssignSyntaxNode extends LineSyntaxNode {
                     throw new NfException("Line:{} ,变量名 {} 不能是禁用的关键字: {}",varName.line,varName.value,printExp(newToken));
                 }
 
+                // 解析时检查变量名重复（仅对带类型声明的赋值进行检查，因为这是新变量声明）
+                if (hasTypeDeclaration) {
+                    ParseScopeTracker tracker = NfSynta.getCurrentTracker();
+                    if (tracker != null) {
+                        String syntaxStr = printExp(newToken);
+                        try {
+                            tracker.checkDuplicateVariable(varName.value, varName.line, syntaxStr);
+                            tracker.addVariable(varName.value, varName.line);
+                        } catch (NfSyntaxException e) {
+                            // 重新抛出NfSyntaxException
+                            throw e;
+                        }
+                    }
+                }
+
                 //去掉注释
                 SyntaxNodeUtil.removeComments(newToken);
                 AssignSyntaxNode assignSyntaxNode = new AssignSyntaxNode(SyntaxNodeType.ASSIGN_EXP);
@@ -223,13 +241,7 @@ public class AssignSyntaxNode extends LineSyntaxNode {
                     }
                 }
                 
-                // 检查当前作用域中是否已存在同名变量
-                NfVariableInfo existingVar = currentScope.getVariable(varName);
-                if (existingVar != null) {
-                    int line = valueTokens.get(0).line;
-                    throw new NfException("Line:{} ,变量 {} 在当前作用域中已声明，不能重复声明 , syntax: {}", 
-                        line, varName, syntaxNode);
-                }
+                // 注意：重复变量检查已在解析阶段完成，此处不再检查
                 // 获取无参构造函数
                 Constructor<?> constructor = actualType.getConstructor();
                 Object o = constructor.newInstance();
@@ -284,13 +296,7 @@ public class AssignSyntaxNode extends LineSyntaxNode {
             }
             //将计算的值放入上下文，类型保持为声明的类型（如果是接口，保持接口类型）
             if (hasTypeDeclaration) {
-                // 检查当前作用域中是否已存在同名变量
-                NfVariableInfo existingVar = currentScope.getVariable(varName);
-                if (existingVar != null) {
-                    int line = valueTokens.get(0).line;
-                    throw new NfException("Line:{} ,变量 {} 在当前作用域中已声明，不能重复声明 , syntax: {}", 
-                        line, varName, syntaxNode);
-                }
+                // 注意：重复变量检查已在解析阶段完成，此处不再检查
                 // 新变量声明：添加到当前作用域
                 currentScope.addVariable(new NfVariableInfo(varName, arithmetic, declaredType));
             } else {

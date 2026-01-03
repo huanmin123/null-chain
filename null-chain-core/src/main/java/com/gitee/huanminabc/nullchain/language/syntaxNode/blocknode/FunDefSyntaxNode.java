@@ -5,6 +5,7 @@ import com.gitee.huanminabc.nullchain.language.NfSyntaxException;
 import com.gitee.huanminabc.nullchain.language.NfSynta;
 import com.gitee.huanminabc.nullchain.language.internal.FunDefInfo;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
+import com.gitee.huanminabc.nullchain.language.internal.ParseScopeTracker;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.BlockSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeAbs;
@@ -131,6 +132,17 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
                 "请检查函数定义的语法格式：fun 函数名(参数列表)返回值类型列表{函数体}"
             );
         }
+        Token functionNameToken = tokenList.get(0);
+        String functionName = functionNameToken.value;
+        
+        // 解析时检查函数名重复
+        ParseScopeTracker tracker = NfSynta.getCurrentTracker();
+        if (tracker != null) {
+            String syntaxStr = TokenUtil.mergeToken(originalTokenList).toString();
+            tracker.checkDuplicateFunction(functionName, functionNameToken.line, syntaxStr);
+            tracker.addFunction(functionName, functionNameToken.line);
+        }
+        
         tokenList.remove(0); // 移除函数名
 
         // 解析参数列表：找到左括号和右括号
@@ -230,12 +242,24 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
         tokenList.remove(tokenList.size() - 1); // 移除右大括号
 
         // 构建函数体语法节点（用于子节点）
-        List<Token> bodyTokens = new ArrayList<>(tokenList);
-        List<SyntaxNode> bodyNodes = NfSynta.buildMainStatement(bodyTokens);
+        // 函数体创建新作用域（重用之前获取的tracker）
+        if (tracker != null) {
+            tracker.enterScope(); // 进入函数体作用域
+        }
         
-        // 将函数体的子节点添加到当前节点
-        for (SyntaxNode bodyNode : bodyNodes) {
-            syntaxNode.addChild(bodyNode);
+        try {
+            List<Token> bodyTokens = new ArrayList<>(tokenList);
+            // 传入tracker，避免创建新的tracker
+            List<SyntaxNode> bodyNodes = NfSynta.buildMainStatement(bodyTokens, tracker);
+            
+            // 将函数体的子节点添加到当前节点
+            for (SyntaxNode bodyNode : bodyNodes) {
+                syntaxNode.addChild(bodyNode);
+            }
+        } finally {
+            if (tracker != null) {
+                tracker.exitScope(); // 退出函数体作用域
+            }
         }
 
         // 注意：不清除父节点的value，保留原始tokens用于run方法中解析函数定义信息

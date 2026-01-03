@@ -3,6 +3,7 @@ package com.gitee.huanminabc.test.nullchain.nf.expression;
 import com.gitee.huanminabc.nullchain.language.NfException;
 import com.gitee.huanminabc.nullchain.language.NfRun;
 import com.gitee.huanminabc.nullchain.language.NfSynta;
+import com.gitee.huanminabc.nullchain.language.NfSyntaxException;
 import com.gitee.huanminabc.nullchain.language.NfToken;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
@@ -180,19 +181,33 @@ public class SyntaxNodeComprehensiveTest {
     }
 
     /**
-     * 测试Declare异常情况 - 重复变量声明
+     * 测试Declare异常情况 - 重复变量声明（解析阶段检测）
      */
     @Test
     public void testDeclareDuplicateVariable() {
         String file = TestUtil.readFile("syntax/declare_error_duplicate_var.nf");
         List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(file);
-        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
         
-        NfContext context = new NfContext();
-        assertThrows(NfException.class, () -> {
-            NfRun.run(syntaxNodes, context, log, null);
+        // 重复变量声明应该在解析阶段就被发现，抛出NfSyntaxException
+        assertThrows(NfSyntaxException.class, () -> {
+            NfSynta.buildMainStatement(tokens);
         });
-        log.info("Declare重复变量声明异常测试通过");
+        log.info("Declare重复变量声明异常测试通过（解析阶段检测）");
+    }
+    
+    /**
+     * 测试函数定义异常情况 - 重复函数定义（解析阶段检测）
+     */
+    @Test
+    public void testFunctionDuplicateDefinition() {
+        String file = TestUtil.readFile("syntax/declare_error_duplicate_function.nf");
+        List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(file);
+
+        // 重复函数定义应该在解析阶段就被发现，抛出NfSyntaxException
+        assertThrows(NfSyntaxException.class, () -> {
+            NfSynta.buildMainStatement(tokens);
+        });
+        log.info("函数重复定义异常测试通过（解析阶段检测）");
     }
 
     // ==================== Assign语法节点测试 ====================

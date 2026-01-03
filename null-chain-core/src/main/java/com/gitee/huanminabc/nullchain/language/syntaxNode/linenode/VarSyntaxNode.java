@@ -3,9 +3,11 @@ package com.gitee.huanminabc.nullchain.language.syntaxNode.linenode;
 import com.gitee.huanminabc.nullchain.common.NullConstants;
 import com.gitee.huanminabc.nullchain.language.NfCalculator;
 import com.gitee.huanminabc.nullchain.language.NfException;
+import com.gitee.huanminabc.nullchain.language.NfSynta;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfVariableInfo;
+import com.gitee.huanminabc.nullchain.language.internal.ParseScopeTracker;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.LineSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
@@ -217,17 +219,68 @@ public class VarSyntaxNode extends LineSyntaxNode {
         // 删除已经解析的标记
         tokens.subList(startIndex, endIndex).clear();
 
-        // 获取变量名
-        Token varName = newToken.get(1);
-        // 禁止用户定义以 $ 开头的变量（$ 前缀保留给系统变量使用）
-        if (varName.value != null && varName.value.startsWith("$")) {
-            throw new NfException("Line:{} ,变量名 {} 不能以 $ 开头，$ 前缀保留给系统变量使用, syntax: {}",
-                varName.line, varName.value, printExp(newToken));
-        }
-        boolean forbidKeyword = KeywordUtil.isForbidKeyword(varName.value);
-        if (forbidKeyword) {
-            throw new NfException("Line:{} ,变量名 {} 不能是禁用的关键字, syntax: {}",
-                varName.line, varName.value, printExp(newToken));
+        // 解析时检查变量名重复
+        ParseScopeTracker tracker = NfSynta.getCurrentTracker();
+        String syntaxStr = printExp(newToken);
+        
+        if (isMultiReturn) {
+            // 多返回值函数调用：解析所有变量名并检查
+            int i = 1; // 跳过VAR
+            while (i < newToken.size()) {
+                if (newToken.get(i).type == TokenType.IDENTIFIER) {
+                    Token varNameToken = newToken.get(i);
+                    String varName = varNameToken.value;
+                    // 禁止用户定义以 $ 开头的变量
+                    if (varName != null && varName.startsWith("$")) {
+                        throw new NfException("Line:{} ,变量名 {} 不能以 $ 开头，$ 前缀保留给系统变量使用, syntax: {}",
+                            varNameToken.line, varName, syntaxStr);
+                    }
+                    boolean forbidKeyword = KeywordUtil.isForbidKeyword(varName);
+                    if (forbidKeyword) {
+                        throw new NfException("Line:{} ,变量名 {} 不能是禁用的关键字, syntax: {}",
+                            varNameToken.line, varName, syntaxStr);
+                    }
+                    // 检查重复
+                    if (tracker != null) {
+                        tracker.checkDuplicateVariable(varName, varNameToken.line, syntaxStr);
+                        tracker.addVariable(varName, varNameToken.line);
+                    }
+                    i++;
+                    // 可选的类型声明
+                    if (i < newToken.size() && newToken.get(i).type == TokenType.COLON) {
+                        i += 2; // 跳过 COLON 和类型名
+                    }
+                    // 如果是逗号，继续解析下一个变量
+                    if (i < newToken.size() && newToken.get(i).type == TokenType.COMMA) {
+                        i++;
+                        continue;
+                    }
+                    // 如果是赋值符号，结束
+                    if (i < newToken.size() && newToken.get(i).type == TokenType.ASSIGN) {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+        } else {
+            // 单变量声明：检查第一个变量名
+            Token varName = newToken.get(1);
+            // 禁止用户定义以 $ 开头的变量（$ 前缀保留给系统变量使用）
+            if (varName.value != null && varName.value.startsWith("$")) {
+                throw new NfException("Line:{} ,变量名 {} 不能以 $ 开头，$ 前缀保留给系统变量使用, syntax: {}",
+                    varName.line, varName.value, syntaxStr);
+            }
+            boolean forbidKeyword = KeywordUtil.isForbidKeyword(varName.value);
+            if (forbidKeyword) {
+                throw new NfException("Line:{} ,变量名 {} 不能是禁用的关键字, syntax: {}",
+                    varName.line, varName.value, syntaxStr);
+            }
+            // 检查重复
+            if (tracker != null) {
+                tracker.checkDuplicateVariable(varName.value, varName.line, syntaxStr);
+                tracker.addVariable(varName.value, varName.line);
+            }
         }
 
         // 去掉注释
@@ -411,11 +464,7 @@ public class VarSyntaxNode extends LineSyntaxNode {
                 }
 
                 // 检查当前作用域中是否已存在同名变量
-                NfVariableInfo existingVar = currentScope.getVariable(name);
-                if (existingVar != null) {
-                    throw new NfException("Line:{} ,变量 {} 在当前作用域中已声明，不能重复声明 , syntax: {}",
-                        syntaxNode.getLine(), name, syntaxNode);
-                }
+                // 注意：重复变量检查已在解析阶段完成，此处不再检查
                 currentScope.addVariable(new NfVariableInfo(name, value, declaredType));
             }
             
@@ -505,12 +554,7 @@ public class VarSyntaxNode extends LineSyntaxNode {
             }
 
             // 检查当前作用域中是否已存在同名变量
-            NfVariableInfo existingVar = currentScope.getVariable(varName);
-            if (existingVar != null) {
-                int line = valueTokens.get(0).line;
-                throw new NfException("Line:{} ,变量 {} 在当前作用域中已声明，不能重复声明 , syntax: {}",
-                    line, varName, syntaxNode);
-            }
+            // 注意：重复变量检查已在解析阶段完成，此处不再检查
             // 将变量添加到当前作用域
             currentScope.addVariable(new NfVariableInfo(varName, arithmetic, declaredType));
         } catch (ClassNotFoundException e) {

@@ -8,6 +8,7 @@ import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScopeType;
 import com.gitee.huanminabc.nullchain.language.internal.NfVariableInfo;
+import com.gitee.huanminabc.nullchain.language.internal.ParseScopeTracker;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.BlockSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeFactory;
@@ -288,8 +289,19 @@ public class SwitchSyntaxNode extends BlockSyntaxNode {
         //截取case体
         List<Token> caseBody = new ArrayList<>(caseTokens.subList(endIndex2, caseTokens.size()));
         //构建子节点
-        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(caseBody);
-        caseStatement.setChildSyntaxNodeList(syntaxNodes);
+        // case块创建新作用域
+        ParseScopeTracker tracker = NfSynta.getCurrentTracker();
+        if (tracker != null) {
+            tracker.enterScope(); // 进入case块作用域
+        }
+        try {
+            List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(caseBody, tracker);
+            caseStatement.setChildSyntaxNodeList(syntaxNodes);
+        } finally {
+            if (tracker != null) {
+                tracker.exitScope(); // 退出case块作用域
+            }
+        }
         return caseStatement;
     }
     /**
@@ -325,8 +337,19 @@ public class SwitchSyntaxNode extends BlockSyntaxNode {
         tokens.subList(0, endIndex).clear();
 
         //构建子节点
-        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(defaultTokens);
-        defaultStatement.setChildSyntaxNodeList(syntaxNodes);
+        // default块创建新作用域
+        ParseScopeTracker tracker = NfSynta.getCurrentTracker();
+        if (tracker != null) {
+            tracker.enterScope(); // 进入default块作用域
+        }
+        try {
+            List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(defaultTokens, tracker);
+            defaultStatement.setChildSyntaxNodeList(syntaxNodes);
+        } finally {
+            if (tracker != null) {
+                tracker.exitScope(); // 退出default块作用域
+            }
+        }
         return defaultStatement;
     }
 

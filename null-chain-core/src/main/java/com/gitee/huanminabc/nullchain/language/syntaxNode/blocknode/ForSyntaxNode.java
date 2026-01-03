@@ -8,6 +8,7 @@ import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScopeType;
 import com.gitee.huanminabc.nullchain.language.internal.NfVariableInfo;
+import com.gitee.huanminabc.nullchain.language.internal.ParseScopeTracker;
 
 import com.gitee.huanminabc.nullchain.language.syntaxNode.BlockSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
@@ -306,12 +307,23 @@ public class ForSyntaxNode extends BlockSyntaxNode {
         // 设置for条件
         syntaxNode.setValue(forTokens);
         // 构建子节点
-        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokenList);
-        if (!(syntaxNode instanceof ForSyntaxNode)) {
-            throw new NfException("Line:{} ,语法节点类型错误，期望ForSyntaxNode，实际:{}",
-                    syntaxNode.getLine(), syntaxNode.getClass().getName());
+        // for循环体创建新作用域
+        ParseScopeTracker tracker = NfSynta.getCurrentTracker();
+        if (tracker != null) {
+            tracker.enterScope(); // 进入for循环体作用域
         }
-        ((ForSyntaxNode) syntaxNode).setChildSyntaxNodeList(syntaxNodes);
+        try {
+            List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokenList, tracker);
+            if (!(syntaxNode instanceof ForSyntaxNode)) {
+                throw new NfException("Line:{} ,语法节点类型错误，期望ForSyntaxNode，实际:{}",
+                        syntaxNode.getLine(), syntaxNode.getClass().getName());
+            }
+            ((ForSyntaxNode) syntaxNode).setChildSyntaxNodeList(syntaxNodes);
+        } finally {
+            if (tracker != null) {
+                tracker.exitScope(); // 退出for循环体作用域
+            }
+        }
         return true;
     }
 

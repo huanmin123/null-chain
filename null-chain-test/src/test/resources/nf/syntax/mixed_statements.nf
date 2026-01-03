@@ -7,9 +7,9 @@ if a > 5 {
     a = 0
 }
 switch a {
-    case 16:
+    case 16
         a = 100
-    default:
+    default
         a = 200
 }
 export a

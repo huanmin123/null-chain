@@ -1,5 +1,5 @@
 switch {
-    case 1:
+    case 1
         Integer a = 10
 }
 export 0

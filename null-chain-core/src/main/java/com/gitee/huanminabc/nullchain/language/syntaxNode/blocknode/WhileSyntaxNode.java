@@ -7,6 +7,7 @@ import com.gitee.huanminabc.nullchain.language.NfSynta;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScopeType;
+import com.gitee.huanminabc.nullchain.language.internal.ParseScopeTracker;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.BlockSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeFactory;
@@ -129,12 +130,23 @@ public class WhileSyntaxNode extends BlockSyntaxNode {
 
         syntaxNode.setValue(conditionTokens);
 
-        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokenList);
-        if (!(syntaxNode instanceof WhileSyntaxNode)) {
-            throw new NfException("Line:{} ,语法节点类型错误，期望WhileSyntaxNode，实际:{}",
-                syntaxNode.getLine(), syntaxNode.getClass().getName());
+        // while循环体创建新作用域
+        ParseScopeTracker tracker = NfSynta.getCurrentTracker();
+        if (tracker != null) {
+            tracker.enterScope(); // 进入while循环体作用域
         }
-        ((WhileSyntaxNode) syntaxNode).setChildSyntaxNodeList(syntaxNodes);
+        try {
+            List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokenList, tracker);
+            if (!(syntaxNode instanceof WhileSyntaxNode)) {
+                throw new NfException("Line:{} ,语法节点类型错误，期望WhileSyntaxNode，实际:{}",
+                    syntaxNode.getLine(), syntaxNode.getClass().getName());
+            }
+            ((WhileSyntaxNode) syntaxNode).setChildSyntaxNodeList(syntaxNodes);
+        } finally {
+            if (tracker != null) {
+                tracker.exitScope(); // 退出while循环体作用域
+            }
+        }
         return true;
     }
 

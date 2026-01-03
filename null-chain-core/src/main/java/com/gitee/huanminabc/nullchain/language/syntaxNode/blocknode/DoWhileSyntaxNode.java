@@ -7,6 +7,7 @@ import com.gitee.huanminabc.nullchain.language.NfSynta;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScopeType;
+import com.gitee.huanminabc.nullchain.language.internal.ParseScopeTracker;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.BlockSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeFactory;
@@ -163,8 +164,19 @@ public class DoWhileSyntaxNode extends BlockSyntaxNode {
         syntaxNode.setValue(conditionTokens);
 
         // 构建循环体
-        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(bodyTokens);
-        ((DoWhileSyntaxNode) syntaxNode).setChildSyntaxNodeList(syntaxNodes);
+        // do-while循环体创建新作用域
+        ParseScopeTracker tracker = NfSynta.getCurrentTracker();
+        if (tracker != null) {
+            tracker.enterScope(); // 进入do-while循环体作用域
+        }
+        try {
+            List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(bodyTokens, tracker);
+            ((DoWhileSyntaxNode) syntaxNode).setChildSyntaxNodeList(syntaxNodes);
+        } finally {
+            if (tracker != null) {
+                tracker.exitScope(); // 退出do-while循环体作用域
+            }
+        }
         return true;
     }
 

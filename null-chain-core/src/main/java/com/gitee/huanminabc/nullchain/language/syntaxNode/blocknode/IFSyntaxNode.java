@@ -8,6 +8,7 @@ import com.gitee.huanminabc.nullchain.language.NfSynta;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScopeType;
+import com.gitee.huanminabc.nullchain.language.internal.ParseScopeTracker;
 
 import com.gitee.huanminabc.nullchain.language.syntaxNode.BlockSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
@@ -373,8 +374,19 @@ public class IFSyntaxNode extends BlockSyntaxNode {
         ifStatement.setValue(conditionTokens);
 
         //继续构建代码体
-        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(ifTokens);
-        ifStatement.setChildSyntaxNodeList(syntaxNodes);
+        // if块创建新作用域
+        ParseScopeTracker tracker = NfSynta.getCurrentTracker();
+        if (tracker != null) {
+            tracker.enterScope(); // 进入if块作用域
+        }
+        try {
+            List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(ifTokens, tracker);
+            ifStatement.setChildSyntaxNodeList(syntaxNodes);
+        } finally {
+            if (tracker != null) {
+                tracker.exitScope(); // 退出if块作用域
+            }
+        }
         return ifStatement;
     }
 
@@ -424,8 +436,19 @@ public class IFSyntaxNode extends BlockSyntaxNode {
             tokens.remove(tokens.size()-1);
 
             //继续构建代码体（tokens已被修改，直接使用）
-            List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
-            ifStatement.setChildSyntaxNodeList(syntaxNodes);
+            // else块创建新作用域
+            ParseScopeTracker tracker = NfSynta.getCurrentTracker();
+            if (tracker != null) {
+                tracker.enterScope(); // 进入else块作用域
+            }
+            try {
+                List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens, tracker);
+                ifStatement.setChildSyntaxNodeList(syntaxNodes);
+            } finally {
+                if (tracker != null) {
+                    tracker.exitScope(); // 退出else块作用域
+                }
+            }
             return ifStatement;
         }
         return null;
