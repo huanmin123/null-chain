@@ -7,15 +7,15 @@ import java.util.Set;
 public class KeywordUtil {
     /**
      * 定义占用的关键字集合，不能定义为变量名
-     * 
+     *
      * <p>包含所有 NF 脚本语言的关键字，防止用户将这些关键字用作变量名，避免语法解析错误。
-     * 
+     *
      * <p>注意：
      * <ul>
      *   <li>系统变量（$preValue、$params、$threadFactoryName）使用 $ 前缀，不需要在这里禁止</li>
      *   <li>用户无法定义以 $ 开头的变量名（标识符解析不支持 $ 作为变量名的开头，只有系统可以使用）</li>
      * </ul>
-     * 
+     *
      * <p>关键字分类：
      * <ul>
      *   <li>导入相关：import, type, task, as</li>
@@ -26,9 +26,11 @@ public class KeywordUtil {
      *   <li>布尔常量：true, false</li>
      *   <li>对象创建：new</li>
      *   <li>类型判断：instanceof</li>
+     *   <li>函数定义：fun, return</li>
+     *   <li>全局变量访问：global</li>
      *   <li>其他：this</li>
      * </ul>
-     * 
+     *
      * <p>使用 HashSet 实现，提供 O(1) 时间复杂度的查找性能。
      */
     private final static Set<String> forbidKeywords;
@@ -69,6 +71,11 @@ public class KeywordUtil {
         keywords.add("new");
         // 类型判断
         keywords.add("instanceof");
+        // 函数定义
+        keywords.add("fun");
+        keywords.add("return");
+        // 全局变量访问
+        keywords.add("global");
         // 其他
         keywords.add("this");
         forbidKeywords = Collections.unmodifiableSet(keywords);

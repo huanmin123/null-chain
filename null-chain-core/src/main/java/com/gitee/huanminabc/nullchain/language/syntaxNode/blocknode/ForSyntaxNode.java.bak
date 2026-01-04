@@ -297,22 +297,6 @@ public class ForSyntaxNode extends BlockSyntaxNode {
             }
         }
 
-        // 解析时检查循环变量是否与外部作用域变量重复
-        ParseScopeTracker loopTracker = NfSynta.getCurrentTracker();
-        if (loopTracker != null) {
-            String syntaxStr = printFor(forTokens);
-            if (isDoubleVariable) {
-                // 双变量模式: for k, v in map
-                String var1 = forTokens.get(0).value;
-                String var2 = forTokens.get(2).value;
-                loopTracker.checkDuplicateVariable(var1, forTokens.get(0).line, syntaxStr);
-                loopTracker.checkDuplicateVariable(var2, forTokens.get(2).line, syntaxStr);
-            } else {
-                // 单变量模式: for i in 1..10 或 for item in list
-                String varName = forTokens.get(0).value;
-                loopTracker.checkDuplicateVariable(varName, forTokens.get(0).line, syntaxStr);
-            }
-        }
         // 删除
         tokenList.subList(0, endIndex).clear();
         // 删除{+LINE_END
@@ -326,7 +310,7 @@ public class ForSyntaxNode extends BlockSyntaxNode {
         // for循环体创建新作用域
         ParseScopeTracker tracker = NfSynta.getCurrentTracker();
         if (tracker != null) {
-            tracker.enterScope(ParseScopeTracker.ScopeType.BLOCK); // 进入for循环体作用域
+            tracker.enterScope(); // 进入for循环体作用域
         }
         try {
             List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokenList, tracker);

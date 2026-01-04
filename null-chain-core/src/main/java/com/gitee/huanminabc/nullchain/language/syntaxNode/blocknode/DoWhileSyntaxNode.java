@@ -167,7 +167,7 @@ public class DoWhileSyntaxNode extends BlockSyntaxNode {
         // do-while循环体创建新作用域
         ParseScopeTracker tracker = NfSynta.getCurrentTracker();
         if (tracker != null) {
-            tracker.enterScope(); // 进入do-while循环体作用域
+            tracker.enterScope(ParseScopeTracker.ScopeType.BLOCK); // 进入do-while循环体作用域
         }
         try {
             List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(bodyTokens, tracker);

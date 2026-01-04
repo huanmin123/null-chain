@@ -63,12 +63,12 @@ var combined:String = auto + " " + manual
 echo "混合类型: auto={auto}, manual={manual}, combined={combined}"
 
 // 12. 手动指定类型在不同作用域
-var global:String = "全局手动类型"
-echo "全局: global={global}"
+var globalVar:String = "全局手动类型"
+echo "全局: globalVar={globalVar}"
 
 if true {
     var local:String = "局部手动类型"
-    echo "if中: local={local}, global={global}"
+    echo "if中: local={local}, globalVar={globalVar}"
 }
 
 export "手动类型测试完成"

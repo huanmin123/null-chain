@@ -133,7 +133,7 @@ public class WhileSyntaxNode extends BlockSyntaxNode {
         // while循环体创建新作用域
         ParseScopeTracker tracker = NfSynta.getCurrentTracker();
         if (tracker != null) {
-            tracker.enterScope(); // 进入while循环体作用域
+            tracker.enterScope(ParseScopeTracker.ScopeType.BLOCK); // 进入while循环体作用域
         }
         try {
             List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokenList, tracker);
