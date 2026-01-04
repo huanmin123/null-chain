@@ -418,11 +418,97 @@ public class AdditionalSyntaxTest {
     public void testTaskErrorMissingClass() {
         String file = TestUtil.readFile("syntax/task_error_missing_class.nf");
         List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(file);
-        
+
         assertThrows(NfException.class, () -> {
             NfSynta.buildMainStatement(tokens);
         });
         log.info("Task 缺少类名错误测试通过");
+    }
+
+    // ==================== New 关键字补充测试 ====================
+
+    /**
+     * 测试 new 关键字创建内置类型对象（ArrayList）
+     * 内置类型无需导入，直接使用 new 即可创建实例
+     */
+    @Test
+    public void testNewObjectBuiltinType() {
+        String file = TestUtil.readFile("syntax/assign_new_object.nf");
+        List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(file);
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
+
+        NfContext context = new NfContext();
+        Object result = NfRun.run(syntaxNodes, context, log, null);
+
+        assertNotNull(result);
+        assertTrue(result instanceof java.util.ArrayList);
+        java.util.ArrayList<?> list = (java.util.ArrayList<?>) result;
+        assertEquals(2, list.size());
+        assertEquals("hello", list.get(0));
+        assertEquals("world", list.get(1));
+        log.info("new 内置类型对象测试通过，结果: {}", result);
+    }
+
+    /**
+     * 测试 new 关键字创建导入的自定义类型对象（UserEntity）
+     * 需要先使用 import type 导入自定义类，然后才能使用 new 创建实例
+     */
+    @Test
+    public void testNewObjectWithImport() {
+        String file = TestUtil.readFile("syntax/assign_import_user_entity.nf");
+        List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(file);
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
+
+        NfContext context = new NfContext();
+        Object result = NfRun.run(syntaxNodes, context, log, null);
+
+        assertNotNull(result);
+        assertTrue(result instanceof com.gitee.huanminabc.test.nullchain.entity.UserEntity);
+        com.gitee.huanminabc.test.nullchain.entity.UserEntity user =
+                (com.gitee.huanminabc.test.nullchain.entity.UserEntity) result;
+        assertEquals(1, user.getId());
+        assertEquals("huanmin", user.getName());
+        assertEquals(25, user.getAge());
+        assertEquals("男", user.getSex());
+        log.info("new 导入类型对象测试通过，结果: {}", result);
+    }
+
+    /**
+     * 测试 new 关键字错误 - 接口类型无实现类
+     * List 是接口类型，new 后缺少具体实现类，应在运行时抛出异常
+     */
+    @Test
+    public void testNewObjectErrorInterfaceNoImpl() {
+        String file = TestUtil.readFile("syntax/assign_error_interface_no_impl.nf");
+        List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(file);
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
+        NfContext context = new NfContext();
+        assertThrows(NfException.class, () -> {
+            NfRun.run(syntaxNodes, context, log, null);
+        });
+        log.info("new 接口无实现错误测试通过");
+    }
+
+    /**
+     * 测试 new 关键字全面场景
+     * 包含内置类型、自定义类型、多次 new、嵌套 new 等多种场景
+     */
+    @Test
+    public void testNewObjectComprehensive() {
+        String file = TestUtil.readFile("syntax/new_comprehensive_test.nf");
+        List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(file);
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
+
+        NfContext context = new NfContext();
+        Object result = NfRun.run(syntaxNodes, context, log, null);
+
+        assertNotNull(result);
+        assertTrue(result instanceof com.gitee.huanminabc.test.nullchain.entity.UserEntity);
+        com.gitee.huanminabc.test.nullchain.entity.UserEntity user =
+                (com.gitee.huanminabc.test.nullchain.entity.UserEntity) result;
+        assertEquals(100, user.getId());
+        assertEquals("测试用户", user.getName());
+        log.info("new 关键字全面测试通过，结果: {}", result);
     }
 }
 
