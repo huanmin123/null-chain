@@ -503,13 +503,17 @@ public class VarSyntaxNode extends LineSyntaxNode {
         // 取出来上下文
         NfContextScope currentScope = context.getCurrentScope();
 
-        // 检查表达式是否仅为 new 关键字（支持 var name:Type=new 语法）
-        if (expTokens.size() == 1 && expTokens.get(0).type == TokenType.NEW) {
-            // 只有手动指定类型时才支持 var name:Type=new 语法
+        // 检查表达式是否为 new 关键字或 new(...) 调用（支持 var name:Type=new 和 var name:Type=new(参数列表) 语法）
+        if (expTokens.get(0).type == TokenType.NEW) {
+            // 只有手动指定类型时才支持 var name:Type=new 或 var name:Type=new(参数列表) 语法
             if (!hasManualType) {
-                throw new NfException("Line:{} ,使用 new 关键字必须指定类型，格式: var 变量名:类型=new , syntax: {}",
+                throw new NfException("Line:{} ,使用 new 关键字必须指定类型，格式: var 变量名:类型=new 或 var 变量名:类型=new(参数列表) , syntax: {}",
                     valueTokens.get(0).line, syntaxNode);
             }
+
+            // 检查是否有参数列表：new(参数1, 参数2, ...)
+            boolean hasArgs = expTokens.size() >= 3 && expTokens.get(1).type == TokenType.LPAREN;
+
             try {
                 // 创建对象
                 Class<?> declaredType = Class.forName(importType);
@@ -525,9 +529,52 @@ public class VarSyntaxNode extends LineSyntaxNode {
                     }
                 }
 
-                // 获取无参构造函数创建对象
-                java.lang.reflect.Constructor<?> constructor = actualType.getConstructor();
-                Object instance = constructor.newInstance();
+                Object instance;
+                if (hasArgs) {
+                    // 解析参数列表：new(参数1, 参数2, ...)
+                    // 找到匹配的右括号
+                    int parenEnd = -1;
+                    int depth = 0;
+                    for (int i = 1; i < expTokens.size(); i++) {
+                        if (expTokens.get(i).type == TokenType.LPAREN) {
+                            depth++;
+                        } else if (expTokens.get(i).type == TokenType.RPAREN) {
+                            depth--;
+                            if (depth == 0) {
+                                parenEnd = i;
+                                break;
+                            }
+                        }
+                    }
+                    if (parenEnd == -1) {
+                        throw new NfException("Line:{} ,new() 参数列表括号不匹配 , syntax: {}",
+                            valueTokens.get(0).line, syntaxNode);
+                    }
+
+                    // 提取括号内的参数 tokens
+                    List<Token> paramTokens = expTokens.subList(2, parenEnd);
+
+                    // 解析参数表达式（按逗号分隔）
+                    List<Object> args = new ArrayList<>();
+                    List<Class<?>> argTypes = new ArrayList<>();
+
+                    if (!paramTokens.isEmpty()) {
+                        List<List<Token>> paramExprs = splitByComma(paramTokens);
+                        for (List<Token> paramExpr : paramExprs) {
+                            Object argValue = NfCalculator.arithmetic(TokenUtil.mergeToken(paramExpr).toString(), context);
+                            args.add(argValue);
+                            argTypes.add(argValue != null ? argValue.getClass() : null);
+                        }
+                    }
+
+                    // 根据参数类型找到匹配的构造函数
+                    java.lang.reflect.Constructor<?> matchedConstructor = findMatchingConstructor(actualType, argTypes);
+                    instance = matchedConstructor.newInstance(args.toArray());
+                } else {
+                    // 无参构造函数
+                    java.lang.reflect.Constructor<?> constructor = actualType.getConstructor();
+                    instance = constructor.newInstance();
+                }
 
                 // 将变量添加到当前作用域
                 currentScope.addVariable(new NfVariableInfo(varName, instance, declaredType));
@@ -537,7 +584,7 @@ public class VarSyntaxNode extends LineSyntaxNode {
                 throw new NfException("Line:{} ,未找到类型 {} , syntax: {}", line, importType, syntaxNode);
             } catch (NoSuchMethodException e) {
                 int line = valueTokens.get(0).line;
-                throw new NfException("Line:{} ,类型 {} 没有无参构造函数 , syntax: {}", line, importType, syntaxNode);
+                throw new NfException("Line:{} ,类型 {} 没有匹配的构造函数 , syntax: {}", line, importType, syntaxNode);
             } catch (Exception e) {
                 int line = valueTokens.get(0).line;
                 throw new NfException(e, "Line:{} ,创建{}对象失败 , syntax: {}", line, importType, syntaxNode);
@@ -649,5 +696,161 @@ public class VarSyntaxNode extends LineSyntaxNode {
     @Override
     public String toString() {
         return printExp(getValue());
+    }
+
+    /**
+     * 按逗号分割参数表达式，支持嵌套括号
+     * 例如：a, b, c 会分割成 [a], [b], [c]
+     *
+     * @param tokens Token列表
+     * @return 分割后的参数表达式列表
+     */
+    private List<List<Token>> splitByComma(List<Token> tokens) {
+        List<List<Token>> result = new ArrayList<>();
+        if (tokens.isEmpty()) {
+            return result;
+        }
+
+        List<Token> current = new ArrayList<>();
+        int depth = 0; // 括号嵌套深度
+
+        for (Token token : tokens) {
+            if (token.type == TokenType.LPAREN) {
+                depth++;
+                current.add(token);
+            } else if (token.type == TokenType.RPAREN) {
+                depth--;
+                current.add(token);
+            } else if (token.type == TokenType.COMMA && depth == 0) {
+                // 逗号且不在括号内，分割
+                if (!current.isEmpty()) {
+                    result.add(current);
+                    current = new ArrayList<>();
+                }
+            } else {
+                current.add(token);
+            }
+        }
+
+        // 添加最后一个参数
+        if (!current.isEmpty()) {
+            result.add(current);
+        }
+
+        return result;
+    }
+
+    /**
+     * 根据参数类型查找匹配的构造函数
+     * 支持类型兼容性检查（如 int 可以匹配 Integer，null 可以匹配任何引用类型）
+     *
+     * @param clazz 目标类
+     * @param argTypes 参数类型列表（可能包含 null 表示 null 值）
+     * @return 匹配的构造函数
+     * @throws NoSuchMethodException 如果找不到匹配的构造函数
+     */
+    private java.lang.reflect.Constructor<?> findMatchingConstructor(Class<?> clazz, List<Class<?>> argTypes)
+            throws NoSuchMethodException {
+        java.lang.reflect.Constructor<?>[] constructors = clazz.getConstructors();
+
+        for (java.lang.reflect.Constructor<?> constructor : constructors) {
+            Class<?>[] paramTypes = constructor.getParameterTypes();
+
+            // 参数数量必须匹配
+            if (paramTypes.length != argTypes.size()) {
+                continue;
+            }
+
+            // 检查每个参数类型是否兼容
+            boolean match = true;
+            for (int i = 0; i < paramTypes.length; i++) {
+                Class<?> expectedType = paramTypes[i];
+                Class<?> actualType = argTypes.get(i);
+
+                if (actualType == null) {
+                    // null 值只能匹配引用类型，不能匹配基本类型
+                    if (expectedType.isPrimitive()) {
+                        match = false;
+                        break;
+                    }
+                } else {
+                    // 检查类型兼容性
+                    if (!isTypeCompatible(actualType, expectedType)) {
+                        match = false;
+                        break;
+                    }
+                }
+            }
+
+            if (match) {
+                return constructor;
+            }
+        }
+
+        throw new NoSuchMethodException("找不到匹配的构造函数，参数类型: " + argTypes);
+    }
+
+    /**
+     * 检查类型是否兼容
+     * 支持基本类型和包装类型的自动转换
+     *
+     * @param actualType 实际类型
+     * @param expectedType 期望类型
+     * @return 是否兼容
+     */
+    private boolean isTypeCompatible(Class<?> actualType, Class<?> expectedType) {
+        // 如果类型完全相同
+        if (expectedType.equals(actualType)) {
+            return true;
+        }
+
+        // 处理基本类型和包装类型的兼容性
+        if (expectedType.isPrimitive()) {
+            // 基本类型需要匹配对应的包装类型
+            return isWrapperType(actualType, expectedType);
+        }
+
+        if (actualType.isPrimitive()) {
+            // 实际是基本类型，期望是包装类型
+            return isWrapperType(expectedType, actualType);
+        }
+
+        // 检查是否是子类
+        return expectedType.isAssignableFrom(actualType);
+    }
+
+    /**
+     * 检查包装类型是否对应指定的基本类型
+     *
+     * @param wrapperType 包装类型
+     * @param primitiveType 基本类型
+     * @return 是否对应
+     */
+    private boolean isWrapperType(Class<?> wrapperType, Class<?> primitiveType) {
+        if (primitiveType == int.class) {
+            return wrapperType == Integer.class;
+        }
+        if (primitiveType == long.class) {
+            return wrapperType == Long.class;
+        }
+        if (primitiveType == double.class) {
+            return wrapperType == Double.class;
+        }
+        if (primitiveType == float.class) {
+            return wrapperType == Float.class;
+        }
+        if (primitiveType == boolean.class) {
+            return wrapperType == Boolean.class;
+        }
+        if (primitiveType == byte.class) {
+            return wrapperType == Byte.class;
+        }
+        if (primitiveType == short.class) {
+            return wrapperType == Short.class;
+        }
+        if (primitiveType == char.class) {
+            return wrapperType == Character.class;
+        }
+        return false;
     }
 }

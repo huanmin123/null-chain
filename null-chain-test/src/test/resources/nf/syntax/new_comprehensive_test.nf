@@ -98,6 +98,21 @@ varUser.setName("var声明的用户")
 echo "varUser name: ${varUser.getName()}"
 echo "varUser age: ${varUser.getAge()}"
 
+// ------------------- 场景12: 使用 new 带参构造函数（类型声明方式）-------------------
+echo "=== 场景12: 使用 new 带参构造函数 ==="
+import type com.gitee.huanminabc.test.nullchain.entity.UserEntity
+UserEntity userWithArgs=new(100, "带参构造用户", 25)
+echo "userWithArgs id: ${userWithArgs.getId()}"
+echo "userWithArgs name: ${userWithArgs.getName()}"
+echo "userWithArgs age: ${userWithArgs.getAge()}"
+
+// ------------------- 场景13: 使用 var 带参构造函数 -------------------
+echo "=== 场景13: 使用 var 带参构造函数 ==="
+var varUserWithArgs:UserEntity=new(200, "var带参构造", 30)
+echo "varUserWithArgs id: ${varUserWithArgs.getId()}"
+echo "varUserWithArgs name: ${varUserWithArgs.getName()}"
+echo "varUserWithArgs age: ${varUserWithArgs.getAge()}"
+
 // ==================== 导出最终结果 ====================
 echo "=== 测试完成，导出结果 ==="
 export user

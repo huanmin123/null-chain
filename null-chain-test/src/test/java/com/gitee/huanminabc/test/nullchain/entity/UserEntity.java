@@ -30,7 +30,12 @@ public class UserEntity implements Serializable {
     @JSONField(serialize = false)
     private List<UserEntity> list=new ArrayList<>();
 
-
+    // 带参构造函数（id, name, age）
+    public UserEntity(Integer id, String name, Integer age) {
+        this.id = id;
+        this.name = name;
+        this.age = age;
+    }
 
     public  String getTest(String str){
         return str;
