@@ -503,6 +503,47 @@ public class VarSyntaxNode extends LineSyntaxNode {
         // 取出来上下文
         NfContextScope currentScope = context.getCurrentScope();
 
+        // 检查表达式是否仅为 new 关键字（支持 var name:Type=new 语法）
+        if (expTokens.size() == 1 && expTokens.get(0).type == TokenType.NEW) {
+            // 只有手动指定类型时才支持 var name:Type=new 语法
+            if (!hasManualType) {
+                throw new NfException("Line:{} ,使用 new 关键字必须指定类型，格式: var 变量名:类型=new , syntax: {}",
+                    valueTokens.get(0).line, syntaxNode);
+            }
+            try {
+                // 创建对象
+                Class<?> declaredType = Class.forName(importType);
+                Class<?> actualType = declaredType;
+
+                // 如果声明的类型是接口，从上下文获取默认实现类
+                if (declaredType.isInterface()) {
+                    actualType = context.getInterfaceDefaultImpl(declaredType);
+                    if (actualType == null) {
+                        int line = valueTokens.get(0).line;
+                        throw new NfException("Line:{} ,接口 {} 没有默认实现类，无法创建实例 , syntax: {}",
+                            line, importType, syntaxNode);
+                    }
+                }
+
+                // 获取无参构造函数创建对象
+                java.lang.reflect.Constructor<?> constructor = actualType.getConstructor();
+                Object instance = constructor.newInstance();
+
+                // 将变量添加到当前作用域
+                currentScope.addVariable(new NfVariableInfo(varName, instance, declaredType));
+                return; // 处理完成，直接返回
+            } catch (ClassNotFoundException e) {
+                int line = valueTokens.get(0).line;
+                throw new NfException("Line:{} ,未找到类型 {} , syntax: {}", line, importType, syntaxNode);
+            } catch (NoSuchMethodException e) {
+                int line = valueTokens.get(0).line;
+                throw new NfException("Line:{} ,类型 {} 没有无参构造函数 , syntax: {}", line, importType, syntaxNode);
+            } catch (Exception e) {
+                int line = valueTokens.get(0).line;
+                throw new NfException(e, "Line:{} ,创建{}对象失败 , syntax: {}", line, importType, syntaxNode);
+            }
+        }
+
         // 检查表达式中是否包含模板字符串，如果有则先处理模板字符串
         boolean hasTemplateString = false;
         String templateStringValue = null;

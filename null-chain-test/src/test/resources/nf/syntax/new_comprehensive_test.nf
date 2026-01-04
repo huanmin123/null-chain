@@ -90,6 +90,14 @@ extUser.setName("扩展用户")
 echo "baseUser name: ${baseUser.getName()}"
 echo "extUser name: ${extUser.getName()}"
 
+// ------------------- 场景11: 使用 var 声明并 new -------------------
+echo "=== 场景11: 使用 var 声明并 new ==="
+import type com.gitee.huanminabc.test.nullchain.entity.UserExtEntity
+var varUser:UserExtEntity=new
+varUser.setName("var声明的用户")
+echo "varUser name: ${varUser.getName()}"
+echo "varUser age: ${varUser.getAge()}"
+
 // ==================== 导出最终结果 ====================
 echo "=== 测试完成，导出结果 ==="
 export user
