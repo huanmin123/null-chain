@@ -292,7 +292,7 @@ public class SwitchSyntaxNode extends BlockSyntaxNode {
         // case块创建新作用域
         ParseScopeTracker tracker = NfSynta.getCurrentTracker();
         if (tracker != null) {
-            tracker.enterScope(); // 进入case块作用域
+            tracker.enterScope(ParseScopeTracker.ScopeType.BLOCK); // 进入case块作用域
         }
         try {
             List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(caseBody, tracker);
@@ -340,7 +340,7 @@ public class SwitchSyntaxNode extends BlockSyntaxNode {
         // default块创建新作用域
         ParseScopeTracker tracker = NfSynta.getCurrentTracker();
         if (tracker != null) {
-            tracker.enterScope(); // 进入default块作用域
+            tracker.enterScope(ParseScopeTracker.ScopeType.BLOCK); // 进入default块作用域
         }
         try {
             List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(defaultTokens, tracker);

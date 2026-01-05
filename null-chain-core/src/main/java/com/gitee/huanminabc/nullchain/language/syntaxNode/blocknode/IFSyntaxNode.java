@@ -377,7 +377,7 @@ public class IFSyntaxNode extends BlockSyntaxNode {
         // if块创建新作用域
         ParseScopeTracker tracker = NfSynta.getCurrentTracker();
         if (tracker != null) {
-            tracker.enterScope(); // 进入if块作用域
+            tracker.enterScope(ParseScopeTracker.ScopeType.BLOCK); // 进入if块作用域
         }
         try {
             List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(ifTokens, tracker);
@@ -439,7 +439,7 @@ public class IFSyntaxNode extends BlockSyntaxNode {
             // else块创建新作用域
             ParseScopeTracker tracker = NfSynta.getCurrentTracker();
             if (tracker != null) {
-                tracker.enterScope(); // 进入else块作用域
+                tracker.enterScope(ParseScopeTracker.ScopeType.BLOCK); // 进入else块作用域
             }
             try {
                 List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens, tracker);

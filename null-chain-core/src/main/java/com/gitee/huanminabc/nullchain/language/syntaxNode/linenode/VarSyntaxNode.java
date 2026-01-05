@@ -161,6 +161,16 @@ public class VarSyntaxNode extends LineSyntaxNode {
             return false;
         }
 
+        // 检查第二个token（变量名）是否是关键字
+        if (tokensSize >= 2 && tokens.get(1).type != TokenType.IDENTIFIER) {
+            String varName = tokens.get(1).value;
+            if (KeywordUtil.isForbidKeyword(varName)) {
+                String syntaxStr = TokenUtil.mergeToken(tokens).toString();
+                throw new NfException("Line:{} ,变量名 {} 是系统关键字，不能用作变量名, syntax: {}",
+                    tokens.get(1).line, varName, syntaxStr);
+            }
+        }
+
         // 检查是否是自动推导格式：VAR IDENTIFIER ASSIGN ...
         boolean isAutoInfer = tokensSize >= 3 &&
             tokens.get(1).type == TokenType.IDENTIFIER &&

@@ -67,4 +67,5 @@ public enum TokenType {
     INSTANCEOF, // instanceof 类型判断操作符
     FUN, // fun 函数定义关键字
     RETURN, // return 返回语句关键字
+    GLOBAL, // global 全局变量访问关键字
 }

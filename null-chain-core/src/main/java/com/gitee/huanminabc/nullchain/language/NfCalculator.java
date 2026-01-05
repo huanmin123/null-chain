@@ -196,6 +196,9 @@ public class NfCalculator {
             // 预处理表达式中的导入脚本变量访问（脚本名称.变量名）
             String processedExpr = preProcessImportedScriptAccess(expression, nfContext);
 
+            // 预处理表达式中的全局变量访问（global.xxx）
+            processedExpr = preProcessGlobalAccess(processedExpr, nfContext);
+
             // 预处理表达式中的函数调用
             processedExpr = preProcessFunctionCalls(processedExpr, nfContext, context);
 
@@ -363,8 +366,86 @@ public class NfCalculator {
             matcher.appendTail(sb);
             return sb.toString();
         }
-        
+
         return expression;
+    }
+
+    /**
+     * 预处理表达式中的全局变量访问（global.xxx）
+     * 用于在函数内部访问被遮蔽的全局变量
+     *
+     * 注意：目前仅支持读取，不支持赋值。赋值需要单独使用 assign 语句
+     *
+     * @param expression 原始表达式
+     * @param nfContext NF上下文
+     * @return 处理后的表达式
+     */
+    private static String preProcessGlobalAccess(String expression, NfContext nfContext) {
+        if (expression == null || expression.isEmpty()) {
+            return expression;
+        }
+
+        // 匹配模式：global.变量名
+        // 使用正则表达式：\bglobal\.([a-zA-Z_$][a-zA-Z0-9_$]*)
+        // \b 确保是完整的单词边界，避免匹配类似 myglobal.xxx 的情况
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+            "\\bglobal\\.([a-zA-Z_$][a-zA-Z0-9_$]*)"
+        );
+        java.util.regex.Matcher matcher = pattern.matcher(expression);
+
+        StringBuffer sb = new StringBuffer();
+        boolean found = false;
+
+        while (matcher.find()) {
+            String varName = matcher.group(1);
+
+            // 获取全局作用域（最顶层作用域，没有父作用域的作用域）
+            NfContextScope globalScope = findGlobalScope(nfContext);
+            if (globalScope != null) {
+                // 从全局作用域中获取变量
+                NfVariableInfo varInfo = globalScope.getVariable(varName);
+                if (varInfo != null) {
+                    // 找到变量，生成临时变量名并存储值
+                    String tempVarName = "__global_" + varName + "_" + System.nanoTime();
+                    nfContext.getTempVarStorage().put(tempVarName, varInfo.getValue());
+
+                    // 替换为临时变量
+                    matcher.appendReplacement(sb, tempVarName);
+                    found = true;
+                    continue;
+                }
+            }
+
+            // 没有找到全局变量，保留原样（运行时会报错）
+            matcher.appendReplacement(sb, matcher.group(0));
+        }
+
+        if (found) {
+            matcher.appendTail(sb);
+            return sb.toString();
+        }
+
+        return expression;
+    }
+
+    /**
+     * 查找全局作用域（最顶层作用域）
+     *
+     * @param nfContext NF上下文
+     * @return 全局作用域
+     */
+    private static NfContextScope findGlobalScope(NfContext nfContext) {
+        // 从当前作用域开始向上查找，直到找到没有父作用域的作用域
+        NfContextScope scope = nfContext.getCurrentScope();
+        while (scope != null) {
+            String parentScopeId = scope.getParentScopeId();
+            if (parentScopeId == null) {
+                // 没有父作用域，这就是全局作用域
+                return scope;
+            }
+            scope = nfContext.getScope(parentScopeId);
+        }
+        return null;
     }
 
     /**

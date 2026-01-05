@@ -3,6 +3,7 @@ package com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode;
 import com.gitee.huanminabc.nullchain.language.NfException;
 import com.gitee.huanminabc.nullchain.language.NfSyntaxException;
 import com.gitee.huanminabc.nullchain.language.NfSynta;
+import com.gitee.huanminabc.nullchain.language.utils.KeywordUtil;
 import com.gitee.huanminabc.nullchain.language.internal.FunDefInfo;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.ParseScopeTracker;
@@ -70,6 +71,19 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
                 List<Token> funTokens = new ArrayList<>(tokens.subList(i, endIndex));
                 // 如果是空那么就是语法有问题
                 if (funTokens.isEmpty()) {
+                    // 检查是否因为使用了关键字作为函数名
+                    if (i + 1 < tokensSize) {
+                        Token nextToken = tokens.get(i + 1);
+                        if (KeywordUtil.isForbidKeyword(nextToken.value)) {
+                            throw new NfSyntaxException(
+                                nextToken.getLine(),
+                                "函数名不能使用关键字",
+                                String.format("'%s' 是系统关键字，不能用作函数名", nextToken.value),
+                                nextToken.value,
+                                "请使用其他函数名"
+                            );
+                        }
+                    }
                     throw new NfSyntaxException(
                         token.getLine(),
                         "函数定义语法错误",
@@ -124,6 +138,40 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
 
         // 解析函数名（应该是IDENTIFIER）
         if (tokenList.isEmpty() || tokenList.get(0).type != TokenType.IDENTIFIER) {
+            // 检查是否因为使用了关键字而导致不是标识符
+            if (!tokenList.isEmpty()) {
+                Token nameToken = tokenList.get(0);
+                // 直接检查 token 类型是否是已知的关键字类型
+                if (nameToken.type == TokenType.IF || nameToken.type == TokenType.FOR ||
+                    nameToken.type == TokenType.WHILE || nameToken.type == TokenType.RETURN ||
+                    nameToken.type == TokenType.GLOBAL || nameToken.type == TokenType.FUN ||
+                    nameToken.type == TokenType.ELSE || nameToken.type == TokenType.SWITCH ||
+                    nameToken.type == TokenType.CASE || nameToken.type == TokenType.DEFAULT ||
+                    nameToken.type == TokenType.BREAK || nameToken.type == TokenType.CONTINUE ||
+                    nameToken.type == TokenType.TRUE || nameToken.type == TokenType.FALSE ||
+                    nameToken.type == TokenType.AND || nameToken.type == TokenType.OR ||
+                    nameToken.type == TokenType.NEW || nameToken.type == TokenType.INSTANCEOF ||
+                    nameToken.type == TokenType.ECHO || nameToken.type == TokenType.EXPORT ||
+                    nameToken.type == TokenType.IMPORT || nameToken.type == TokenType.VAR) {
+                    throw new NfSyntaxException(
+                        nameToken.line,
+                        "函数名不能使用关键字",
+                        String.format("'%s' 是系统关键字，不能用作函数名", nameToken.value),
+                        nameToken.value,
+                        "请使用其他函数名"
+                    );
+                }
+                // 对于其他情况，也检查值是否是关键字
+                if (KeywordUtil.isForbidKeyword(nameToken.value)) {
+                    throw new NfSyntaxException(
+                        nameToken.line,
+                        "函数名不能使用关键字",
+                        String.format("'%s' 是系统关键字，不能用作函数名", nameToken.value),
+                        nameToken.value,
+                        "请使用其他函数名"
+                    );
+                }
+            }
             throw new NfSyntaxException(
                 syntaxNode.getLine(),
                 "函数定义语法错误",
@@ -134,7 +182,18 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
         }
         Token functionNameToken = tokenList.get(0);
         String functionName = functionNameToken.value;
-        
+
+        // 检查函数名是否是关键字
+        if (KeywordUtil.isForbidKeyword(functionName)) {
+            throw new NfSyntaxException(
+                functionNameToken.line,
+                "函数名不能使用关键字",
+                String.format("'%s' 是系统关键字，不能用作函数名", functionName),
+                functionName,
+                "请使用其他函数名"
+            );
+        }
+
         // 解析时检查函数名重复
         ParseScopeTracker tracker = NfSynta.getCurrentTracker();
         if (tracker != null) {
@@ -191,8 +250,47 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
 
         // 解析参数列表
         if (!paramTokens.isEmpty()) {
+            // 直接在参数列表中检查关键字（作为额外保护）
+            // 参数格式：类型 参数名，类型 参数名，...
+            // 类型是 IDENTIFIER（如 int, String 等），参数名可能是 IDENTIFIER 或关键字
+            // 遍历所有 tokens，检查是否有关键字
+            for (int i = 0; i < paramTokens.size(); i++) {
+                Token token = paramTokens.get(i);
+                // 跳过已知的非参数名 token 类型
+                // IDENTIFIER 可能是类型名（在偶数位置）或普通参数名（在奇数位置）
+                // INTEGER, FLOAT 是数字字面量
+                // COMMA, DOT, DOT2 是分隔符
+                if (token.type == TokenType.IDENTIFIER || token.type == TokenType.INTEGER ||
+                    token.type == TokenType.FLOAT || token.type == TokenType.COMMA ||
+                    token.type == TokenType.DOT || token.type == TokenType.DOT2) {
+                    // 对于 IDENTIFIER，还需要检查是否是关键字
+                    if (token.type == TokenType.IDENTIFIER && KeywordUtil.isForbidKeyword(token.value)) {
+                        throw new NfSyntaxException(
+                            syntaxNode.getLine(),
+                            "参数名不能使用关键字",
+                            String.format("'%s' 是系统关键字，不能用作参数名", token.value),
+                            token.value,
+                            "请使用其他参数名"
+                        );
+                    }
+                    continue;
+                }
+                // 其他类型的 token（如 IF, FOR, WHILE 等关键字）需要检查
+                if (KeywordUtil.isForbidKeyword(token.value)) {
+                    throw new NfSyntaxException(
+                        syntaxNode.getLine(),
+                        "参数名不能使用关键字",
+                        String.format("'%s' 是系统关键字，不能用作参数名", token.value),
+                        token.value,
+                        "请使用其他参数名"
+                    );
+                }
+            }
             parseParameters(paramTokens, parameters, syntaxNode.getLine());
         }
+
+        // 注意：函数参数允许与全局变量重名（遮蔽），不需要检查
+        // 只有函数体内声明的变量才需要检查与全局变量是否重复
 
         // 移除参数列表的tokens
         tokenList.subList(0, paramEndIndex + 1).clear();
@@ -244,9 +342,13 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
         // 构建函数体语法节点（用于子节点）
         // 函数体创建新作用域（重用之前获取的tracker）
         if (tracker != null) {
-            tracker.enterScope(); // 进入函数体作用域
+            tracker.enterScope(ParseScopeTracker.ScopeType.FUNCTION); // 进入函数体作用域
+            // 将函数参数添加到函数作用域的变量列表中，这样函数体内不能声明与参数同名的变量
+            for (FunDefInfo.FunParameter param : parameters) {
+                tracker.addVariable(param.getName(), syntaxNode.getLine());
+            }
         }
-        
+
         try {
             List<Token> bodyTokens = new ArrayList<>(tokenList);
             // 传入tracker，避免创建新的tracker
@@ -283,7 +385,7 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
     private void parseParameters(List<Token> paramTokens, List<FunDefInfo.FunParameter> parameters, int line) {
         // 去掉注释
         SyntaxNodeUtil.removeComments(paramTokens);
-        
+
         if (paramTokens.isEmpty()) {
             return;
         }
@@ -300,7 +402,7 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
                 currentParam.add(token);
             }
         }
-        
+
         // 处理最后一个参数
         if (!currentParam.isEmpty()) {
             FunDefInfo.FunParameter param = parseSingleParameter(currentParam, line);
@@ -313,11 +415,11 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
      * 格式：类型 参数名 或 类型... 参数名（可变参数）
      */
     private FunDefInfo.FunParameter parseSingleParameter(List<Token> tokens, int line) {
-        if (tokens.size() < 2) {
+        if (tokens.isEmpty()) {
             throw new NfSyntaxException(
                 line,
                 "函数参数语法错误",
-                "参数格式错误，应为：类型 参数名",
+                "参数格式错误，参数为空",
                 TokenUtil.mergeToken(tokens).toString(),
                 "请检查参数格式"
             );
@@ -340,17 +442,60 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
             }
         }
 
+        // 获取类型和参数名
         String type;
-        String name;
+        Token nameToken;
 
         if (varArgs) {
             // 可变参数：类型... 参数名
+            if (tokens.size() < 4) {
+                throw new NfSyntaxException(
+                    line,
+                    "函数参数语法错误",
+                    "可变参数格式错误，应为：类型... 参数名",
+                    TokenUtil.mergeToken(tokens).toString(),
+                    "请检查参数格式"
+                );
+            }
             type = tokens.get(typeEndIndex).value;
-            name = tokens.get(typeEndIndex + 3).value; // 跳过 DOT2 和 DOT 后的参数名
+            nameToken = tokens.get(typeEndIndex + 3);
         } else {
             // 普通参数：类型 参数名
+            if (tokens.size() < 2) {
+                throw new NfSyntaxException(
+                    line,
+                    "函数参数语法错误",
+                    "参数格式错误，应为：类型 参数名",
+                    TokenUtil.mergeToken(tokens).toString(),
+                    "请检查参数格式"
+                );
+            }
             type = tokens.get(0).value;
-            name = tokens.get(1).value;
+            nameToken = tokens.get(1);
+        }
+
+        String name = nameToken.value;
+
+        // 检查参数名 token 的类型是否是 IDENTIFIER（如果不是，说明是关键字）
+        if (nameToken.type != TokenType.IDENTIFIER) {
+            throw new NfSyntaxException(
+                line,
+                "参数名不能使用关键字",
+                String.format("'%s' 是系统关键字，不能用作参数名", name),
+                name,
+                "请使用其他参数名"
+            );
+        }
+
+        // 检查参数名是否是关键字（通过 token 的值判断）
+        if (KeywordUtil.isForbidKeyword(name)) {
+            throw new NfSyntaxException(
+                line,
+                "参数名不能使用关键字",
+                String.format("'%s' 是系统关键字，不能用作参数名", name),
+                name,
+                "请使用其他参数名"
+            );
         }
 
         FunDefInfo.FunParameter param = new FunDefInfo.FunParameter();
@@ -465,12 +610,48 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
         }
 
         if (paramEndIndex == -1) {
-            throw new NfException("Line:{} ,函数定义语法错误，参数列表缺少右括号')'", 
+            throw new NfException("Line:{} ,函数定义语法错误，参数列表缺少右括号')'",
                 syntaxNode.getLine());
         }
 
         // 解析参数列表
         if (!paramTokens.isEmpty()) {
+            // 直接在参数列表中检查关键字（作为额外保护）
+            // 参数格式：类型 参数名，类型 参数名，...
+            // 类型是 IDENTIFIER（如 int, String 等），参数名可能是 IDENTIFIER 或关键字
+            // 遍历所有 tokens，检查是否有关键字
+            for (int i = 0; i < paramTokens.size(); i++) {
+                Token token = paramTokens.get(i);
+                // 跳过已知的非参数名 token 类型
+                // IDENTIFIER 可能是类型名（在偶数位置）或普通参数名（在奇数位置）
+                // INTEGER, FLOAT 是数字字面量
+                // COMMA, DOT, DOT2 是分隔符
+                if (token.type == TokenType.IDENTIFIER || token.type == TokenType.INTEGER ||
+                    token.type == TokenType.FLOAT || token.type == TokenType.COMMA ||
+                    token.type == TokenType.DOT || token.type == TokenType.DOT2) {
+                    // 对于 IDENTIFIER，还需要检查是否是关键字
+                    if (token.type == TokenType.IDENTIFIER && KeywordUtil.isForbidKeyword(token.value)) {
+                        throw new NfSyntaxException(
+                            syntaxNode.getLine(),
+                            "参数名不能使用关键字",
+                            String.format("'%s' 是系统关键字，不能用作参数名", token.value),
+                            token.value,
+                            "请使用其他参数名"
+                        );
+                    }
+                    continue;
+                }
+                // 其他类型的 token（如 IF, FOR, WHILE 等关键字）需要检查
+                if (KeywordUtil.isForbidKeyword(token.value)) {
+                    throw new NfSyntaxException(
+                        syntaxNode.getLine(),
+                        "参数名不能使用关键字",
+                        String.format("'%s' 是系统关键字，不能用作参数名", token.value),
+                        token.value,
+                        "请使用其他参数名"
+                    );
+                }
+            }
             parseParameters(paramTokens, parameters, syntaxNode.getLine());
         }
 

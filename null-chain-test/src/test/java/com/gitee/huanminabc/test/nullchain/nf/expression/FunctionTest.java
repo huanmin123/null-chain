@@ -279,18 +279,18 @@ public class FunctionTest {
      */
     @Test
     public void testFunctionScope() {
-        String script = "Integer global = 100\n" +
+        String script = "Integer globalVar = 100\n" +
             "fun testScope(int local)Integer {\n" +
             "    Integer inner = 50\n" +
-            "    return global + local + inner\n" +
+            "    return globalVar + local + inner\n" +
             "}\n" +
             "Integer result = testScope(10)\n" +
             "echo \"result = {result}\"\n" +
             "export result\n";
-        
+
         Map<String, Object> context = new HashMap<>();
         Object result = NfMain.run(script, log, context);
-        
+
         assertNotNull(result);
         assertEquals(160, result); // 100 + 10 + 50 = 160
         log.info("函数作用域测试通过，结果: {}", result);

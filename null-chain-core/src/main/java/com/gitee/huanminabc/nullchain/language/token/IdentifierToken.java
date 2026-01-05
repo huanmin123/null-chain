@@ -108,6 +108,9 @@ public class IdentifierToken {
             case "return":
                 tokens.add(new Token(TokenType.RETURN, value, line));
                 break;
+            case "global":
+                tokens.add(new Token(TokenType.GLOBAL, value, line));
+                break;
             default:
                 tokens.add(new Token(TokenType.IDENTIFIER, value, line));
         }
