@@ -11,8 +11,14 @@ import com.gitee.huanminabc.nullchain.leaf.stream.NullStream;
 import com.gitee.huanminabc.nullchain.language.NfTimeoutException;
 import lombok.Data;
 
+import java.io.File;
 import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.net.URI;
+import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -20,6 +26,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 上下文:
@@ -516,6 +525,40 @@ public class NfContext {
         map.put("Collections", Collections.class.getName());
         map.put("UUID", UUID.class.getName());
         map.put("Files", Files.class.getName());
+
+        //字符串处理
+        map.put("StringBuilder", StringBuilder.class.getName());
+        map.put("StringBuffer", StringBuffer.class.getName());
+
+        //数学工具
+        map.put("Math", Math.class.getName());
+        map.put("BigInteger", BigInteger.class.getName());
+
+        //系统工具
+        map.put("System", System.class.getName());
+        map.put("Runtime", Runtime.class.getName());
+
+        //IO 文件操作
+        map.put("File", File.class.getName());
+        map.put("Path", Path.class.getName());
+        map.put("Paths", Paths.class.getName());
+
+        //随机数
+        map.put("Random", Random.class.getName());
+
+        //正则表达式
+        map.put("Pattern", Pattern.class.getName());
+        map.put("Matcher", Matcher.class.getName());
+
+        //编码解码
+        map.put("Base64", Base64.class.getName());
+
+        //网络
+        map.put("URL", URL.class.getName());
+        map.put("URI", URI.class.getName());
+
+        //时间单位
+        map.put("TimeUnit", TimeUnit.class.getName());
 
         //8大基本类型, 转化为包装类型
         map.put("int", Integer.class.getName());
