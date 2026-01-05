@@ -110,53 +110,54 @@ public class ImportSyntaxNode extends LineSyntaxNode {
                         token.getLine(), TokenUtil.mergeToken(newToken).toString());
                 }
 
-                // 处理 NF 脚本导入（支持多个名称，逗号分隔）
+                // 处理 NF 脚本导入（支持多个名称，逗号分隔，支持 as 别名）
                 if (importKind == ImportType.NF) {
                     // 移除 nf 关键字，获取剩余部分
                     List<Token> nameTokens = new ArrayList<>(newToken.subList(1, newToken.size()));
-                    
-                    // 解析脚本名称列表（逗号分隔）
-                    List<String> scriptNames = new ArrayList<>();
-                    List<Token> currentName = new ArrayList<>();
-                    
+
+                    // 解析脚本导入项列表（逗号分隔，支持 as 别名）
+                    // 每个项格式：脚本名 或 脚本名 as 别名
+                    List<ScriptImportInfo> scriptImports = new ArrayList<>();
+                    List<Token> currentItem = new ArrayList<>();
+
                     for (Token t : nameTokens) {
                         if (t.type == TokenType.COMMA) {
-                            if (!currentName.isEmpty()) {
-                                String name = TokenUtil.mergeToken(currentName).toString().trim();
-                                if (!name.isEmpty()) {
-                                    scriptNames.add(name);
+                            if (!currentItem.isEmpty()) {
+                                ScriptImportInfo importInfo = parseScriptImportItem(currentItem, token.getLine());
+                                if (importInfo != null) {
+                                    scriptImports.add(importInfo);
                                 }
-                                currentName.clear();
+                                currentItem.clear();
                             }
                         } else if (t.type != TokenType.LINE_END) {
-                            currentName.add(t);
+                            currentItem.add(t);
                         }
                     }
-                    
-                    // 处理最后一个名称
-                    if (!currentName.isEmpty()) {
-                        String name = TokenUtil.mergeToken(currentName).toString().trim();
-                        if (!name.isEmpty()) {
-                            scriptNames.add(name);
+
+                    // 处理最后一项
+                    if (!currentItem.isEmpty()) {
+                        ScriptImportInfo importInfo = parseScriptImportItem(currentItem, token.getLine());
+                        if (importInfo != null) {
+                            scriptImports.add(importInfo);
                         }
                     }
-                    
-                    if (scriptNames.isEmpty()) {
+
+                    if (scriptImports.isEmpty()) {
                         throw new NfException("Line:{} ,import nf 语句错误,必须指定至少一个脚本名称 , syntax: import {}",
                             token.getLine(), TokenUtil.mergeToken(newToken).toString());
                     }
-                    
-                    // 为每个脚本名称创建一个 ImportSyntaxNode
-                    for (String scriptName : scriptNames) {
+
+                    // 为每个脚本导入创建一个 ImportSyntaxNode
+                    for (ScriptImportInfo importInfo : scriptImports) {
                         ImportSyntaxNode importNode = new ImportSyntaxNode(SyntaxNodeType.IMPORT_EXP);
                         importNode.setValue(newToken);
                         importNode.setImportType(ImportType.NF);
-                        importNode.setClassPath(null); // NF 脚本导入不使用 classPath
-                        importNode.setName(scriptName.trim());
+                        importNode.setClassPath(importInfo.scriptName); // 使用 classPath 存储脚本注册名称
+                        importNode.setName(importInfo.importName); // 使用 name 存储导入后的别名
                         importNode.setLine(token.getLine());
                         syntaxNodeList.add(importNode);
                     }
-                    
+
                     return true;
                 }
                 
@@ -261,6 +262,20 @@ public class ImportSyntaxNode extends LineSyntaxNode {
                 throw new NfException("Line:{} ,import 类型冲突: 名称 '{}' 已被 {} 使用, 不能重复导入",
                     syntaxNode.getLine(), name, existingPath);
             }
+
+            // 检查类型名称是否与已导入的任务冲突
+            String existingTask = context.getTask(name);
+            if (existingTask != null) {
+                throw new NfException("Line:{} ,import type 错误,类型名称 '{}' 与已导入的任务 '{}' 冲突，请使用别名(as)避免冲突",
+                    syntaxNode.getLine(), name, existingTask);
+            }
+
+            // 检查类型名称是否与已导入的NF脚本冲突
+            if (context.hasImportedScript(name)) {
+                throw new NfException("Line:{} ,import type 错误,类型名称 '{}' 与已导入的NF脚本冲突，请使用别名(as)避免冲突",
+                    syntaxNode.getLine(), name);
+            }
+
             context.addImport(name, classPath);
         } else if (importNode.getImportType() == ImportType.TASK) {
             // 任务导入 - 检查冲突
@@ -273,6 +288,20 @@ public class ImportSyntaxNode extends LineSyntaxNode {
                 throw new NfException("Line:{} ,import 任务冲突: 名称 '{}' 已被 {} 使用, 不能重复导入",
                     syntaxNode.getLine(), name, existingPath);
             }
+
+            // 检查任务名称是否与已导入的类型冲突
+            String existingType = context.getImportType(name);
+            if (existingType != null) {
+                throw new NfException("Line:{} ,import task 错误,任务名称 '{}' 与已导入的类型 '{}' 冲突，请使用别名(as)避免冲突",
+                    syntaxNode.getLine(), name, existingType);
+            }
+
+            // 检查任务名称是否与已导入的NF脚本冲突
+            if (context.hasImportedScript(name)) {
+                throw new NfException("Line:{} ,import task 错误,任务名称 '{}' 与已导入的NF脚本冲突，请使用别名(as)避免冲突",
+                    syntaxNode.getLine(), name);
+            }
+
             context.addTask(name, classPath);
 
             // 尝试注册任务到工厂
@@ -289,54 +318,147 @@ public class ImportSyntaxNode extends LineSyntaxNode {
                     syntaxNode.getLine(), classPath);
             }
         } else if (importNode.getImportType() == ImportType.NF) {
-            // NF脚本导入 - 检查冲突
-            NfContextScope existingScope = context.getImportedScriptScope(name);
+            // NF脚本导入 - classPath 存储脚本注册名称，name 存储导入别名
+            String scriptName = classPath; // 脚本注册名称（原始名称）
+            String importName = name;      // 导入后的别名
+
+            // 检查别名是否已被使用（重复导入检查）
+            NfContextScope existingScope = context.getImportedScriptScope(importName);
             if (existingScope != null) {
                 // 重复导入同一个脚本，忽略
                 return;
             }
-            
-            // 验证脚本是否已注册
-            if (!NfScriptRegistry.hasScript(name)) {
-                throw new NfException("Line:{} ,import nf 错误,脚本 '{}' 未注册",
-                    syntaxNode.getLine(), name);
+
+            // 检查别名是否与已导入的类型冲突
+            String existingType = context.getImportType(importName);
+            if (existingType != null) {
+                throw new NfException("Line:{} ,import nf 错误,别名 '{}' 与已导入的类型 '{}' 冲突，请使用不同的别名",
+                    syntaxNode.getLine(), importName, existingType);
             }
-            
-            // 获取脚本的语法节点列表
-            List<SyntaxNode> scriptSyntaxNodes = NfScriptRegistry.getScriptSyntaxNodes(name);
+
+            // 检查别名是否与已导入的任务冲突
+            String existingTask = context.getTask(importName);
+            if (existingTask != null) {
+                throw new NfException("Line:{} ,import nf 错误,别名 '{}' 与已导入的任务 '{}' 冲突，请使用不同的别名",
+                    syntaxNode.getLine(), importName, existingTask);
+            }
+
+            // 验证脚本是否已注册（使用脚本注册名称）
+            if (!NfScriptRegistry.hasScript(scriptName)) {
+                throw new NfException("Line:{} ,import nf 错误,脚本 '{}' 未注册",
+                    syntaxNode.getLine(), scriptName);
+            }
+
+            // 获取脚本的语法节点列表（使用脚本注册名称）
+            List<SyntaxNode> scriptSyntaxNodes = NfScriptRegistry.getScriptSyntaxNodes(scriptName);
             if (scriptSyntaxNodes == null || scriptSyntaxNodes.isEmpty()) {
                 throw new NfException("Line:{} ,import nf 错误,脚本 '{}' 的语法节点为空",
-                    syntaxNode.getLine(), name);
+                    syntaxNode.getLine(), scriptName);
             }
-            
+
             // 创建独立的 NfContext 执行脚本
             NfContext scriptContext = new NfContext();
-            
+
             // 初始化脚本上下文（手动初始化，避免NfRun.run的clear影响）
             String scriptMainScopeId = NfContext.generateScopeId();
             scriptContext.setMainScopeId(scriptMainScopeId);
             scriptContext.setCurrentScopeId(scriptMainScopeId);
             NfContextScope scriptMainScope = scriptContext.createScope(scriptMainScopeId, null, NfContextScopeType.ALL);
-            
+
             // 添加系统变量（导入脚本也需要基本的系统变量）
             scriptMainScope.addVariable(new NfVariableInfo("$params", null, null));
             scriptMainScope.addVariable(new NfVariableInfo("$preValue", null, null));
-            scriptMainScope.addVariable(new NfVariableInfo("$threadFactoryName", 
+            scriptMainScope.addVariable(new NfVariableInfo("$threadFactoryName",
                 ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME, String.class));
-            
+
             // 执行脚本语法节点（不调用NfRun.run，避免clear）
             SyntaxNodeFactory.executeAll(scriptSyntaxNodes, scriptContext);
-            
+
             // 获取脚本执行后的全局作用域（此时还未clear）
             scriptMainScope = scriptContext.getMainScope();
             if (scriptMainScope == null) {
                 throw new NfException("Line:{} ,import nf 错误,脚本 '{}' 执行后未找到全局作用域",
-                    syntaxNode.getLine(), name);
+                    syntaxNode.getLine(), scriptName);
             }
-            
-            // 将脚本的全局作用域和上下文存储到当前上下文中，用于后续访问
-            context.addImportedScriptScope(name, scriptMainScope);
-            context.addImportedScriptContext(name, scriptContext);
+
+            // 将脚本的全局作用域和上下文存储到当前上下文中，使用别名作为 key
+            context.addImportedScriptScope(importName, scriptMainScope);
+            context.addImportedScriptContext(importName, scriptContext);
         }
+    }
+
+    /**
+     * 脚本导入信息（内部类）
+     * 用于存储脚本注册名称和导入别名
+     */
+    private static class ScriptImportInfo {
+        String scriptName;  // 脚本注册名称（用于查找脚本）
+        String importName;  // 导入别名（用于导入后的访问）
+
+        ScriptImportInfo(String scriptName, String importName) {
+            this.scriptName = scriptName;
+            this.importName = importName;
+        }
+    }
+
+    /**
+     * 解析脚本导入项（支持 as 别名）
+     * 格式：脚本名 或 脚本名 as 别名
+     *
+     * @param tokens 脚本导入项的 token 列表
+     * @param line 行号（用于错误提示）
+     * @return 脚本导入信息，如果解析失败返回 null
+     */
+    private ScriptImportInfo parseScriptImportItem(List<Token> tokens, int line) {
+        if (tokens == null || tokens.isEmpty()) {
+            return null;
+        }
+
+        // 查找 as 关键字位置
+        int asIndex = -1;
+        for (int i = 0; i < tokens.size(); i++) {
+            if (tokens.get(i).type == TokenType.AS) {
+                asIndex = i;
+                break;
+            }
+        }
+
+        String scriptName;
+        String importName;
+
+        if (asIndex >= 0) {
+            // 有 as 别名
+            if (asIndex == 0) {
+                throw new NfException("Line:{} ,import nf 语句错误,as 前缺少脚本名称", line);
+            }
+            if (tokens.size() <= asIndex + 1) {
+                throw new NfException("Line:{} ,import nf 语句错误,as 后缺少别名", line);
+            }
+            if (tokens.get(asIndex + 1).type != TokenType.IDENTIFIER) {
+                throw new NfException("Line:{} ,import nf 语句错误,as 后必须是标识符", line);
+            }
+
+            // 脚本名称部分（as 之前）
+            List<Token> scriptNameTokens = tokens.subList(0, asIndex);
+            scriptName = TokenUtil.mergeToken(scriptNameTokens).toString().trim();
+
+            // 别名（as 之后）
+            importName = tokens.get(asIndex + 1).value;
+
+            // 检查 as 后面是否有额外的 token
+            if (tokens.size() > asIndex + 2) {
+                throw new NfException("Line:{} ,import nf 语句错误,as 后有多余内容", line);
+            }
+        } else {
+            // 无 as 别名，使用脚本名称作为导入名称
+            scriptName = TokenUtil.mergeToken(tokens).toString().trim();
+            importName = scriptName;
+        }
+
+        if (scriptName.isEmpty()) {
+            throw new NfException("Line:{} ,import nf 语句错误,脚本名称不能为空", line);
+        }
+
+        return new ScriptImportInfo(scriptName, importName);
     }
 }
