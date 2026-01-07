@@ -1,5 +1,7 @@
 package com.gitee.huanminabc.nullchain.language;
 
+import com.gitee.huanminabc.nullchain.language.internal.FunDefInfo;
+import com.gitee.huanminabc.nullchain.language.internal.FunRefInfo;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfVariableInfo;
@@ -154,7 +156,7 @@ public class NfCalculator {
         if (nfContext == null) {
             throw new NfException("nfContext为null，无法计算表达式: " + expression);
         }
-        
+
         //检查超时（表达式计算前检查，防止复杂表达式长时间执行）
         nfContext.checkTimeout();
         
@@ -167,6 +169,28 @@ public class NfCalculator {
         }
         //合并作用域
         mergeScope(nfContext, currentScope, context);
+
+        // 特殊处理：如果表达式只是单个标识符，检查是否是函数引用变量
+        // 函数引用变量不能参与表达式计算，只能作为参数传递
+        String trimmedExpression = expression.trim();
+        if (isValidIdentifier(trimmedExpression)) {
+            // 检查是否是函数引用变量
+            if (nfContext.hasFunRef(trimmedExpression)) {
+                // 直接返回函数引用对象，不参与表达式计算
+                return nfContext.getFunRef(trimmedExpression);
+            }
+            // 检查是否是已定义的函数（函数名也可以作为函数引用使用）
+            if (nfContext.hasFunction(trimmedExpression)) {
+                // 创建函数引用并返回
+                FunDefInfo funDef = nfContext.getFunction(trimmedExpression);
+                return FunRefInfo.createFunRef(
+                    trimmedExpression,
+                    funDef,
+                    null  // funTypeInfo
+                );
+            }
+        }
+
         //获取类型导入
         Map<String, String> importMap = nfContext.getImportMap();
         if (importMap != null) {
@@ -302,6 +326,8 @@ public class NfCalculator {
             Map<String, NfVariableInfo> variables = s.getValue();
             if (variables != null) {
                 for (Map.Entry<String, NfVariableInfo> entry : variables.entrySet()) {
+                    // 函数引用变量也可以作为值访问（用于 return funName 等场景）
+                    // JEXL3 无法直接调用 FunRefInfo 对象，但可以访问其值
                     context.set(entry.getKey(), entry.getValue().getValue());
                 }
             }
@@ -513,8 +539,44 @@ public class NfCalculator {
     }
 
     /**
+     * 检测字符串是否包含 Lambda 表达式
+     * Lambda 格式：(params) -> { body }
+     *
+     * @param str 待检测的字符串
+     * @return 如果包含 Lambda 表达式返回 true
+     */
+    private static boolean containsLambdaExpression(String str) {
+        // 简单检测：是否包含 " -> {" 模式
+        int arrowIndex = str.indexOf("->");
+        if (arrowIndex == -1) {
+            return false;
+        }
+
+        // 检查箭头后面是否有 {
+        int lbraceIndex = str.indexOf('{', arrowIndex);
+        if (lbraceIndex == -1) {
+            return false;
+        }
+
+        // 检查箭头前面是否有 )
+        int rparenIndex = str.lastIndexOf(')', arrowIndex);
+        if (rparenIndex == -1) {
+            return false;
+        }
+
+        // 检查 ) 前面是否有 (
+        int lparenIndex = str.lastIndexOf('(', rparenIndex);
+        if (lparenIndex == -1) {
+            return false;
+        }
+
+        // 确认顺序：( ... ) -> { ... }
+        return lparenIndex < rparenIndex && rparenIndex < arrowIndex && arrowIndex < lbraceIndex;
+    }
+
+    /**
      * 查找最后一个函数调用（最内层）
-     * 
+     *
      * @param expression 表达式
      * @param nfContext NF上下文
      * @return 函数调用信息，如果没有找到返回null
@@ -523,13 +585,13 @@ public class NfCalculator {
         // 使用正则表达式匹配函数调用：函数名(参数列表) 或 脚本名称.函数名(参数列表)
         java.util.regex.Pattern pattern1 = java.util.regex.Pattern.compile("\\b([a-zA-Z_$][a-zA-Z0-9_$]*)\\s*\\(");
         java.util.regex.Pattern pattern2 = java.util.regex.Pattern.compile("\\b([a-zA-Z_$][a-zA-Z0-9_$]*)\\.([a-zA-Z_$][a-zA-Z0-9_$]*)\\s*\\(");
-        
+
         // 先查找导入脚本的函数调用
         java.util.regex.Matcher matcher2 = pattern2.matcher(expression);
         int lastScriptMatchStart = -1;
         String lastScriptName = null;
         String lastScriptFunctionName = null;
-        
+
         while (matcher2.find()) {
             String scriptName = matcher2.group(1);
             String functionName = matcher2.group(2);
@@ -542,7 +604,7 @@ public class NfCalculator {
                 }
             }
         }
-        
+
         // 查找当前上下文的函数调用
         java.util.regex.Matcher matcher1 = pattern1.matcher(expression);
         int lastMatchStart = -1;
@@ -554,7 +616,10 @@ public class NfCalculator {
             if (lastScriptMatchStart >= 0 && matcher1.start() == lastScriptMatchStart) {
                 continue;
             }
-            if (nfContext.hasFunction(functionName)) {
+            // 检查是否是普通函数或函数引用变量
+            boolean hasFunction = nfContext.hasFunction(functionName);
+            boolean hasFunRef = nfContext.hasFunRef(functionName);
+            if (hasFunction || hasFunRef) {
                 lastMatchStart = matcher1.start();
                 lastFunctionName = functionName;
             }
@@ -562,7 +627,7 @@ public class NfCalculator {
 
         // 优先处理导入脚本的函数调用（如果存在）
         if (lastScriptMatchStart >= 0) {
-            int endPos = findFunctionCallEndPos(expression, lastScriptMatchStart, 
+            int endPos = findFunctionCallEndPos(expression, lastScriptMatchStart,
                 lastScriptName.length() + 1 + lastScriptFunctionName.length() + 1);
             return new FunctionCallInfo(lastScriptMatchStart, endPos, true, lastScriptFunctionName, lastScriptName);
         }
@@ -577,7 +642,7 @@ public class NfCalculator {
 
     /**
      * 查找函数调用的结束位置（右括号位置）
-     * 
+     *
      * @param expression 表达式
      * @param startPos 开始位置
      * @param skipLength 需要跳过的长度（函数名和左括号的长度）
@@ -586,7 +651,7 @@ public class NfCalculator {
     private static int findFunctionCallEndPos(String expression, int startPos, int skipLength) {
         int parenDepth = 1;
         int endPos = startPos + skipLength;
-        
+
         // 找到匹配的右括号
         while (endPos < expression.length() && parenDepth > 0) {
             char c = expression.charAt(endPos);
@@ -594,10 +659,31 @@ public class NfCalculator {
                 parenDepth++;
             } else if (c == ')') {
                 parenDepth--;
+            } else if (c == '-' && endPos + 1 < expression.length() && expression.charAt(endPos + 1) == '>') {
+                // 检查是否是 Lambda 表达式的箭头 ->
+                // 如果是，需要跳过整个 Lambda 体 { ... }
+                // 找到箭头后的 {
+                int lbracePos = expression.indexOf('{', endPos + 2);
+                if (lbracePos != -1) {
+                    // 跳过 {，并查找匹配的 }
+                    int braceDepth = 1;
+                    endPos = lbracePos + 1;
+                    while (endPos < expression.length() && braceDepth > 0) {
+                        char bc = expression.charAt(endPos);
+                        if (bc == '{') {
+                            braceDepth++;
+                        } else if (bc == '}') {
+                            braceDepth--;
+                        }
+                        endPos++;
+                    }
+                    // 继续外层循环，不要跳过 endPos 的增量
+                    continue;
+                }
             }
             endPos++;
         }
-        
+
         return endPos;
     }
 
@@ -664,6 +750,30 @@ public class NfCalculator {
 
     // 临时变量计数器（用于生成唯一变量名）
     private static int tempVarCounter = 0;
+
+    /**
+     * 检查字符串是否是有效的标识符
+     * 用于判断表达式是否只是单个变量名
+     *
+     * @param str 待检查的字符串
+     * @return 如果是有效标识符返回 true
+     */
+    private static boolean isValidIdentifier(String str) {
+        if (str == null || str.isEmpty()) {
+            return false;
+        }
+        // 标识符必须以字母、下划线或美元符号开头
+        if (!Character.isJavaIdentifierStart(str.charAt(0))) {
+            return false;
+        }
+        // 其余字符必须是字母、数字、下划线或美元符号
+        for (int i = 1; i < str.length(); i++) {
+            if (!Character.isJavaIdentifierPart(str.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     public static void main(String[] args) {
         Object arithmetic = NfCalculator.arithmetic("2 * (3 + 4)", new HashMap<>());

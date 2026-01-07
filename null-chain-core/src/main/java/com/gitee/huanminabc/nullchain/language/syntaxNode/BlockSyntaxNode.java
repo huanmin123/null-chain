@@ -184,7 +184,7 @@ public abstract class BlockSyntaxNode extends SyntaxNodeAbs implements SyntaxNod
     protected static int skipBlockEnd(List<Token> tokens, int startIndex, boolean checkElse) {
         //记录结束下标, 用于截取和删除
         int endIndex = 0;
-        //记录深度  每次遇到 LBRACE + LINE_END 深度+1, 遇到 RBRACE 深度-1
+        //记录深度  每次遇到 LBRACE 深度+1, 遇到 RBRACE 深度-1
         int depth = 0;
         int tokensSize = tokens.size();
         if (tokensSize < 2 || startIndex >= tokensSize - 1) {
@@ -194,7 +194,9 @@ public abstract class BlockSyntaxNode extends SyntaxNodeAbs implements SyntaxNod
         for (int j = startIndex; j < tokensSize; j++) {
             Token currentToken = tokens.get(j);
             Token nextToken = (j + 1 < tokensSize) ? tokens.get(j + 1) : null;
-            if (currentToken.type == TokenType.LBRACE && nextToken != null && nextToken.type == TokenType.LINE_END) {
+            if (currentToken.type == TokenType.LBRACE) {
+                // 遇到左大括号，深度增加
+                // 支持两种格式：1) { 后跟 LINE_END（多行块） 2) { 后直接跟内容（单行块）
                 depth++;
             }
             //}  || } else (如果checkElse为true)
@@ -208,19 +210,25 @@ public abstract class BlockSyntaxNode extends SyntaxNodeAbs implements SyntaxNod
                     // 不检查ELSE时，遇到RBRACE就减少深度
                     depth--;
                 }
-            }
-            //当深度为0且遇到RBRACE时, 说明块表达式结束
-            if (depth == 0 && currentToken.type == TokenType.RBRACE) {
-                // 如果checkElse为true，需要确保后面是LINE_END（if语句的结束必须是 } + 换行）
-                if (checkElse) {
-                    if (nextToken != null && nextToken.type == TokenType.LINE_END) {
+                // 当深度为0且遇到RBRACE时, 说明块表达式结束（注意：深度检查必须在depth--之后）
+                if (depth == 0) {
+                    // 如果checkElse为true
+                    if (checkElse) {
+                        // 如果下一个token是ELSE，说明后面还有else分支，需要继续扫描
+                        if (nextToken != null && nextToken.type == TokenType.ELSE) {
+                            // continue to next iteration to find the final end
+                            continue;
+                        }
+                        // 否则需要确保后面是LINE_END（if语句的结束必须是 } + 换行）
+                        if (nextToken != null && nextToken.type == TokenType.LINE_END) {
+                            endIndex = j + 1;
+                            break;
+                        }
+                    } else {
+                        // 对于switch和for，只需要深度为0且遇到RBRACE即可
                         endIndex = j + 1;
                         break;
                     }
-                } else {
-                    // 对于switch和for，只需要深度为0且遇到RBRACE即可
-                    endIndex = j + 1;
-                    break;
                 }
             }
         }

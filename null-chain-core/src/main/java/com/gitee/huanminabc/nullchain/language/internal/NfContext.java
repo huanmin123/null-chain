@@ -108,6 +108,9 @@ public class NfContext {
     private Map<String, String> taskMap = new HashMap<>();
     //函数定义映射关系
     private Map<String, FunDefInfo> functionMap = new HashMap<>();
+    //函数引用变量映射关系
+    //key: 变量名, value: 函数引用信息（包括函数引用和 Lambda 表达式）
+    private Map<String, FunRefInfo> funRefMap = new HashMap<>();
     //接口类型到默认实现类的映射关系
     private Map<Class<?>, Class<?>> interfaceDefaultImplMap = new HashMap<>();
     //导入的NF脚本作用域映射关系
@@ -124,7 +127,10 @@ public class NfContext {
     //递归深度计数器，用于判断是否是最外层调用
     //从 ThreadLocal 改为实例字段，因为每个脚本执行都有独立的 NfContext
     private int recursionDepth = 0;
-    
+
+    //Lambda 表达式计数器，用于生成唯一的 Lambda 函数名
+    private int lambdaCounter = 0;
+
     //脚本执行开始时间（毫秒时间戳）
     //用于计算脚本执行总时长，判断是否超时
     private long executionStartTime = 0;
@@ -475,7 +481,7 @@ public class NfContext {
      */
     private static Map<String, String> initDefaultImportType() {
         Map<String, String> map = new HashMap<>();
-        
+
         map.put("Object", Object.class.getName());
 
         //空链相关的工具
@@ -486,6 +492,10 @@ public class NfContext {
         map.put("OkHttp", OkHttp.class.getName());
         map.put("Null", Null.class.getName());
         map.put("DateFormatEnum", DateFormatEnum.class.getName());
+
+        //函数引用类型
+        map.put("Fun", FunRefInfo.class.getName());
+        map.put("FunRef", FunRefInfo.class.getName());
 
         map.put("String", String.class.getName());
         map.put("Integer", Integer.class.getName());
@@ -605,6 +615,50 @@ public class NfContext {
     }
 
     /**
+     * 添加函数引用
+     *
+     * @param varName 变量名
+     * @param funRef 函数引用信息
+     */
+    public void addFunRef(String varName, FunRefInfo funRef) {
+        checkCleared();
+        funRefMap.put(varName, funRef);
+    }
+
+    /**
+     * 获取函数引用
+     *
+     * @param varName 变量名
+     * @return 函数引用信息，如果不存在返回 null
+     */
+    public FunRefInfo getFunRef(String varName) {
+        checkCleared();
+        return funRefMap.get(varName);
+    }
+
+    /**
+     * 检查函数引用是否存在
+     *
+     * @param varName 变量名
+     * @return 如果函数引用存在返回 true，否则返回 false
+     */
+    public boolean hasFunRef(String varName) {
+        checkCleared();
+        return funRefMap.containsKey(varName);
+    }
+
+    /**
+     * 移除函数引用
+     *
+     * @param varName 变量名
+     * @return 被移除的函数引用信息，如果不存在返回 null
+     */
+    public FunRefInfo removeFunRef(String varName) {
+        checkCleared();
+        return funRefMap.remove(varName);
+    }
+
+    /**
      * 销毁上下文并释放资源
      * 
      * <p><b>重要：</b>此方法会将内部字段清空并设置 cleared 标志，调用后对象不可再使用。
@@ -636,6 +690,9 @@ public class NfContext {
         }
         if (functionMap != null) {
             functionMap.clear();
+        }
+        if (funRefMap != null) {
+            funRefMap.clear();
         }
         if (importedScriptScopeMap != null) {
             importedScriptScopeMap.clear();

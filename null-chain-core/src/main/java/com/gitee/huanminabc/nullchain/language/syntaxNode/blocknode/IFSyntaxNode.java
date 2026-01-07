@@ -108,67 +108,36 @@ public class IFSyntaxNode extends BlockSyntaxNode {
     }
     //只跳到下一个块if位置
     private int skipIf1Block(List<Token> tokens) {
-        //记录结束下标, 用于截取和删除
-        int endIndex = 0;
         int tokensSize = tokens.size();
         if (tokensSize < 2) {
-            return tokensSize > 0 ? tokensSize - 1 : 0; // 如果tokens不足，返回安全值
+            return tokensSize > 0 ? tokensSize - 1 : 0;
         }
 
-        boolean hasElse = false;
-        //识别是否有else（包括 else if 和 else）如果没有那么最大长度就是结束
-        int depth_else = 0; //用于找到最外层的else 而不是内部的else
-        for (int j = 0; j < tokensSize - 1; j++) {
-            Token currentToken = tokens.get(j);
-            Token nextToken = tokens.get(j + 1);
-            if (currentToken.type == TokenType.LBRACE && nextToken.type == TokenType.LINE_END) {
-                depth_else++;
-            }
-            // RBRACE + (LINE_END | ELSE) 减少深度
-            if (currentToken.type == TokenType.RBRACE && (nextToken.type == TokenType.LINE_END || nextToken.type == TokenType.ELSE)) {
-                depth_else--;
-            }
-            //} else { 或 } else if
-            if (depth_else == 0 && j + 2 < tokensSize &&
-                currentToken.type == TokenType.RBRACE &&
-                nextToken.type == TokenType.ELSE &&
-                (tokens.get(j + 2).type == TokenType.LBRACE || tokens.get(j + 2).type == TokenType.IF)) {
-                hasElse = true;
-                break;
-            }
-        }
-        if (!hasElse) {
-            return tokensSize > 0 ? tokensSize - 1 : 0; //不包含最后的}
-        }
-        //记录深度  每次遇到 LBRACE + LINE_END 深度+1, 遇到 RBRACE 深度-1
         int depth = 0;
-        //遇到RBRACE + LINE_END结束
-        // 注意：如果tokens以 } else if 开头，需要跳过开头的 }
-        int startIndex = 0;
-        if (tokensSize >= 3 && tokens.get(0).type == TokenType.RBRACE &&
-            tokens.get(1).type == TokenType.ELSE && tokens.get(2).type == TokenType.IF) {
-            startIndex = 1; // 从 else 开始，跳过开头的 }
-            depth = -1; // 补偿跳过的 }
-        }
-        for (int j = startIndex; j < tokensSize - 1; j++) {
-            Token currentToken = tokens.get(j);
-            Token nextToken = tokens.get(j + 1);
-            if (currentToken.type == TokenType.LBRACE && nextToken.type == TokenType.LINE_END) {
+        int endIndex = -1; // if 块的 } 位置
+
+        // 完整扫描所有 tokens
+        for (int j = 0; j < tokensSize; j++) {
+            Token token = tokens.get(j);
+            if (token.type == TokenType.LBRACE) {
                 depth++;
-            }
-            //} + (LINE_END | ELSE) 都减少深度
-            if (currentToken.type == TokenType.RBRACE && (nextToken.type == TokenType.LINE_END || nextToken.type == TokenType.ELSE)) {
+            } else if (token.type == TokenType.RBRACE) {
                 depth--;
-            }
-            //当深度为0时, 说明到了第一个else if 或者 else  位置了
-            // 注意：在遇到 } else 后，depth已经变为0，currentToken已经是ELSE了
-            // 所以需要检查是否到了 } 的位置（depth减到0时）
-            if (depth == 0 && currentToken.type == TokenType.RBRACE) {
-                endIndex = j;
-                break;
+                // 找到第一个深度为 0 的 }，这就是块结束位置
+                if (depth == 0) {
+                    endIndex = j;
+                    break;
+                }
             }
         }
-        return endIndex;
+
+        // 如果没有找到 depth 回到 0 的 }，返回最后一个位置
+        if (endIndex == -1) {
+            return tokensSize > 0 ? tokensSize - 1 : 0;
+        }
+
+        // 返回 endIndex + 1（包含 }）
+        return endIndex + 1;
     }
 
 
@@ -331,12 +300,8 @@ public class IFSyntaxNode extends BlockSyntaxNode {
         for (int k = 0; k < endIndex; k++) {
             ifTokens.add(tokens.get(k));
         }
-        //删除
+        //删除（skipIf1Block 返回 endIndex + 1，已包含 }，无需再删除）
         tokens.subList(0, endIndex).clear();
-        //删除}
-        if (!tokens.isEmpty()) {
-            tokens.remove(0);
-        }
 
         //找到第一个{+LINE_END的位置
         int endIndex2 = 0;
@@ -369,6 +334,10 @@ public class IFSyntaxNode extends BlockSyntaxNode {
         //去掉第一个换行
         if(ifTokens.get(0).type == TokenType.LINE_END){
             ifTokens.remove(0);
+        }
+        //去掉末尾的}
+        if(!ifTokens.isEmpty() && ifTokens.get(ifTokens.size() - 1).type == TokenType.RBRACE){
+            ifTokens.remove(ifTokens.size() - 1);
         }
         //if表达式的条件
         ifStatement.setValue(conditionTokens);
@@ -426,14 +395,36 @@ public class IFSyntaxNode extends BlockSyntaxNode {
 
             //删除ELSE
             tokens.remove(0);
+
+            // 检查剩余tokens是否以{开头
+            if (tokens.isEmpty() || tokens.get(0).type != TokenType.LBRACE) {
+                throw new NfSyntaxException(
+                    token1.getLine(),
+                    "else表达式语法错误",
+                    "else后面缺少{",
+                    "",
+                    "请检查else语句的语法格式：else { ... }"
+                );
+            }
+
             //删除{
             tokens.remove(0);
+
             //删除第一个换行
-            if(tokens.get(0).type == TokenType.LINE_END){
+            if(!tokens.isEmpty() && tokens.get(0).type == TokenType.LINE_END){
                 tokens.remove(0);
             }
-            //删除结尾的}
-            tokens.remove(tokens.size()-1);
+
+            //去掉末尾的}
+            if(!tokens.isEmpty() && tokens.get(tokens.size() - 1).type == TokenType.RBRACE){
+                tokens.remove(tokens.size() - 1);
+            }
+
+            // 继续构建代码体前，检查tokens是否为空
+            if (tokens.isEmpty()) {
+                // else块为空，返回空节点
+                return ifStatement;
+            }
 
             //继续构建代码体（tokens已被修改，直接使用）
             // else块创建新作用域

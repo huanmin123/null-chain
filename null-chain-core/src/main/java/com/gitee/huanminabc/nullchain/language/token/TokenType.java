@@ -66,6 +66,8 @@ public enum TokenType {
     TAB_SYMBOL, ////\t 制表符号
     INSTANCEOF, // instanceof 类型判断操作符
     FUN, // fun 函数定义关键字
+    FUN_TYPE, // Fun 函数类型关键字（用于函数引用和 Lambda）
     RETURN, // return 返回语句关键字
     GLOBAL, // global 全局变量访问关键字
+    ARROW, // -> 箭头操作符（用于 Lambda 表达式和 run 语句）
 }

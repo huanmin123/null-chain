@@ -1,6 +1,5 @@
 package com.gitee.huanminabc.nullchain.common;
 
-import com.alibaba.fastjson.JSONWriter;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.annotation.JSONType;
 import com.alibaba.fastjson.serializer.SerializerFeature;
@@ -13,7 +12,7 @@ import com.gitee.huanminabc.nullchain.enums.ResponseStatusEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.xml.ws.WebServiceException;
+// import javax.xml.ws.WebServiceException; // 已移除：Java 9+ 不再包含此包
 import java.io.Serializable;
 import java.util.function.Supplier;
 
@@ -92,7 +91,7 @@ public class NullResult<T> implements Serializable {
         if (this.isSuccess()) {
             return Null.of(this.data);
         }
-        throw new WebServiceException(this.getMessage());
+        throw new RuntimeException(this.getMessage());
     }
 
     /**
@@ -108,13 +107,13 @@ public class NullResult<T> implements Serializable {
                 if (this.data instanceof NullExt){
                     return this.data;
                 }else{
-                    throw new WebServiceException("data is not NullExt");
+                    throw new RuntimeException("data is not NullExt");
                 }
             }else{
-                throw new WebServiceException("data is null");
+                throw new RuntimeException("data is null");
             }
         }
-        throw new WebServiceException(this.getMessage());
+        throw new RuntimeException(this.getMessage());
     }
 
     @JSONField(serialize = false)

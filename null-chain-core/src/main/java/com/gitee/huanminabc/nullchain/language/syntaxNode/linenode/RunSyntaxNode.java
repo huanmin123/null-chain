@@ -85,7 +85,7 @@ public class RunSyntaxNode extends LineSyntaxNode {
                 //判断是否存在-> 我们需要把->后面的变量转化为DeclareSyntaxNode
                 for (int j = 0; j < newToken.size(); j++) {
                     Token t = newToken.get(j);
-                    if (t.type == TokenType.ARROW_ASSIGN) {
+                    if (t.type == TokenType.ARROW) {
 
                         //截取->后面的标记序列
                         List<Token> newToken2 = new ArrayList<>(newToken.subList(j + 1, newToken.size()));
@@ -112,7 +112,7 @@ public class RunSyntaxNode extends LineSyntaxNode {
                         syntaxNodeList.add(declareSyntaxNode);
 
                         //给newToken最后添加一个箭头, 用于区分结束
-                        newToken.add(new Token(TokenType.ARROW_ASSIGN, "->", t.getLine()));
+                        newToken.add(new Token(TokenType.ARROW, "->", t.getLine()));
 
                         //给newToken最后添加一个变量
                         newToken.add(name);
@@ -151,7 +151,7 @@ public class RunSyntaxNode extends LineSyntaxNode {
         Token tokenArrowAssign = value.get(value.size() - 2);
         Token tokenVariate = value.get(value.size() - 1);
 
-        boolean isVariate = tokenArrowAssign.type == TokenType.ARROW_ASSIGN && tokenVariate.type == TokenType.IDENTIFIER;
+        boolean isVariate = tokenArrowAssign.type == TokenType.ARROW && tokenVariate.type == TokenType.IDENTIFIER;
 
         List<NullNode<String, List<Object>>> nullNodes = new ArrayList<>();
         //是这样解析的   test1( a ,b ),test1( a ,b )
@@ -159,7 +159,7 @@ public class RunSyntaxNode extends LineSyntaxNode {
         for (int i = 0; i < value.size(); i++) {
             Token token = value.get(i);
             //遇到箭头符号那么就结束了,这里不需要处理后面的内容
-            if (token.type == TokenType.ARROW_ASSIGN) {
+            if (token.type == TokenType.ARROW) {
                 break;
             }
             if (token.type == TokenType.IDENTIFIER) {
@@ -364,7 +364,7 @@ public class RunSyntaxNode extends LineSyntaxNode {
         for (int i = 0; i < tokens.size(); i++) {
             Token token = tokens.get(i);
             //遇到箭头符号那么就结束了,后面不需要处理
-            if (token.type == TokenType.ARROW_ASSIGN) {
+            if (token.type == TokenType.ARROW) {
                 break;
             }
             if (token.type == TokenType.IDENTIFIER) {

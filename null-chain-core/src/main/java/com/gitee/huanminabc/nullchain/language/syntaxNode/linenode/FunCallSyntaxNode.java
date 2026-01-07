@@ -4,6 +4,9 @@ import com.gitee.huanminabc.nullchain.language.NfCalculator;
 import com.gitee.huanminabc.nullchain.language.NfException;
 import com.gitee.huanminabc.nullchain.language.NfReturnException;
 import com.gitee.huanminabc.nullchain.language.internal.FunDefInfo;
+import com.gitee.huanminabc.nullchain.language.internal.FunRefInfo;
+import com.gitee.huanminabc.nullchain.language.internal.FunTypeInfo;
+import com.gitee.huanminabc.nullchain.language.internal.FunTypeParser;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScopeType;
@@ -16,6 +19,7 @@ import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
 import com.gitee.huanminabc.nullchain.language.utils.SyntaxNodeUtil;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
+import com.gitee.huanminabc.nullchain.language.NfSynta;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -242,13 +246,19 @@ public class FunCallSyntaxNode extends LineSyntaxNode {
             return executeObjectMethodCall(functionName, paramTokens, context, syntaxNode);
         }
 
+        // 新增：检查是否是函数引用变量调用
+        if (context.hasFunRef(functionName)) {
+            FunRefInfo funRef = context.getFunRef(functionName);
+            return executeFunRef(context, funRef, paramTokens, syntaxNode);
+        }
+
         // 普通函数调用（当前上下文的函数）
         FunDefInfo funDef = context.getFunction(functionName);
         if (funDef == null) {
             throw new NfException("Line:{} ,函数 {} 未定义 , syntax: {}",
                 syntaxNode.getLine(), functionName, syntaxNode);
         }
-        
+
         // 检查函数体是否已定义
         if (funDef.getBodyNodes() == null) {
             throw new NfException("Line:{} ,函数 {} 的函数体未定义，可能函数定义还未执行 , syntax: {}",
@@ -290,6 +300,140 @@ public class FunCallSyntaxNode extends LineSyntaxNode {
             context.switchScope(savedScopeId);
             // 清理函数作用域
             context.removeScope(functionScopeId);
+        }
+    }
+
+    /**
+     * 执行函数引用调用
+     *
+     * @param context 上下文
+     * @param funRef 函数引用信息
+     * @param paramTokens 参数tokens
+     * @param syntaxNode 语法节点
+     * @return 函数返回值
+     */
+    private Object executeFunRef(NfContext context, FunRefInfo funRef,
+                                 List<Token> paramTokens, SyntaxNode syntaxNode) {
+        // 如果是 Lambda，需要处理闭包变量
+        if (funRef.isLambda()) {
+            return executeLambda(context, funRef, paramTokens, syntaxNode);
+        }
+
+        // 如果是函数引用，直接调用引用的函数
+        FunDefInfo funDef = funRef.getFunDefInfo();
+        if (funDef == null) {
+            throw new NfException("Line:{}, 函数引用的函数定义不存在 , syntax: {}",
+                syntaxNode.getLine(), syntaxNode);
+        }
+
+        // 检查函数体是否已定义
+        if (funDef.getBodyNodes() == null) {
+            throw new NfException("Line:{}, 函数 {} 的函数体未定义 , syntax: {}",
+                syntaxNode.getLine(), funRef.getFunctionName(), syntaxNode);
+        }
+
+        // 保存当前作用域ID，作为函数作用域的父作用域
+        String parentScopeId = context.getCurrentScopeId();
+
+        // 解析参数值
+        List<Object> paramValues = parseParameterValues(paramTokens, context, syntaxNode.getLine());
+
+        // 验证参数数量和类型
+        validateParameters(funDef, paramValues, syntaxNode.getLine());
+
+        // 创建函数作用域
+        String functionScopeId = NfContext.generateScopeId();
+        NfContextScope functionScope = context.createScope(functionScopeId, parentScopeId, NfContextScopeType.ALL);
+
+        // 保存当前作用域ID
+        String savedScopeId = context.getCurrentScopeId();
+
+        try {
+            // 切换到函数作用域
+            context.switchScope(functionScopeId);
+
+            // 设置函数参数
+            setupFunctionParameters(functionScope, funDef, paramValues, context,
+                funRef.getFunctionName(), syntaxNode.getLine(), syntaxNode);
+
+            // 执行函数体
+            executeFunctionBody(funDef, context, funRef.getFunctionName(), syntaxNode);
+
+            // 获取返回值
+            return getReturnValue(functionScope);
+
+        } finally {
+            // 恢复作用域
+            context.switchScope(savedScopeId);
+            // 清理函数作用域
+            context.removeScope(functionScopeId);
+        }
+    }
+
+    /**
+     * 执行 Lambda 表达式
+     *
+     * @param context 上下文
+     * @param funRef Lambda 函数引用信息
+     * @param paramTokens 参数tokens
+     * @param syntaxNode 语法节点
+     * @return Lambda 返回值
+     */
+    private Object executeLambda(NfContext context, FunRefInfo funRef,
+                                 List<Token> paramTokens, SyntaxNode syntaxNode) {
+        FunDefInfo funDef = funRef.getFunDefInfo();
+        if (funDef == null || funDef.getBodyNodes() == null) {
+            throw new NfException("Line:{}, Lambda 的函数体未定义 , syntax: {}",
+                syntaxNode.getLine(), syntaxNode);
+        }
+
+        // 使用捕获时的作用域作为父作用域
+        String parentScopeId = funRef.getCaptureScopeId();
+        if (parentScopeId == null) {
+            parentScopeId = context.getMainScopeId();
+        }
+
+        // 解析参数值
+        List<Object> paramValues = parseParameterValues(paramTokens, context, syntaxNode.getLine());
+
+        // 验证参数数量和类型
+        validateParameters(funDef, paramValues, syntaxNode.getLine());
+
+        // 创建 Lambda 作用域
+        String lambdaScopeId = NfContext.generateScopeId();
+        NfContextScope lambdaScope = context.createScope(lambdaScopeId, parentScopeId, NfContextScopeType.ALL);
+
+        String savedScopeId = context.getCurrentScopeId();
+        try {
+            // 切换到 Lambda 作用域
+            context.switchScope(lambdaScopeId);
+
+            // 注入闭包变量（关键步骤）
+            if (funRef.getCapturedVariables() != null) {
+                for (java.util.Map.Entry<String, Object> entry : funRef.getCapturedVariables().entrySet()) {
+                    String varName = entry.getKey();
+                    Object varValue = entry.getValue();
+                    // 将捕获的变量添加到 Lambda 作用域
+                    Class<?> varType = varValue != null ? varValue.getClass() : Object.class;
+                    lambdaScope.addVariable(new NfVariableInfo(varName, varValue, varType));
+                }
+            }
+
+            // 设置参数
+            setupFunctionParameters(lambdaScope, funDef, paramValues, context,
+                "lambda", syntaxNode.getLine(), syntaxNode);
+
+            // 执行 Lambda 函数体
+            executeFunctionBody(funDef, context, "lambda", syntaxNode);
+
+            // 获取返回值
+            return getReturnValue(lambdaScope);
+
+        } finally {
+            // 恢复作用域
+            context.switchScope(savedScopeId);
+            // 清理 Lambda 作用域
+            context.removeScope(lambdaScopeId);
         }
     }
 
@@ -378,7 +522,7 @@ public class FunCallSyntaxNode extends LineSyntaxNode {
      */
     private List<Object> parseParameterValues(List<Token> paramTokens, NfContext context, int line) {
         List<Object> paramValues = new ArrayList<>();
-        
+
         if (paramTokens.isEmpty()) {
             return paramValues;
         }
@@ -387,44 +531,87 @@ public class FunCallSyntaxNode extends LineSyntaxNode {
         SyntaxNodeUtil.removeComments(paramTokens);
 
         List<Token> currentParam = new ArrayList<>();
+        int parenDepth = 0;      // 括号深度
+        int braceDepth = 0;      // 大括号深度
+        boolean inLambda = false; // 是否在 Lambda 表达式中
+
         for (Token token : paramTokens) {
             // 跳过换行token
             if (token.type == TokenType.LINE_END) {
                 continue;
             }
-            if (token.type == TokenType.COMMA) {
+
+            // 更新深度计数器
+            if (token.type == TokenType.LPAREN) {
+                parenDepth++;
+            } else if (token.type == TokenType.RPAREN) {
+                parenDepth--;
+            } else if (token.type == TokenType.LBRACE) {
+                braceDepth++;
+            } else if (token.type == TokenType.RBRACE) {
+                braceDepth--;
+            } else if (token.type == TokenType.ARROW && parenDepth > 0 && braceDepth == 0) {
+                // 检测到 Lambda 箭头，标记进入 Lambda 模式
+                inLambda = true;
+            }
+
+            // 检查是否是参数分隔符（顶层逗号）
+            if (token.type == TokenType.COMMA && parenDepth == 0 && braceDepth == 0 && !inLambda) {
                 if (!currentParam.isEmpty()) {
                     // 计算当前参数表达式
-                    StringBuilder exp = TokenUtil.mergeToken(currentParam);
-                    String expStr = exp.toString().trim();
-                    // 如果表达式是单个数字或字符串字面量，直接解析，避免调用arithmetic
-                    Object value = parseSimpleValue(currentParam, expStr, context);
-                    if (value == null) {
-                        // 不是简单值，使用arithmetic计算
-                        value = NfCalculator.arithmetic(expStr, context);
-                    }
+                    Object value = parseParameterValue(currentParam, context, line);
                     paramValues.add(value);
                     currentParam.clear();
+                    inLambda = false; // 重置 Lambda 标记
                 }
             } else {
                 currentParam.add(token);
             }
         }
-        
+
         // 处理最后一个参数
         if (!currentParam.isEmpty()) {
-            StringBuilder exp = TokenUtil.mergeToken(currentParam);
-            String expStr = exp.toString().trim();
-            // 如果表达式是单个数字或字符串字面量，直接解析，避免调用arithmetic
-            Object value = parseSimpleValue(currentParam, expStr, context);
-            if (value == null) {
-                // 不是简单值，使用arithmetic计算
-                value = NfCalculator.arithmetic(expStr, context);
-            }
+            Object value = parseParameterValue(currentParam, context, line);
             paramValues.add(value);
         }
 
         return paramValues;
+    }
+
+    /**
+     * 解析单个参数值
+     */
+    private Object parseParameterValue(List<Token> paramTokens, NfContext context, int line) {
+        StringBuilder exp = TokenUtil.mergeToken(paramTokens);
+        String expStr = exp.toString().trim();
+
+        // 如果表达式是单个数字或字符串字面量，直接解析，避免调用arithmetic
+        Object value = parseSimpleValue(paramTokens, expStr, context);
+        if (value == null) {
+            // 检查是否是 Lambda 表达式
+            value = parseLambdaExpression(paramTokens, context, line);
+            if (value == null) {
+                // 特殊处理：如果参数只是单个标识符，检查是否是函数引用或已定义的函数
+                // 这样可以支持直接传递函数名作为参数（如 apply(add, 10, 20)）
+                if (paramTokens.size() == 1 && paramTokens.get(0).type == TokenType.IDENTIFIER) {
+                    String identifier = paramTokens.get(0).value;
+                    // 检查是否是函数引用变量
+                    if (context.hasFunRef(identifier)) {
+                        value = context.getFunRef(identifier);
+                    } else if (context.hasFunction(identifier)) {
+                        // 检查是否是已定义的函数（函数名也可以作为函数引用使用）
+                        FunDefInfo funDef = context.getFunction(identifier);
+                        value = FunRefInfo.createFunRef(identifier, funDef, null);
+                    }
+                }
+
+                // 如果不是函数引用，使用 arithmetic 计算
+                if (value == null) {
+                    value = NfCalculator.arithmetic(expStr, context);
+                }
+            }
+        }
+        return value;
     }
 
     /**
@@ -560,28 +747,50 @@ public class FunCallSyntaxNode extends LineSyntaxNode {
                 }
             }
 
-            // 获取参数类型
-            String paramTypeName = context.getImportType(param.getType());
-            if (paramTypeName == null) {
-                if (scriptName != null) {
-                    throw new NfException("Line:{} ,脚本 '{}' 的函数 {} 参数 {} 类型 {} 未找到 , syntax: {}",
-                        line, scriptName, funDef.getFunctionName(), param.getName(), param.getType(), syntaxNode);
+            // 特殊处理 Fun<> 类型的参数
+            // 检查类型是否以 Fun 开头（可能是 Fun, Fun<, Fun<?, : ?> 等）
+            if (param.getType().trim().startsWith("Fun")) {
+                // Fun<> 类型的参数，值应该是 FunRefInfo 对象
+                if (paramValue instanceof FunRefInfo) {
+                    FunRefInfo funRef = (FunRefInfo) paramValue;
+                    // 标记为函数引用变量，让 JEXL 跳过它，由 FunCallSyntaxNode 处理
+                    functionScope.addVariable(new NfVariableInfo(param.getName(), paramValue, FunRefInfo.class, true, funRef));
+                    // 同时注册到 NfContext 中，让 preProcessFunctionCalls 能够找到它
+                    context.addFunRef(param.getName(), funRef);
                 } else {
-                    throw new NfException("Line:{} ,函数 {} 参数 {} 类型 {} 未找到 , syntax: {}",
-                        line, functionName, param.getName(), param.getType(), syntaxNode);
+                    if (scriptName != null) {
+                        throw new NfException("Line:{} ,脚本 '{}' 的函数 {} 参数 {} 期望 FunRefInfo 类型，实际是 {} , syntax: {}",
+                            line, scriptName, funDef.getFunctionName(), param.getName(), paramValue.getClass().getSimpleName(), syntaxNode);
+                    } else {
+                        throw new NfException("Line:{} ,函数 {} 参数 {} 期望 FunRefInfo 类型，实际是 {} , syntax: {}",
+                            line, functionName, param.getName(), paramValue.getClass().getSimpleName(), syntaxNode);
+                    }
                 }
-            }
+            } else {
+                // 普通类型的参数，需要查找导入的类型
+                String importedTypeName = context.getImportType(param.getType());
+                if (importedTypeName == null) {
+                    if (scriptName != null) {
+                        throw new NfException("Line:{} ,脚本 '{}' 的函数 {} 参数 {} 类型 {} 未找到 , syntax: {}",
+                            line, scriptName, funDef.getFunctionName(), param.getName(), param.getType(), syntaxNode);
+                    } else {
+                        throw new NfException("Line:{} ,函数 {} 参数 {} 类型 {} 未找到 , syntax: {}",
+                            line, functionName, param.getName(), param.getType(), syntaxNode);
+                    }
+                }
 
-            try {
-                Class<?> paramType = Class.forName(paramTypeName);
-                functionScope.addVariable(new NfVariableInfo(param.getName(), paramValue, paramType));
-            } catch (ClassNotFoundException e) {
-                if (scriptName != null) {
-                    throw new NfException("Line:{} ,脚本 '{}' 的函数 {} 参数 {} 类型 {} 类未找到 , syntax: {}",
-                        line, scriptName, funDef.getFunctionName(), param.getName(), paramTypeName, syntaxNode);
-                } else {
-                    throw new NfException("Line:{} ,函数 {} 参数 {} 类型 {} 类未找到 , syntax: {}",
-                        line, functionName, param.getName(), paramTypeName, syntaxNode);
+                // 尝试转换为 Java 类
+                try {
+                    Class<?> paramClass = Class.forName(importedTypeName);
+                    functionScope.addVariable(new NfVariableInfo(param.getName(), paramValue, paramClass));
+                } catch (ClassNotFoundException e) {
+                    if (scriptName != null) {
+                        throw new NfException("Line:{} ,脚本 '{}' 的函数 {} 参数 {} 类型 {} 类未找到 , syntax: {}",
+                            line, scriptName, funDef.getFunctionName(), param.getName(), importedTypeName, syntaxNode);
+                    } else {
+                        throw new NfException("Line:{} ,函数 {} 参数 {} 类型 {} 类未找到 , syntax: {}",
+                            line, functionName, param.getName(), importedTypeName, syntaxNode);
+                    }
                 }
             }
         }
@@ -645,6 +854,164 @@ public class FunCallSyntaxNode extends LineSyntaxNode {
             return null;
         }
         return returnVar.getValue();
+    }
+
+    /**
+     * 尝试解析 Lambda 表达式
+     * Lambda 表达式格式：(params) -> { body }
+     *
+     * @param tokens token 列表
+     * @param context 上下文
+     * @param line 行号
+     * @return 如果是 Lambda 表达式，返回函数引用；否则返回 null
+     */
+    private FunRefInfo parseLambdaExpression(List<Token> tokens, NfContext context, int line) {
+        if (tokens == null || tokens.size() < 5) {
+            return null; // 至少需要 (, ), ->, { 这5个token
+        }
+
+        // 检查是否以 LPAREN 开头
+        if (tokens.get(0).type != TokenType.LPAREN) {
+            return null;
+        }
+
+        // 查找匹配的 RPAREN（Lambda 参数列表结束）
+        int rparenIndex = -1;
+        int depth = 1; // 括号深度
+        for (int i = 1; i < tokens.size(); i++) {
+            Token t = tokens.get(i);
+            if (t.type == TokenType.LPAREN) {
+                depth++;
+            } else if (t.type == TokenType.RPAREN) {
+                depth--;
+                if (depth == 0) {
+                    rparenIndex = i;
+                    break;
+                }
+            }
+        }
+
+        if (rparenIndex == -1 || rparenIndex + 2 >= tokens.size()) {
+            return null; // 找不到匹配的右括号
+        }
+
+        // 检查是否有 Lambda 箭头
+        if (tokens.get(rparenIndex + 1).type != TokenType.ARROW) {
+            return null;
+        }
+
+        // 检查是否有左大括号（Lambda 体开始）
+        if (tokens.get(rparenIndex + 2).type != TokenType.LBRACE) {
+            return null;
+        }
+
+        // 查找匹配的右大括号（Lambda 体结束）
+        int lbraceIndex = rparenIndex + 2;
+        int rbraceIndex = findMatchingRBrace(tokens, lbraceIndex);
+        if (rbraceIndex == -1) {
+            return null; // 找不到匹配的右大括号
+        }
+
+        // 这是一个 Lambda 表达式！创建匿名函数
+        return createLambdaFunction(tokens, rparenIndex, lbraceIndex, rbraceIndex, context, line);
+    }
+
+    /**
+     * 查找匹配的右大括号
+     */
+    private int findMatchingRBrace(List<Token> tokens, int lbraceIndex) {
+        int depth = 1;
+        for (int i = lbraceIndex + 1; i < tokens.size(); i++) {
+            Token t = tokens.get(i);
+            if (t.type == TokenType.LBRACE) {
+                depth++;
+            } else if (t.type == TokenType.RBRACE) {
+                depth--;
+                if (depth == 0) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * 创建 Lambda 函数定义和函数引用
+     */
+    private FunRefInfo createLambdaFunction(
+            List<Token> tokens,
+            int rparenIndex,
+            int lbraceIndex,
+            int rbraceIndex,
+            NfContext context,
+            int line
+    ) {
+        // 1. 提取 Lambda 参数名
+        List<Token> lambdaParamsTokens = new ArrayList<>();
+        for (int i = 1; i < rparenIndex; i++) {
+            lambdaParamsTokens.add(tokens.get(i));
+        }
+
+        List<String> paramNames = new ArrayList<>();
+        for (Token t : lambdaParamsTokens) {
+            if (t.type == TokenType.IDENTIFIER) {
+                paramNames.add(t.value);
+            }
+        }
+
+        // 2. 提取 Lambda 体
+        List<Token> lambdaBodyTokens = new ArrayList<>();
+        for (int i = lbraceIndex + 1; i < rbraceIndex; i++) {
+            lambdaBodyTokens.add(tokens.get(i));
+        }
+
+        // 3. 解析 Lambda 体为语法节点
+        List<SyntaxNode> lambdaBodyNodes = NfSynta.buildMainStatement(new ArrayList<>(lambdaBodyTokens));
+
+        // 4. 生成唯一的 Lambda 函数名
+        String lambdaFuncName = generateLambdaFunctionName(context);
+
+        // 5. 构建 FunParameter 列表（没有类型信息，因为 Lambda 参数类型是从函数签名推断的）
+        List<FunDefInfo.FunParameter> parameters = new ArrayList<>();
+        for (String paramName : paramNames) {
+            FunDefInfo.FunParameter param = new FunDefInfo.FunParameter();
+            param.setName(paramName);
+            param.setType("Object"); // 使用 Object 作为通用类型
+            parameters.add(param);
+        }
+
+        // 6. 构建返回值类型列表（使用 Object 作为通用类型）
+        List<String> returnTypes = new ArrayList<>();
+        returnTypes.add("Object");
+
+        // 7. 创建函数定义
+        FunDefInfo funDefInfo = new FunDefInfo();
+        funDefInfo.setFunctionName(lambdaFuncName);
+        funDefInfo.setParameters(parameters);
+        funDefInfo.setReturnTypes(returnTypes);
+        funDefInfo.setBodyNodes(lambdaBodyNodes);
+
+        // 8. 注册函数定义到上下文
+        context.addFunction(lambdaFuncName, funDefInfo);
+
+        // 9. 创建函数类型信息（用于运行时类型检查）
+        FunTypeInfo funTypeInfo = new FunTypeInfo();
+        funTypeInfo.setParameterTypes(new ArrayList<>());
+        funTypeInfo.setReturnType("Object");
+
+        // 10. 创建函数引用（无闭包支持）
+        FunRefInfo funRef = FunRefInfo.createLambda(funDefInfo, null, context.getCurrentScopeId(), funTypeInfo);
+
+        return funRef;
+    }
+
+    /**
+     * 生成唯一的 Lambda 函数名
+     */
+    private String generateLambdaFunctionName(NfContext context) {
+        int counter = context.getLambdaCounter();
+        context.setLambdaCounter(counter + 1);
+        return "__lambda_param_" + counter + "_" + System.currentTimeMillis();
     }
 
     @Override

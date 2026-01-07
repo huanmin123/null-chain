@@ -52,8 +52,10 @@ public class OperatorToken {
                 }
                 break;
             case '-':
+                // 检查是否是 -> (箭头操作符)
+                // 在语法节点层面区分用途：Lambda表达式 或 run语句的箭头赋值
                 if (i + 1 < length && input.charAt(i + 1) == '>') {
-                    tokens.add(new Token(TokenType.ARROW_ASSIGN, "->", line));
+                    tokens.add(new Token(TokenType.ARROW, "->", line));
                     i += 2;
                 } else {
                     tokens.add(new Token(TokenType.SUB, "-", line));

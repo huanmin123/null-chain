@@ -54,10 +54,12 @@ public class AssignSyntaxNode extends LineSyntaxNode {
 
     /**
      * 分析Token是否可以解析为赋值表达式
-     * 支持两种格式：
+     * 支持以下格式：
      * 1. 带类型声明的赋值：IDENTIFIER IDENTIFIER ASSIGN ... (例如：Integer factorial = 1)
      * 2. 已存在变量的重新赋值：IDENTIFIER ASSIGN ... (例如：factorial = factorial * i)
-     * 
+     * 3. Fun类型赋值（简化版）：FUN_TYPE IDENTIFIER ASSIGN ... (例如：Fun func = add)
+     * 4. Fun类型赋值（完整版）：FUN_TYPE ... GT IDENTIFIER ASSIGN ... (例如：Fun<Integer, Integer : Integer> func = add)
+     *
      * @param tokens Token列表
      * @return 是否可以解析为赋值表达式
      */
@@ -67,23 +69,71 @@ public class AssignSyntaxNode extends LineSyntaxNode {
         if (size < 2) {
             return false;
         }
-        // 检查是否是已存在变量的重新赋值：IDENTIFIER ASSIGN ...
-        if (tokens.get(0).type == TokenType.IDENTIFIER && tokens.get(1).type == TokenType.ASSIGN) {
+
+        // 查找 ASSIGN 的位置
+        int assignIndex = -1;
+        for (int i = 0; i < size; i++) {
+            if (tokens.get(i).type == TokenType.ASSIGN) {
+                assignIndex = i;
+                break;
+            }
+        }
+
+        if (assignIndex == -1) {
+            return false;
+        }
+
+        // 检查是否是已存在变量的重新赋值：IDENTIFIER ASSIGN
+        if (assignIndex == 1 && tokens.get(0).type == TokenType.IDENTIFIER) {
             return true;
         }
-        // 检查是否是带类型声明的赋值：IDENTIFIER IDENTIFIER ASSIGN ...
-        return size >= 3 && tokens.get(0).type == TokenType.IDENTIFIER &&
-                tokens.get(1).type == TokenType.IDENTIFIER &&
-                tokens.get(2).type == TokenType.ASSIGN;
+
+        // 检查是否是普通类型声明：IDENTIFIER IDENTIFIER ASSIGN
+        if (assignIndex == 2 &&
+            tokens.get(0).type == TokenType.IDENTIFIER &&
+            tokens.get(1).type == TokenType.IDENTIFIER) {
+            return true;
+        }
+
+        // 检查是否是 Fun 类型声明（简化版）：FUN_TYPE IDENTIFIER ASSIGN
+        if (assignIndex == 2 &&
+            tokens.get(0).type == TokenType.FUN_TYPE &&
+            tokens.get(1).type == TokenType.IDENTIFIER) {
+            return true;
+        }
+
+        // 检查是否是 Fun<> 类型声明（完整版）：FUN_TYPE ... GT IDENTIFIER ASSIGN
+        if (assignIndex >= 2 && tokens.get(assignIndex - 1).type == TokenType.IDENTIFIER) {
+            // 检查 ASSIGN 前两个位置是否是 GT（表示可能是 Fun<> 类型）
+            if (tokens.get(assignIndex - 2).type == TokenType.GT) {
+                // 向前查找对应的 FUN_TYPE
+                int angleBracketDepth = 0;
+                for (int j = assignIndex - 2; j >= 0; j--) {
+                    Token t = tokens.get(j);
+                    if (t.type == TokenType.GT) {
+                        angleBracketDepth++;
+                    } else if (t.type == TokenType.LT) {
+                        angleBracketDepth--;
+                        if (angleBracketDepth == 0 && j > 0 && tokens.get(j - 1).type == TokenType.FUN_TYPE) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
 
     /**
      * 构建赋值语句
-     * 支持两种格式：
+     * 支持以下格式：
      * 1. 带类型声明的赋值：IDENTIFIER IDENTIFIER ASSIGN ... (例如：Integer factorial = 1)
      * 2. 已存在变量的重新赋值：IDENTIFIER ASSIGN ... (例如：factorial = factorial * i)
-     * 
+     * 3. Fun类型赋值（简化版）：FUN_TYPE IDENTIFIER ASSIGN ... (例如：Fun func = add)
+     * 4. Fun类型赋值（完整版）：FUN_TYPE ... GT IDENTIFIER ASSIGN ... (例如：Fun<Integer, Integer : Integer> func = add)
+     *
      * @param tokens Token列表
      * @param syntaxNodeList 语法节点列表
      * @return 是否成功构建
@@ -97,14 +147,63 @@ public class AssignSyntaxNode extends LineSyntaxNode {
             Token token = tokens.get(i);
             if (token.type == TokenType.ASSIGN) {
                 // 判断是哪种格式的赋值
-                boolean hasTypeDeclaration = i >= 2 && 
-                    tokens.get(i - 2).type == TokenType.IDENTIFIER && 
-                    tokens.get(i - 1).type == TokenType.IDENTIFIER;
-                
+                // 1. 检查是否是 Fun 类型声明（简化版）：FUN_TYPE IDENTIFIER ASSIGN
+                boolean isSimpleFunTypeDeclaration = i == 2 &&
+                    tokens.get(0).type == TokenType.FUN_TYPE &&
+                    tokens.get(1).type == TokenType.IDENTIFIER;
+
+                // 2. 检查是否是 Fun<> 类型声明（完整版）：FUN_TYPE ... GT IDENTIFIER ASSIGN
+                boolean isFullFunTypeDeclaration = false;
+                int funTypeStart = -1;
+
+                if (i >= 2 && !isSimpleFunTypeDeclaration) {
+                    // 从 ASSIGN 向前查找，看是否是 Fun<> 类型
+                    // 格式：Fun<ParamTypes... : ReturnType> varName =
+                    // ASSIGN 前面应该是 IDENTIFIER (varName)
+                    if (tokens.get(i - 1).type == TokenType.IDENTIFIER) {
+                        // 从 varName 向前查找 Fun<> 类型的开始
+                        int typeEndIndex = i - 2;
+                        if (typeEndIndex >= 0 && tokens.get(typeEndIndex).type == TokenType.GT) {
+                            // 找到了 GT，现在向前查找对应的 FUN_TYPE
+                            int angleBracketDepth = 0;
+                            for (int j = typeEndIndex; j >= 0; j--) {
+                                Token t = tokens.get(j);
+                                if (t.type == TokenType.GT) {
+                                    angleBracketDepth++;
+                                } else if (t.type == TokenType.LT) {
+                                    angleBracketDepth--;
+                                    if (angleBracketDepth == 0 && j > 0 && tokens.get(j - 1).type == TokenType.FUN_TYPE) {
+                                        isFullFunTypeDeclaration = true;
+                                        funTypeStart = j - 1;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                boolean isFunTypeDeclaration = isSimpleFunTypeDeclaration || isFullFunTypeDeclaration;
+
+                // 3. 检查是否是普通类型声明：IDENTIFIER IDENTIFIER ASSIGN
+                boolean isNormalTypeDeclaration = i == 2 &&
+                    tokens.get(0).type == TokenType.IDENTIFIER &&
+                    tokens.get(1).type == TokenType.IDENTIFIER;
+
+                boolean hasTypeDeclaration = isFunTypeDeclaration || isNormalTypeDeclaration;
+
                 int startIndex;
                 if (hasTypeDeclaration) {
-                    // 带类型声明的赋值：下标向前移动2位（类型 + 变量名）
-                    startIndex = i - 2;
+                    if (isFullFunTypeDeclaration) {
+                        // 完整版 Fun<> 类型声明：从 FUN_TYPE 开始
+                        startIndex = funTypeStart;
+                    } else if (isSimpleFunTypeDeclaration) {
+                        // 简化版 Fun 类型声明：FUN_TYPE IDENTIFIER ASSIGN，从开始位置截取
+                        startIndex = 0;
+                    } else {
+                        // 普通类型声明：下标向前移动2位（类型 + 变量名）
+                        startIndex = i - 2;
+                    }
                 } else {
                     // 已存在变量的重新赋值：下标向前移动1位（变量名）
                     // 确保 startIndex >= 0
@@ -116,14 +215,35 @@ public class AssignSyntaxNode extends LineSyntaxNode {
                 }
 
                 //记录结束下标, 用于截取和删除
-                int endIndex = SyntaxNodeUtil.findLineEndIndex(tokens, startIndex);
+                // 对于包含花括号的语句（如Lambda表达式），需要使用支持括号嵌套追踪的方法
+                int endIndex;
+                if (isFunTypeDeclaration) {
+                    // Fun类型声明可能包含Lambda表达式，使用支持括号嵌套的方法
+                    endIndex = SyntaxNodeUtil.findLineEndIndexWithBraceTracking(tokens, startIndex);
+                } else {
+                    // 普通赋值语句，使用原来的方法
+                    endIndex = SyntaxNodeUtil.findLineEndIndex(tokens, startIndex);
+                }
                 //截取赋值语句的标记序列,不包含LINE_END
                 List<Token> newToken = new ArrayList<>(tokens.subList(startIndex, endIndex));
                 //删除已经解析的标记
                 tokens.subList(startIndex, endIndex).clear();
 
                 //拿到变量名称（根据是否有类型声明，位置不同）
-                Token varName = hasTypeDeclaration ? newToken.get(1) : newToken.get(0);
+                Token varName;
+                if (isFullFunTypeDeclaration) {
+                    // 完整版 Fun<> 类型声明：变量名在 ASSIGN 前面一个 token
+                    varName = newToken.get(i - 1 - startIndex);
+                } else if (isSimpleFunTypeDeclaration) {
+                    // 简化版 Fun 类型声明：FUN_TYPE IDENTIFIER ASSIGN，变量名在位置 1
+                    varName = newToken.get(1);
+                } else if (hasTypeDeclaration) {
+                    // 普通类型声明：IDENTIFIER(varName) IDENTIFIER(varType) ASSIGN
+                    varName = newToken.get(1);
+                } else {
+                    // 已存在变量的重新赋值：IDENTIFIER(varName) ASSIGN
+                    varName = newToken.get(0);
+                }
                 // 禁止用户定义以 $ 开头的变量（$ 前缀保留给系统变量使用）
                 if (varName.value != null && varName.value.startsWith("$")) {
                     throw new NfException("Line:{} ,变量名 {} 不能以 $ 开头，$ 前缀保留给系统变量使用, syntax: {}", 
@@ -166,10 +286,12 @@ public class AssignSyntaxNode extends LineSyntaxNode {
 
     /**
      * 执行赋值语句
-     * 支持两种格式：
+     * 支持以下格式：
      * 1. 带类型声明的赋值：IDENTIFIER IDENTIFIER ASSIGN ... (例如：Integer factorial = 1)
      * 2. 已存在变量的重新赋值：IDENTIFIER ASSIGN ... (例如：factorial = factorial * i)
-     * 
+     * 3. Fun类型赋值（简化版）：FUN_TYPE IDENTIFIER ASSIGN ... (例如：Fun func = add)
+     * 4. Fun类型赋值（完整版）：FUN_TYPE ... GT IDENTIFIER ASSIGN ... (例如：Fun<Integer, Integer : Integer> func = add)
+     *
      * @param context 上下文
      * @param syntaxNode 语法节点
      */
@@ -177,42 +299,127 @@ public class AssignSyntaxNode extends LineSyntaxNode {
     public void run(NfContext context, SyntaxNode syntaxNode) {
         List<Token> valueTokens = syntaxNode.getValue();
         if (valueTokens == null || valueTokens.isEmpty()) {
-            throw new NfException("Line:{} ,赋值表达式tokens不能为空 , syntax: {}", 
+            throw new NfException("Line:{} ,赋值表达式tokens不能为空 , syntax: {}",
                 syntaxNode.getLine(), syntaxNode);
         }
-        boolean hasTypeDeclaration = valueTokens.size() >= 3 && 
-            valueTokens.get(0).type == TokenType.IDENTIFIER && 
-            valueTokens.get(1).type == TokenType.IDENTIFIER && 
+
+        // 查找 ASSIGN 的位置
+        int assignIndex = -1;
+        for (int i = 0; i < valueTokens.size(); i++) {
+            if (valueTokens.get(i).type == TokenType.ASSIGN) {
+                assignIndex = i;
+                break;
+            }
+        }
+
+        // 检查是否是简化版 Fun 类型声明：FUN_TYPE IDENTIFIER ASSIGN
+        boolean isSimpleFunTypeDeclaration = assignIndex == 2 &&
+            valueTokens.get(0).type == TokenType.FUN_TYPE &&
+            valueTokens.get(1).type == TokenType.IDENTIFIER;
+
+        // 检查是否是完整版 Fun<> 类型声明：FUN_TYPE ... GT IDENTIFIER ASSIGN
+        boolean isFullFunTypeDeclaration = false;
+        if (assignIndex != -1 && assignIndex >= 2 && !isSimpleFunTypeDeclaration) {
+            // 检查是否是 Fun<> 类型
+            if (valueTokens.get(assignIndex - 1).type == TokenType.IDENTIFIER &&
+                valueTokens.get(assignIndex - 2).type == TokenType.GT) {
+                // 向前查找对应的 FUN_TYPE
+                int angleBracketDepth = 0;
+                for (int j = assignIndex - 2; j >= 0; j--) {
+                    Token t = valueTokens.get(j);
+                    if (t.type == TokenType.GT) {
+                        angleBracketDepth++;
+                    } else if (t.type == TokenType.LT) {
+                        angleBracketDepth--;
+                        if (angleBracketDepth == 0 && j > 0 && valueTokens.get(j - 1).type == TokenType.FUN_TYPE) {
+                            isFullFunTypeDeclaration = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        boolean isFunTypeDeclaration = isSimpleFunTypeDeclaration || isFullFunTypeDeclaration;
+
+        // 检查是否是普通类型声明：IDENTIFIER IDENTIFIER ASSIGN ...
+        boolean isNormalTypeDeclaration = valueTokens.size() >= 3 &&
+            valueTokens.get(0).type == TokenType.IDENTIFIER &&
+            valueTokens.get(1).type == TokenType.IDENTIFIER &&
             valueTokens.get(2).type == TokenType.ASSIGN;
-        
+
+        boolean hasTypeDeclaration = isFunTypeDeclaration || isNormalTypeDeclaration;
+
         String importType;
         String varName;
         List<Token> expTokens;
-        
+
         if (hasTypeDeclaration) {
-            // 带类型声明的赋值：IDENTIFIER IDENTIFIER ASSIGN xxx
-            //获取类型
-            Token token = valueTokens.get(0);
-            String type = token.value;
-            //转化为java类型
-            importType = context.getImportType(type);
-            if (importType == null) {
-                throw new NfException("Line:{} ,未找到类型 {} , syntax: {}",token.line, type, syntaxNode);
+            if (isSimpleFunTypeDeclaration) {
+                // 简化版 Fun 类型声明：FUN_TYPE IDENTIFIER ASSIGN xxx
+                // 获取类型
+                String type = "Fun";
+                // 转化为 java 类型
+                importType = context.getImportType(type);
+                if (importType == null) {
+                    throw new NfException("Line:{} ,未找到类型 {} , syntax: {}",
+                        valueTokens.get(0).line, type, syntaxNode);
+                }
+                // 获取赋值的变量名
+                varName = valueTokens.get(1).value;
+                // 获取赋值的表达式
+                expTokens = valueTokens.subList(3, valueTokens.size());
+            } else if (isFullFunTypeDeclaration) {
+                // 完整版 Fun<> 类型声明：FUN_TYPE ... GT IDENTIFIER ASSIGN xxx
+                // 提取 Fun<> 类型字符串
+                StringBuilder typeBuilder = new StringBuilder();
+                int typeEndIndex = assignIndex - 1; // IDENTIFIER (varName) 的位置
+                // Fun<> 类型从开头到 GT
+                for (int j = 0; j <= typeEndIndex; j++) {
+                    typeBuilder.append(valueTokens.get(j).value);
+                }
+                String type = typeBuilder.toString();
+
+                // 转化为 java 类型
+                importType = context.getImportType(type);
+                if (importType == null) {
+                    // 如果找不到完整类型，尝试使用 "Fun" 作为类型名
+                    importType = context.getImportType("Fun");
+                    if (importType == null) {
+                        throw new NfException("Line:{} ,未找到类型 {} , syntax: {}",
+                            valueTokens.get(0).line, type, syntaxNode);
+                    }
+                }
+
+                // 获取赋值的变量名（ASSIGN 前面一个 token）
+                varName = valueTokens.get(assignIndex - 1).value;
+                // 获取赋值的表达式（ASSIGN 后面）
+                expTokens = valueTokens.subList(assignIndex + 1, valueTokens.size());
+            } else {
+                // 普通类型声明：IDENTIFIER IDENTIFIER ASSIGN xxx
+                // 获取类型
+                Token token = valueTokens.get(0);
+                String type = token.value;
+                // 转化为 java 类型
+                importType = context.getImportType(type);
+                if (importType == null) {
+                    throw new NfException("Line:{} ,未找到类型 {} , syntax: {}", token.line, type, syntaxNode);
+                }
+                // 获取赋值的变量名
+                varName = valueTokens.get(1).value;
+                // 获取赋值的表达式
+                expTokens = valueTokens.subList(3, valueTokens.size());
             }
-            //获取赋值的变量名
-            varName = valueTokens.get(1).value;
-            //获取赋值的表达式
-            expTokens = valueTokens.subList(3, valueTokens.size());
         } else {
             // 已存在变量的重新赋值：IDENTIFIER ASSIGN xxx
-            //获取变量名
+            // 获取变量名
             varName = valueTokens.get(0).value;
-            //获取赋值的表达式
+            // 获取赋值的表达式
             expTokens = valueTokens.subList(2, valueTokens.size());
-            //从上下文获取变量的类型
+            // 从上下文获取变量的类型
             NfVariableInfo variableInfo = context.getVariable(varName);
             if (variableInfo == null) {
-                throw new NfException("Line:{} ,变量 {} 不存在，无法重新赋值 , syntax: {}", 
+                throw new NfException("Line:{} ,变量 {} 不存在，无法重新赋值 , syntax: {}",
                     valueTokens.get(0).line, varName, syntaxNode);
             }
             importType = variableInfo.getType().getName();
@@ -351,15 +558,35 @@ public class AssignSyntaxNode extends LineSyntaxNode {
                 // 注意：重复变量检查已在解析阶段完成，此处不再检查
                 // 新变量声明：添加到当前作用域
                 currentScope.addVariable(new NfVariableInfo(varName, arithmetic, declaredType));
+
+                // 特殊处理：如果是 FunRefInfo 类型，还需要注册到 context 的 funRefMap 中
+                // 这样 preProcessFunctionCalls 才能识别函数引用变量的调用
+                if (arithmetic instanceof com.gitee.huanminabc.nullchain.language.internal.FunRefInfo) {
+                    com.gitee.huanminabc.nullchain.language.internal.FunRefInfo funRef =
+                        (com.gitee.huanminabc.nullchain.language.internal.FunRefInfo) arithmetic;
+                    context.addFunRef(varName, funRef);
+                }
             } else {
                 // 已存在变量的重新赋值：更新变量所在的作用域，而不是当前作用域
                 // 这样可以确保在循环中对父作用域变量的修改能够持久化
                 NfContextScope variableScope = context.findVariableScope(varName);
                 if (variableScope != null) {
                     variableScope.addVariable(new NfVariableInfo(varName, arithmetic, declaredType));
+                    // 特殊处理：如果是 FunRefInfo 类型，还需要更新 context 的 funRefMap
+                    if (arithmetic instanceof com.gitee.huanminabc.nullchain.language.internal.FunRefInfo) {
+                        com.gitee.huanminabc.nullchain.language.internal.FunRefInfo funRef =
+                            (com.gitee.huanminabc.nullchain.language.internal.FunRefInfo) arithmetic;
+                        context.addFunRef(varName, funRef);
+                    }
                 } else {
                     // 如果找不到变量所在的作用域（理论上不应该发生），则添加到当前作用域
                     currentScope.addVariable(new NfVariableInfo(varName, arithmetic, declaredType));
+                    // 特殊处理：如果是 FunRefInfo 类型，还需要注册到 context 的 funRefMap
+                    if (arithmetic instanceof com.gitee.huanminabc.nullchain.language.internal.FunRefInfo) {
+                        com.gitee.huanminabc.nullchain.language.internal.FunRefInfo funRef =
+                            (com.gitee.huanminabc.nullchain.language.internal.FunRefInfo) arithmetic;
+                        context.addFunRef(varName, funRef);
+                    }
                 }
             }
         } catch (ClassNotFoundException e) {
@@ -374,33 +601,73 @@ public class AssignSyntaxNode extends LineSyntaxNode {
      * 根据是否有类型声明，格式不同：
      * 1. 带类型声明：类型 变量名 = 表达式
      * 2. 已存在变量重新赋值：变量名 = 表达式
-     * 
+     *
      * @param tokens Token列表
      * @return 表达式字符串
      */
     private String printExp(List<Token> tokens) {
         StringBuilder sb = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
-        boolean hasTypeDeclaration = tokens.size() >= 3 && 
-            tokens.get(0).type == TokenType.IDENTIFIER && 
-            tokens.get(1).type == TokenType.IDENTIFIER && 
-            tokens.get(2).type == TokenType.ASSIGN;
-        
+
+        // 查找 ASSIGN 的位置
+        int assignIndex = -1;
+        for (int i = 0; i < tokens.size(); i++) {
+            if (tokens.get(i).type == TokenType.ASSIGN) {
+                assignIndex = i;
+                break;
+            }
+        }
+
+        if (assignIndex == -1) {
+            // 没有找到 ASSIGN，直接拼接所有 tokens
+            for (Token token : tokens) {
+                sb.append(token.value);
+            }
+            return sb.toString();
+        }
+
+        // 检查是否是 Fun<> 类型声明
+        boolean isFunTypeDeclaration = false;
+        if (assignIndex >= 2 && tokens.get(assignIndex - 1).type == TokenType.IDENTIFIER &&
+            tokens.get(assignIndex - 2).type == TokenType.GT) {
+            // 向前查找对应的 FUN_TYPE
+            int angleBracketDepth = 0;
+            for (int j = assignIndex - 2; j >= 0; j--) {
+                Token t = tokens.get(j);
+                if (t.type == TokenType.GT) {
+                    angleBracketDepth++;
+                } else if (t.type == TokenType.LT) {
+                    angleBracketDepth--;
+                    if (angleBracketDepth == 0 && j > 0 && tokens.get(j - 1).type == TokenType.FUN_TYPE) {
+                        isFunTypeDeclaration = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // 检查是否是普通类型声明
+        boolean isNormalTypeDeclaration = assignIndex == 2 &&
+            tokens.get(0).type == TokenType.IDENTIFIER &&
+            tokens.get(1).type == TokenType.IDENTIFIER;
+
+        boolean hasTypeDeclaration = isFunTypeDeclaration || isNormalTypeDeclaration;
+
         if (hasTypeDeclaration) {
-            //前3个是类型,变量名,赋值符号 需要空格
-            for (int i = 0; i < 3; i++) {
+            // 类型 + 变量名 + 赋值符号需要空格
+            for (int i = 0; i <= assignIndex; i++) {
                 sb.append(tokens.get(i).value).append(" ");
             }
-            //后面的是表达式
-            for (int i = 3; i < tokens.size(); i++) {
+            // 后面的是表达式
+            for (int i = assignIndex + 1; i < tokens.size(); i++) {
                 sb.append(tokens.get(i).value);
             }
         } else {
-            //前2个是变量名,赋值符号 需要空格
-            for (int i = 0; i < 2; i++) {
+            // 变量名 + 赋值符号需要空格
+            for (int i = 0; i <= assignIndex; i++) {
                 sb.append(tokens.get(i).value).append(" ");
             }
-            //后面的是表达式
-            for (int i = 2; i < tokens.size(); i++) {
+            // 后面的是表达式
+            for (int i = assignIndex + 1; i < tokens.size(); i++) {
                 sb.append(tokens.get(i).value);
             }
         }

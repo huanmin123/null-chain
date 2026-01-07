@@ -23,6 +23,8 @@ public enum SyntaxNodeType {
     CONTINUE_EXP, // continue语句
     FUN_DEF_EXP, // 函数定义表达式
     FUN_CALL_EXP, // 函数调用表达式
+    FUN_REF_EXP, // 函数引用表达式（Fun<...> varName = functionName）
+    LAMBDA_EXP, // Lambda 表达式（(参数列表) -> { 函数体 }）
     RETURN_EXP, // return语句表达式
 
 

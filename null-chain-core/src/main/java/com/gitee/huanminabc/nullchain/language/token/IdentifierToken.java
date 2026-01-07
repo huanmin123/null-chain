@@ -105,6 +105,9 @@ public class IdentifierToken {
             case "fun":
                 tokens.add(new Token(TokenType.FUN, value, line));
                 break;
+            case "Fun":
+                tokens.add(new Token(TokenType.FUN_TYPE, value, line));
+                break;
             case "return":
                 tokens.add(new Token(TokenType.RETURN, value, line));
                 break;

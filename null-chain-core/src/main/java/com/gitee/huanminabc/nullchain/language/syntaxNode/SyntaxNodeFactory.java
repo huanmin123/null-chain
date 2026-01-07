@@ -46,7 +46,9 @@ public class SyntaxNodeFactory {
         syntaxNodeMap.put(SyntaxNodeType.FUN_DEF_EXP, new FunDefSyntaxNode()); // 函数定义优先级高于函数调用
         syntaxNodeMap.put(SyntaxNodeType.RETURN_EXP, new ReturnSyntaxNode()); // return语句优先级高于函数调用
         syntaxNodeMap.put(SyntaxNodeType.VAR_EXP, new VarSyntaxNode());
+        syntaxNodeMap.put(SyntaxNodeType.LAMBDA_EXP, new LambdaSyntaxNode()); // Lambda表达式优先级高于ASSIGN，避免被当作普通赋值处理
         syntaxNodeMap.put(SyntaxNodeType.ASSIGN_EXP, new AssignSyntaxNode());
+        syntaxNodeMap.put(SyntaxNodeType.FUN_REF_EXP, new FunRefSyntaxNode()); // 函数引用（特殊的赋值语句）
         syntaxNodeMap.put(SyntaxNodeType.DECLARE_EXP, new DeclareSyntaxNode());
         syntaxNodeMap.put(SyntaxNodeType.RUN_EXP, new RunSyntaxNode());
         syntaxNodeMap.put(SyntaxNodeType.EXPORT_EXP, new ExportSyntaxNode());

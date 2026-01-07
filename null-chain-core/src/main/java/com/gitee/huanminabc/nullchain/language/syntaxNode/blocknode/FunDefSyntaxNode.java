@@ -5,7 +5,10 @@ import com.gitee.huanminabc.nullchain.language.NfSyntaxException;
 import com.gitee.huanminabc.nullchain.language.NfSynta;
 import com.gitee.huanminabc.nullchain.language.utils.KeywordUtil;
 import com.gitee.huanminabc.nullchain.language.internal.FunDefInfo;
+import com.gitee.huanminabc.nullchain.language.internal.FunRefInfo;
+import com.gitee.huanminabc.nullchain.language.internal.FunTypeInfo;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
+import com.gitee.huanminabc.nullchain.language.internal.NfVariableInfo;
 import com.gitee.huanminabc.nullchain.language.internal.ParseScopeTracker;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.BlockSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
@@ -381,6 +384,7 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
     /**
      * 解析参数列表
      * 格式：类型1 参数名1, 类型2 参数名2, 类型3... 参数名3
+     * 支持多行参数定义和 Fun<> 类型
      */
     private void parseParameters(List<Token> paramTokens, List<FunDefInfo.FunParameter> parameters, int line) {
         // 去掉注释
@@ -391,8 +395,23 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
         }
 
         List<Token> currentParam = new ArrayList<>();
+        int angleBracketDepth = 0; // 跟踪尖括号深度，用于处理 Fun<> 类型
+
         for (Token token : paramTokens) {
-            if (token.type == TokenType.COMMA) {
+            // 跳过换行token
+            if (token.type == TokenType.LINE_END) {
+                continue;
+            }
+
+            // 更新尖括号深度
+            if (token.type == TokenType.LT) {
+                angleBracketDepth++;
+            } else if (token.type == TokenType.GT) {
+                angleBracketDepth--;
+            }
+
+            // 只有在不在 Fun<> 类型内部时才按逗号分割
+            if (token.type == TokenType.COMMA && angleBracketDepth == 0) {
                 if (!currentParam.isEmpty()) {
                     FunDefInfo.FunParameter param = parseSingleParameter(currentParam, line);
                     parameters.add(param);
@@ -445,6 +464,7 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
         // 获取类型和参数名
         String type;
         Token nameToken;
+        int nameIndex;
 
         if (varArgs) {
             // 可变参数：类型... 参数名
@@ -457,10 +477,17 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
                     "请检查参数格式"
                 );
             }
-            type = tokens.get(typeEndIndex).value;
-            nameToken = tokens.get(typeEndIndex + 3);
+            // 检查类型部分是否是 Fun<> 类型
+            if (tokens.get(typeEndIndex).type == TokenType.FUN_TYPE) {
+                type = extractFunType(tokens, typeEndIndex);
+                nameIndex = typeEndIndex + 3; // 跳过类型和 DOT2+DOT
+            } else {
+                type = tokens.get(typeEndIndex).value;
+                nameIndex = typeEndIndex + 3;
+            }
+            nameToken = tokens.get(nameIndex);
         } else {
-            // 普通参数：类型 参数名
+            // 普通参数：类型 参数名（或 Fun<...> 参数名）
             if (tokens.size() < 2) {
                 throw new NfSyntaxException(
                     line,
@@ -470,14 +497,44 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
                     "请检查参数格式"
                 );
             }
-            type = tokens.get(0).value;
-            nameToken = tokens.get(1);
+            // 检查类型部分是否是 Fun<> 类型
+            if (tokens.get(0).type == TokenType.FUN_TYPE) {
+                type = extractFunType(tokens, 0);
+                // 找到 Fun<> 类型结束位置，参数名在之后
+                int funTypeEnd = findFunTypeEnd(tokens);
+                if (funTypeEnd == -1) {
+                    throw new NfSyntaxException(
+                        line,
+                        "函数参数语法错误",
+                        "Fun<> 类型格式错误，找不到匹配的 '>'",
+                        TokenUtil.mergeToken(tokens).toString(),
+                        "请检查 Fun<> 类型格式"
+                    );
+                }
+                nameIndex = funTypeEnd + 1;
+                if (nameIndex >= tokens.size()) {
+                    throw new NfSyntaxException(
+                        line,
+                        "函数参数语法错误",
+                        "Fun<> 类型后面缺少参数名",
+                        TokenUtil.mergeToken(tokens).toString(),
+                        "请检查参数格式"
+                    );
+                }
+                nameToken = tokens.get(nameIndex);
+            } else {
+                // 普通类型：类型是第一个 token，参数名是第二个 token
+                type = tokens.get(0).value;
+                nameIndex = 1;
+                nameToken = tokens.get(nameIndex);
+            }
         }
 
         String name = nameToken.value;
 
         // 检查参数名 token 的类型是否是 IDENTIFIER（如果不是，说明是关键字）
-        if (nameToken.type != TokenType.IDENTIFIER) {
+        // Fun_TYPE 也可以作为参数名的一部分（虽然不推荐）
+        if (nameToken.type != TokenType.IDENTIFIER && nameToken.type != TokenType.FUN_TYPE) {
             throw new NfSyntaxException(
                 line,
                 "参数名不能使用关键字",
@@ -507,20 +564,80 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
     }
 
     /**
+     * 提取 Fun<> 类型字符串
+     * 例如：Fun<Integer, Integer : Integer>
+     */
+    private String extractFunType(List<Token> tokens, int startIndex) {
+        StringBuilder sb = new StringBuilder();
+        int depth = 0;
+        for (int i = startIndex; i < tokens.size(); i++) {
+            Token t = tokens.get(i);
+            sb.append(t.value);
+            if (t.type == TokenType.LT) {
+                depth++;
+            } else if (t.type == TokenType.GT) {
+                depth--;
+                if (depth == 0) {
+                    break;
+                }
+            }
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 查找 Fun<> 类型的结束位置（最后一个 > 的位置）
+     */
+    private int findFunTypeEnd(List<Token> tokens) {
+        if (tokens.isEmpty() || tokens.get(0).type != TokenType.FUN_TYPE) {
+            return -1;
+        }
+        int depth = 0;
+        for (int i = 0; i < tokens.size(); i++) {
+            Token t = tokens.get(i);
+            if (t.type == TokenType.LT) {
+                depth++;
+            } else if (t.type == TokenType.GT) {
+                depth--;
+                if (depth == 0) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    /**
      * 解析返回值类型列表
      * 格式：类型1,类型2（多个返回值用逗号分割）
+     * 支持Fun<>类型
      */
     private void parseReturnTypes(List<Token> returnTypeTokens, List<String> returnTypes, int line) {
         // 去掉注释
         SyntaxNodeUtil.removeComments(returnTypeTokens);
-        
+
         if (returnTypeTokens.isEmpty()) {
             return;
         }
 
         List<Token> currentType = new ArrayList<>();
+        int angleBracketDepth = 0; // 跟踪尖括号深度，用于处理 Fun<> 类型
+
         for (Token token : returnTypeTokens) {
-            if (token.type == TokenType.COMMA) {
+            // 跳过换行token
+            if (token.type == TokenType.LINE_END) {
+                continue;
+            }
+
+            // 更新尖括号深度
+            if (token.type == TokenType.LT) {
+                angleBracketDepth++;
+            } else if (token.type == TokenType.GT) {
+                angleBracketDepth--;
+            }
+
+            // 只有在不在 Fun<> 类型内部时才按逗号分割
+            if (token.type == TokenType.COMMA && angleBracketDepth == 0) {
                 if (!currentType.isEmpty()) {
                     String type = TokenUtil.mergeToken(currentType).toString().trim();
                     if (!type.isEmpty()) {
@@ -532,7 +649,7 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
                 currentType.add(token);
             }
         }
-        
+
         // 处理最后一个类型
         if (!currentType.isEmpty()) {
             String type = TokenUtil.mergeToken(currentType).toString().trim();
@@ -711,6 +828,38 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
 
         // 将函数定义存储到context中
         context.addFunction(functionName, funDefInfo);
+
+        // 创建函数引用变量，让函数名可以在表达式中被引用（如 return add）
+        // 构建 FunType 信息
+        FunTypeInfo funTypeInfo = new FunTypeInfo();
+        List<String> paramTypes = new ArrayList<>();
+        for (FunDefInfo.FunParameter param : parameters) {
+            paramTypes.add(param.getType());
+        }
+        funTypeInfo.setParameterTypes(paramTypes);
+
+        // 设置返回类型
+        if (returnTypes.size() == 1) {
+            funTypeInfo.setReturnType(returnTypes.get(0));
+        } else {
+            // 多返回值，使用 List 作为返回类型
+            funTypeInfo.setReturnType("List");
+        }
+
+        // 创建 FunRefInfo 并注册为变量
+        FunRefInfo funRef = FunRefInfo.createFunRef(functionName, funDefInfo, funTypeInfo);
+
+        // 将函数引用添加到当前作用域，使其可以作为值在表达式中使用
+        context.getCurrentScope().addVariable(new NfVariableInfo(
+            functionName,
+            funRef,
+            FunRefInfo.class,
+            true,  // isFinal
+            funRef
+        ));
+
+        // 同时注册到 FunRef Map 中
+        context.addFunRef(functionName, funRef);
     }
 }
 
