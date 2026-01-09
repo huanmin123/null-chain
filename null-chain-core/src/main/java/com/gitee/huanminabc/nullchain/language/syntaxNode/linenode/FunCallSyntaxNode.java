@@ -11,6 +11,7 @@ import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScopeType;
 import com.gitee.huanminabc.nullchain.language.internal.NfVariableInfo;
+import com.gitee.huanminabc.nullchain.language.lambda.LambdaProxyFactory;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.LineSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeFactory;
@@ -22,19 +23,21 @@ import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
 import com.gitee.huanminabc.nullchain.language.NfSynta;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * 函数调用语法节点
- * 
+ *
  * <p>支持函数调用语法：函数名(参数列表)</p>
  * <p>函数调用可以出现在表达式中，返回值会被用于表达式计算</p>
  *
  * @author huanmin
  * @date 2024/11/22
  */
+@Slf4j
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class FunCallSyntaxNode extends LineSyntaxNode {
@@ -782,6 +785,14 @@ public class FunCallSyntaxNode extends LineSyntaxNode {
                 // 尝试转换为 Java 类
                 try {
                     Class<?> paramClass = Class.forName(importedTypeName);
+
+                    // 自动转换：如果参数类型是函数式接口，且参数值是 FunRefInfo，则自动创建代理
+                    if (paramValue instanceof FunRefInfo && LambdaProxyFactory.isFunctionalInterface(paramClass)) {
+                        FunRefInfo funRef = (FunRefInfo) paramValue;
+                        log.info("自动转换 Lambda: {} -> {}", funRef, paramClass.getSimpleName());
+                        paramValue = LambdaProxyFactory.createProxy(funRef, paramClass, context, line);
+                    }
+
                     functionScope.addVariable(new NfVariableInfo(param.getName(), paramValue, paramClass));
                 } catch (ClassNotFoundException e) {
                     if (scriptName != null) {
