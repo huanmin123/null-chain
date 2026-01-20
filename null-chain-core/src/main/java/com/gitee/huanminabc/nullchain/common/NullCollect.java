@@ -37,13 +37,29 @@ import java.util.Map;
  * @since 1.0.0
  */
 public class NullCollect implements Serializable {
+    /**
+     * 存储收集的结果，key为Class类型，value为对应的对象
+     */
     private final Map<Class<?>, Object> nullMap;
 
+    /**
+     * 创建一个新的收集器
+     * 
+     * <p>初始化内部的Map用于存储收集的结果。</p>
+     */
     public NullCollect() {
         this.nullMap = new HashMap<>();
     }
 
-    //添加内容
+    /**
+     * 添加内容到收集器
+     * 
+     * <p>将对象添加到收集器中，以对象的Class类型作为key。
+     * 如果对象为null则忽略。如果已存在相同类型的对象，则覆盖原有对象。
+     * 按照经验来说，在一个链路中只有最后一个是有效的有价值的。</p>
+     * 
+     * @param o 要添加的对象，如果为null则忽略
+     */
     protected void add(Object o) {
         if (o == null) {
             return;
@@ -52,7 +68,16 @@ public class NullCollect implements Serializable {
         nullMap.put(o.getClass(), o);
     }
 
-    //获取内容
+    /**
+     * 根据类型获取收集的内容
+     * 
+     * <p>根据指定的Class类型从收集器中获取对应的对象，并返回NullChain包装的结果。
+     * 如果找不到对应类型的对象，则返回空的NullChain。</p>
+     * 
+     * @param <T> 要获取的对象类型
+     * @param t 对象的Class类型
+     * @return NullChain包装的对象，如果不存在则返回空链
+     */
     public <T> NullChain<T> get(Class<T> t) {
         NullTaskList nullTaskList = new NullTaskList();
         StringBuilder linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
@@ -68,6 +93,11 @@ public class NullCollect implements Serializable {
         return NullBuild.busy(linkLog, nullTaskList);
     }
 
+    /**
+     * 判断收集器是否为空
+     * 
+     * @return 如果收集器为空返回true，否则返回false
+     */
     public boolean isEmpty() {
         return nullMap.isEmpty();
     }

@@ -22,12 +22,27 @@ import java.io.Serializable;
  */
 public class NullKernelAbstract implements  Serializable, NullCheck {
     private static final long serialVersionUID = 1L;
+    
+    /**
+     * 链式操作的日志记录器，用于记录操作过程
+     */
     protected transient StringBuilder linkLog;
 
-    //任务队列
-    public   NullTaskList taskList;
+    /**
+     * 任务队列，存储要执行的任务链
+     */
+    public NullTaskList taskList;
 
-    //如果序列化的时候发现value是null,那么就不序列化,避免不必要的无用空值传递
+    /**
+     * 序列化时调用的方法
+     * 
+     * <p>在序列化之前，先执行任务链获取最终值。如果最终值为null，
+     * 则抛出异常，避免不必要的无用空值传递。</p>
+     * 
+     * @param out 对象输出流
+     * @throws IOException 如果序列化过程中发生IO错误
+     * @throws NullChainException 如果最终值为null
+     */
     private void writeObject(ObjectOutputStream out) throws IOException {
        NullTaskList.NullNode nullChainBase = this.taskList.runTaskAll();
         if (nullChainBase.isNull){
@@ -36,7 +51,15 @@ public class NullKernelAbstract implements  Serializable, NullCheck {
         out.defaultWriteObject(); // 序列化非transient字段
     }
 
-    // 反序列化时调用的方法
+    /**
+     * 反序列化时调用的方法
+     * 
+     * <p>在反序列化后，初始化transient字段，包括任务列表和日志记录器。</p>
+     * 
+     * @param in 对象输入流
+     * @throws IOException 如果反序列化过程中发生IO错误
+     * @throws ClassNotFoundException 如果找不到类
+     */
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject(); // 反序列化非transient字段
         // 初始化反序列化后的临时状态
@@ -46,12 +69,24 @@ public class NullKernelAbstract implements  Serializable, NullCheck {
         this.linkLog = new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY);
     }
 
-
-
+    /**
+     * 创建一个新的Null内核实例
+     * 
+     * <p>使用默认的日志记录器和任务列表初始化。</p>
+     */
     public NullKernelAbstract(){
           this(new StringBuilder(NullConstants.STRING_BUILDER_INITIAL_CAPACITY),new NullTaskList());
     }
 
+    /**
+     * 创建一个新的Null内核实例
+     * 
+     * <p>使用指定的日志记录器和任务列表初始化。如果参数为null，则使用默认值。
+     * 因为是链式操作，需要续上日志记录器。</p>
+     * 
+     * @param linkLog 链式操作的日志记录器，如果为null则创建新的
+     * @param taskList 任务列表，如果为null则创建新的
+     */
     public NullKernelAbstract(StringBuilder linkLog, NullTaskList taskList) {
         if (taskList==null){
             taskList = new NullTaskList();
@@ -64,6 +99,13 @@ public class NullKernelAbstract implements  Serializable, NullCheck {
         this.linkLog = linkLog;
     }
 
+    /**
+     * 检查当前值是否为空
+     * 
+     * <p>执行任务链获取最终值，判断是否为空。</p>
+     * 
+     * @return 如果值为null返回true，否则返回false
+     */
     @Override
     public boolean isEmpty() {
         return taskList.runTaskAll().isNull;

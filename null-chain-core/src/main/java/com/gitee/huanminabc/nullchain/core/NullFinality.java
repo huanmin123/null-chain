@@ -239,39 +239,135 @@ public interface NullFinality<T> extends NullKernel<T>, Serializable {
 
 
     /**
-     * 获取上一个任务的值, 如果上一个任务不是空那么就执行action,否则不执行
+     * 如果上一个任务的值存在则执行给定的消费操作
+     *
+     * <p>当链式操作的结果不为空时，执行指定的消费操作。如果值为空，则不执行任何操作。</p>
+     *
+     * @param action 当值非空时要执行的消费操作
+     * 
+     * @example
+     * <pre>{@code
+     * // 当用户名不为空时，打印用户名
+     * Null.of(user)
+     *     .map(User::getName)
+     *     .ifPresent(name -> System.out.println("用户名: " + name));
+     * 
+     * // 当用户不为空时，保存用户信息
+     * Null.of(user)
+     *     .ifPresent(u -> userService.save(u));
+     * }</pre>
      */
     void ifPresent(Consumer<? super T> action);
 
-
+    /**
+     * 如果上一个任务的值存在则执行action，否则执行emptyAction
+     *
+     * <p>当链式操作的结果不为空时，执行指定的消费操作；如果值为空，则执行空值处理操作。</p>
+     *
+     * @param action      当值非空时要执行的消费操作
+     * @param emptyAction 当值为空时要执行的操作
+     * 
+     * @example
+     * <pre>{@code
+     * // 当用户名不为空时打印用户名，否则打印提示信息
+     * Null.of(user)
+     *     .map(User::getName)
+     *     .ifPresentOrElse(
+     *         name -> System.out.println("用户名: " + name),
+     *         () -> System.out.println("用户名为空")
+     *     );
+     * 
+     * // 当用户不为空时保存，否则记录日志
+     * Null.of(user)
+     *     .ifPresentOrElse(
+     *         u -> userService.save(u),
+     *         () -> log.warn("用户为空，无法保存")
+     *     );
+     * }</pre>
+     */
     void ifPresentOrElse(Consumer<? super T> action, Runnable emptyAction);
 
-
     /**
-     * 抓取未知异常, 自行处理异常逻辑
-     * 如果出现空值, 那么也会抛出异常
+     * 抓取链路中的未知异常并交由调用方处理
+     *
+     * <p>当链式操作执行过程中发生异常时，捕获异常并交由调用方处理。
+     * 如果出现空值，也会抛出异常。</p>
+     *
+     * @param consumer 异常处理逻辑，接收捕获到的异常
+     * 
+     * @example
+     * <pre>{@code
+     * // 捕获异常并记录日志
+     * Null.of(user)
+     *     .map(User::getName)
+     *     .map(name -> name.substring(0, 100))  // 可能抛出StringIndexOutOfBoundsException
+     *     .capture(e -> log.error("处理用户名时发生异常", e));
+     * 
+     * // 捕获异常并发送告警
+     * Null.of(data)
+     *     .map(this::processData)
+     *     .capture(e -> {
+     *         alertService.sendAlert("数据处理异常: " + e.getMessage());
+     *         e.printStackTrace();
+     *     });
+     * }</pre>
      */
     void capture(Consumer<Throwable> consumer);
 
     /**
-     * 抓取未知异常, 抛出自定义消息的异常
-     * 如果出现空值, 那么也会抛出异常
+     * 抛出指定类型和消息的运行时异常
      *
-     * @example <pre>{@code
+     * <p>当链路执行过程中出现异常或空值时，使用给定的异常类型和消息抛出。</p>
+     *
+     * @param exceptionClass   要抛出的异常类型，必须是RuntimeException的子类
+     * @param exceptionMessage 异常消息模板，支持{}占位符
+     * @param args             异常消息参数
+     * 
+     * @example
+     * <pre>{@code
+     * // 当用户名为空时，抛出带自定义消息的异常
      * Null.of(user)
      *     .map(User::getName)
-     *     .except((e) -> System.out.println("发生异常：" + e.getMessage()),
-     *             "获取用户姓名时发生异常：用户{}", user.getId());
+     *     .doThrow(IllegalArgumentException.class, "用户{}的姓名不能为空", user.getId());
+     * 
+     * // 当数据为空时，抛出业务异常
+     * Null.of(data)
+     *     .doThrow(BusinessException.class, "数据不存在，ID: {}", dataId);
      * }</pre>
      */
     void doThrow(Class<? extends RuntimeException> exceptionClass, String exceptionMessage, Object... args);
 
-
     /**
-     * 获取值的长度, 如果值是null那么返回0
-     * 1. 如果8大数据类型那么返回的是toString 的长度
-     * 2. 如果是集合和数组那么返回的是 length 或者 size的长度
-     * 3. 如果是自定义对象内部有length 或者 size方法那么返回的是length 或者 size的长度
+     * 获取当前值的"长度"信息
+     *
+     * <p>规则：</p>
+     * <ul>
+     *   <li>如果值为null，返回0</li>
+     *   <li>基本类型/包装类型：返回{@code toString()}的长度</li>
+     *   <li>集合和数组：返回{@code size()}或{@code length}</li>
+     *   <li>自定义对象：若存在{@code length()}或{@code size()}方法则调用其结果</li>
+     * </ul>
+     *
+     * @return 长度信息，null时为0
+     * 
+     * @example
+     * <pre>{@code
+     * // 获取字符串长度
+     * int len = Null.of("Hello")
+     *     .length();  // 返回 5
+     * 
+     * // 获取集合大小
+     * int size = Null.of(Arrays.asList(1, 2, 3))
+     *     .length();  // 返回 3
+     * 
+     * // 获取数组长度
+     * int arrLen = Null.of(new int[]{1, 2, 3, 4})
+     *     .length();  // 返回 4
+     * 
+     * // 获取数字的字符串长度
+     * int numLen = Null.of(12345)
+     *     .length();  // 返回 5 (toString()的长度)
+     * }</pre>
      */
     int length();
 
