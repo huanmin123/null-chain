@@ -145,6 +145,26 @@ public interface NullFinality<T> extends NullKernel<T>, Serializable {
     T get(String exceptionMessage, Object... args);
 
     /**
+     * 获取值 - 抛出指定类型的异常
+     *
+     * <p>该方法用于获取链式操作的最终结果。如果上一个任务的结果为空，
+     * 则会抛出指定类型的运行时异常，并支持自定义异常消息。</p>
+     *
+     * @param <X>              异常类型，必须是 RuntimeException 的子类
+     * @param exceptionClass   异常类，必须是 RuntimeException 的子类
+     * @param exceptionMessage 异常消息模板，支持 {} 占位符
+     * @param args             异常消息参数，用于填充占位符
+     * @return 上一个任务的结果值
+     * @throws X 当值为空时抛出指定类型的异常
+     * @example <pre>{@code
+     * String name = Null.of(user)
+     *     .map(User::getName)
+     *     .get(IllegalArgumentException.class, "用户{}的姓名不能为空", user.getId());
+     * }</pre>
+     */
+    <X extends RuntimeException> T get(Class<X> exceptionClass, String exceptionMessage, Object... args) throws X;
+
+    /**
      * 获取值或返回null
      *
      * <p>该方法用于获取链式操作的最终结果。如果上一个任务的结果为空，

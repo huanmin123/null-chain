@@ -202,6 +202,41 @@ public class NullFinalityBase<T> extends NullKernelAsyncAbstract<T> implements N
         }
     }
 
+    /**
+     * 获取值 - 抛出指定类型的异常
+     *
+     * <p>该方法用于获取链式操作的最终结果。如果上一个任务的结果为空，
+     * 则会抛出指定类型的运行时异常，并支持自定义异常消息。</p>
+     *
+     * @param <X>              异常类型，必须是 RuntimeException 的子类
+     * @param exceptionClass   异常类，必须是 RuntimeException 的子类
+     * @param exceptionMessage 异常消息模板，支持 {} 占位符
+     * @param args             异常消息参数，用于填充占位符
+     * @return 上一个任务的结果值
+     * @throws X 当值为空时抛出指定类型的异常
+     */
+    @Override
+    public <X extends RuntimeException> T get(Class<X> exceptionClass, String exceptionMessage, Object... args) throws X {
+        NullTaskList.NullNode nullChainBase = taskList.runTaskAll();
+        if (!nullChainBase.isNull) {
+            return (T) nullChainBase.value;
+        } else {
+            if (exceptionClass == null) {
+                linkLog.append(GET_SAFE_EXCEPTION_NULL);
+                throw new NullChainException(linkLog.toString());
+            }
+            // 格式化异常消息并追加到 linkLog
+            if (args != null && args.length > 0 && exceptionMessage != null) {
+                String format = String.format(exceptionMessage.replaceAll("\\{\\s*}", "%s"), args);
+                linkLog.append(" ").append(format);
+            } else if (exceptionMessage != null) {
+                linkLog.append(" ").append(exceptionMessage);
+            }
+            // 创建指定类型的异常并抛出
+            throw NullReflectionKit.addRunErrorMessage(exceptionClass, Thread.currentThread().getStackTrace(), linkLog);
+        }
+    }
+
     @Override
     public T orElseNull() {
         NullTaskList.NullNode nullChainBase = taskList.runTaskAll();
