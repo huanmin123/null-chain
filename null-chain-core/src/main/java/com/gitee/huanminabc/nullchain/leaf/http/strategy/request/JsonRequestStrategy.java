@@ -60,16 +60,9 @@ public class JsonRequestStrategy implements RequestStrategy {
                 return JSON.toJSONString(requestData, SerializerFeature.DisableCircularReferenceDetect);
             }
 
-            if (requestData instanceof String) {
+            if (requestData instanceof CharSequence) {
                 return requestData.toString();
             }
-            if (requestData instanceof StringBuilder) {
-                return requestData.toString();
-            }
-            if (requestData instanceof StringBuffer) {
-                return requestData.toString();
-            }
-
 
             // 创建一个Map，只包含需要序列化的字段（自动排除文件类型字段）
             java.util.Map<String, Object> jsonMap = new java.util.HashMap<>();
