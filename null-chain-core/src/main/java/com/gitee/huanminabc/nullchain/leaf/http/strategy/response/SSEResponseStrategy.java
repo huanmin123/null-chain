@@ -229,10 +229,14 @@ public class SSEResponseStrategy implements ResponseStrategy {
             // 检查是否还有重连机会
             if (controller.isReconnectExhausted()) {
                 log.error("[SSE重连] 已达到最大重连次数，停止重连。URL: {}, 最后错误: HTTP {}", url, e.getHttpCode());
-                handleErrorWithState(listener, controller, controller.getReconnectAttempt(), 
+                handleErrorWithState(listener, controller, controller.getReconnectAttempt(),
                         SSEErrorCode.RECONNECT_EXHAUSTED, "重连次数已达上限", e, null);
             } else {
-                // 还有重连机会，再次触发重连
+                // 还有重连机会，计算延迟并通知监听器
+                int nextAttempt = currentAttempt + 1;
+                long delay = SSEReconnectManager.calculateDelay(nextAttempt, controller.getReconnectInterval());
+                notifyRetry(listener, nextAttempt, delay);
+                // 再次触发重连
                 controller.triggerReconnect("HTTP错误 " + e.getHttpCode() + ": " + e.getMessage());
             }
         } else {
@@ -256,10 +260,14 @@ public class SSEResponseStrategy implements ResponseStrategy {
         // 检查是否还有重连机会
         if (controller.isReconnectExhausted()) {
             log.error("[SSE重连] 已达到最大重连次数，停止重连。URL: {}, 最后错误: {}", url, e.getMessage());
-            handleErrorWithState(listener, controller, controller.getReconnectAttempt(), 
+            handleErrorWithState(listener, controller, controller.getReconnectAttempt(),
                     SSEErrorCode.RECONNECT_EXHAUSTED, "重连次数已达上限", e, null);
         } else {
-            // 还有重连机会，再次触发重连
+            // 还有重连机会，计算延迟并通知监听器
+            int nextAttempt = currentAttempt + 1;
+            long delay = SSEReconnectManager.calculateDelay(nextAttempt, controller.getReconnectInterval());
+            notifyRetry(listener, nextAttempt, delay);
+            // 再次触发重连
             controller.triggerReconnect("网络异常: " + e.getMessage());
         }
     }
@@ -310,13 +318,17 @@ public class SSEResponseStrategy implements ResponseStrategy {
             } catch (SSEHttpException e) {
                 lastException = e;
                     if (e.isRetryable()) {
-                    log.warn("[SSE请求] 请求失败，HTTP状态码: {} (可重试)，开始第{}/{}次重试, URL: {}", 
+                    log.warn("[SSE请求] 请求失败，HTTP状态码: {} (可重试)，开始第{}/{}次重试, URL: {}",
                             e.getHttpCode(), i, retryCount, url, e);
                     // 可重试的HTTP错误，继续重试
                     if (i < retryCount) {
+                        // 先检查是否被中断
                         if (checkInterrupted(url, listener, controller, i, e.getHttpCode())) {
                             return e;
                         }
+                        // 确认将重试，再通知监听器
+                        notifyRetry(listener, i, retryInterval);
+                        // 等待重试间隔
                         if (sleepWithInterruptCheck(url, retryInterval, listener, controller, i, e.getHttpCode())) {
                             return e; // 被中断，停止重试
                         }
@@ -335,9 +347,13 @@ public class SSEResponseStrategy implements ResponseStrategy {
                 log.warn("[SSE请求] 请求失败，开始第{}/{}次重试, URL: {}", i, retryCount, url, e);
                 // 如果还有重试机会，则等待后继续（使用固定间隔）
                 if (i < retryCount) {
+                    // 先检查是否被中断
                     if (checkInterrupted(url, listener, controller, i, SSEErrorCode.RETRY_INTERRUPTED)) {
                         return e;
                     }
+                    // 确认将重试，再通知监听器
+                    notifyRetry(listener, i, retryInterval);
+                    // 等待重试间隔
                     if (sleepWithInterruptCheck(url, retryInterval, listener, controller, i, SSEErrorCode.RETRY_INTERRUPTED)) {
                         return e; // 被中断，停止重试
                     }
@@ -462,12 +478,28 @@ public class SSEResponseStrategy implements ResponseStrategy {
      * @param newState 新状态
      * @param <T> SSE 数据类型
      */
-    private <T> void notifyStateChanged(SSEEventListener<T> listener, SSEController controller, 
+    private <T> void notifyStateChanged(SSEEventListener<T> listener, SSEController controller,
                                         SSEConnectionState oldState, SSEConnectionState newState) {
         try {
             listener.onStateChanged(controller, oldState, newState);
         } catch (Exception e) {
             log.warn("[SSE] 状态变化回调异常", e);
+        }
+    }
+
+    /**
+     * 通知重试事件
+     *
+     * @param listener SSE 事件监听器
+     * @param attempt 当前重试次数
+     * @param delayMillis 重试延迟时间（毫秒）
+     * @param <T> SSE 数据类型
+     */
+    private <T> void notifyRetry(SSEEventListener<T> listener, int attempt, long delayMillis) {
+        try {
+            listener.onRetry(attempt, delayMillis);
+        } catch (Exception e) {
+            log.warn("[SSE] 重试回调异常", e);
         }
     }
 
@@ -839,14 +871,26 @@ public class SSEResponseStrategy implements ResponseStrategy {
                 listener.onError(attempt, SSEErrorCode.USER_TERMINATED, "SSE流被用户终止", e);
             } else {
                 // 连接意外断开，尝试自动重连
-                if (controller.triggerReconnect("流读取异常: " + e.getMessage())) {
-                    // 重连已触发，状态会在重连逻辑中更新
-                    log.info("[SSE流] 连接断开，已触发自动重连");
-                } else {
-                    // 无法重连（可能已达到最大重连次数或未配置重连）
+                // 检查是否还有重连机会
+                if (controller.isReconnectExhausted() || controller.getMaxReconnectCount() <= 0) {
+                    // 已达到最大重连次数或未配置重连，不再重连
                     controller.setConnectionState(SSEConnectionState.FAILED);
                     notifyStateChanged(listener, controller, currentState, SSEConnectionState.FAILED);
-                    listener.onError(attempt, SSEErrorCode.NETWORK_ERROR, "SSE流处理异常: " + e.getMessage(), e);
+                    listener.onError(attempt, SSEErrorCode.RECONNECT_EXHAUSTED, "SSE流处理异常: " + e.getMessage(), e);
+                } else {
+                    // 还有重连机会，计算延迟并通知监听器
+                    int nextAttempt = controller.getReconnectAttempt() + 1;
+                    long delay = SSEReconnectManager.calculateDelay(nextAttempt, controller.getReconnectInterval());
+                    notifyRetry(listener, nextAttempt, delay);
+                    if (controller.triggerReconnect("流读取异常: " + e.getMessage())) {
+                        // 重连已触发，状态会在重连逻辑中更新
+                        log.info("[SSE流] 连接断开，已触发自动重连");
+                    } else {
+                        // 无法重连（其他原因，如控制器已销毁）
+                        controller.setConnectionState(SSEConnectionState.FAILED);
+                        notifyStateChanged(listener, controller, currentState, SSEConnectionState.FAILED);
+                        listener.onError(attempt, SSEErrorCode.NETWORK_ERROR, "SSE流处理异常: " + e.getMessage(), e);
+                    }
                 }
             }
         } catch (Exception e) {
