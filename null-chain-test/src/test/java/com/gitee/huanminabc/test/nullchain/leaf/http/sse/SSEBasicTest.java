@@ -2,6 +2,7 @@ package com.gitee.huanminabc.test.nullchain.leaf.http.sse;
 
 import com.alibaba.fastjson.JSONObject;
 import com.gitee.huanminabc.nullchain.Null;
+import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
 import com.gitee.huanminabc.nullchain.leaf.http.sse.EventMessage;
 import com.gitee.huanminabc.nullchain.leaf.http.sse.SSEConnectionState;
 import com.gitee.huanminabc.nullchain.leaf.http.sse.SSEController;
@@ -10,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -38,10 +41,24 @@ public class SSEBasicTest extends SSEBaseTest {
         AtomicInteger openCount = new AtomicInteger(0);
         AtomicInteger completeCount = new AtomicInteger(0);
 
-        SSEController controller = Null.ofHttp(BASE_URL + "/sse")
+
+        JSONObject body = new JSONObject();
+        JSONObject extra = new JSONObject();
+        extra.put("key", "your_lanyun_key");
+        extra.put("response_type", "stream");
+        body.put("extra", extra);
+        body.put("thread_id", "123e4567-e89b-12d3-a452-426614174000");
+        JSONObject message = new JSONObject();
+        message.put("role", "user");
+        message.put("content", "你好我是巴尔 ,我是一个18岁的学生");
+        body.put("messages", Collections.singletonList(message));
+
+
+        SSEController controller = Null.ofHttp(BASE_URL + "/sse",body)
+                .addHeader("Authorization", "Bearer sk_ly_5ad3f293f734b4811149658dc64d0b69")
                 .retryCount(0)
                 .connectTimeout(10, TimeUnit.SECONDS)
-                .get()
+                .post(OkHttpPostEnum.JSON)
                 .toSSEJson(new SSEEventListener<JSONObject>() {
                     @Override
                     public void onOpen() {

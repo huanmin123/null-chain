@@ -1,5 +1,28 @@
 const http = require('http');
 
+/**
+ * 解析请求体（Node.js http模块默认不解析请求体，需要手动收集数据流）
+ * @param {http.IncomingMessage} req - 请求对象
+ * @returns {Promise<string>} 请求体字符串
+ */
+function parseRequestBody(req) {
+    return new Promise((resolve, reject) => {
+        let body = '';
+        // 监听数据事件，收集数据块
+        req.on('data', (chunk) => {
+            body += chunk.toString();
+        });
+        // 数据接收完成
+        req.on('end', () => {
+            resolve(body);
+        });
+        // 处理错误
+        req.on('error', (err) => {
+            reject(err);
+        });
+    });
+}
+
 // 定义随机JSON数据的数据源（用于生成随机内容）
 const randomMessages = [
     "用户登录成功",
@@ -18,8 +41,31 @@ const randomTypes = [
     "error"
 ];
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
     if (req.url === '/sse') {
+        // 解析请求体
+        let requestBody = null;
+        try {
+            if (req.method === 'POST') {
+                const bodyStr = await parseRequestBody(req);
+                if (bodyStr) {
+                    try {
+                        requestBody = JSON.parse(bodyStr);
+                    } catch (e) {
+                        console.log('请求体不是有效的JSON格式:', bodyStr);
+                        requestBody = bodyStr;
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('解析请求体失败:', err);
+        }
+
+        // 打印请求头信息
+        console.log('请求头：', req.headers);
+        console.log('请求方法:', req.method);
+        console.log('请求体:', requestBody);
+
         // 1. 规范的SSE响应头配置（含CORS跨域支持，更通用）
         res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
         res.setHeader('Cache-Control', 'no-cache');

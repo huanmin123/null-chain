@@ -10,6 +10,9 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 
 import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * JSON 请求体构建策略
@@ -30,7 +33,7 @@ public class JsonRequestStrategy implements RequestStrategy {
     public RequestBody build(Object requestData, Request.Builder requestBuilder) throws Exception {
         // 构建 JSON 请求体
         String jsonBody = buildJsonBody(requestData);
-        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonBody);
+        RequestBody requestBody = RequestBody.create(Objects.requireNonNull(MediaType.parse("application/json; charset=utf-8")), jsonBody);
         
         // 设置 Content-Type 请求头
         requestBuilder.addHeader("Content-Type", "application/json; charset=utf-8");
@@ -52,6 +55,22 @@ public class JsonRequestStrategy implements RequestStrategy {
      */
     private String buildJsonBody(Object requestData) {
         try {
+            //如何是map包括JSONObject
+            if (requestData instanceof Map || requestData instanceof Collection) {
+                return JSON.toJSONString(requestData, SerializerFeature.DisableCircularReferenceDetect);
+            }
+
+            if (requestData instanceof String) {
+                return requestData.toString();
+            }
+            if (requestData instanceof StringBuilder) {
+                return requestData.toString();
+            }
+            if (requestData instanceof StringBuffer) {
+                return requestData.toString();
+            }
+
+
             // 创建一个Map，只包含需要序列化的字段（自动排除文件类型字段）
             java.util.Map<String, Object> jsonMap = new java.util.HashMap<>();
             Class<?> clazz = requestData.getClass();
