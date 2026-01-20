@@ -21,7 +21,9 @@ public class LambdaParamTest {
             "fun applyOperation(Fun<Integer, Integer : Integer> operation, Integer x, Integer y) Integer {\n" +
             "    return operation(x, y)\n" +
             "}\n" +
-            "Integer result = applyOperation((a, b) -> { return a + b }, 10, 20)\n" +
+            "Integer result = applyOperation((a, b) -> { " +
+                            "return a + b " +
+                    "}, 10, 20)\n" +
             "export result";
 
         log.info("===== 测试：Lambda 作为参数 - 简单场景 =====");
