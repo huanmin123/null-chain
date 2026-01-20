@@ -64,7 +64,16 @@ public class SSEResponseStrategy implements ResponseStrategy {
     
     /** 共享的线程池（用于异步执行SSE请求） */
     private static final ExecutorService SHARED_EXECUTOR = createSharedExecutor();
-    
+
+    /** SSE Accept 请求头 */
+    private static final String SSE_ACCEPT_HEADER = "text/event-stream";
+
+    /** SSE Cache-Control 请求头（禁用缓存） */
+    private static final String SSE_CACHE_CONTROL = "no-cache";
+
+    /** SSE Accept-Encoding 请求头（禁用压缩，确保实时性） */
+    private static final String SSE_ACCEPT_ENCODING = "identity";
+
     /**
      * 创建共享的线程池
      * 
@@ -83,16 +92,46 @@ public class SSEResponseStrategy implements ResponseStrategy {
             }
         });
     }
-    
+
+    /**
+     * 添加 SSE 标准请求头
+     *
+     * <p>根据 SSE 规范和最佳实践，自动添加以下请求头：
+     * <ul>
+     *   <li>Accept: text/event-stream - 告诉服务器客户端期望接收 SSE 流</li>
+     *   <li>Cache-Control: no-cache - 禁用缓存，确保实时接收事件</li>
+     *   <li>Accept-Encoding: identity - 禁用压缩，确保流式传输的实时性</li>
+     * </ul>
+     * </p>
+     *
+     * <p>特别注意：Accept-Encoding 设置为 identity 是为了防止 OkHttp 默认添加 gzip 压缩。
+     * 压缩会破坏 SSE 的实时性，因为数据会被缓存直到整个压缩块完成。</p>
+     *
+     * <p>注意：如果用户已经设置了这些头，将被覆盖，以确保 SSE 请求的正确性。</p>
+     *
+     * @param request 请求构建器
+     */
+    private static void addSseHeaders(Request.Builder request) {
+        // 设置 Accept 头（SSE 规范要求）
+        request.addHeader("Accept", SSE_ACCEPT_HEADER);
+        // 设置 Cache-Control 头（禁用缓存）
+        request.addHeader("Cache-Control", SSE_CACHE_CONTROL);
+        // 设置 Accept-Encoding 头（禁用压缩，确保实时性）
+        request.addHeader("Accept-Encoding", SSE_ACCEPT_ENCODING);
+    }
+
     @Override
     public Object handle(String url, OkHttpClient okHttpClient, Request.Builder request, int retryCount, long retryInterval, Object... params) {
+        // 添加 SSE 标准请求头
+        addSseHeaders(request);
+
         // 参数已在调用方校验，直接使用
         @SuppressWarnings("unchecked")
         SSEEventListener<Object> listener = (SSEEventListener<Object>) params[0];
-        
+
         @SuppressWarnings("unchecked")
         DataDecoder<Object> decoder = (DataDecoder<Object>) params[1];
-        
+
         // 创建SSE控制器
         SSEController controller = new SSEController();
         controller.setMaxReconnectCount(retryCount);
