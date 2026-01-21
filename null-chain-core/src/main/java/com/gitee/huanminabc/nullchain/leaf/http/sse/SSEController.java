@@ -21,7 +21,6 @@ import java.util.concurrent.atomic.AtomicReference;
  * <p>管理 SSE 连接状态和 Last-Event-ID，提供连接控制和状态查询功能。
  * 支持自动重连机制，在连接断开后自动恢复连接。</p>
  * 
- * <p>实现了 {@link AutoCloseable} 接口，支持 try-with-resources 语法自动释放资源：</p>
  * <pre>{@code
  * try (SSEController controller = Null.ofHttp("https://api.example.com/sse")
  *         .get()
@@ -35,7 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @since 1.1.4
  */
 @Slf4j
-public class SSEController implements AutoCloseable {
+public class SSEController {
     
     /** 连接状态（统一管理） */
     @Getter
@@ -84,7 +83,17 @@ public class SSEController implements AutoCloseable {
     
     /** 当前重连任务的Future（用于取消） */
     private final AtomicReference<ScheduledFuture<?>> reconnectFuture = new AtomicReference<>();
-    
+
+    /** SSE 流控制器（用于中断正在进行的 SSE 流读取）
+     * -- SETTER --
+     *  设置 SSE 流控制器
+     * -- GETTER --
+     *  获取 SSE 流控制器
+     */
+    @Getter
+    @Setter
+    private volatile SSEStreamController streamController;
+
     /**
      * 创建共享的线程池
      * 
@@ -350,7 +359,7 @@ public class SSEController implements AutoCloseable {
     }
     
     /**
-     * 关闭连接并释放所有资源
+     * 关闭连接并释放所有资源,  当然这个是不需要主动调用的,会在底层自动完成,如果你想提前关闭连接，请调用此方法
      * 
      * <p>用户手动调用此方法关闭连接后，会完全阻止后续的所有操作（包括自动重连）。
      * 这是设计上的特性：用户主动关闭表示不再需要连接，不应该自动重连。</p>
@@ -384,16 +393,23 @@ public class SSEController implements AutoCloseable {
             log.debug("[SSE] 控制器已经关闭，跳过重复关闭操作");
             return;
         }
-        
+
         log.info("[SSE] 关闭连接并释放所有资源，原因: {}", reason);
-        
+
+        // 终止正在进行的 SSE 流读取（必须在其他操作之前）
+        SSEStreamController streamCtrl = streamController;
+        if (streamCtrl != null) {
+            streamCtrl.terminate();
+            log.debug("[SSE] 已终止 SSE 流读取");
+        }
+
         // 取消正在进行的重连任务
         ScheduledFuture<?> future = reconnectFuture.getAndSet(null);
         if (future != null && !future.isDone()) {
             future.cancel(false);
             log.debug("[SSE] 已取消正在进行的重连任务");
         }
-        
+
         // 阻止重连触发器继续工作（必须在关闭连接前设置）
         reconnectTrigger = null;
         
@@ -456,10 +472,8 @@ public class SSEController implements AutoCloseable {
     
     /**
      * 等待SSE连接结束（带超时）
-     * 
      * <p>此方法会阻塞当前线程，直到SSE连接结束（状态变为CLOSED或FAILED）或超时。
      * 如果连接已经结束，此方法会立即返回。</p>
-     * 
      * <p>使用场景：</p>
      * <ul>
      *   <li>需要同步等待SSE流处理完成，但不想无限等待</li>

@@ -747,6 +747,8 @@ public class SSEResponseStrategy implements ResponseStrategy {
         
         // 创建流控制器，用于支持用户主动终止
         SSEStreamController streamController = SSEStreamController.create();
+        // 将流控制器设置到 controller 中，使得 close() 方法能够中断流读取
+        controller.setStreamController(streamController);
         boolean finished = false;
         boolean interrupted = false;
         try (BufferedSource source = body.source()) {
