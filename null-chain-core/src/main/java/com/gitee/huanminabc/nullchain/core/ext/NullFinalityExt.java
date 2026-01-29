@@ -73,6 +73,11 @@ public interface NullFinalityExt<T> extends NullFinality<T>,NullKernelExt<T> {
         return tNullChain.get(exceptionMessage, args);
     }
 
+    @Override
+    default <X extends RuntimeException> T get(Class<X> exceptionClass, String exceptionMessage, Object... args) throws X {
+        NullChain<T> tNullChain = toNULL();
+        return tNullChain.get(exceptionClass, exceptionMessage, args);
+    }
 
     @Override
     default NullCollect collect() {

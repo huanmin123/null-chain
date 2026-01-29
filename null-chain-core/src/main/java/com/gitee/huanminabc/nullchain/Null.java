@@ -1,6 +1,7 @@
 package com.gitee.huanminabc.nullchain;
 
 
+import com.alibaba.fastjson.JSONObject;
 import com.gitee.huanminabc.jcommon.reflect.ClassIdentifyUtil;
 import com.gitee.huanminabc.jcommon.str.StringUtil;
 import com.gitee.huanminabc.nullchain.common.*;
@@ -86,7 +87,9 @@ public class Null extends NullUtil {
         return ofInternal(o);
     }
 
-
+    public static NullChain<JSONObject> of(JSONObject o) {
+        return ofInternal(o);
+    }
     /**
      * 创建一个包含数组的Null链
      *

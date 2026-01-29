@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.gitee.huanminabc</groupId>
         <artifactId>null-chain</artifactId>
-        <version>1.1.4-RELEASE</version>
+        <version>1.1.7-RELEASE</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>null-chain-core</artifactId>
@@ -43,5 +43,31 @@
             <version>2.9.3</version>
         </dependency>
     </dependencies>
+
+
+    <build>
+        <plugins>
+            <!-- GPG -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <configuration>
+                    <!-- GPG 密钥 ID，通过属性引用，可在 settings.xml 中配置 -->
+                    <keyname>ED86D14F434400F35597EE704268CE90F4B1B918</keyname>
+                    <!-- GPG 密钥密码，通过属性引用，必须在外部配置，不得硬编码 -->
+                    <passphrase>${gpg.passphrase}</passphrase>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

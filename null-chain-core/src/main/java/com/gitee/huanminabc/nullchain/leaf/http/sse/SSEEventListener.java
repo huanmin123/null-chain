@@ -29,7 +29,37 @@ public interface SSEEventListener<T> {
      * 连接建立后触发（HTTP 握手成功并开始读取）。仅调用一次。
      */
     void onOpen();
-    
+
+    /**
+     * 重试/重连触发时回调
+     *
+     * <p>当 SSE 连接失败进行重试或流中断进行重连时，会调用此方法。
+     * 此方法允许用户实时感知重试事件，可用于记录日志、更新 UI 提示等。</p>
+     *
+     * <p>重试场景包括：
+     * <ul>
+     *   <li>初始 HTTP 请求失败后的重试（使用固定间隔）</li>
+     *   <li>SSE 流读取中断后的自动重连（使用指数退避）</li>
+     * </ul>
+     * </p>
+     *
+     * <p>默认实现为空，子类可以重写此方法以处理重试事件。</p>
+     *
+     * @param attempt 当前重试/重连次数（从 1 开始）
+     * @param delayMillis 重试延迟时间（毫秒）
+     *
+     * @example
+     * <pre>{@code
+     * public void onRetry(int attempt, long delayMillis) {
+     *     System.out.println("正在重试第 " + attempt + " 次，延迟 " + delayMillis + "ms");
+     *     // 可以在这里记录重试日志、更新 UI 等
+     * }
+     * }</pre>
+     */
+    default void onRetry(int attempt, long delayMillis) {
+        // 默认实现为空，子类可以重写
+    }
+
     /**
      * 消费一帧完整的 SSE 消息。仅在 {@link #shouldTerminate(EventMessage)} 返回 false 时调用。
      * 注意：此方法仅在响应为 SSE 流时调用，非 SSE 响应不会调用此方法。

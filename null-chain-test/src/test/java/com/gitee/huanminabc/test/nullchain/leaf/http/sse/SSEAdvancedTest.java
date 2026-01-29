@@ -390,7 +390,7 @@ public class SSEAdvancedTest extends SSEBaseTest {
         AtomicInteger eventCount = new AtomicInteger(0);
         AtomicReference<SSEConnectionState> finalState = new AtomicReference<>();
 
-        try (SSEController controller = Null.ofHttp(BASE_URL + "/sse")
+       SSEController controller = Null.ofHttp(BASE_URL + "/sse")
                 .retryCount(0)
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .get()
@@ -436,7 +436,7 @@ public class SSEAdvancedTest extends SSEBaseTest {
                     public void onInterrupt() {
                         log.info("SSE连接被用户终止");
                     }
-                })) {
+                });
             
             // 等待接收消息
             assertTrue(latch.await(15, TimeUnit.SECONDS), "应该在15秒内完成");
@@ -444,7 +444,6 @@ public class SSEAdvancedTest extends SSEBaseTest {
             // 验证状态
             assertEquals(SSEConnectionState.CLOSED, finalState.get(), "状态应该是CLOSED");
             assertTrue(eventCount.get() >= 3, "应该接收到至少3条消息");
-        } // 自动调用 close()
 
         log.info("try-with-resources测试完成");
     }

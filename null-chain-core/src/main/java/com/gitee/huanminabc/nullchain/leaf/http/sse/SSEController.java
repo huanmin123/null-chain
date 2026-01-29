@@ -21,7 +21,6 @@ import java.util.concurrent.atomic.AtomicReference;
  * <p>管理 SSE 连接状态和 Last-Event-ID，提供连接控制和状态查询功能。
  * 支持自动重连机制，在连接断开后自动恢复连接。</p>
  * 
- * <p>实现了 {@link AutoCloseable} 接口，支持 try-with-resources 语法自动释放资源：</p>
  * <pre>{@code
  * try (SSEController controller = Null.ofHttp("https://api.example.com/sse")
  *         .get()
@@ -35,7 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @since 1.1.4
  */
 @Slf4j
-public class SSEController implements AutoCloseable {
+public class SSEController {
     
     /** 连接状态（统一管理） */
     @Getter
@@ -84,7 +83,29 @@ public class SSEController implements AutoCloseable {
     
     /** 当前重连任务的Future（用于取消） */
     private final AtomicReference<ScheduledFuture<?>> reconnectFuture = new AtomicReference<>();
-    
+
+    /** SSE 流控制器（用于中断正在进行的 SSE 流读取）
+     * <p>
+     * 此字段由 {@link com.gitee.huanminabc.nullchain.leaf.http.strategy.response.SSEResponseStrategy}
+     * 在开始处理 SSE 流时设置，用于支持用户通过 {@link #close()} 方法主动中断正在进行的流读取。
+     * </p>
+     * <p>
+     * <b>生命周期：</b>
+     * <ul>
+     *   <li>创建：在 SSE 流处理开始时由策略类设置</li>
+     *   <li>使用：用户调用 close() 时会调用 terminate() 终止流读取</li>
+     *   <li>销毁：流处理结束后，随控制器一起被回收</li>
+     * </ul>
+     * </p>
+     * -- SETTER --
+     *  设置 SSE 流控制器（由 SSEResponseStrategy 内部调用）
+     * -- GETTER --
+     *  获取 SSE 流控制器（用于测试或调试）
+     */
+    @Getter
+    @Setter
+    private volatile SSEStreamController streamController;
+
     /**
      * 创建共享的线程池
      * 
@@ -351,64 +372,81 @@ public class SSEController implements AutoCloseable {
     
     /**
      * 关闭连接并释放所有资源
-     * 
-     * <p>用户手动调用此方法关闭连接后，会完全阻止后续的所有操作（包括自动重连）。
-     * 这是设计上的特性：用户主动关闭表示不再需要连接，不应该自动重连。</p>
-     * 
-     * <p>此方法会：
+     *
+     * <p><b>使用场景：</b>用于用户主动提前关闭 SSE 连接。
      * <ul>
-     *   <li>清空重连触发器，阻止自动重连</li>
-     *   <li>停止所有正在进行的重连任务</li>
-     *   <li>更新连接状态为CLOSED</li>
-     *   <li>重置所有状态</li>
-     *   <li>清空所有引用</li>
+     *   <li>正常情况下，SSE 连接会在服务器关闭连接或异常时自动结束，无需手动调用</li>
+     *   <li>此方法仅在用户需要提前终止连接时使用（如业务逻辑判断无需继续监听）</li>
      * </ul>
      * </p>
-     * 
-     * <p>调用此方法后，控制器将不再可用。应该确保不再使用此控制器。</p>
-     * 
-     * <p>注意：此方法使用 CAS 操作确保只执行一次，多次调用是安全的。</p>
+     *
+     * <p><b>关闭效果：</b>用户手动调用此方法后，会完全阻止后续的所有操作（包括自动重连）。
+     * 这是设计上的特性：用户主动关闭表示不再需要连接，不应该自动重连。</p>
+     *
+     * <p><b>执行步骤：</b>
+     * <ol>
+     *   <li>终止正在进行的 SSE 流读取（通过 streamController.terminate()）</li>
+     *   <li>取消正在进行的重连任务（如果存在）</li>
+     *   <li>清空重连触发器，阻止自动重连</li>
+     *   <li>更新连接状态为 CLOSED</li>
+     *   <li>重置所有状态并清空引用</li>
+     * </ol>
+     * </p>
+     *
+     * <p><b>回调触发：</b>会触发 {@link com.gitee.huanminabc.nullchain.leaf.http.sse.SSEEventListener#onInterrupt()}
+     * 回调，而非 {@code onComplete()}，以区别于正常结束。</p>
+     *
+     * <p><b>注意事项：</b>调用此方法后，控制器将不再可用。此方法使用 CAS 操作确保只执行一次，
+     * 多次调用是安全的（后续调用会被忽略）。</p>
      */
     public void close() {
         close("用户主动关闭");
     }
-    
+
     /**
-     * 关闭连接并释放所有资源
-     * 
-     * @param reason 关闭原因
+     * 关闭连接并释放所有资源（带原因说明）
+     *
+     * @param reason 关闭原因（用于日志记录）
+     * @see #close()
      */
     public void close(String reason) {
-        // 使用 CAS 确保只执行一次
+        // 使用 CAS 确保只执行一次（防止重复关闭）
         if (!destroyed.compareAndSet(false, true)) {
             log.debug("[SSE] 控制器已经关闭，跳过重复关闭操作");
             return;
         }
-        
+
         log.info("[SSE] 关闭连接并释放所有资源，原因: {}", reason);
-        
-        // 取消正在进行的重连任务
+
+        // 步骤1：终止正在进行的 SSE 流读取（必须最先执行，否则流读取可能继续）
+        SSEStreamController streamCtrl = streamController;
+        if (streamCtrl != null) {
+            streamCtrl.terminate();  // 设置终止标志，流读取循环会在读取下一行前检测到并退出
+            log.debug("[SSE] 已终止 SSE 流读取");
+        }
+
+        // 步骤2：取消正在进行的重连任务（如果存在）
         ScheduledFuture<?> future = reconnectFuture.getAndSet(null);
         if (future != null && !future.isDone()) {
-            future.cancel(false);
+            future.cancel(false);  // 不中断正在执行的任务，仅取消尚未开始的任务
             log.debug("[SSE] 已取消正在进行的重连任务");
         }
-        
-        // 阻止重连触发器继续工作（必须在关闭连接前设置）
-        reconnectTrigger = null;
-        
-        // 停止所有正在进行的重连（设置重连状态为 false，防止新的重连）
+
+        // 步骤3：阻止重连触发器继续工作（必须在其他操作之前）
+        reconnectTrigger = null;  // 清空引用，使得后续无法触发重连
+
+        // 步骤4：停止所有正在进行的重连（设置重连状态为 false，防止新的重连）
         setReconnecting(false);
-        
-        // 更新连接状态为已关闭（会触发完成信号）
+
+        // 步骤5：更新连接状态为已关闭（会触发完成信号，唤醒 await() 等待线程）
         setConnectionState(SSEConnectionState.CLOSED);
-        
-        // 重置状态
+
+        // 步骤6：重置状态（清理计数器）
         resetReconnectAttempt();
-        
-        // 清空引用
+
+        // 步骤7：清空引用（释放内存）
         lastEventId.set(null);
-        
+
         log.info("[SSE] 连接已关闭，所有资源已释放");
     }
     
@@ -423,32 +461,69 @@ public class SSEController implements AutoCloseable {
     
     /**
      * 等待SSE连接结束（无限等待）
-     * 
-     * <p>此方法会阻塞当前线程，直到SSE连接结束（状态变为CLOSED或FAILED）。
-     * 如果连接已经结束，此方法会立即返回。</p>
-     * 
-     * <p>使用场景：</p>
+     *
+     * <p><b>⚠️ 阻塞警告：</b>此方法会阻塞当前线程，直到SSE连接结束（状态变为CLOSED或FAILED）。
+     * 如果连接长时间不结束，调用线程会被无限期阻塞。</p>
+     *
+     * <p><b>❌ 禁止使用的场景：</b>
      * <ul>
-     *   <li>需要同步等待SSE流处理完成</li>
-     *   <li>在测试中等待连接结束</li>
-     *   <li>需要确保所有事件处理完成后再继续执行</li>
+     *   <li><b>Web 应用的 HTTP 请求处理线程中</b> - 会阻塞请求响应，导致接口超时</li>
+     *   <li><b>前端接口或 UI 线程中</b> - 会导致界面卡死</li>
+     *   <li><b>任何需要快速响应的场景</b> - 可能导致性能问题</li>
      * </ul>
-     * 
-     * <p>示例：</p>
+     * </p>
+     *
+     * <p><b>✅ 适用场景：</b>
+     * <ul>
+     *   <li><b>单元测试或集成测试</b> - 验证 SSE 连接的正确性</li>
+     *   <li><b>独立的后台任务线程</b> - 不影响主业务流程的异步任务</li>
+     *   <li><b>命令行应用或批处理任务</b> - 需要等待 SSE 流处理完成后再退出</li>
+     *   <li><b>应用关闭前的资源清理</b> - 确保 SSE 连接正确关闭</li>
+     * </ul>
+     * </p>
+     *
+     * <p><b>替代方案：</b>如果需要在 Web 应用中监听 SSE 连接状态，推荐使用回调：
      * <pre>{@code
+     * // ✅ 推荐：使用回调监听连接状态
+     * SSEEventListener<String> listener = new SSEEventListener<String>() {
+     *     @Override
+     *     public void onStateChanged(SSEController controller,
+     *                              SSEConnectionState oldState,
+     *                              SSEConnectionState newState) {
+     *         if (newState == SSEConnectionState.CLOSED) {
+     *             // 连接已关闭，执行后续逻辑
+     *         }
+     *     }
+     * };
+     * }</pre>
+     * </p>
+     *
+     * <p><b>正确使用示例：</b>
+     * <pre>{@code
+     * // ✅ 在测试中使用
      * SSEController controller = Null.ofHttp("https://api.example.com/sse")
      *         .get()
      *         .toSSEText(listener);
-     * 
-     * // 执行其他操作...
-     * 
-     * // 等待连接结束
+     *
+     * // 在测试线程中等待（不会影响其他请求）
      * controller.await();
-     * 
-     * // 连接已结束，可以安全地继续执行
+     *
+     * // 验证结果
+     * assertEquals(expected, result);
      * }</pre>
-     * 
+     * </p>
+     *
+     * <p><b>注意事项：</b>
+     * <ul>
+     *   <li>SSE 连接可能是长连接，如果没有明确结束条件，await() 可能永久阻塞</li>
+     *   <li>推荐使用 {@link #await(long, TimeUnit)} 带超时的版本，避免永久阻塞</li>
+     *   <li>如果需要提前结束等待，可以调用 {@link #close()} 主动关闭连接</li>
+     * </ul>
+     * </p>
+     *
      * @throws InterruptedException 如果等待过程中线程被中断
+     * @see #await(long, TimeUnit)
+     * @see #close()
      */
     public void await() throws InterruptedException {
         completionLatch.await();
@@ -456,38 +531,76 @@ public class SSEController implements AutoCloseable {
     
     /**
      * 等待SSE连接结束（带超时）
-     * 
-     * <p>此方法会阻塞当前线程，直到SSE连接结束（状态变为CLOSED或FAILED）或超时。
-     * 如果连接已经结束，此方法会立即返回。</p>
-     * 
-     * <p>使用场景：</p>
+     *
+     * <p><b>⚠️ 阻塞警告：</b>此方法会阻塞当前线程，直到SSE连接结束（状态变为CLOSED或FAILED）或超时。
+     * 虽然有超时限制，但仍会阻塞调用线程指定的时长。</p>
+     *
+     * <p><b>❌ 禁止使用的场景：</b>
      * <ul>
-     *   <li>需要同步等待SSE流处理完成，但不想无限等待</li>
-     *   <li>在测试中设置超时时间</li>
-     *   <li>需要在一定时间内等待连接结束</li>
+     *   <li><b>Web 应用的 HTTP 请求处理线程中</b> - 会阻塞请求响应，导致接口超时</li>
+     *   <li><b>前端接口或 UI 线程中</b> - 会导致界面卡死</li>
+     *   <li><b>任何需要快速响应的场景</b> - 即使有超时，也会影响性能</li>
      * </ul>
-     * 
-     * <p>示例：</p>
+     * </p>
+     *
+     * <p><b>✅ 适用场景：</b>
+     * <ul>
+     *   <li><b>单元测试或集成测试</b> - 设置合理的超时时间，验证 SSE 连接的正确性</li>
+     *   <li><b>独立的后台任务线程</b> - 不影响主业务流程的异步任务</li>
+     *   <li><b>命令行应用或批处理任务</b> - 需要等待 SSE 流处理完成或超时后再退出</li>
+     *   <li><b>应用关闭前的资源清理</b> - 设置超时避免无限等待</li>
+     * </ul>
+     * </p>
+     *
+     * <p><b>替代方案：</b>如果需要在 Web 应用中监听 SSE 连接状态，推荐使用回调：
      * <pre>{@code
+     * // ✅ 推荐：使用回调监听连接状态
+     * SSEEventListener<String> listener = new SSEEventListener<String>() {
+     *     @Override
+     *     public void onStateChanged(SSEController controller,
+     *                              SSEConnectionState oldState,
+     *                              SSEConnectionState newState) {
+     *         if (newState == SSEConnectionState.CLOSED) {
+     *             // 连接已关闭，执行后续逻辑
+     *         }
+     *     }
+     * };
+     * }</pre>
+     * </p>
+     *
+     * <p><b>正确使用示例：</b>
+     * <pre>{@code
+     * // ✅ 在测试中使用带超时的等待
      * SSEController controller = Null.ofHttp("https://api.example.com/sse")
      *         .get()
      *         .toSSEText(listener);
-     * 
-     * // 执行其他操作...
-     * 
-     * // 等待连接结束，最多等待30秒
+     *
+     * // 在测试线程中等待（最多等待30秒）
      * boolean completed = controller.await(30, TimeUnit.SECONDS);
      * if (completed) {
-     *     System.out.println("连接已结束");
+     *     // 连接正常结束
+     *     assertEquals(expected, result);
      * } else {
-     *     System.out.println("等待超时");
+     *     // 等待超时，连接未在30秒内结束
+     *     fail("SSE 连接未在30秒内结束");
      * }
      * }</pre>
-     * 
-     * @param timeout 超时时间
-     * @param unit 时间单位
+     * </p>
+     *
+     * <p><b>注意事项：</b>
+     * <ul>
+     *   <li>超时时间应根据实际业务场景合理设置（建议测试场景 5-30 秒）</li>
+     *   <li>超时后连接不会自动关闭，需要手动调用 {@link #close()} 来终止连接</li>
+     *   <li>如果需要提前结束等待，可以调用 {@link #close()} 主动关闭连接</li>
+     * </ul>
+     * </p>
+     *
+     * @param timeout 超时时间（必须大于 0）
+     * @param unit 时间单位（如 TimeUnit.SECONDS、TimeUnit.MILLISECONDS 等）
      * @return 如果连接在超时前结束返回 true，如果超时返回 false
      * @throws InterruptedException 如果等待过程中线程被中断
+     * @see #await()
+     * @see #close()
      */
     public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
         return completionLatch.await(timeout, unit);

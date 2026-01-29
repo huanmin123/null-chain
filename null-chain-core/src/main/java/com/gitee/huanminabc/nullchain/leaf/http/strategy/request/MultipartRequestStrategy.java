@@ -1,6 +1,7 @@
 package com.gitee.huanminabc.nullchain.leaf.http.strategy.request;
 
 import com.alibaba.fastjson.JSON;
+import com.gitee.huanminabc.nullchain.common.function.TransienceUtil;
 import com.gitee.huanminabc.nullchain.enums.OkHttpPostEnum;
 import com.gitee.huanminabc.nullchain.leaf.http.OkHttpBuild;
 import com.gitee.huanminabc.nullchain.leaf.http.bo.FileBinary;
@@ -207,13 +208,16 @@ public class MultipartRequestStrategy implements RequestStrategy {
         Class<?> clazz = obj.getClass();
         for (Field field : clazz.getDeclaredFields()) {
             try {
+                boolean notSerializable = TransienceUtil.isNotSerializable(field);
+                if (notSerializable) {
+                    continue;
+                }
                 field.setAccessible(true);
+                //跳过值是空的
                 Object value = field.get(obj);
-
                 if (value == null) {
                     continue;
                 }
-
                 // 自动识别文件类型字段
                 if (OkHttpBuild.isFileType(value)) {
                     // 获取字段名（优先使用 @JSONField 的 name，否则使用字段名）
