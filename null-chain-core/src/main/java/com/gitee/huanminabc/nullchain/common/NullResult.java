@@ -270,10 +270,11 @@ public class NullResult<T> implements Serializable {
         NullResult<T> r = new NullResult<>();
         r.setSuccess(true);
         r.setCode(ResponseStatusEnum.SUCCESS.getCode());
-        r.setData(data.get());
+        r.setData(data.orElseNull());
         r.setMessage(msg);
         return r;
     }
+
 
     /**
      * 创建成功结果（使用数据对象和自定义消息）
