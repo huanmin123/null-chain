@@ -1,5 +1,7 @@
 package com.gitee.huanminabc.nullchain.common;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.gitee.huanminabc.jcommon.multithreading.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.NullCheck;
 import com.gitee.huanminabc.nullchain.core.NullChain;
@@ -31,6 +33,8 @@ public class NullKernelAbstract implements  Serializable, NullCheck {
     /**
      * 任务队列，存储要执行的任务链
      */
+    @JSONField(serialize = false)
+    @JsonIgnore
     public NullTaskList taskList;
 
     /**
