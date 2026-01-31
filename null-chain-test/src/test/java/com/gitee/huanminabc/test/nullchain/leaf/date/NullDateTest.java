@@ -1,4 +1,4 @@
-﻿package com.gitee.huanminabc.test.nullchain.leaf.date;
+package com.gitee.huanminabc.test.nullchain.leaf.date;
 
 import com.gitee.huanminabc.jcommon.enums.TimeEnum;
 import com.gitee.huanminabc.nullchain.Null;
