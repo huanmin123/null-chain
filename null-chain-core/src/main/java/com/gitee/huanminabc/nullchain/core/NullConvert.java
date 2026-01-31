@@ -1,9 +1,9 @@
 package com.gitee.huanminabc.nullchain.core;
 
+import com.gitee.huanminabc.jcommon.enums.DateOffsetEnum;
+import com.gitee.huanminabc.jcommon.enums.TimeEnum;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
-import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
-import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
-import com.gitee.huanminabc.nullchain.enums.TimeEnum;
+import com.gitee.huanminabc.jcommon.enums.DateFormatEnum;
 
 /**
  * Null类型转换接口 - 提供类型转换功能
@@ -199,7 +199,7 @@ public interface NullConvert<T> extends NullWorkFlow<T> {
      *     .orElse(new Date());
      * }</pre>
      */
-    NullChain<T> dateOffset(DateOffsetEnum controlEnum, TimeEnum timeEnum);
+    NullChain<T> dateOffset(com.gitee.huanminabc.jcommon.enums.DateOffsetEnum controlEnum, TimeEnum timeEnum);
 
     /**
      * 日期比较操作 - 比较两个日期的大小关系

@@ -1,11 +1,10 @@
 package com.gitee.huanminabc.nullchain.core.ext;
 
+import com.gitee.huanminabc.jcommon.enums.TimeEnum;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.core.NullConvert;
-import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
-import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
-import com.gitee.huanminabc.nullchain.enums.TimeEnum;
+import com.gitee.huanminabc.jcommon.enums.DateFormatEnum;
 
 /**
  * Null类型转换扩展接口 - 提供类型转换操作的扩展功能
@@ -74,14 +73,14 @@ public interface NullConvertExt<T> extends NullConvert<T>, NullWorkFlowExt<T> {
     }
 
     @Override
-    default NullChain<T> dateOffset(DateOffsetEnum controlEnum, TimeEnum timeEnum) {
+    default NullChain<T> dateOffset(com.gitee.huanminabc.jcommon.enums.DateOffsetEnum controlEnum, TimeEnum timeEnum) {
         NullChain<T> tNullChain = toNULL();
         return tNullChain.dateOffset(controlEnum, timeEnum);
 
     }
 
     @Override
-    default NullChain<T> dateOffset(DateOffsetEnum controlEnum, int num, TimeEnum timeEnum) {
+    default NullChain<T> dateOffset(com.gitee.huanminabc.jcommon.enums.DateOffsetEnum controlEnum, int num, TimeEnum timeEnum) {
         NullChain<T> tNullChain = toNULL();
         return tNullChain.dateOffset(controlEnum, num, timeEnum);
 

@@ -1,11 +1,10 @@
-package com.gitee.huanminabc.test.nullchain.leaf.date;
+﻿package com.gitee.huanminabc.test.nullchain.leaf.date;
 
+import com.gitee.huanminabc.jcommon.enums.TimeEnum;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.NullChainCheckException;
 import com.gitee.huanminabc.nullchain.core.NullChain;
-import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
-import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
-import com.gitee.huanminabc.nullchain.enums.TimeEnum;
+import com.gitee.huanminabc.jcommon.enums.DateFormatEnum;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -33,7 +32,7 @@ public class NullDateTest {
     public void testDateOffsetAdd() {
         Date now = new Date();
         String result = Null.of(now)
-                .dateOffset(DateOffsetEnum.ADD, 1, TimeEnum.DAYS)
+                .dateOffset(com.gitee.huanminabc.jcommon.enums.DateOffsetEnum.ADD, 1, TimeEnum.DAYS)
                 .dateFormat(DateFormatEnum.DATETIME_PATTERN)
                 .get();
         assertNotNull(result);
@@ -44,7 +43,7 @@ public class NullDateTest {
     public void testDateOffsetStart() {
         Date now = new Date();
         String result = Null.of(now)
-                .dateOffset(DateOffsetEnum.START, 1, TimeEnum.MONTHS)
+                .dateOffset(com.gitee.huanminabc.jcommon.enums.DateOffsetEnum.START, 1, TimeEnum.MONTHS)
                 .dateFormat(DateFormatEnum.DATETIME_PATTERN)
                 .get();
         assertNotNull(result);
@@ -55,7 +54,7 @@ public class NullDateTest {
     public void testDateOffsetEnd() {
         Date now = new Date();
         String result = Null.of(now)
-                .dateOffset(DateOffsetEnum.END, 1, TimeEnum.MONTHS)
+                .dateOffset(com.gitee.huanminabc.jcommon.enums.DateOffsetEnum.END, 1, TimeEnum.MONTHS)
                 .dateFormat(DateFormatEnum.DATETIME_PATTERN)
                 .get();
         assertNotNull(result);
@@ -66,13 +65,13 @@ public class NullDateTest {
     public void testDateOffsetWithHours() {
         Date now = new Date();
         NullChain<Date> dateChain = Null.of(now)
-                .dateOffset(DateOffsetEnum.START, TimeEnum.HOURS);
+                .dateOffset(com.gitee.huanminabc.jcommon.enums.DateOffsetEnum.START, TimeEnum.HOURS);
         
         Date dateStart = dateChain.get();
         assertNotNull(dateStart);
         
         Date dateEnd = dateChain
-                .dateOffset(DateOffsetEnum.SUB, 1, TimeEnum.HOURS)
+                .dateOffset(com.gitee.huanminabc.jcommon.enums.DateOffsetEnum.SUB, 1, TimeEnum.HOURS)
                 .get();
         assertNotNull(dateEnd);
         assertTrue(dateEnd.before(dateStart) || dateEnd.equals(dateStart));

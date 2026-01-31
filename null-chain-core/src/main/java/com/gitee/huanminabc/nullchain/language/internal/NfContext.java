@@ -3,7 +3,7 @@ package com.gitee.huanminabc.nullchain.language.internal;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.NullCheck;
 import com.gitee.huanminabc.nullchain.core.NullChain;
-import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
+import com.gitee.huanminabc.jcommon.enums.DateFormatEnum;
 import com.gitee.huanminabc.nullchain.language.NfMain;
 import com.gitee.huanminabc.nullchain.leaf.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.leaf.http.OkHttp;

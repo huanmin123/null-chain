@@ -1,15 +1,15 @@
 package com.gitee.huanminabc.nullchain.core;
 
 import com.alibaba.fastjson.JSON;
+import com.gitee.huanminabc.jcommon.base.DateUtil;
+import com.gitee.huanminabc.jcommon.enums.TimeEnum;
 import com.gitee.huanminabc.jcommon.reflect.BeanCopyUtil;
 import com.gitee.huanminabc.jcommon.reflect.LambdaUtil;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.common.*;
 import com.gitee.huanminabc.nullchain.common.function.NullFun;
 import com.gitee.huanminabc.nullchain.common.NullTaskList;
-import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
-import com.gitee.huanminabc.nullchain.enums.DateOffsetEnum;
-import com.gitee.huanminabc.nullchain.enums.TimeEnum;
+import com.gitee.huanminabc.jcommon.enums.DateFormatEnum;
 import static com.gitee.huanminabc.nullchain.common.NullLog.*;
 
 /**
@@ -139,7 +139,7 @@ public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConve
         this.taskList.add((value)->{
             String string;
             try {
-                string = NullDateFormat.toString(value, dateFormatEnum);
+                string = DateUtil.format(value, dateFormatEnum);
             } catch (Exception e) {
                 linkLog.append(DATE_FORMAT_Q).append(value).append(" to ").append(dateFormatEnum.getValue()).append(" 失败:").append(e.getMessage());
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
@@ -155,11 +155,11 @@ public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConve
     }
 
     @Override
-    public NullChain<T> dateOffset(DateOffsetEnum offsetEnum, int num, TimeEnum timeEnum) {
+    public NullChain<T> dateOffset(com.gitee.huanminabc.jcommon.enums.DateOffsetEnum offsetEnum, int num, TimeEnum timeEnum) {
         this.taskList.add((value)->{
             T t;
             try {
-                t = NullDateFormat.dateOffset((T)value, offsetEnum, num, timeEnum);
+                t = DateUtil.offset((T)value, offsetEnum, num, timeEnum);
             } catch (Exception e) {
                 linkLog.append(DATE_OFFSET_Q).append(value).append(" 偏移时间失败:").append(e.getMessage());
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
@@ -175,7 +175,7 @@ public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConve
     }
 
     @Override
-    public NullChain<T> dateOffset(DateOffsetEnum controlEnum, TimeEnum timeEnum) {
+    public NullChain<T> dateOffset(com.gitee.huanminabc.jcommon.enums.DateOffsetEnum controlEnum, TimeEnum timeEnum) {
         return dateOffset(controlEnum, 1, timeEnum);
     }
 
@@ -184,7 +184,7 @@ public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConve
         this.taskList.add((value)->{
             Integer compare;
             try {
-                compare = NullDateFormat.dateCompare(value, date);
+                compare = DateUtil.compare(value, date);
             } catch (Exception e) {
                 linkLog.append(DATE_COMPARE_Q).append(value).append(" 比较时间失败:").append(e.getMessage());
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
@@ -204,7 +204,7 @@ public class NullConvertBase<T> extends NullWorkFlowBase<T> implements NullConve
         this.taskList.add((value)->{
             Long between;
             try {
-                between = NullDateFormat.dateBetween(value, date, timeEnum);
+                between = DateUtil.between(value, date, timeEnum);
             } catch (Exception e) {
                 linkLog.append(DATE_BETWEEN_Q).append(value).append(" 计算日期间隔失败:").append(e.getMessage());
                 throw NullReflectionKit.addRunErrorMessage(e, linkLog);
