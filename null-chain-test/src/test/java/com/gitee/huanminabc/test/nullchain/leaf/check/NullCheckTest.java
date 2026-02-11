@@ -1,6 +1,5 @@
 package com.gitee.huanminabc.test.nullchain.leaf.check;
 
-import com.gitee.huanminabc.jcommon.exception.BizException;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.test.nullchain.entity.RoleEntity;
 import com.gitee.huanminabc.test.nullchain.entity.UserEntity;
@@ -72,11 +71,11 @@ public class NullCheckTest {
     @Test
     public void testCustomExceptionType() {
         userEntity.setName(null);
-        assertThrows(BizException.class, () -> {
+        assertThrows(RuntimeException.class, () -> {
             Null.ofCheck(userEntity)
                     .of(UserEntity::getName)
-                    .doThrow(BizException.class);
-        }, "当存在空字段时，doThrow 应该抛出 BizException");
+                    .doThrow(RuntimeException.class);
+        }, "当存在空字段时，doThrow 应该抛出 RuntimeException");
     }
 
     /**
@@ -85,11 +84,11 @@ public class NullCheckTest {
     @Test
     public void testCustomExceptionType1() {
         userEntity.setName(null);
-        BizException exception = assertThrows(BizException.class, () -> {
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             Null.ofCheck(userEntity)
                     .of(UserEntity::getName)
-                    .doThrow(BizException.class, "xxx缺少参数");
-        }, "当存在空字段时，doThrow 应该抛出带前缀消息的 BizException");
+                    .doThrow(RuntimeException.class, "xxx缺少参数");
+        }, "当存在空字段时，doThrow 应该抛出带前缀消息的 RuntimeException");
         assertNotNull(exception.getMessage(), "异常消息不应该为空");
         assertTrue(exception.getMessage().contains("xxx缺少参数"), "异常消息应该包含前缀");
     }
@@ -190,12 +189,12 @@ public class NullCheckTest {
     @Test
     public void testMapMethodDoThrow() {
         userEntity.getRoleData().setRoleName(null);
-        BizException exception = assertThrows(BizException.class, () -> {
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             Null.ofCheck(userEntity)
                     .map(UserEntity::getRoleData)
                     .of(RoleEntity::getRoleName)
-                    .doThrow(BizException.class);
-        }, "当内部对象字段为空时，doThrow 应该抛出 BizException");
+                    .doThrow(RuntimeException.class);
+        }, "当内部对象字段为空时，doThrow 应该抛出 RuntimeException");
         assertNotNull(exception.getMessage(), "异常消息不应该为空");
     }
 
@@ -205,12 +204,12 @@ public class NullCheckTest {
     @Test
     public void testMapMethodDoThrowWithPrefix() {
         userEntity.getRoleData().setRoleName(null);
-        BizException exception = assertThrows(BizException.class, () -> {
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             Null.ofCheck(userEntity)
                     .map(UserEntity::getRoleData)
                     .of(RoleEntity::getRoleName)
-                    .doThrow(BizException.class, "角色信息验证失败");
-        }, "当内部对象字段为空时，doThrow 应该抛出带前缀消息的 BizException");
+                    .doThrow(RuntimeException.class, "角色信息验证失败");
+        }, "当内部对象字段为空时，doThrow 应该抛出带前缀消息的 RuntimeException");
         assertNotNull(exception.getMessage(), "异常消息不应该为空");
         assertTrue(exception.getMessage().contains("角色信息验证失败"), "异常消息应该包含前缀");
     }
