@@ -228,8 +228,8 @@ public class NullResult<T> implements Serializable {
      * @param <T> 结果数据类型
      * @return 成功结果对象
      */
-    public static <T> NullResult<Void> success() {
-        NullResult<Void> r = new NullResult<>();
+    public static <T> NullResult<T> success() {
+        NullResult<T> r = new NullResult<>();
         r.setSuccess(true);
         r.setCode(ResponseStatusEnum.SUCCESS.getCode());
         r.setMessage("成功");
