@@ -191,6 +191,9 @@ public class Null extends NullUtil {
      */
     @SuppressWarnings("all")
     public static <O> NullChain<O> of(Optional<O> optional) {
+        if (optional == null) {
+            return Null.empty();
+        }
         return Null.of(optional.orElse(null));
     }
 

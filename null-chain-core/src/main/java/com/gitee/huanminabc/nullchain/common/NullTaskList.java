@@ -71,7 +71,7 @@ public class NullTaskList implements Serializable {
          */
         public NullNode(T value) {
             this.value = value;
-            this.isNull = false;
+            this.isNull = (value == null);
         }
 
         /**

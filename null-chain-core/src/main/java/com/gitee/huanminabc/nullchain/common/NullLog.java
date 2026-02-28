@@ -228,9 +228,6 @@ public final class NullLog {
     public static final String CHAIN_MAP_Q = "map?";
     public static final String CHAIN_MAP_ARROW = "map->";
     public static final String CHAIN_MAP_PARAM_NULL = "map? 传参不能为空";
-    public static final String CHAIN_MAP2_Q = "map2?";
-    public static final String CHAIN_MAP2_ARROW = "map2->";
-    public static final String CHAIN_MAP2_PARAM_NULL = "map2? 传参不能为空";
     public static final String CHAIN_FLATCHAIN_Q = "flatChain?";
     public static final String CHAIN_FLATCHAIN_ARROW = "flatChain->";
     public static final String CHAIN_FLATCHAIN_PARAM_NULL = "flatChain? 传参不能为空";

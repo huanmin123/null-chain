@@ -105,6 +105,14 @@ public class NullChainTest {
         assertTrue(chain.is());
     }
 
+    @Test
+    public void testOfWithNullOptionalRef() {
+        Optional<String> optional = null;
+        NullChain<String> chain = Null.of(optional);
+        assertTrue(chain.is());
+        assertNull(chain.orElseNull());
+    }
+
     // ========== empty() 方法测试 ==========
 
     @Test
@@ -140,6 +148,28 @@ public class NullChainTest {
                 .map(Map::get, "key")
                 .get();
         assertEquals("value", value);
+    }
+
+    @Test
+    public void testMapWithBiFunctionNullFunction() {
+        assertThrows(NullChainException.class, () -> {
+            Map<String, String> map = new HashMap<>();
+            map.put("key", "value");
+            Null.of(map)
+                    .map(null, "key")
+                    .get();
+        });
+    }
+
+    @Test
+    public void testMapWithBiFunctionException() {
+        assertThrows(NullChainException.class, () -> {
+            Null.of(userEntity)
+                    .map((u, k) -> {
+                        throw new RuntimeException("map2 exception");
+                    }, "x")
+                    .get();
+        });
     }
 
     @Test

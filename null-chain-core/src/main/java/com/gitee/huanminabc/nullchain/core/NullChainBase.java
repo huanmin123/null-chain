@@ -215,6 +215,9 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
     @Override
     public < R, V> NullChain<R> map(BiFunction<T, V, R> biFunction, V key) {
         this.taskList.add((value)->{
+            if (biFunction == null) {
+                throw new NullChainException(linkLog.append(CHAIN_MAP_PARAM_NULL).toString());
+            }
             try {
                 R apply = biFunction.apply((T) value, key);
                 if (Null.is(apply)) {
@@ -225,7 +228,8 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
                 return NullBuild.noEmpty(apply);
 
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                linkLog.append(CHAIN_MAP_Q);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
             }
         });
         return  NullBuild.busy(this);

@@ -68,25 +68,25 @@
             <dependency>
                 <groupId>com.gitee.huanminabc</groupId>
                 <artifactId>null-chain-core</artifactId>
-                <version>${version}</version>
+                <version>${project.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.gitee.huanminabc</groupId>
                 <artifactId>null-chain-boot-starter</artifactId>
-                <version>${version}</version>
+                <version>${project.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.gitee.huanminabc</groupId>
                 <artifactId>null-chain-work</artifactId>
-                <version>${version}</version>
+                <version>${project.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.gitee.huanminabc</groupId>
                 <artifactId>null-chain-boot-dubbo</artifactId>
-                <version>${version}</version>
+                <version>${project.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
