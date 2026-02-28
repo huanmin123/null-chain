@@ -210,6 +210,35 @@ public class NullChainTest {
         assertEquals("未成年", name);
     }
 
+    // ========== eq() 方法测试 ==========
+
+    @Test
+    public void testEqWithTrue() {
+        String name = Null.of(userEntity)
+                .eq(UserEntity::getName, "huanmin")
+                .map(UserEntity::getName)
+                .orElse("未知");
+        assertEquals("huanmin", name);
+    }
+
+    @Test
+    public void testEqWithFalse() {
+        String name = Null.of(userEntity)
+                .eq(UserEntity::getName, "other")
+                .map(UserEntity::getName)
+                .orElse("未知");
+        assertEquals("未知", name);
+    }
+
+    @Test
+    public void testEqWithNullTarget() {
+        userEntity.setName(null);
+        boolean empty = Null.of(userEntity)
+                .eq(UserEntity::getName, null)
+                .is();
+        assertFalse(empty);
+    }
+
     // ========== isNull() 方法测试 ==========
 
     @Test
@@ -715,4 +744,3 @@ public class NullChainTest {
         assertEquals("admin", result[0]);
     }
 }
-

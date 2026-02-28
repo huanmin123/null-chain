@@ -209,6 +209,9 @@ public final class NullLog {
     public static final String CHAIN_IFNEGO_Q = "ifNeGo?";
     public static final String CHAIN_IFNEGO_ARROW = "ifNeGo->";
     public static final String CHAIN_IFNEGO_PARAM_NULL = "ifNeGo? 传参不能为空";
+    public static final String CHAIN_EQ_Q = "eq?";
+    public static final String CHAIN_EQ_ARROW = "eq->";
+    public static final String CHAIN_EQ_PARAM_NULL = "eq? 传参不能为空";
     public static final String CHAIN_ISNULL_Q = "isNull?";
     public static final String CHAIN_ISNULL_ARROW = "isNull->";
     public static final String CHAIN_ISNULL_PARAM_NULL = "isNull? 传参不能为空";

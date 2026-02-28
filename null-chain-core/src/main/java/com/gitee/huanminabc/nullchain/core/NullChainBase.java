@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -99,6 +100,28 @@ public class NullChainBase<T> extends NullConvertBase<T> implements NullChain<T>
             }
         });
         return  NullBuild.busy(this);
+    }
+
+    @Override
+    public <U> NullChain<T> eq(NullFun<? super T, ? extends U> function, U other) {
+        this.taskList.add((value) -> {
+            if (function == null) {
+                throw new NullChainException(linkLog.append(CHAIN_EQ_PARAM_NULL).toString());
+            }
+            try {
+                U apply = function.apply((T) value);
+                if (!Objects.equals(apply, other)) {
+                    linkLog.append(CHAIN_EQ_Q);
+                    return NullBuild.empty();
+                }
+                linkLog.append(CHAIN_EQ_ARROW);
+                return NullBuild.noEmpty(value);
+            } catch (Exception e) {
+                linkLog.append(CHAIN_EQ_Q);
+                throw NullReflectionKit.addRunErrorMessage(e, linkLog);
+            }
+        });
+        return NullBuild.busy(this);
     }
 
     @Override

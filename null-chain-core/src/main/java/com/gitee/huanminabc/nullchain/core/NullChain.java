@@ -99,6 +99,26 @@ public interface NullChain<T> extends NullConvert<T> {
     NullChain<T> ifNeGo(Predicate<? super T> function);
 
     /**
+     * 相等条件分支操作 - 提取字段后与指定值比较
+     *
+     * <p>该方法会先通过 Lambda 提取当前对象中的某个字段，再与给定值比较。
+     * 若相等则继续执行后续操作；若不相等则返回空链并跳过后续节点。</p>
+     * @param <U> 提取字段的类型
+     * @param function 字段提取函数（Lambda）
+     * @param other 比较值
+     * @return 新的Null链，不相等时为空链
+     *
+     * @example
+     * <pre>{@code
+     * String result = Null.of(user)
+     *     .eq(User::getStatus, "ACTIVE")
+     *     .map(User::getName)
+     *     .orElse("忽略");
+     * }</pre>
+     */
+    <U> NullChain<T> eq(NullFun<? super T, ? extends U> function, U other);
+
+    /**
      * 空值检查操作 - 如果检查的值为空则继续执行
      * 
      * <p>该方法用于检查指定字段是否为空，如果为空则继续执行后续操作。

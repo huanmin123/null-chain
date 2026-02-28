@@ -50,6 +50,12 @@ public interface NullChainExt<T> extends NullChain<T>, NullConvertExt<T> {
     }
 
     @Override
+    default <U> NullChain<T> eq(NullFun<? super T, ? extends U> function, U other){
+        NullChain<T> tNullChain = toNULL();
+        return tNullChain.eq(function, other);
+    }
+
+    @Override
     default <U> NullChain<T> isNull(NullFun<? super T, ? extends U> function){
         NullChain<T> tNullChain = toNULL();
         return tNullChain.isNull(function);
