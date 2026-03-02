@@ -42,7 +42,7 @@
     <parent>
         <groupId>com.gitee.huanminabc</groupId>
         <artifactId>jparent</artifactId>
-        <version>${revision}</version>
+        <version>1.1.9-RELEASE</version>
     </parent>
 
     <artifactId>null-chain</artifactId>
