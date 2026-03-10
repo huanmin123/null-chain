@@ -5,6 +5,7 @@ import com.gitee.huanminabc.nullchain.common.NullConstants;
 import com.gitee.huanminabc.nullchain.language.NfException;
 import com.gitee.huanminabc.nullchain.language.NfScriptRegistry;
 import com.gitee.huanminabc.nullchain.language.NfRun;
+import com.gitee.huanminabc.nullchain.language.SyntaxValidator;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfContextScopeType;
@@ -359,20 +360,15 @@ public class ImportSyntaxNode extends LineSyntaxNode {
             // 创建独立的 NfContext 执行脚本
             NfContext scriptContext = new NfContext();
 
-            // 初始化脚本上下文（手动初始化，避免NfRun.run的clear影响）
-            String scriptMainScopeId = NfContext.generateScopeId();
-            scriptContext.setMainScopeId(scriptMainScopeId);
-            scriptContext.setCurrentScopeId(scriptMainScopeId);
-            NfContextScope scriptMainScope = scriptContext.createScope(scriptMainScopeId, null, NfContextScopeType.ALL);
-
-            // 添加系统变量（导入脚本也需要基本的系统变量）
-            scriptMainScope.addVariable(new NfVariableInfo("$params", null, null));
-            scriptMainScope.addVariable(new NfVariableInfo("$preValue", null, null));
-            scriptMainScope.addVariable(new NfVariableInfo("$threadFactoryName",
-                ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME, String.class));
-
-            // 执行脚本语法节点（不调用NfRun.run，避免clear）
-            SyntaxNodeFactory.executeAll(scriptSyntaxNodes, scriptContext);
+            // 与主脚本执行链保持一致：先校验，再初始化上下文和超时控制
+            SyntaxValidator.validate(scriptSyntaxNodes);
+            NfContextScope scriptMainScope = NfRun.prepareContext(scriptContext, null, null);
+            try {
+                // 执行脚本语法节点（不调用NfRun.run，避免clear）
+                SyntaxNodeFactory.executeAll(scriptSyntaxNodes, scriptContext);
+            } finally {
+                scriptContext.endExecution();
+            }
 
             // 获取脚本执行后的全局作用域（此时还未clear）
             scriptMainScope = scriptContext.getMainScope();

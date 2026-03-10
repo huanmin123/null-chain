@@ -25,6 +25,10 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,6 +45,8 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class FunCallSyntaxNode extends LineSyntaxNode {
+    private static final Object METHOD_ARG_INCOMPATIBLE = new Object();
+
 
     public FunCallSyntaxNode() {
         super(SyntaxNodeType.FUN_CALL_EXP);
@@ -468,6 +474,8 @@ public class FunCallSyntaxNode extends LineSyntaxNode {
         String savedScriptScopeId = scriptContext.getCurrentScopeId();
         
         try {
+            scriptContext.startExecution();
+
             // 切换到函数作用域
             scriptContext.switchScope(functionScopeId);
             
@@ -486,6 +494,7 @@ public class FunCallSyntaxNode extends LineSyntaxNode {
             scriptContext.switchScope(savedScriptScopeId);
             // 清理函数作用域
             scriptContext.removeScope(functionScopeId);
+            scriptContext.endExecution();
         }
     }
 
@@ -502,22 +511,258 @@ public class FunCallSyntaxNode extends LineSyntaxNode {
      * @return 方法调用的返回值
      */
     private Object executeObjectMethodCall(String methodName, List<Token> paramTokens, NfContext context, SyntaxNode syntaxNode) {
-        // 将整个函数调用转换为表达式字符串
-        // 格式：methodName(param1, param2, ...)
+        List<Object> paramValues = parseParameterValues(paramTokens, context, syntaxNode.getLine());
+        try {
+            return invokeJavaMethod(methodName, paramValues, context, syntaxNode.getLine());
+        } catch (NoSuchMethodException e) {
+            if (containsFunRefArgument(paramValues)) {
+                throw new NfException(e, "Line:{} ,Java方法 {} 未找到匹配签名（包含Lambda/FunRef参数） , syntax: {}",
+                    syntaxNode.getLine(), methodName, syntaxNode);
+            }
+            return NfCalculator.arithmetic(buildMethodCallExpression(methodName, paramTokens), context);
+        } catch (InvocationTargetException e) {
+            Throwable targetException = e.getTargetException() != null ? e.getTargetException() : e;
+            throw new NfException(targetException, "Line:{} ,Java方法 {} 调用失败: {} , syntax: {}",
+                syntaxNode.getLine(), methodName, targetException.getMessage(), syntaxNode);
+        } catch (NfException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new NfException(e, "Line:{} ,Java方法 {} 调用失败: {} , syntax: {}",
+                syntaxNode.getLine(), methodName, e.getMessage(), syntaxNode);
+        }
+    }
+
+    private Object invokeJavaMethod(String methodName, List<Object> paramValues, NfContext context, int line)
+        throws InvocationTargetException, IllegalAccessException, ClassNotFoundException, NoSuchMethodException {
+        ResolvedMethodTarget target = resolveMethodTarget(methodName, context, line);
+        MethodMatch bestMatch = findBestMethodMatch(target, paramValues, context, line);
+        if (bestMatch == null) {
+            throw new NoSuchMethodException(methodName + "(" + paramValues + ")");
+        }
+        return bestMatch.method.invoke(target.targetObject, bestMatch.arguments);
+    }
+
+    private ResolvedMethodTarget resolveMethodTarget(String methodName, NfContext context, int line)
+        throws ClassNotFoundException {
+        int dotIndex = methodName.indexOf('.');
+        if (dotIndex <= 0 || dotIndex == methodName.length() - 1) {
+            throw new NfException("Line:{} ,Java方法调用格式错误: {}", line, methodName);
+        }
+
+        String targetName = methodName.substring(0, dotIndex);
+        String actualMethodName = methodName.substring(dotIndex + 1);
+
+        String importedType = context.getImportType(targetName);
+        if (importedType != null) {
+            Class<?> targetClass = Class.forName(importedType);
+            return new ResolvedMethodTarget(targetClass, null, actualMethodName, true);
+        }
+
+        NfVariableInfo variableInfo = context.getVariable(targetName);
+        if (variableInfo == null) {
+            throw new NfException("Line:{} ,Java方法调用目标 {} 不存在", line, targetName);
+        }
+
+        Object targetValue = variableInfo.getValue();
+        if (targetValue == null) {
+            throw new NfException("Line:{} ,Java方法调用目标 {} 为null", line, targetName);
+        }
+
+        if (targetValue instanceof Class<?>) {
+            return new ResolvedMethodTarget((Class<?>) targetValue, null, actualMethodName, true);
+        }
+
+        return new ResolvedMethodTarget(targetValue.getClass(), targetValue, actualMethodName, false);
+    }
+
+    private MethodMatch findBestMethodMatch(ResolvedMethodTarget target, List<Object> paramValues,
+                                            NfContext context, int line) {
+        MethodMatch bestMatch = null;
+        for (Method method : target.targetClass.getMethods()) {
+            if (!method.getName().equals(target.methodName)) {
+                continue;
+            }
+            if (target.staticCall && !Modifier.isStatic(method.getModifiers())) {
+                continue;
+            }
+            if (!target.staticCall && Modifier.isStatic(method.getModifiers())) {
+                continue;
+            }
+
+            MethodMatch match = buildMethodMatch(method, paramValues, context, line);
+            if (match == null) {
+                continue;
+            }
+            if (bestMatch == null || match.score > bestMatch.score) {
+                bestMatch = match;
+            }
+        }
+        return bestMatch;
+    }
+
+    private MethodMatch buildMethodMatch(Method method, List<Object> paramValues, NfContext context, int line) {
+        Class<?>[] paramTypes = method.getParameterTypes();
+        Object[] adaptedArgs = new Object[paramTypes.length];
+        int score = 0;
+
+        if (!method.isVarArgs()) {
+            if (paramTypes.length != paramValues.size()) {
+                return null;
+            }
+            for (int i = 0; i < paramTypes.length; i++) {
+                AdaptedArgument adapted = adaptMethodArgument(paramValues.get(i), paramTypes[i], context, line);
+                if (adapted == null) {
+                    return null;
+                }
+                adaptedArgs[i] = adapted.value;
+                score += adapted.score;
+            }
+            return new MethodMatch(method, adaptedArgs, score);
+        }
+
+        int fixedCount = paramTypes.length - 1;
+        if (paramValues.size() < fixedCount) {
+            return null;
+        }
+
+        for (int i = 0; i < fixedCount; i++) {
+            AdaptedArgument adapted = adaptMethodArgument(paramValues.get(i), paramTypes[i], context, line);
+            if (adapted == null) {
+                return null;
+            }
+            adaptedArgs[i] = adapted.value;
+            score += adapted.score;
+        }
+
+        Class<?> componentType = paramTypes[paramTypes.length - 1].getComponentType();
+        int varArgCount = paramValues.size() - fixedCount;
+        Object varArgArray = Array.newInstance(componentType, varArgCount);
+        for (int i = 0; i < varArgCount; i++) {
+            AdaptedArgument adapted = adaptMethodArgument(paramValues.get(fixedCount + i), componentType, context, line);
+            if (adapted == null) {
+                return null;
+            }
+            Array.set(varArgArray, i, adapted.value);
+            score += adapted.score;
+        }
+        adaptedArgs[paramTypes.length - 1] = varArgArray;
+        return new MethodMatch(method, adaptedArgs, score);
+    }
+
+    private AdaptedArgument adaptMethodArgument(Object value, Class<?> expectedType, NfContext context, int line) {
+        if (value == null) {
+            return expectedType.isPrimitive() ? null : new AdaptedArgument(null, 1);
+        }
+
+        if (value instanceof FunRefInfo && LambdaProxyFactory.isFunctionalInterface(expectedType)) {
+            Object proxy = LambdaProxyFactory.createProxy((FunRefInfo) value, expectedType, context, line);
+            return new AdaptedArgument(proxy, 5);
+        }
+
+        Class<?> actualType = value.getClass();
+        if (!isTypeCompatible(actualType, expectedType)) {
+            return null;
+        }
+
+        int score = expectedType.equals(actualType) ? 4 : 3;
+        return new AdaptedArgument(value, score);
+    }
+
+    private boolean containsFunRefArgument(List<Object> paramValues) {
+        for (Object paramValue : paramValues) {
+            if (paramValue instanceof FunRefInfo) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String buildMethodCallExpression(String methodName, List<Token> paramTokens) {
         StringBuilder exprBuilder = new StringBuilder();
         exprBuilder.append(methodName).append("(");
-        
-        // 将参数 tokens 转换为字符串表达式
         if (!paramTokens.isEmpty()) {
             StringBuilder paramExpr = TokenUtil.mergeToken(paramTokens);
             exprBuilder.append(paramExpr.toString().trim());
         }
-        
         exprBuilder.append(")");
-        
-        // 通过 JEXL 表达式计算（arithmetic 方法会处理参数表达式）
-        String expression = exprBuilder.toString();
-        return NfCalculator.arithmetic(expression, context);
+        return exprBuilder.toString();
+    }
+
+    private boolean isTypeCompatible(Class<?> actualType, Class<?> expectedType) {
+        if (expectedType.equals(actualType)) {
+            return true;
+        }
+        if (expectedType.isPrimitive()) {
+            return isWrapperType(actualType, expectedType);
+        }
+        if (actualType.isPrimitive()) {
+            return isWrapperType(expectedType, actualType);
+        }
+        return expectedType.isAssignableFrom(actualType);
+    }
+
+    private boolean isWrapperType(Class<?> wrapperType, Class<?> primitiveType) {
+        if (primitiveType == int.class) {
+            return wrapperType == Integer.class;
+        }
+        if (primitiveType == long.class) {
+            return wrapperType == Long.class;
+        }
+        if (primitiveType == double.class) {
+            return wrapperType == Double.class;
+        }
+        if (primitiveType == float.class) {
+            return wrapperType == Float.class;
+        }
+        if (primitiveType == boolean.class) {
+            return wrapperType == Boolean.class;
+        }
+        if (primitiveType == byte.class) {
+            return wrapperType == Byte.class;
+        }
+        if (primitiveType == short.class) {
+            return wrapperType == Short.class;
+        }
+        if (primitiveType == char.class) {
+            return wrapperType == Character.class;
+        }
+        return false;
+    }
+
+    private static class ResolvedMethodTarget {
+        private final Class<?> targetClass;
+        private final Object targetObject;
+        private final String methodName;
+        private final boolean staticCall;
+
+        private ResolvedMethodTarget(Class<?> targetClass, Object targetObject, String methodName, boolean staticCall) {
+            this.targetClass = targetClass;
+            this.targetObject = targetObject;
+            this.methodName = methodName;
+            this.staticCall = staticCall;
+        }
+    }
+
+    private static class MethodMatch {
+        private final Method method;
+        private final Object[] arguments;
+        private final int score;
+
+        private MethodMatch(Method method, Object[] arguments, int score) {
+            this.method = method;
+            this.arguments = arguments;
+            this.score = score;
+        }
+    }
+
+    private static class AdaptedArgument {
+        private final Object value;
+        private final int score;
+
+        private AdaptedArgument(Object value, int score) {
+            this.value = value;
+            this.score = score;
+        }
     }
 
     /**
@@ -1030,4 +1275,3 @@ public class FunCallSyntaxNode extends LineSyntaxNode {
         return TokenUtil.mergeToken(getValue()).toString();
     }
 }
-

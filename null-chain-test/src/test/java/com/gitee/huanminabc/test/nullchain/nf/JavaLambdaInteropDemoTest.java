@@ -1,6 +1,8 @@
 package com.gitee.huanminabc.test.nullchain.nf;
 
 import com.gitee.huanminabc.nullchain.language.NfMain;
+import com.gitee.huanminabc.nullchain.language.NfSynta;
+import com.gitee.huanminabc.nullchain.language.NfToken;
 import com.gitee.huanminabc.nullchain.language.lambda.LambdaProxyFactory;
 import com.gitee.huanminabc.nullchain.language.internal.FunDefInfo;
 import com.gitee.huanminabc.nullchain.language.internal.FunRefInfo;
@@ -209,9 +211,7 @@ public class JavaLambdaInteropDemoTest {
         // 返回类型
         funDef.setReturnTypes(Arrays.asList("Integer"));
 
-        // 函数体（简化版，实际需要真实的语法节点）
-        List<SyntaxNode> bodyNodes = new ArrayList<>();
-        funDef.setBodyNodes(bodyNodes);
+        funDef.setBodyNodes(parseLambdaBody("return x * x"));
 
         // 类型信息
         FunTypeInfo typeInfo = new FunTypeInfo();
@@ -230,6 +230,7 @@ public class JavaLambdaInteropDemoTest {
         params.add(new FunDefInfo.FunParameter("x", "Integer", false));
         funDef.setParameters(params);
         funDef.setReturnTypes(Arrays.asList("Integer"));
+        funDef.setBodyNodes(parseLambdaBody("return x * 2"));
 
         FunTypeInfo typeInfo = new FunTypeInfo();
         typeInfo.setParameterTypes(Arrays.asList("Integer"));
@@ -247,6 +248,7 @@ public class JavaLambdaInteropDemoTest {
         params.add(new FunDefInfo.FunParameter("x", "Integer", false));
         funDef.setParameters(params);
         funDef.setReturnTypes(Arrays.asList("Integer"));
+        funDef.setBodyNodes(parseLambdaBody("return x * 3"));
 
         FunTypeInfo typeInfo = new FunTypeInfo();
         typeInfo.setParameterTypes(Arrays.asList("Integer"));
@@ -264,6 +266,7 @@ public class JavaLambdaInteropDemoTest {
         params.add(new FunDefInfo.FunParameter("x", "Integer", false));
         funDef.setParameters(params);
         funDef.setReturnTypes(Arrays.asList("Boolean"));
+        funDef.setBodyNodes(parseLambdaBody("return x % 2 == 0"));
 
         FunTypeInfo typeInfo = new FunTypeInfo();
         typeInfo.setParameterTypes(Arrays.asList("Integer"));
@@ -281,6 +284,7 @@ public class JavaLambdaInteropDemoTest {
         params.add(new FunDefInfo.FunParameter("x", "Integer", false));
         funDef.setParameters(params);
         funDef.setReturnTypes(Arrays.asList("Boolean"));
+        funDef.setBodyNodes(parseLambdaBody("return x > 10"));
 
         FunTypeInfo typeInfo = new FunTypeInfo();
         typeInfo.setParameterTypes(Arrays.asList("Integer"));
@@ -298,6 +302,7 @@ public class JavaLambdaInteropDemoTest {
         params.add(new FunDefInfo.FunParameter("x", "Integer", false));
         funDef.setParameters(params);
         funDef.setReturnTypes(Arrays.asList("Boolean"));
+        funDef.setBodyNodes(parseLambdaBody("return x > 0"));
 
         FunTypeInfo typeInfo = new FunTypeInfo();
         typeInfo.setParameterTypes(Arrays.asList("Integer"));
@@ -305,5 +310,9 @@ public class JavaLambdaInteropDemoTest {
         typeInfo.setArity(1);
 
         return FunRefInfo.createLambda(funDef, null, null, typeInfo);
+    }
+
+    private List<SyntaxNode> parseLambdaBody(String body) {
+        return NfSynta.buildMainStatement(NfToken.tokens(body + "\n"));
     }
 }

@@ -4,7 +4,6 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,7 +25,7 @@ public class NfScriptRegistry {
      * key: 脚本名称
      * value: 脚本的语法节点列表（已解析）
      */
-    private static final Map<String, List<SyntaxNode>> scriptMap = new HashMap<>();
+    private static final Map<String, List<SyntaxNode>> scriptMap = new ConcurrentHashMap<>();
 
     /**
      * 注册 nf 脚本
@@ -54,6 +53,7 @@ public class NfScriptRegistry {
             // 解析脚本为语法节点列表
             List<Token> tokens = NfToken.tokens(scriptContent);
             List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
+            SyntaxValidator.validate(syntaxNodes);
 
             // 存储到注册表
             scriptMap.put(name, syntaxNodes);
@@ -115,4 +115,3 @@ public class NfScriptRegistry {
         return scriptMap.size();
     }
 }
-

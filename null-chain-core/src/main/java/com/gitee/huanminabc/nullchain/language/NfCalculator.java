@@ -7,6 +7,7 @@ import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.internal.NfVariableInfo;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.linenode.FunCallSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.token.Token;
+import com.gitee.huanminabc.nullchain.language.token.TokenType;
 import com.gitee.huanminabc.nullchain.language.NfToken;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -258,6 +259,8 @@ public class NfCalculator {
             return evaluate;
         } catch (NfReturnException e) {
             // return语句需要穿透表达式计算，传播到函数调用处
+            throw e;
+        } catch (NfTimeoutException e) {
             throw e;
         } catch (Exception e) {
             // 记录详细错误信息用于调试
@@ -591,17 +594,24 @@ public class NfCalculator {
         int lastScriptMatchStart = -1;
         String lastScriptName = null;
         String lastScriptFunctionName = null;
+        int lastJavaMethodStart = -1;
+        String lastJavaTargetName = null;
+        String lastJavaMethodName = null;
 
         while (matcher2.find()) {
-            String scriptName = matcher2.group(1);
+            String targetName = matcher2.group(1);
             String functionName = matcher2.group(2);
-            if (nfContext.hasImportedScript(scriptName)) {
-                NfContext scriptContext = nfContext.getImportedScriptContext(scriptName);
+            if (nfContext.hasImportedScript(targetName)) {
+                NfContext scriptContext = nfContext.getImportedScriptContext(targetName);
                 if (scriptContext != null && scriptContext.hasFunction(functionName)) {
                     lastScriptMatchStart = matcher2.start();
-                    lastScriptName = scriptName;
+                    lastScriptName = targetName;
                     lastScriptFunctionName = functionName;
                 }
+            } else if (isJavaMethodCallCandidate(expression, matcher2.start(), targetName, functionName, nfContext)) {
+                lastJavaMethodStart = matcher2.start();
+                lastJavaTargetName = targetName;
+                lastJavaMethodName = functionName;
             }
         }
 
@@ -625,11 +635,20 @@ public class NfCalculator {
             }
         }
 
-        // 优先处理导入脚本的函数调用（如果存在）
-        if (lastScriptMatchStart >= 0) {
+        // 优先处理最内层的函数调用
+        if (lastScriptMatchStart >= 0 &&
+            lastScriptMatchStart >= lastMatchStart &&
+            lastScriptMatchStart >= lastJavaMethodStart) {
             int endPos = findFunctionCallEndPos(expression, lastScriptMatchStart,
                 lastScriptName.length() + 1 + lastScriptFunctionName.length() + 1);
             return new FunctionCallInfo(lastScriptMatchStart, endPos, true, lastScriptFunctionName, lastScriptName);
+        }
+
+        if (lastJavaMethodStart >= 0 && lastJavaMethodStart >= lastMatchStart) {
+            int endPos = findFunctionCallEndPos(expression, lastJavaMethodStart,
+                lastJavaTargetName.length() + 1 + lastJavaMethodName.length() + 1);
+            return new FunctionCallInfo(lastJavaMethodStart, endPos, false,
+                lastJavaTargetName + "." + lastJavaMethodName, null);
         }
 
         if (lastMatchStart >= 0) {
@@ -638,6 +657,99 @@ public class NfCalculator {
         }
 
         return null;
+    }
+
+    private static boolean isJavaMethodCallCandidate(String expression, int startPos,
+                                                     String targetName, String methodName, NfContext nfContext) {
+        if (nfContext.getImportType(targetName) == null && nfContext.getVariable(targetName) == null) {
+            return false;
+        }
+
+        int endPos = findFunctionCallEndPos(expression, startPos, targetName.length() + 1 + methodName.length() + 1);
+        if (endPos <= startPos) {
+            return false;
+        }
+
+        String functionCallExpr = expression.substring(startPos, endPos);
+        return containsLambdaLikeArgument(functionCallExpr, nfContext);
+    }
+
+    private static boolean containsLambdaLikeArgument(String functionCallExpr, NfContext nfContext) {
+        List<Token> tokens;
+        try {
+            tokens = NfToken.tokens(functionCallExpr);
+        } catch (Exception e) {
+            return false;
+        }
+
+        int lparenIndex = -1;
+        int rparenIndex = -1;
+        int depth = 0;
+        for (int i = 0; i < tokens.size(); i++) {
+            Token token = tokens.get(i);
+            if (token.type == TokenType.LPAREN) {
+                if (lparenIndex == -1) {
+                    lparenIndex = i;
+                }
+                depth++;
+            } else if (token.type == TokenType.RPAREN) {
+                depth--;
+                if (depth == 0) {
+                    rparenIndex = i;
+                    break;
+                }
+            }
+        }
+
+        if (lparenIndex == -1 || rparenIndex == -1 || rparenIndex <= lparenIndex + 1) {
+            return false;
+        }
+
+        List<Token> currentParam = new java.util.ArrayList<>();
+        int parenDepth = 0;
+        int braceDepth = 0;
+        for (int i = lparenIndex + 1; i < rparenIndex; i++) {
+            Token token = tokens.get(i);
+            if (token.type == TokenType.LPAREN) {
+                parenDepth++;
+            } else if (token.type == TokenType.RPAREN) {
+                parenDepth--;
+            } else if (token.type == TokenType.LBRACE) {
+                braceDepth++;
+            } else if (token.type == TokenType.RBRACE) {
+                braceDepth--;
+            }
+
+            if (token.type == TokenType.COMMA && parenDepth == 0 && braceDepth == 0) {
+                if (isLambdaLikeParam(currentParam, nfContext)) {
+                    return true;
+                }
+                currentParam.clear();
+            } else {
+                currentParam.add(token);
+            }
+        }
+
+        return isLambdaLikeParam(currentParam, nfContext);
+    }
+
+    private static boolean isLambdaLikeParam(List<Token> paramTokens, NfContext nfContext) {
+        if (paramTokens == null || paramTokens.isEmpty()) {
+            return false;
+        }
+
+        for (Token token : paramTokens) {
+            if (token.type == TokenType.ARROW) {
+                return true;
+            }
+        }
+
+        if (paramTokens.size() == 1 && paramTokens.get(0).type == TokenType.IDENTIFIER) {
+            String identifier = paramTokens.get(0).value;
+            return nfContext.hasFunRef(identifier) || nfContext.hasFunction(identifier);
+        }
+
+        return false;
     }
 
     /**
@@ -738,6 +850,8 @@ public class NfCalculator {
         try {
             // 执行函数调用
             return funCallNode.executeFunction(nfContext, funCallNode);
+        } catch (NfTimeoutException e) {
+            throw e;
         } catch (Exception e) {
             String errorMsg = isScriptCall ? "表达式中的导入脚本函数调用执行失败: " : "表达式中的函数调用执行失败: ";
             throw new NfException(e, errorMsg + functionCallExpr);

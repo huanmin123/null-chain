@@ -55,8 +55,33 @@ public class ControlExpressionTest {
         assertTrue((Integer) result > 0);
         log.info("高级控制语句测试通过，结果: {}", result);
     }
-}
 
+    /**
+     * 测试breakall可以跳出嵌套for循环
+     */
+    @Test
+    public void testNestedForBreakAll() {
+        String script =
+            "Integer count = 0\n" +
+            "for i in 1..3 {\n" +
+            "    for j in 1..3 {\n" +
+            "        count = count + 1\n" +
+            "        breakall\n" +
+            "    }\n" +
+            "}\n" +
+            "export count";
+
+        List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(script);
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
+
+        NfContext context = new NfContext();
+        Object result = NfRun.run(syntaxNodes, context, log, null);
+
+        assertNotNull(result);
+        assertEquals(1, result);
+        log.info("嵌套for循环breakall测试通过，结果: {}", result);
+    }
+}
 
 
 

@@ -489,17 +489,7 @@ public class ForSyntaxNode extends BlockSyntaxNode {
                 break;
             }
         }
-        // 循环结束后，清除当前FOR作用域的breakAll标志
-        NfContextScope currentForScope = context.getScope(currentScopeId);
-        if (currentForScope != null && currentForScope.getType() == NfContextScopeType.FOR) {
-            currentForScope.setBreakAll(false);
-        }
-        // 只有当父作用域不是FOR类型时，才清除全局breakAll标志
-        // 这样可以确保嵌套的FOR循环也能正确响应breakall
-        NfContextScope parentScope = context.getScope(currentForScope != null ? currentForScope.getParentScopeId() : null);
-        if (parentScope == null || parentScope.getType() != NfContextScopeType.FOR) {
-            context.setGlobalBreakAll(false);
-        }
+        clearBreakAllState(context, currentScopeId);
     }
 
     /**
@@ -629,16 +619,7 @@ public class ForSyntaxNode extends BlockSyntaxNode {
                 break;
             }
         }
-        // 循环结束后，清除当前FOR作用域的breakAll标志
-        NfContextScope currentForScope = context.getScope(currentScopeId);
-        if (currentForScope != null && currentForScope.getType() == NfContextScopeType.FOR) {
-            currentForScope.setBreakAll(false);
-        }
-        // 只有当父作用域不是FOR类型时，才清除全局breakAll标志
-        NfContextScope parentScope = context.getScope(currentForScope != null ? currentForScope.getParentScopeId() : null);
-        if (parentScope == null || parentScope.getType() != NfContextScopeType.FOR) {
-            context.setGlobalBreakAll(false);
-        }
+        clearBreakAllState(context, currentScopeId);
     }
 
     /**
@@ -695,16 +676,7 @@ public class ForSyntaxNode extends BlockSyntaxNode {
                 break;
             }
         }
-        // 循环结束后，清除当前FOR作用域的breakAll标志
-        NfContextScope currentForScope = context.getScope(currentScopeId);
-        if (currentForScope != null && currentForScope.getType() == NfContextScopeType.FOR) {
-            currentForScope.setBreakAll(false);
-        }
-        // 只有当父作用域不是FOR类型时，才清除全局breakAll标志
-        NfContextScope parentScope = context.getScope(currentForScope != null ? currentForScope.getParentScopeId() : null);
-        if (parentScope == null || parentScope.getType() != NfContextScopeType.FOR) {
-            context.setGlobalBreakAll(false);
-        }
+        clearBreakAllState(context, currentScopeId);
     }
 
     /**
@@ -762,16 +734,18 @@ public class ForSyntaxNode extends BlockSyntaxNode {
                 break;
             }
         }
-        // 循环结束后，清除当前FOR作用域的breakAll标志
+        clearBreakAllState(context, currentScopeId);
+    }
+
+    private void clearBreakAllState(NfContext context, String currentScopeId) {
         NfContextScope currentForScope = context.getScope(currentScopeId);
         if (currentForScope != null && currentForScope.getType() == NfContextScopeType.FOR) {
             currentForScope.setBreakAll(false);
         }
-        // 只有当父作用域不是FOR类型时，才清除全局breakAll标志
-        NfContextScope parentScope = context.getScope(currentForScope != null ? currentForScope.getParentScopeId() : null);
-        if (parentScope == null || parentScope.getType() != NfContextScopeType.FOR) {
-            context.setGlobalBreakAll(false);
+        if (context.isGlobalBreakAll() && context.hasScopeTypeInChain(currentScopeId, NfContextScopeType.FOR)) {
+            return;
         }
+        context.setGlobalBreakAll(false);
     }
 
     //跳到For结束位置获取结束下标

@@ -38,7 +38,7 @@ public class NfRun {
      * @param mainSystemContext 主系统上下文
      * @return 创建的全局作用域
      */
-    private static NfContextScope initializeContext(NfContext context, Logger logger, Map<String, Object> mainSystemContext) {
+    public static NfContextScope prepareContext(NfContext context, Logger logger, Map<String, Object> mainSystemContext) {
         // 开始执行，记录开始时间用于超时检查
         context.startExecution();
         
@@ -118,18 +118,40 @@ public class NfRun {
         return variable == null ? null : variable.getValue();
     }
 
+    private static void rethrowTimeoutIfPresent(Throwable throwable) {
+        NfTimeoutException timeoutException = findTimeoutException(throwable);
+        if (timeoutException != null) {
+            throw timeoutException;
+        }
+    }
+
+    private static NfTimeoutException findTimeoutException(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (current instanceof NfTimeoutException) {
+                return (NfTimeoutException) current;
+            }
+            current = current.getCause();
+        }
+        return null;
+    }
+
     public static Object run(List<SyntaxNode> syntaxNodes, NfContext context, Logger logger, Map<String,Object> mainSystemContext) {
         // 在执行前进行语法验证，提前发现语法错误
         SyntaxValidator.validate(syntaxNodes);
         
         //初始化上下文和作用域
-        NfContextScope scope = initializeContext(context, logger, mainSystemContext);
+        NfContextScope scope = prepareContext(context, logger, mainSystemContext);
 
-        //执行语法节点
-        SyntaxNodeFactory.executeAll(syntaxNodes, context);
-        
-        //获取结果并清理
-        return getResultAndClear(scope, context);
+        try {
+            //执行语法节点
+            SyntaxNodeFactory.executeAll(syntaxNodes, context);
+            //获取结果并清理
+            return getResultAndClear(scope, context);
+        } catch (NfException e) {
+            rethrowTimeoutIfPresent(e);
+            throw e;
+        }
     }
     
     /**
@@ -154,25 +176,29 @@ public class NfRun {
         SyntaxValidator.validate(syntaxNodes);
         
         //初始化上下文和作用域
-        NfContextScope scope = initializeContext(context, logger, mainSystemContext);
+        NfContextScope scope = prepareContext(context, logger, mainSystemContext);
 
-        //执行语法节点（如果启用性能监控，传递monitor）
-        if (monitor != null) {
-            SyntaxNodeFactory.executeAll(syntaxNodes, context, monitor);
-        } else {
-            SyntaxNodeFactory.executeAll(syntaxNodes, context);
-        }
-        
-        //如果启用性能监控，生成并输出报告
-        if (monitor != null) {
-            NfPerformanceReport report = monitor.generateReport();
-            if (logger != null) {
-                logger.info("NF脚本性能报告：\n{}", report);
+        try {
+            //执行语法节点（如果启用性能监控，传递monitor）
+            if (monitor != null) {
+                SyntaxNodeFactory.executeAll(syntaxNodes, context, monitor);
+            } else {
+                SyntaxNodeFactory.executeAll(syntaxNodes, context);
             }
+
+            //如果启用性能监控，生成并输出报告
+            if (monitor != null) {
+                NfPerformanceReport report = monitor.generateReport();
+                if (logger != null) {
+                    logger.info("NF脚本性能报告：\n{}", report);
+                }
+            }
+            //获取结果并清理
+            return getResultAndClear(scope, context);
+        } catch (NfException e) {
+            rethrowTimeoutIfPresent(e);
+            throw e;
         }
-        
-        //获取结果并清理
-        return getResultAndClear(scope, context);
     }
 
     //运行语法树

@@ -2,6 +2,7 @@ package com.gitee.huanminabc.nullchain.language.lambda;
 
 import com.gitee.huanminabc.nullchain.language.NfCalculator;
 import com.gitee.huanminabc.nullchain.language.NfException;
+import com.gitee.huanminabc.nullchain.language.NfRun;
 import com.gitee.huanminabc.nullchain.language.NfReturnException;
 import com.gitee.huanminabc.nullchain.language.internal.FunDefInfo;
 import com.gitee.huanminabc.nullchain.language.internal.FunRefInfo;
@@ -111,9 +112,7 @@ public class LambdaProxyFactory {
         if (context.getMainScopeId() == null || context.getScope(context.getMainScopeId()) == null) {
             log.info("上下文已被清理，创建新的执行上下文");
             executionContext = new NfContext();
-            String mainScopeId = "lambda_main_" + System.nanoTime();
-            executionContext.createScope(mainScopeId, null, NfContextScopeType.ALL);
-            executionContext.switchScope(mainScopeId);
+            NfRun.prepareContext(executionContext, null, null);
         }
 
         // 使用捕获时的作用域作为父作用域
@@ -150,6 +149,8 @@ public class LambdaProxyFactory {
         String savedScopeId = executionContext.getCurrentScopeId();
 
         try {
+            executionContext.startExecution();
+
             // 切换到 Lambda 作用域
             executionContext.switchScope(lambdaScopeId);
 
@@ -202,24 +203,19 @@ public class LambdaProxyFactory {
             // 恢复之前的作用域
             executionContext.switchScope(savedScopeId);
 
-            // 如果创建了新上下文，清理 Lambda 作用域
-            if (executionContext != context) {
-                executionContext.removeScope(lambdaScopeId);
-            }
-
             return returnValue;
         } catch (Exception e) {
             log.error("Lambda 执行异常: {} - {}", e.getClass().getSimpleName(), e.getMessage(), e);
 
             // 恢复之前的作用域
             executionContext.switchScope(savedScopeId);
-
-            // 如果创建了新上下文，清理 Lambda 作用域
-            if (executionContext != context) {
-                executionContext.removeScope(lambdaScopeId);
-            }
-
             throw new NfException("Line:{}, Lambda 执行失败: {}", line, e.getMessage(), e);
+        } finally {
+            executionContext.endExecution();
+            executionContext.removeScope(lambdaScopeId);
+            if (executionContext != context) {
+                executionContext.clear();
+            }
         }
     }
 

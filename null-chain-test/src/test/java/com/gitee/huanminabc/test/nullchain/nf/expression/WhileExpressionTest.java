@@ -106,4 +106,113 @@ public class WhileExpressionTest {
         assertEquals(10, result); // 只执行一次，i=10
         log.info("do-while循环执行一次测试通过，结果: {}", result);
     }
+
+    /**
+     * 测试do-while循环中的break语句
+     */
+    @Test
+    public void testDoWhileWithBreak() {
+        String script =
+            "Integer i = 0\n" +
+            "Integer sum = 0\n" +
+            "do {\n" +
+            "    i = i + 1\n" +
+            "    if i > 5 {\n" +
+            "        break\n" +
+            "    }\n" +
+            "    sum = sum + i\n" +
+            "} while true\n" +
+            "export sum";
+
+        List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(script);
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
+
+        NfContext context = new NfContext();
+        Object result = NfRun.run(syntaxNodes, context, log, null);
+
+        assertNotNull(result);
+        assertEquals(15, result); // 1+2+3+4+5=15
+        log.info("do-while循环break测试通过，结果: {}", result);
+    }
+
+    /**
+     * 测试do-while循环中的continue语句
+     */
+    @Test
+    public void testDoWhileWithContinue() {
+        String script =
+            "Integer i = 0\n" +
+            "Integer sum = 0\n" +
+            "do {\n" +
+            "    i = i + 1\n" +
+            "    if i % 2 == 0 {\n" +
+            "        continue\n" +
+            "    }\n" +
+            "    sum = sum + i\n" +
+            "} while i < 6\n" +
+            "export sum";
+
+        List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(script);
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
+
+        NfContext context = new NfContext();
+        Object result = NfRun.run(syntaxNodes, context, log, null);
+
+        assertNotNull(result);
+        assertEquals(9, result); // 1+3+5=9
+        log.info("do-while循环continue测试通过，结果: {}", result);
+    }
+
+    /**
+     * 测试do-while循环中的breakall语句
+     */
+    @Test
+    public void testDoWhileWithBreakAll() {
+        String script =
+            "Integer count = 0\n" +
+            "for i in 1..3 {\n" +
+            "    do {\n" +
+            "        count = count + 1\n" +
+            "        breakall\n" +
+            "    } while true\n" +
+            "}\n" +
+            "export count";
+
+        List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(script);
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
+
+        NfContext context = new NfContext();
+        Object result = NfRun.run(syntaxNodes, context, log, null);
+
+        assertNotNull(result);
+        assertEquals(1, result);
+        log.info("do-while循环breakall测试通过，结果: {}", result);
+    }
+
+    /**
+     * 测试while循环中的breakall可以跳出外层循环
+     */
+    @Test
+    public void testWhileWithBreakAll() {
+        String script =
+            "Integer count = 0\n" +
+            "for i in 1..3 {\n" +
+            "    Integer inner = 0\n" +
+            "    while inner < 3 {\n" +
+            "        count = count + 1\n" +
+            "        breakall\n" +
+            "    }\n" +
+            "}\n" +
+            "export count";
+
+        List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(script);
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
+
+        NfContext context = new NfContext();
+        Object result = NfRun.run(syntaxNodes, context, log, null);
+
+        assertNotNull(result);
+        assertEquals(1, result);
+        log.info("while循环breakall测试通过，结果: {}", result);
+    }
 }

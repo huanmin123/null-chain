@@ -223,14 +223,7 @@ public class WhileSyntaxNode extends BlockSyntaxNode {
             }
         }
 
-        NfContextScope currentForScope = context.getScope(currentScopeId);
-        if (currentForScope != null && currentForScope.getType() == NfContextScopeType.FOR) {
-            currentForScope.setBreakAll(false);
-        }
-        NfContextScope parentScope = context.getScope(currentForScope != null ? currentForScope.getParentScopeId() : null);
-        if (parentScope == null || parentScope.getType() != NfContextScopeType.FOR) {
-            context.setGlobalBreakAll(false);
-        }
+        clearBreakAllState(context, currentScopeId);
     }
 
     /**
@@ -281,5 +274,16 @@ public class WhileSyntaxNode extends BlockSyntaxNode {
             // 继续向上遍历
             currentScopeId = scope.getParentScopeId();
         }
+    }
+
+    private void clearBreakAllState(NfContext context, String currentScopeId) {
+        NfContextScope currentForScope = context.getScope(currentScopeId);
+        if (currentForScope != null && currentForScope.getType() == NfContextScopeType.FOR) {
+            currentForScope.setBreakAll(false);
+        }
+        if (context.isGlobalBreakAll() && context.hasScopeTypeInChain(currentScopeId, NfContextScopeType.FOR)) {
+            return;
+        }
+        context.setGlobalBreakAll(false);
     }
 }

@@ -76,6 +76,7 @@ public class SyntaxValidator {
             case FOR_EXP:
             case SWITCH_EXP:
             case WHILE_EXP:
+            case DO_WHILE_EXP:
                 validateBlockNode(node, context);
                 break;
             default:
@@ -217,7 +218,8 @@ public class SyntaxValidator {
          */
         public boolean isInLoop() {
             return blockTypes.contains(SyntaxNodeType.FOR_EXP) || 
-                   blockTypes.contains(SyntaxNodeType.WHILE_EXP);
+                   blockTypes.contains(SyntaxNodeType.WHILE_EXP) ||
+                   blockTypes.contains(SyntaxNodeType.DO_WHILE_EXP);
         }
         
         /**
@@ -228,8 +230,8 @@ public class SyntaxValidator {
          */
         private boolean isLoopType(SyntaxNodeType nodeType) {
             return nodeType == SyntaxNodeType.FOR_EXP || 
-                   nodeType == SyntaxNodeType.WHILE_EXP;
+                   nodeType == SyntaxNodeType.WHILE_EXP ||
+                   nodeType == SyntaxNodeType.DO_WHILE_EXP;
         }
     }
 }
-

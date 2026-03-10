@@ -135,6 +135,10 @@ public class NfContext {
     //用于计算脚本执行总时长，判断是否超时
     private long executionStartTime = 0;
     
+    //执行深度，用于支持导入脚本、Lambda 等嵌套执行场景
+    //只有最外层执行会重置开始时间，内层复用同一超时窗口
+    private int executionDepth = 0;
+    
     //上下文是否已被清除的标志
     //clear() 后设置为 true，防止误用导致 NPE
     private boolean cleared = false;
@@ -300,6 +304,25 @@ public class NfContext {
         return findByTypeScope(currentScopeId, type);
     }
 
+    /**
+     * 判断指定作用域及其祖先作用域链上是否包含目标类型
+     */
+    public boolean hasScopeTypeInChain(String scopeId, NfContextScopeType type) {
+        checkCleared();
+        String currentId = scopeId;
+        while (currentId != null) {
+            NfContextScope scope = scopeMap.get(currentId);
+            if (scope == null) {
+                return false;
+            }
+            if (scope.getType() == type) {
+                return true;
+            }
+            currentId = scope.getParentScopeId();
+        }
+        return false;
+    }
+
     //递归查找指定类型的作用域
     private NfContextScope findByTypeScope(String scopeId, NfContextScopeType type) {
         NfContextScope nfContextScope = scopeMap.get(scopeId);
@@ -446,8 +469,29 @@ public class NfContext {
      */
     public void startExecution() {
         checkCleared();
-        // 使用精确时间戳记录开始时间，确保时间计算的准确性
-        executionStartTime = System.currentTimeMillis();
+        if (executionDepth == 0) {
+            // 使用精确时间戳记录开始时间，确保时间计算的准确性
+            executionStartTime = System.currentTimeMillis();
+        }
+        executionDepth++;
+    }
+
+    /**
+     * 结束一次脚本执行
+     *
+     * <p>与 {@link #startExecution()} 配套使用，支持嵌套执行场景。
+     * 只有最外层执行结束时才会清空开始时间。</p>
+     */
+    public void endExecution() {
+        if (cleared) {
+            return;
+        }
+        if (executionDepth > 0) {
+            executionDepth--;
+            if (executionDepth == 0) {
+                executionStartTime = 0;
+            }
+        }
     }
 
     /**
@@ -710,5 +754,6 @@ public class NfContext {
         // 重置其他字段
         recursionDepth = 0;
         executionStartTime = 0;
+        executionDepth = 0;
     }
 }

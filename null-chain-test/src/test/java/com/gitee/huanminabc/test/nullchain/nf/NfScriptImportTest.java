@@ -2,6 +2,8 @@ package com.gitee.huanminabc.test.nullchain.nf;
 
 import com.gitee.huanminabc.nullchain.language.NfMain;
 import com.gitee.huanminabc.nullchain.language.NfScriptRegistry;
+import com.gitee.huanminabc.nullchain.language.NfTimeoutException;
+import com.gitee.huanminabc.nullchain.language.internal.NfContext;
 import com.gitee.huanminabc.test.nullchain.utils.TestUtil;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -535,5 +537,59 @@ public class NfScriptImportTest {
         Object result = NfMain.run(mainScript, null, null);
         assertEquals("User-测试-20|MyApp|18", result);
     }
-}
 
+    /**
+     * 测试导入脚本顶层执行也受超时控制
+     */
+    @Test
+    public void testImportedScriptTopLevelRespectsTimeout() {
+        long originalTimeout = NfContext.getGlobalTimeout();
+        try {
+            NfContext.setGlobalTimeout(20);
+            NfScriptRegistry.registerScript(
+                "slowTopLevel",
+                "Integer i = 0\n" +
+                "while i < 1000000 {\n" +
+                "    i = i + 1\n" +
+                "}\n" +
+                "export i"
+            );
+
+            String mainScript = "import nf slowTopLevel\n" +
+                               "export 1";
+
+            assertThrows(NfTimeoutException.class, () -> NfMain.run(mainScript, null, null));
+        } finally {
+            NfContext.setGlobalTimeout(originalTimeout);
+        }
+    }
+
+    /**
+     * 测试导入脚本函数调用也受超时控制
+     */
+    @Test
+    public void testImportedScriptFunctionRespectsTimeout() {
+        long originalTimeout = NfContext.getGlobalTimeout();
+        try {
+            NfContext.setGlobalTimeout(20);
+            NfScriptRegistry.registerScript(
+                "slowFunction",
+                "fun slow()Integer {\n" +
+                "    Integer i = 0\n" +
+                "    while i < 1000000 {\n" +
+                "        i = i + 1\n" +
+                "    }\n" +
+                "    return i\n" +
+                "}"
+            );
+
+            String mainScript = "import nf slowFunction\n" +
+                               "Integer result = slowFunction.slow()\n" +
+                               "export result";
+
+            assertThrows(NfTimeoutException.class, () -> NfMain.run(mainScript, null, null));
+        } finally {
+            NfContext.setGlobalTimeout(originalTimeout);
+        }
+    }
+}
