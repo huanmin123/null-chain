@@ -1,6 +1,7 @@
 package com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode;
 
 import com.gitee.huanminabc.nullchain.common.NullConstants;
+import com.gitee.huanminabc.nullchain.language.NfCalculator;
 import com.gitee.huanminabc.nullchain.language.NfException;
 import com.gitee.huanminabc.nullchain.language.NfSynta;
 import com.gitee.huanminabc.nullchain.language.NfToken;
@@ -16,6 +17,8 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
 import com.gitee.huanminabc.nullchain.language.utils.DataType;
+import com.gitee.huanminabc.nullchain.language.utils.SyntaxNodeUtil;
+import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -109,15 +112,9 @@ public class SwitchSyntaxNode extends BlockSyntaxNode {
         List<Token> tokens = syntaxNode.getValue();
         //取出来switch的条件值
         List<Token> switchValue = splitSwitchValue(tokens);
-        //判断是否是标识符（变量）或常量（整数、字符串、布尔值、浮点数）
-        TokenType switchValueType = switchValue.get(0).type;
-        if (switchValueType != TokenType.IDENTIFIER && 
-            switchValueType != TokenType.INTEGER && 
-            switchValueType != TokenType.STRING && 
-            switchValueType != TokenType.BOOLEAN && 
-            switchValueType != TokenType.FLOAT) {
-            throw new NfException("Line:{} , switch的条件值必须是变量或常量（整数、字符串、布尔值、浮点数） , syntax: {}", 
-                switchValue.get(0).getLine(), syntaxNode);
+        if (switchValue == null || switchValue.isEmpty()) {
+            throw new NfException("Line:{} ,switch条件值不能为空 , syntax: {}",
+                syntaxNode.getLine(), syntaxNode);
         }
         syntaxNode.setValue(switchValue);
         //取出来全部的case
@@ -154,22 +151,7 @@ public class SwitchSyntaxNode extends BlockSyntaxNode {
         if (switchValueList == null || switchValueList.isEmpty()) {
             throw new NfException("Line:{} ,switch条件值不能为空 , syntax:{} ", switchSyntaxNode.getLine(), syntaxNode);
         }
-        Token switchValueToken = switchValueList.get(0);
-        Object switchValue;
-        
-        //判断switch条件值是变量还是常量
-        if (switchValueToken.type == TokenType.IDENTIFIER) {
-            //是变量，从上下文中获取值
-            String switchName = switchValueToken.value;
-            NfVariableInfo variable = context.getVariable(switchName);
-            if (variable == null) {
-                throw new NfException("Line:{} ,{}变量不存在 , syntax:{} ", switchSyntaxNode.getLine(), switchName, syntaxNode);
-            }
-            switchValue = variable.getValue();
-        } else {
-            //是常量，直接转换为实际值
-            switchValue = DataType.realType(switchValueToken.type, switchValueToken.value);
-        }
+        Object switchValue = resolveSwitchValue(switchValueList, context, switchSyntaxNode);
         List<SyntaxNode> childList = switchSyntaxNode.getChildSyntaxNodeList();
         if (childList == null || childList.isEmpty()) {
             // switch语句没有子节点，直接返回
@@ -205,8 +187,7 @@ public class SwitchSyntaxNode extends BlockSyntaxNode {
                         continue;
                     }
                     Object caseValueIf = DataType.realType(token.type, token.value);
-                    //判断类型是否一致
-                    if(switchValue.getClass()==caseValueIf.getClass() && switchValue.equals(caseValueIf)){
+                    if (isCaseMatched(switchValue, caseValueIf)) {
                         //创建子作用域
                         NfContextScope childScope = context.createChildScope(context.getCurrentScopeId(), NfContextScopeType.SWITCH);
                         //执行else if代码块内部的语句
@@ -226,22 +207,80 @@ public class SwitchSyntaxNode extends BlockSyntaxNode {
 
     //取出Switch条件值
     private List<Token> splitSwitchValue(List<Token> tokens){
+        if (tokens == null || tokens.isEmpty()) {
+            return new ArrayList<>();
+        }
+
         //去掉开头的switch
-        tokens.remove(0);
-        List<Token> value = new ArrayList<>();
-        value.add(tokens.get(0));
-        //去掉值
-        tokens.remove(0);
-        //去掉{
-        tokens.remove(0);
-        //去掉换行
-        tokens.remove(0);
+        SyntaxNodeUtil.clearLeadingTokens(tokens, 1);
+
+        int braceIndex = -1;
+        int parenDepth = 0;
+        for (int i = 0; i < tokens.size(); i++) {
+            Token token = tokens.get(i);
+            if (token.type == TokenType.LPAREN) {
+                parenDepth++;
+            } else if (token.type == TokenType.RPAREN) {
+                parenDepth--;
+            } else if (token.type == TokenType.LBRACE && parenDepth == 0) {
+                braceIndex = i;
+                break;
+            }
+        }
+
+        if (braceIndex <= 0) {
+            return new ArrayList<>();
+        }
+
+        List<Token> value = new ArrayList<>(tokens.subList(0, braceIndex));
+        int removeCount = braceIndex + 1;
+        if (tokens.size() > removeCount && tokens.get(removeCount).type == TokenType.LINE_END) {
+            removeCount++;
+        }
+        SyntaxNodeUtil.clearLeadingTokens(tokens, removeCount);
         //去掉最后的}（RBRACE），这是switch语句的结束标记
         //注意：这个RBRACE是在skipSwitchEnd中已经计算好的switch语句的结束位置
         if (tokens.size() > 0 && tokens.get(tokens.size() - 1).type == TokenType.RBRACE) {
             tokens.remove(tokens.size() - 1);
         }
         return value;
+    }
+
+    private Object resolveSwitchValue(List<Token> switchValueTokens, NfContext context, SyntaxNode syntaxNode) {
+        if (switchValueTokens.size() == 1) {
+            Token switchValueToken = switchValueTokens.get(0);
+            if (switchValueToken.type == TokenType.IDENTIFIER) {
+                String switchName = switchValueToken.value;
+                NfVariableInfo variable = context.getVariable(switchName);
+                if (variable == null) {
+                    throw new NfException("Line:{} ,{}变量不存在 , syntax:{} ", syntaxNode.getLine(), switchName, syntaxNode);
+                }
+                return variable.getValue();
+            }
+            if (switchValueToken.type == TokenType.INTEGER ||
+                switchValueToken.type == TokenType.STRING ||
+                switchValueToken.type == TokenType.BOOLEAN ||
+                switchValueToken.type == TokenType.FLOAT) {
+                return DataType.realType(switchValueToken.type, switchValueToken.value);
+            }
+        }
+
+        String expression = TokenUtil.mergeToken(switchValueTokens).toString();
+        try {
+            return NfCalculator.arithmetic(expression, context);
+        } catch (NfException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new NfException(e, "Line:{} ,switch条件表达式计算失败: {} , syntax:{} ",
+                syntaxNode.getLine(), expression, syntaxNode);
+        }
+    }
+
+    private boolean isCaseMatched(Object switchValue, Object caseValue) {
+        if (switchValue == null || caseValue == null) {
+            return false;
+        }
+        return switchValue.getClass() == caseValue.getClass() && switchValue.equals(caseValue);
     }
     /**
      * 提取case语句
@@ -265,7 +304,7 @@ public class SwitchSyntaxNode extends BlockSyntaxNode {
 
         //记录结束下标, 用于截取和删除
         //去掉开头的case
-        tokens.remove(0);
+        SyntaxNodeUtil.clearLeadingTokens(tokens, 1);
         int endIndex = skipCase1Block(tokens);
         //截取case表达式 , 因为需要包括换行所以需要+1
         List<Token> caseTokens = new ArrayList<>(tokens.subList(0, endIndex+1));
@@ -326,9 +365,7 @@ public class SwitchSyntaxNode extends BlockSyntaxNode {
 
         //记录结束下标, 用于截取和删除
         //去掉开头的default
-        tokens.remove(0);
-        //去掉换行
-        tokens.remove(0);
+        SyntaxNodeUtil.clearLeadingTokens(tokens, 2);
         //剩下的就是default的表达式
         int endIndex = tokens.size();
         //截取default表达式 , 因为需要包括换行所以需要+1

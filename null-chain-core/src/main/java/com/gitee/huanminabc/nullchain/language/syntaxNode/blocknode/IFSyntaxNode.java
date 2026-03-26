@@ -16,6 +16,7 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeFactory;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
+import com.gitee.huanminabc.nullchain.language.utils.SyntaxNodeUtil;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -170,7 +171,7 @@ public class IFSyntaxNode extends BlockSyntaxNode {
             );
         }
         //去掉IF
-        tokenList.remove(0);
+        SyntaxNodeUtil.clearLeadingTokens(tokenList, 1);
         IFSyntaxNode ifSyntaxNode = splitIf(tokenList,IFType.IF);
         syntaxNode.addChild(ifSyntaxNode);
         while (true) {
@@ -327,14 +328,11 @@ public class IFSyntaxNode extends BlockSyntaxNode {
 
         //截取if表达式的条件
         List<Token> conditionTokens = new ArrayList<>(ifTokens.subList(0, endIndex2));
-        //删除条件
-        ifTokens.subList(0, endIndex2).clear();
-        //去掉{
-        ifTokens.remove(0);
-        //去掉第一个换行
-        if(ifTokens.get(0).type == TokenType.LINE_END){
-            ifTokens.remove(0);
+        int removeCount = endIndex2 + 1;
+        if (ifTokens.size() > removeCount && ifTokens.get(removeCount).type == TokenType.LINE_END) {
+            removeCount++;
         }
+        SyntaxNodeUtil.clearLeadingTokens(ifTokens, removeCount);
         //去掉末尾的}
         if(!ifTokens.isEmpty() && ifTokens.get(ifTokens.size() - 1).type == TokenType.RBRACE){
             ifTokens.remove(ifTokens.size() - 1);
@@ -371,9 +369,7 @@ public class IFSyntaxNode extends BlockSyntaxNode {
         Token token1 = tokens.get(0);
         Token token2 = tokens.get(1);
         if (token1.type==TokenType.ELSE&&token2.type== TokenType.IF){
-            //删除
-            tokens.remove(0);
-            tokens.remove(0);
+            SyntaxNodeUtil.clearLeadingTokens(tokens, 2);
             return splitIf(tokens,IFType.ELSE_IF);
         }
         return null;
@@ -393,11 +389,8 @@ public class IFSyntaxNode extends BlockSyntaxNode {
             ifStatement.setIfType(IFType.ELSE);
             ifStatement.setLine(token1.getLine());
 
-            //删除ELSE
-            tokens.remove(0);
-
             // 检查剩余tokens是否以{开头
-            if (tokens.isEmpty() || tokens.get(0).type != TokenType.LBRACE) {
+            if (tokens.size() < 2 || tokens.get(1).type != TokenType.LBRACE) {
                 throw new NfSyntaxException(
                     token1.getLine(),
                     "else表达式语法错误",
@@ -407,13 +400,11 @@ public class IFSyntaxNode extends BlockSyntaxNode {
                 );
             }
 
-            //删除{
-            tokens.remove(0);
-
-            //删除第一个换行
-            if(!tokens.isEmpty() && tokens.get(0).type == TokenType.LINE_END){
-                tokens.remove(0);
+            int removeCount = 2;
+            if (tokens.size() > removeCount && tokens.get(removeCount).type == TokenType.LINE_END) {
+                removeCount++;
             }
+            SyntaxNodeUtil.clearLeadingTokens(tokens, removeCount);
 
             //去掉末尾的}
             if(!tokens.isEmpty() && tokens.get(tokens.size() - 1).type == TokenType.RBRACE){

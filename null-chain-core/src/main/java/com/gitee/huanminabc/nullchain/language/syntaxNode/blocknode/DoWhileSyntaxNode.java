@@ -14,6 +14,7 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeFactory;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
+import com.gitee.huanminabc.nullchain.language.utils.SyntaxNodeUtil;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -96,7 +97,7 @@ public class DoWhileSyntaxNode extends BlockSyntaxNode {
         }
 
         // 去掉开头的DO
-        tokenList.remove(0);
+        SyntaxNodeUtil.clearLeadingTokens(tokenList, 1);
 
         // 找到第一个{+LINE_END的位置（do { ... } while condition）
         int blockStartIndex = 0;
@@ -144,7 +145,7 @@ public class DoWhileSyntaxNode extends BlockSyntaxNode {
         List<Token> bodyTokens = new ArrayList<>(tokenList.subList(blockStartIndex + 1, blockEndIndex));
         // 去掉开头的换行
         if (!bodyTokens.isEmpty() && bodyTokens.get(0).type == TokenType.LINE_END) {
-            bodyTokens.remove(0);
+            SyntaxNodeUtil.clearLeadingTokens(bodyTokens, 1);
         }
 
         // 截取while条件（去掉while）

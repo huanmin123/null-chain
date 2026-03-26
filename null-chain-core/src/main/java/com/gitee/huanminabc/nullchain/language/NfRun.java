@@ -167,10 +167,12 @@ public class NfRun {
     public static Object run(List<SyntaxNode> syntaxNodes, NfContext context, Logger logger, 
                             Map<String,Object> mainSystemContext, boolean enablePerformanceMonitoring) {
         NfPerformanceMonitor monitor = enablePerformanceMonitoring ? new NfPerformanceMonitor() : null;
+        NfPerformanceMonitor previousMonitor = context.getPerformanceMonitor();
         
         if (monitor != null) {
             monitor.start();
         }
+        context.setPerformanceMonitor(monitor);
         
         // 在执行前进行语法验证，提前发现语法错误
         SyntaxValidator.validate(syntaxNodes);
@@ -198,6 +200,8 @@ public class NfRun {
         } catch (NfException e) {
             rethrowTimeoutIfPresent(e);
             throw e;
+        } finally {
+            context.setPerformanceMonitor(previousMonitor);
         }
     }
 

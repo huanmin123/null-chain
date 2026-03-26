@@ -240,7 +240,7 @@ public class ReturnSyntaxNode extends LineSyntaxNode {
         List<Token> lambdaBodyTokens = new ArrayList<>(expTokens.subList(lbraceIndex + 1, rbraceIndex));
 
         // 生成唯一的 Lambda 函数名
-        String lambdaFuncName = "__lambda_return_" + System.currentTimeMillis() + "_" + (int)(Math.random() * 10000);
+        String lambdaFuncName = NfContext.generateLambdaFunctionName("__lambda_return_");
 
         // 推断参数和返回类型（简化处理：都使用 Object）
         List<FunDefInfo.FunParameter> parameters = new ArrayList<>();
@@ -338,6 +338,5 @@ public class ReturnSyntaxNode extends LineSyntaxNode {
         return TokenUtil.mergeToken(getValue()).toString();
     }
 }
-
 
 

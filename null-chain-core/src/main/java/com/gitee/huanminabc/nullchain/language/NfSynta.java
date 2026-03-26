@@ -1,6 +1,7 @@
 package com.gitee.huanminabc.nullchain.language;
 
 import com.gitee.huanminabc.nullchain.language.internal.ParseScopeTracker;
+import com.gitee.huanminabc.nullchain.language.internal.TokenCursor;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeFactory;
 import com.gitee.huanminabc.nullchain.language.token.Token;
@@ -68,25 +69,34 @@ public class NfSynta {
         // 保存旧的tracker（如果有）
         ParseScopeTracker oldTracker = trackerThreadLocal.get();
         trackerThreadLocal.set(tracker);
+        boolean wrappedCursor = !(tokens instanceof TokenCursor);
+        List<Token> workingTokens = wrappedCursor ? TokenCursor.wrap(tokens) : tokens;
         
         try {
             List<SyntaxNode> syntaxNodeList = new ArrayList<>();
             //使用while循环替代for循环，因为循环中会修改tokens列表
             //设计说明：直接修改tokens列表是为了高效解析，已解析的部分被移除后，剩余部分继续从开头解析
-            while (!tokens.isEmpty()) {
-                //跳过换行和注释
-                Token firstToken = tokens.get(0);
+            while (!workingTokens.isEmpty()) {
+                int ignoredCount = clearLeadingIgnorableTokens(workingTokens);
+                if (ignoredCount > 0) {
+                    if (workingTokens.isEmpty()) {
+                        break;
+                    }
+                }
+
+                Token firstToken = workingTokens.get(0);
+
+                // 跳过可能由子节点清理后残留的空白前缀
                 if (firstToken.type == TokenType.LINE_END || firstToken.type == TokenType.COMMENT) {
-                    tokens.remove(0);
                     continue;
                 }
                 
                 //尝试识别并构建语法节点
-                boolean success = SyntaxNodeFactory.forEachNode(tokens, syntaxNodeList);
+                boolean success = SyntaxNodeFactory.forEachNode(workingTokens, syntaxNodeList);
                 if (!success) {
                     //如果无法识别，立即抛出异常
-                    int errorTokenCount = Math.min(tokens.size(), MAX_ERROR_CONTEXT_TOKENS);
-                    String context = TokenUtil.mergeToken(tokens.subList(0, errorTokenCount)).toString();
+                    int errorTokenCount = Math.min(workingTokens.size(), MAX_ERROR_CONTEXT_TOKENS);
+                    String context = TokenUtil.mergeToken(workingTokens.subList(0, errorTokenCount)).toString();
                     String suggestion = "期望: import, task, var, assign, declare, run, export, echo, if, switch, for, while, break, breakAll, continue 等关键字";
                     throw new NfSyntaxException(
                         firstToken.getLine(),
@@ -99,6 +109,9 @@ public class NfSynta {
             }
             return syntaxNodeList;
         } finally {
+            if (wrappedCursor) {
+                syncRemainingTokens(tokens, workingTokens);
+            }
             // 如果是新创建的tracker，清理ThreadLocal；否则恢复旧的tracker
             if (isNewTracker) {
                 trackerThreadLocal.remove();
@@ -106,6 +119,31 @@ public class NfSynta {
                 trackerThreadLocal.set(oldTracker);
             }
         }
+    }
+
+    private static void syncRemainingTokens(List<Token> originalTokens, List<Token> workingTokens) {
+        if (originalTokens == workingTokens) {
+            return;
+        }
+        List<Token> remainingTokens = new ArrayList<>(workingTokens);
+        originalTokens.clear();
+        originalTokens.addAll(remainingTokens);
+    }
+
+    private static int clearLeadingIgnorableTokens(List<Token> tokens) {
+        int size = tokens.size();
+        int removeCount = 0;
+        while (removeCount < size) {
+            TokenType type = tokens.get(removeCount).type;
+            if (type != TokenType.LINE_END && type != TokenType.COMMENT) {
+                break;
+            }
+            removeCount++;
+        }
+        if (removeCount > 0) {
+            tokens.subList(0, removeCount).clear();
+        }
+        return removeCount;
     }
     
     /**

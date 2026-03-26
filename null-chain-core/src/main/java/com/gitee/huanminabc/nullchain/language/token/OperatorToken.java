@@ -48,7 +48,8 @@ public class OperatorToken {
                     tokens.add(new Token(TokenType.NE, "!=", line));
                     i += 2;
                 } else {
-                    throw new NfException("非法字符  行: {} 字符: {}", line, currentChar);
+                    tokens.add(new Token(TokenType.NOT, "!", line));
+                    i++;
                 }
                 break;
             case '-':

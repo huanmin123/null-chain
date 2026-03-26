@@ -37,6 +37,25 @@ public class NfToken {
 
             // 跳过字符串和注释中的字符（简单处理）
             // 注意：这只是预检，完整的字符串处理在词法分析阶段
+            if (currentChar == '/' && i + 1 < length && input.charAt(i + 1) == '/') {
+                i += 2;
+                while (i < length && input.charAt(i) != '\n') {
+                    i++;
+                }
+                continue;
+            }
+            if (currentChar == '`' && i + 2 < length &&
+                input.charAt(i + 1) == '`' && input.charAt(i + 2) == '`') {
+                i += 3;
+                while (i + 2 < length) {
+                    if (input.charAt(i) == '`' && input.charAt(i + 1) == '`' && input.charAt(i + 2) == '`') {
+                        i += 2;
+                        break;
+                    }
+                    i++;
+                }
+                continue;
+            }
             if (currentChar == '"') {
                 // 跳过双引号字符串内容（处理转义）
                 i++;
@@ -175,9 +194,13 @@ public class NfToken {
         if (tokens == null || tokens.isEmpty()) {
             return;
         }
-        // 循环移除开头的换行符
-        while (!tokens.isEmpty() && tokens.get(0).type == TokenType.LINE_END) {
-            tokens.remove(0);
+        int removeCount = 0;
+        int size = tokens.size();
+        while (removeCount < size && tokens.get(removeCount).type == TokenType.LINE_END) {
+            removeCount++;
+        }
+        if (removeCount > 0) {
+            tokens.subList(0, removeCount).clear();
         }
     }
 

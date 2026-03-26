@@ -206,13 +206,13 @@ public class RunSyntaxNode extends LineSyntaxNode {
                                 params.add(templateValue);
                                 break;
                             case INTEGER:
-                                params.add(Double.parseDouble(token1.value));
+                            case FLOAT:
+                                params.add(DataType.realType(token1.type, token1.value));
                                 break;
                             case BOOLEAN:
+                            case TRUE:
+                            case FALSE:
                                 params.add(Boolean.parseBoolean(token1.value));
-                                break;
-                            case FLOAT:
-                                params.add(Float.parseFloat(token1.value));
                                 break;
                             default:
                                 throw new NfException("Line:{}, 参数类型错误,只支持String,Number,Boolean, syntax:{}", syntaxNode.getLine(), syntaxNode);

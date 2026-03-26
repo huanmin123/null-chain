@@ -428,17 +428,20 @@ public class SyntaxNodeComprehensiveTest {
     // ==================== Switch语法节点测试 ====================
     
     /**
-     * 测试Switch异常情况 - 条件值类型错误
+     * 测试Switch异常情况 - 条件表达式运行失败
      */
     @Test
     public void testSwitchConditionTypeError() {
         String file = TestUtil.readFile("syntax/switch_error_condition_type.nf");
         List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(file);
-        
+
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
+        NfContext context = new NfContext();
+
         assertThrows(NfException.class, () -> {
-            NfSynta.buildMainStatement(tokens);
+            NfRun.run(syntaxNodes, context, log, null);
         });
-        log.info("Switch条件值类型错误异常测试通过");
+        log.info("Switch条件表达式运行失败测试通过");
     }
 
     /**
@@ -565,4 +568,3 @@ public class SyntaxNodeComprehensiveTest {
         log.info("BreakAll正常情况测试通过");
     }
 }
-

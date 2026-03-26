@@ -19,7 +19,12 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Lambda 动态代理工厂
@@ -30,6 +35,68 @@ import java.util.List;
  */
 @Slf4j
 public class LambdaProxyFactory {
+    private static final AtomicLong LAMBDA_SCOPE_COUNTER = new AtomicLong();
+
+    private static final class DetachedContextSnapshot {
+        private static final DetachedContextSnapshot EMPTY = new DetachedContextSnapshot(null);
+
+        private final Map<String, String> importSnapshot;
+        private final Map<String, String> taskSnapshot;
+        private final Map<String, FunDefInfo> functionSnapshot;
+        private final Map<String, FunRefInfo> funRefSnapshot;
+        private final Map<Class<?>, Class<?>> interfaceDefaultImplSnapshot;
+        private final Map<String, NfContextScope> importedScriptScopeSnapshot;
+        private final Map<String, NfContext> importedScriptContextSnapshot;
+
+        private DetachedContextSnapshot(NfContext context) {
+            if (context == null) {
+                importSnapshot = Collections.emptyMap();
+                taskSnapshot = Collections.emptyMap();
+                functionSnapshot = Collections.emptyMap();
+                funRefSnapshot = Collections.emptyMap();
+                interfaceDefaultImplSnapshot = Collections.emptyMap();
+                importedScriptScopeSnapshot = Collections.emptyMap();
+                importedScriptContextSnapshot = Collections.emptyMap();
+                return;
+            }
+
+            importSnapshot = new HashMap<>(context.getImportMap());
+            taskSnapshot = new HashMap<>(context.getTaskMap());
+            functionSnapshot = new HashMap<>(context.getFunctionMap());
+            funRefSnapshot = new HashMap<>(context.getFunRefMap());
+            interfaceDefaultImplSnapshot = new HashMap<>(context.getInterfaceDefaultImplMap());
+            importedScriptScopeSnapshot = new HashMap<>(context.getImportedScriptScopeMap());
+            importedScriptContextSnapshot = new HashMap<>(context.getImportedScriptContextMap());
+        }
+
+        private NfContext createExecutionContext() {
+            NfContext detachedContext = new NfContext();
+            NfRun.prepareContext(detachedContext, null, null);
+            detachedContext.endExecution();
+
+            detachedContext.getImportMap().clear();
+            detachedContext.getImportMap().putAll(importSnapshot);
+            detachedContext.setImportVersion(importSnapshot.isEmpty() ? 0L : 1L);
+            detachedContext.setResolvedImportCache(Collections.emptyMap());
+            detachedContext.setResolvedImportCacheVersion(-1L);
+
+            detachedContext.getTaskMap().clear();
+            detachedContext.getTaskMap().putAll(taskSnapshot);
+            detachedContext.getFunctionMap().clear();
+            detachedContext.getFunctionMap().putAll(functionSnapshot);
+            detachedContext.getFunRefMap().clear();
+            detachedContext.getFunRefMap().putAll(funRefSnapshot);
+
+            detachedContext.getInterfaceDefaultImplMap().clear();
+            detachedContext.getInterfaceDefaultImplMap().putAll(interfaceDefaultImplSnapshot);
+
+            detachedContext.getImportedScriptScopeMap().clear();
+            detachedContext.getImportedScriptScopeMap().putAll(importedScriptScopeSnapshot);
+            detachedContext.getImportedScriptContextMap().clear();
+            detachedContext.getImportedScriptContextMap().putAll(importedScriptContextSnapshot);
+            return detachedContext;
+        }
+    }
 
     /**
      * 判断是否是函数式接口
@@ -80,7 +147,7 @@ public class LambdaProxyFactory {
         // 获取函数式接口的抽象方法
         Method functionalMethod = getFunctionalMethod(functionalInterface);
 
-        log.info("创建 Lambda 代理: {} -> {}", funRef, functionalInterface.getSimpleName());
+        log.debug("创建 Lambda 代理: {} -> {}", funRef, functionalInterface.getSimpleName());
 
         // 创建动态代理
         return (T) Proxy.newProxyInstance(
@@ -105,14 +172,14 @@ public class LambdaProxyFactory {
             throw new NfException("Line:{}, Lambda 的函数体未定义", line);
         }
 
-        log.info("开始执行 Lambda: {}, 函数体节点数: {}", funRef, funDef.getBodyNodes().size());
+        log.debug("开始执行 Lambda: {}, 函数体节点数: {}", funRef, funDef.getBodyNodes().size());
 
-        // 检查上下文是否有效，如果无效则创建新上下文
         NfContext executionContext = context;
-        if (context.getMainScopeId() == null || context.getScope(context.getMainScopeId()) == null) {
-            log.info("上下文已被清理，创建新的执行上下文");
-            executionContext = new NfContext();
-            NfRun.prepareContext(executionContext, null, null);
+        boolean temporaryContext = false;
+        if (!isContextUsable(context)) {
+            log.debug("Lambda 使用临时 detached 上下文执行");
+            executionContext = DetachedContextSnapshot.EMPTY.createExecutionContext();
+            temporaryContext = true;
         }
 
         // 使用捕获时的作用域作为父作用域
@@ -121,29 +188,21 @@ public class LambdaProxyFactory {
             parentScopeId = executionContext.getMainScopeId();
         }
 
-        log.info("Lambda 执行上下文 - 主作用域: {}, 父作用域: {}", executionContext.getMainScopeId(), parentScopeId);
+        log.debug("Lambda 执行上下文 - 主作用域: {}, 父作用域: {}", executionContext.getMainScopeId(), parentScopeId);
 
-        // 转换 Java 参数为 NF 参数值
-        List<Object> paramValues = new ArrayList<>();
-        if (args != null) {
-            for (Object arg : args) {
-                paramValues.add(arg);
-            }
+        List<Object> paramValues = args == null ? Collections.emptyList() : Arrays.asList(args);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Lambda 参数: {}", paramValues);
         }
 
-        log.info("Lambda 参数: {}", paramValues);
-
-        // 验证参数数量
-        if (paramValues.size() != funDef.getParameters().size()) {
-            throw new NfException("Line:{}, Lambda 参数数量不匹配，期望 {} 个，实际 {} 个",
-                line, funDef.getParameters().size(), paramValues.size());
-        }
+        validateLambdaParameters(funDef, paramValues, line);
 
         // 创建 Lambda 执行作用域
-        String lambdaScopeId = "lambda_" + System.nanoTime();
+        String lambdaScopeId = generateLambdaScopeId();
         NfContextScope lambdaScope = executionContext.createScope(lambdaScopeId, parentScopeId, NfContextScopeType.ALL);
 
-        log.info("创建 Lambda 作用域: {}, 父作用域: {}", lambdaScopeId, parentScopeId);
+        log.debug("创建 Lambda 作用域: {}, 父作用域: {}", lambdaScopeId, parentScopeId);
 
         // 保存当前作用域ID
         String savedScopeId = executionContext.getCurrentScopeId();
@@ -155,12 +214,12 @@ public class LambdaProxyFactory {
             executionContext.switchScope(lambdaScopeId);
 
             // 设置 Lambda 参数
-            setupLambdaParameters(lambdaScope, funDef, paramValues);
-            log.info("Lambda 参数设置完成: {}", funDef.getParameters());
+            setupLambdaParameters(lambdaScope, funDef, paramValues, executionContext, line);
+            log.debug("Lambda 参数设置完成: {}", funDef.getParameters());
 
             // 设置闭包变量
             if (funRef.getCapturedVariables() != null) {
-                log.info("设置闭包变量: {}", funRef.getCapturedVariables().keySet());
+                log.debug("设置闭包变量: {}", funRef.getCapturedVariables().keySet());
                 for (String varName : funRef.getCapturedVariables().keySet()) {
                     Object varValue = funRef.getCapturedVariables().get(varName);
                     lambdaScope.addVariable(new NfVariableInfo(varName, varValue, Object.class));
@@ -168,20 +227,18 @@ public class LambdaProxyFactory {
             }
 
             // 执行 Lambda 函数体
-            log.info("开始执行 Lambda 函数体，节点数: {}", funDef.getBodyNodes().size());
-            boolean hasReturnStatement = false;
+            log.debug("开始执行 Lambda 函数体，节点数: {}", funDef.getBodyNodes().size());
             try {
                 for (int i = 0; i < funDef.getBodyNodes().size(); i++) {
                     SyntaxNode node = funDef.getBodyNodes().get(i);
-                    log.info("执行节点 [{}/{}]: {} (类型: {})", i + 1, funDef.getBodyNodes().size(),
+                    log.debug("执行节点 [{}/{}]: {} (类型: {})", i + 1, funDef.getBodyNodes().size(),
                         node.getClass().getSimpleName(), node);
                     try {
                         node.run(executionContext, node);
-                        log.info("节点 [{}/{}] 执行成功", i + 1, funDef.getBodyNodes().size());
+                        log.debug("节点 [{}/{}] 执行成功", i + 1, funDef.getBodyNodes().size());
                     } catch (NfReturnException e) {
                         // NfReturnException 是正常的函数返回，不是错误
-                        log.info("节点 [{}/{}] 执行并触发函数返回 (NfReturnException)", i + 1, funDef.getBodyNodes().size());
-                        hasReturnStatement = true;
+                        log.debug("节点 [{}/{}] 执行并触发函数返回 (NfReturnException)", i + 1, funDef.getBodyNodes().size());
                         break; // 提前终止函数体执行
                     } catch (Exception e) {
                         log.error("节点 [{}/{}] 执行失败: {} - {}", i + 1, funDef.getBodyNodes().size(),
@@ -191,13 +248,12 @@ public class LambdaProxyFactory {
                 }
             } catch (NfReturnException e) {
                 // 捕获顶层 NfReturnException
-                log.info("捕获到 NfReturnException，表示函数正常返回");
-                hasReturnStatement = true;
+                log.debug("捕获到 NfReturnException，表示函数正常返回");
             }
 
             // 获取返回值
             Object returnValue = getLambdaReturnValue(lambdaScope);
-            log.info("Lambda 执行完成，返回值: {} (类型: {})", returnValue,
+            log.debug("Lambda 执行完成，返回值: {} (类型: {})", returnValue,
                 returnValue != null ? returnValue.getClass().getSimpleName() : "null");
 
             // 恢复之前的作用域
@@ -213,22 +269,98 @@ public class LambdaProxyFactory {
         } finally {
             executionContext.endExecution();
             executionContext.removeScope(lambdaScopeId);
-            if (executionContext != context) {
+            if (temporaryContext) {
                 executionContext.clear();
             }
         }
     }
 
     /**
+     * 验证 Lambda 参数数量。
+     */
+    private static void validateLambdaParameters(FunDefInfo funDef, List<Object> paramValues, int line) {
+        List<FunDefInfo.FunParameter> parameters = funDef.getParameters();
+        boolean hasVarArgs = false;
+        int fixedParamCount = parameters.size();
+        for (FunDefInfo.FunParameter parameter : parameters) {
+            if (parameter.isVarArgs()) {
+                hasVarArgs = true;
+                fixedParamCount = parameters.size() - 1;
+                break;
+            }
+        }
+
+        if (!hasVarArgs) {
+            if (paramValues.size() != parameters.size()) {
+                throw new NfException("Line:{}, Lambda 参数数量不匹配，期望 {} 个，实际 {} 个",
+                    line, parameters.size(), paramValues.size());
+            }
+            return;
+        }
+
+        if (paramValues.size() < fixedParamCount) {
+            throw new NfException("Line:{}, Lambda 参数数量不足，期望至少 {} 个，实际 {} 个",
+                line, fixedParamCount, paramValues.size());
+        }
+    }
+
+    /**
      * 设置 Lambda 参数
      */
-    private static void setupLambdaParameters(NfContextScope lambdaScope, FunDefInfo funDef, List<Object> paramValues) {
+    private static void setupLambdaParameters(NfContextScope lambdaScope, FunDefInfo funDef, List<Object> paramValues,
+                                              NfContext context, int line) {
         List<FunDefInfo.FunParameter> parameters = funDef.getParameters();
         for (int i = 0; i < parameters.size(); i++) {
             FunDefInfo.FunParameter param = parameters.get(i);
-            Object value = (i < paramValues.size()) ? paramValues.get(i) : null;
-            lambdaScope.addVariable(new NfVariableInfo(param.getName(), value, Object.class));
+            Object value;
+            if (param.isVarArgs()) {
+                List<Object> varArgsValues = new ArrayList<>();
+                for (int j = i; j < paramValues.size(); j++) {
+                    varArgsValues.add(paramValues.get(j));
+                }
+                value = varArgsValues;
+            } else {
+                value = (i < paramValues.size()) ? paramValues.get(i) : null;
+            }
+
+            String parameterType = param.getType() == null ? "Object" : param.getType().trim();
+            if (parameterType.startsWith("Fun")) {
+                if (!(value instanceof FunRefInfo)) {
+                    throw new NfException("Line:{}, Lambda 参数 {} 期望 FunRefInfo 类型，实际是 {}",
+                        line, param.getName(), describeValueType(value));
+                }
+                FunRefInfo nestedFunRef = (FunRefInfo) value;
+                lambdaScope.addVariable(new NfVariableInfo(param.getName(), value, FunRefInfo.class, true, nestedFunRef));
+                context.addFunRef(param.getName(), nestedFunRef);
+                continue;
+            }
+
+            String importedTypeName = context.getImportType(parameterType);
+            if (importedTypeName == null) {
+                throw new NfException("Line:{}, Lambda 参数 {} 类型 {} 未找到",
+                    line, param.getName(), parameterType);
+            }
+
+            Class<?> parameterClass = context.getResolvedImportClass(parameterType, NfCalculator::resolveClass);
+            if (parameterClass == null) {
+                parameterClass = NfCalculator.resolveClass(importedTypeName);
+            }
+
+            if (value instanceof FunRefInfo && isFunctionalInterface(parameterClass)) {
+                value = createFunctionalProxy((FunRefInfo) value, parameterClass, context, line);
+            }
+
+            lambdaScope.addVariable(new NfVariableInfo(param.getName(), value, parameterClass));
         }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static Object createFunctionalProxy(FunRefInfo funRef, Class<?> parameterClass, NfContext context, int line) {
+        return createProxy(funRef, (Class) parameterClass, context, line);
+    }
+
+    private static String describeValueType(Object value) {
+        return value == null ? "null" : value.getClass().getSimpleName();
     }
 
     /**
@@ -241,6 +373,22 @@ public class LambdaProxyFactory {
         } catch (Exception e) {
             // 没有返回值，返回 null
             return null;
+        }
+    }
+
+    private static String generateLambdaScopeId() {
+        return "lambda_" + LAMBDA_SCOPE_COUNTER.incrementAndGet();
+    }
+
+    private static boolean isContextUsable(NfContext context) {
+        if (context == null) {
+            return false;
+        }
+        try {
+            String mainScopeId = context.getMainScopeId();
+            return mainScopeId != null && context.getScope(mainScopeId) != null;
+        } catch (IllegalStateException e) {
+            return false;
         }
     }
 
@@ -274,12 +422,20 @@ public class LambdaProxyFactory {
         private final Method functionalMethod;
         private final NfContext context;
         private final int line;
+        private final ThreadLocal<NfContext> detachedContextHolder;
 
         public LambdaInvocationHandler(FunRefInfo funRef, Method functionalMethod, NfContext context, int line) {
             this.funRef = funRef;
             this.functionalMethod = functionalMethod;
             this.context = context;
             this.line = line;
+            DetachedContextSnapshot snapshot = new DetachedContextSnapshot(context);
+            this.detachedContextHolder = new ThreadLocal<NfContext>() {
+                @Override
+                protected NfContext initialValue() {
+                    return snapshot.createExecutionContext();
+                }
+            };
         }
 
         @Override
@@ -305,10 +461,13 @@ public class LambdaProxyFactory {
                 throw new NfException("不支持的 方法调用: {}", method.getName());
             }
 
-            log.info("Lambda 被调用: {}, 参数: {}", funRef, args == null ? "null" : java.util.Arrays.toString(args));
+            if (log.isDebugEnabled()) {
+                log.debug("Lambda 被调用: {}, 参数: {}", funRef, args == null ? "null" : Arrays.toString(args));
+            }
 
             // 执行 NF Lambda（调用静态方法）
-            return LambdaProxyFactory.executeLambda(funRef, args, context, line);
+            NfContext executionContext = isContextUsable(context) ? context : detachedContextHolder.get();
+            return LambdaProxyFactory.executeLambda(funRef, args, executionContext, line);
         }
     }
 }

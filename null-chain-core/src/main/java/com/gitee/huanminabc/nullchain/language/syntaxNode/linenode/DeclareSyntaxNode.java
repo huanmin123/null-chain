@@ -1,6 +1,7 @@
 package com.gitee.huanminabc.nullchain.language.syntaxNode.linenode;
 
 import com.gitee.huanminabc.nullchain.common.NullConstants;
+import com.gitee.huanminabc.nullchain.language.NfCalculator;
 import com.gitee.huanminabc.nullchain.language.NfException;
 import com.gitee.huanminabc.nullchain.language.NfSynta;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
@@ -117,24 +118,20 @@ public class DeclareSyntaxNode extends LineSyntaxNode {
         if (importType == null) {
             throw new NfException("Line:{} ,未找到类型: {} , syntax: {}",token.line,type,syntaxNode);
         }
-        try {
-            Class<?> typeClass = Class.forName(importType);
+        Class<?> typeClass = resolveImportedType(context, type, importType, token.line, syntaxNode);
 
-            //获取赋值的变量名
-            if (value.size() < 2) {
-                throw new NfException("Line:{} ,声明表达式格式错误，缺少变量名 , syntax: {}", 
-                    token.line, syntaxNode);
-            }
-            String varName = value.get(1).value;
-
-            //取出来上下文
-            NfContextScope currentScope = context.getCurrentScope();
-            //将计算的值放入上下文
-            // 注意：重复变量检查已在解析阶段完成，此处不再检查
-            currentScope.addVariable(new NfVariableInfo(varName, null, typeClass));
-        } catch (ClassNotFoundException e) {
-            throw new NfException("Line:{} ,未找到类型: {} , syntax: {}",token.line,type,syntaxNode);
+        //获取赋值的变量名
+        if (value.size() < 2) {
+            throw new NfException("Line:{} ,声明表达式格式错误，缺少变量名 , syntax: {}", 
+                token.line, syntaxNode);
         }
+        String varName = value.get(1).value;
+
+        //取出来上下文
+        NfContextScope currentScope = context.getCurrentScope();
+        //将计算的值放入上下文
+        // 注意：重复变量检查已在解析阶段完成，此处不再检查
+        currentScope.addVariable(new NfVariableInfo(varName, null, typeClass));
     }
 
 
@@ -155,6 +152,18 @@ public class DeclareSyntaxNode extends LineSyntaxNode {
     @Override
     public String toString() {
         return printExp(getValue());
+    }
+
+    private Class<?> resolveImportedType(NfContext context, String typeAlias, String importType, int line, SyntaxNode syntaxNode) {
+        try {
+            Class<?> cachedType = context.getResolvedImportClass(typeAlias, NfCalculator::resolveClass);
+            if (cachedType != null) {
+                return cachedType;
+            }
+            return NfCalculator.resolveClass(importType);
+        } catch (NfException e) {
+            throw new NfException(e, "Line:{} ,未找到类型: {} , syntax: {}", line, typeAlias, syntaxNode);
+        }
     }
 
 }

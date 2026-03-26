@@ -6,6 +6,7 @@ import com.gitee.huanminabc.nullchain.common.NullGroupNfTask;
 import com.gitee.huanminabc.nullchain.common.NullGroupTask;
 import com.gitee.huanminabc.nullchain.task.NullTaskFactory;
 import com.gitee.huanminabc.nullchain.task.TestTask;
+import com.gitee.huanminabc.test.nullchain.utils.TestUtil;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -78,7 +79,7 @@ public class NullTaskTest {
 
     @Test
     public void testNfFileTask() {
-        String file = PathUtil.getCurrentProjectTestResourcesAbsolutePath("nf/student/advanced_examples.nf");
+        String file = TestUtil.resourcePath("nf/student/advanced_examples.nf");
         String input = "123131";
         String result = Null.of(input)
                 .nfTask(NullGroupNfTask.taskFile(file))
@@ -137,4 +138,3 @@ public class NullTaskTest {
         assertEquals("default", result);
     }
 }
-

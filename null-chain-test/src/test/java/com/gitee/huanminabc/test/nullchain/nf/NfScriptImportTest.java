@@ -175,6 +175,24 @@ public class NfScriptImportTest {
     }
 
     /**
+     * 测试导入脚本函数在表达式中的多次调用
+     */
+    @Test
+    public void testImportedScriptFunctionInExpression() {
+        String scriptContent = "fun format(String name, Integer age)String {\n" +
+                              "    return name + \"-\" + age\n" +
+                              "}";
+        NfScriptRegistry.registerScript("testUtilsExpr", scriptContent);
+
+        String mainScript = "import nf testUtilsExpr\n" +
+                           "String result = testUtilsExpr.format(\"张三\", 25) + \",\" + testUtilsExpr.format(\"李四\", 18)\n" +
+                           "export result";
+
+        Object result = NfMain.run(mainScript, null, null);
+        assertEquals("张三-25,李四-18", result);
+    }
+
+    /**
      * 测试导入脚本的函数访问自己的全局变量
      */
     @Test

@@ -2,6 +2,7 @@ package com.gitee.huanminabc.nullchain.language.syntaxNode.linenode;
 
 import com.gitee.huanminabc.jcommon.multithreading.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.common.NullConstants;
+import com.gitee.huanminabc.nullchain.language.NfCalculator;
 import com.gitee.huanminabc.nullchain.language.NfException;
 import com.gitee.huanminabc.nullchain.language.NfScriptRegistry;
 import com.gitee.huanminabc.nullchain.language.NfRun;
@@ -206,9 +207,9 @@ public class ImportSyntaxNode extends LineSyntaxNode {
 
                 // 验证类是否存在
                 try {
-                    Class.forName(classPath);
-                } catch (ClassNotFoundException e) {
-                    throw new NfException("Line:{} ,import {} 语句错误,找不到类", token.getLine(), classPath);
+                    NfCalculator.resolveClass(classPath);
+                } catch (NfException e) {
+                    throw new NfException(e, "Line:{} ,import {} 语句错误,找不到类", token.getLine(), classPath);
                 }
 
                 // 解析类名作为默认名称
@@ -309,12 +310,12 @@ public class ImportSyntaxNode extends LineSyntaxNode {
             try {
                 NullTask task = NullTaskFactory.getTask(classPath);
                 if (task == null) {
-                    Class<?> aClass = Class.forName(classPath);
+                    Class<?> aClass = NfCalculator.resolveClass(classPath);
                     if (NullTask.class.isAssignableFrom(aClass)) {
                         NullTaskFactory.registerTask((Class)aClass);
                     }
                 }
-            } catch (ClassNotFoundException e) {
+            } catch (NfException e) {
                 throw new NfException(e, "Line:{} ,import 任务错误,找不到任务类: {}",
                     syntaxNode.getLine(), classPath);
             }
@@ -359,6 +360,7 @@ public class ImportSyntaxNode extends LineSyntaxNode {
 
             // 创建独立的 NfContext 执行脚本
             NfContext scriptContext = new NfContext();
+            scriptContext.setPerformanceMonitor(context.getPerformanceMonitor());
 
             // 与主脚本执行链保持一致：先校验，再初始化上下文和超时控制
             SyntaxValidator.validate(scriptSyntaxNodes);

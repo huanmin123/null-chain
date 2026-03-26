@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 public class NfPerformanceReport {
     
     private final Map<String, NfPerformanceMonitor.NodeStatistics> nodeStatistics;
-    private final long totalExecutionTime; // 所有节点执行时间总和（纳秒）
+    private final long totalExecutionTime; // 所有节点执行时间总和（纳秒，包含嵌套节点的累计耗时）
     private final long totalDuration; // 总耗时（纳秒，包括其他开销）
     
     public NfPerformanceReport(Map<String, NfPerformanceMonitor.NodeStatistics> nodeStatistics,
@@ -86,13 +86,18 @@ public class NfPerformanceReport {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
+        long overhead = Math.max(0, totalDuration - totalExecutionTime);
+        long nestedOverlap = Math.max(0, totalExecutionTime - totalDuration);
         sb.append("========== NF脚本性能报告 ==========\n\n");
         
         // 总体统计
         sb.append("总体统计：\n");
-        sb.append(String.format("  总执行时间: %.2f ms\n", totalExecutionTime / 1_000_000.0));
+        sb.append(String.format("  累计节点耗时: %.2f ms\n", totalExecutionTime / 1_000_000.0));
         sb.append(String.format("  总耗时: %.2f ms\n", totalDuration / 1_000_000.0));
-        sb.append(String.format("  其他开销: %.2f ms\n", (totalDuration - totalExecutionTime) / 1_000_000.0));
+        sb.append(String.format("  其他开销: %.2f ms\n", overhead / 1_000_000.0));
+        if (nestedOverlap > 0) {
+            sb.append(String.format("  嵌套统计重叠: %.2f ms\n", nestedOverlap / 1_000_000.0));
+        }
         sb.append(String.format("  监控节点数: %d\n", nodeStatistics.size()));
         sb.append("\n");
         
@@ -152,4 +157,3 @@ public class NfPerformanceReport {
         return sb.toString();
     }
 }
-

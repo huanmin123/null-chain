@@ -5,6 +5,7 @@ import com.gitee.huanminabc.nullchain.NullCheck;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.nullchain.enums.DateFormatEnum;
 import com.gitee.huanminabc.nullchain.language.NfMain;
+import com.gitee.huanminabc.nullchain.language.NfPerformanceMonitor;
 import com.gitee.huanminabc.nullchain.leaf.calculate.NullCalculate;
 import com.gitee.huanminabc.nullchain.leaf.http.OkHttp;
 import com.gitee.huanminabc.nullchain.leaf.stream.NullStream;
@@ -27,6 +28,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,6 +45,34 @@ import java.util.regex.Pattern;
  */
 @Data
 public class NfContext {
+    private static final long SNAPSHOT_HASH_SEED = 1469598103934665603L;
+    private static final long SNAPSHOT_HASH_PRIME = 1099511628211L;
+    private static final AtomicLong SCOPE_ID_COUNTER = new AtomicLong();
+    private static final AtomicLong LAMBDA_NAME_COUNTER = new AtomicLong();
+    private static final int TIMEOUT_CHECK_INTERVAL_MASK = 0x3F;
+
+    private static final class ScopeChainState {
+        private final List<NfContextScope> scopes;
+        private final long fingerprint;
+        private final int estimatedSize;
+
+        private ScopeChainState(List<NfContextScope> scopes, long fingerprint, int estimatedSize) {
+            this.scopes = scopes;
+            this.fingerprint = fingerprint;
+            this.estimatedSize = estimatedSize;
+        }
+    }
+
+    private static final class VisibleVariablesSnapshot {
+        private final long fingerprint;
+        private final Map<String, Object> variables;
+
+        private VisibleVariablesSnapshot(long fingerprint, Map<String, Object> variables) {
+            this.fingerprint = fingerprint;
+            this.variables = variables;
+        }
+    }
+
     /**
      * 默认导入类型映射（静态常量，类加载时初始化一次）
      * 使用不可变Map包装，确保线程安全
@@ -103,8 +134,13 @@ public class NfContext {
 
     //key:是作用域的id, 当作用域结束时, 从map中移除
     private Map<String, NfContextScope> scopeMap = new HashMap<>();
+    // 当前作用域链展开后的只读变量快照缓存，key 为 currentScopeId
+    private Map<String, VisibleVariablesSnapshot> visibleVariablesCache = new HashMap<>();
     //类型和类的全路径映射关系
     private Map<String, String> importMap = new HashMap<>();
+    private long importVersion = 0L;
+    private long resolvedImportCacheVersion = -1L;
+    private Map<String, Object> resolvedImportCache = Collections.emptyMap();
     private Map<String, String> taskMap = new HashMap<>();
     //函数定义映射关系
     private Map<String, FunDefInfo> functionMap = new HashMap<>();
@@ -128,12 +164,12 @@ public class NfContext {
     //从 ThreadLocal 改为实例字段，因为每个脚本执行都有独立的 NfContext
     private int recursionDepth = 0;
 
-    //Lambda 表达式计数器，用于生成唯一的 Lambda 函数名
-    private int lambdaCounter = 0;
-
     //脚本执行开始时间（毫秒时间戳）
     //用于计算脚本执行总时长，判断是否超时
     private long executionStartTime = 0;
+
+    //超时检查计数器。高频路径下只做分段检查，避免每次都读取系统时间。
+    private int timeoutCheckCounter = 0;
     
     //执行深度，用于支持导入脚本、Lambda 等嵌套执行场景
     //只有最外层执行会重置开始时间，内层复用同一超时窗口
@@ -142,6 +178,10 @@ public class NfContext {
     //上下文是否已被清除的标志
     //clear() 后设置为 true，防止误用导致 NPE
     private boolean cleared = false;
+
+    // 当前执行链的性能监控器
+    // 嵌套块、函数和导入脚本通过上下文自动继承监控器
+    private NfPerformanceMonitor performanceMonitor;
 
     /**
      * 检查上下文是否已被清除
@@ -170,6 +210,7 @@ public class NfContext {
     public void addImport(String type, String classPath) {
         checkCleared();
         importMap.put(type, classPath);
+        importVersion++;
     }
 
     //添加task
@@ -277,6 +318,125 @@ public class NfContext {
     public NfContextScope getScope(String id) {
         checkCleared();
         return scopeMap.get(id);
+    }
+
+    /**
+     * 获取当前作用域链上可见变量的只读快照。
+     * 当前作用域与父作用域变量同名时，当前作用域优先级更高。
+     */
+    public Map<String, Object> getVisibleVariables() {
+        checkCleared();
+        return getVisibleVariables(currentScopeId);
+    }
+
+    /**
+     * 获取指定作用域链上可见变量的只读快照。
+     */
+    public Map<String, Object> getVisibleVariables(String scopeId) {
+        checkCleared();
+        if (scopeId == null) {
+            return Collections.emptyMap();
+        }
+
+        ScopeChainState chainState = collectScopeChainState(scopeId);
+        VisibleVariablesSnapshot cachedSnapshot = visibleVariablesCache.get(scopeId);
+        if (cachedSnapshot != null && cachedSnapshot.fingerprint == chainState.fingerprint) {
+            return cachedSnapshot.variables;
+        }
+
+        Map<String, Object> visibleVariables = new HashMap<>(Math.max(16, chainState.estimatedSize * 2));
+        for (int i = chainState.scopes.size() - 1; i >= 0; i--) {
+            NfContextScope scope = chainState.scopes.get(i);
+            Map<String, NfVariableInfo> variables = scope.getValue();
+            if (variables == null || variables.isEmpty()) {
+                continue;
+            }
+            for (Map.Entry<String, NfVariableInfo> entry : variables.entrySet()) {
+                visibleVariables.put(entry.getKey(), entry.getValue().getValue());
+            }
+        }
+
+        VisibleVariablesSnapshot snapshot = new VisibleVariablesSnapshot(
+            chainState.fingerprint,
+            Collections.unmodifiableMap(visibleVariables)
+        );
+        visibleVariablesCache.put(scopeId, snapshot);
+        return snapshot.variables;
+    }
+
+    /**
+     * 获取已解析的导入类型快照。
+     * 仅在 importMap 发生变更时重新构建，避免每次表达式计算都重复 Class 解析。
+     */
+    public Map<String, Object> getResolvedImportValues(Function<String, Class<?>> classResolver) {
+        checkCleared();
+        if (classResolver == null) {
+            throw new IllegalArgumentException("classResolver 不能为空");
+        }
+        if (resolvedImportCacheVersion == importVersion) {
+            return resolvedImportCache;
+        }
+
+        Map<String, Object> resolvedImports = new HashMap<>(Math.max(16, importMap.size() * 2));
+        for (Map.Entry<String, String> entry : importMap.entrySet()) {
+            resolvedImports.put(entry.getKey(), classResolver.apply(entry.getValue()));
+        }
+
+        resolvedImportCache = Collections.unmodifiableMap(resolvedImports);
+        resolvedImportCacheVersion = importVersion;
+        return resolvedImportCache;
+    }
+
+    /**
+     * 获取单个导入类型对应的已解析 Class。
+     */
+    public Class<?> getResolvedImportClass(String typeAlias, Function<String, Class<?>> classResolver) {
+        checkCleared();
+        if (typeAlias == null || typeAlias.isEmpty()) {
+            return null;
+        }
+        if (!importMap.containsKey(typeAlias)) {
+            return null;
+        }
+        Object resolvedValue = getResolvedImportValues(classResolver).get(typeAlias);
+        return resolvedValue instanceof Class ? (Class<?>) resolvedValue : null;
+    }
+
+    private ScopeChainState collectScopeChainState(String scopeId) {
+        List<NfContextScope> scopes = new ArrayList<>();
+        Set<String> visitedScopes = new HashSet<>();
+        long fingerprint = SNAPSHOT_HASH_SEED;
+        int estimatedSize = 0;
+        String currentId = scopeId;
+
+        while (currentId != null) {
+            if (!visitedScopes.add(currentId)) {
+                break;
+            }
+
+            NfContextScope scope = scopeMap.get(currentId);
+            if (scope == null) {
+                break;
+            }
+
+            scopes.add(scope);
+            Map<String, NfVariableInfo> variables = scope.getValue();
+            if (variables != null) {
+                estimatedSize += variables.size();
+            }
+
+            fingerprint ^= currentId.hashCode();
+            fingerprint *= SNAPSHOT_HASH_PRIME;
+            fingerprint ^= scope.getVersion();
+            fingerprint *= SNAPSHOT_HASH_PRIME;
+
+            if (visitedScopes.size() > 1000) {
+                break;
+            }
+            currentId = scope.getParentScopeId();
+        }
+
+        return new ScopeChainState(scopes, fingerprint, estimatedSize);
     }
 
     //切换作用域
@@ -454,11 +614,19 @@ public class NfContext {
             nfContextScope.clear();
         }
         scopeMap.remove(id);
+        visibleVariablesCache.clear();
     }
 
     //生成一个作用域id
     public static String generateScopeId() {
-        return "scope_" + UUID.randomUUID();
+        return "scope_" + SCOPE_ID_COUNTER.incrementAndGet();
+    }
+
+    /**
+     * 生成唯一的 Lambda/匿名函数名。
+     */
+    public static String generateLambdaFunctionName(String prefix) {
+        return prefix + LAMBDA_NAME_COUNTER.incrementAndGet();
     }
 
     /**
@@ -472,6 +640,7 @@ public class NfContext {
         if (executionDepth == 0) {
             // 使用精确时间戳记录开始时间，确保时间计算的准确性
             executionStartTime = System.currentTimeMillis();
+            timeoutCheckCounter = 0;
         }
         executionDepth++;
     }
@@ -490,6 +659,7 @@ public class NfContext {
             executionDepth--;
             if (executionDepth == 0) {
                 executionStartTime = 0;
+                timeoutCheckCounter = 0;
             }
         }
     }
@@ -509,7 +679,10 @@ public class NfContext {
             return; // 已清除的上下文不需要检查超时
         }
         if (executionStartTime > 0) {
-            // 直接使用 System.currentTimeMillis()，因为 TimestampCache 已被移除
+            // 高频执行路径下只每 64 次做一次真实时间检查，避免每次都访问系统时钟。
+            if ((timeoutCheckCounter++ & TIMEOUT_CHECK_INTERVAL_MASK) != 0) {
+                return;
+            }
             long elapsed = System.currentTimeMillis() - executionStartTime;
             if (elapsed > globalTimeoutMillis) {
                 throw new NfTimeoutException("脚本执行超时，已执行 %d 毫秒，超过限制 %d 毫秒", elapsed, globalTimeoutMillis);
@@ -724,11 +897,17 @@ public class NfContext {
             }
             scopeMap.clear();
         }
+        if (visibleVariablesCache != null) {
+            visibleVariablesCache.clear();
+        }
         
         // 清空所有内部 Map（不清空，避免 NPE，但清空内容）
         if (importMap != null) {
             importMap.clear();
         }
+        resolvedImportCache = Collections.emptyMap();
+        resolvedImportCacheVersion = -1L;
+        importVersion = 0L;
         if (taskMap != null) {
             taskMap.clear();
         }
@@ -754,6 +933,8 @@ public class NfContext {
         // 重置其他字段
         recursionDepth = 0;
         executionStartTime = 0;
+        timeoutCheckCounter = 0;
         executionDepth = 0;
+        performanceMonitor = null;
     }
 }

@@ -12,10 +12,15 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode.DoWhileSynta
 import com.gitee.huanminabc.nullchain.language.syntaxNode.blocknode.WhileSyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.linenode.*;
 import com.gitee.huanminabc.nullchain.language.token.Token;
+import com.gitee.huanminabc.nullchain.language.token.TokenType;
 
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 /**
  * 语法节点工厂类
  * 
@@ -40,29 +45,39 @@ public class SyntaxNodeFactory {
      * 使用LinkedHashMap保证识别顺序的稳定性
      */
     private static final Map<SyntaxNodeType, SyntaxNode> syntaxNodeMap = new LinkedHashMap<>();
+    private static final Map<TokenType, List<SyntaxNode>> syntaxNodeCandidatesByFirstToken = new EnumMap<>(TokenType.class);
     
     static {
-        syntaxNodeMap.put(SyntaxNodeType.IMPORT_EXP, new ImportSyntaxNode());
-        syntaxNodeMap.put(SyntaxNodeType.FUN_DEF_EXP, new FunDefSyntaxNode()); // 函数定义优先级高于函数调用
-        syntaxNodeMap.put(SyntaxNodeType.RETURN_EXP, new ReturnSyntaxNode()); // return语句优先级高于函数调用
-        syntaxNodeMap.put(SyntaxNodeType.VAR_EXP, new VarSyntaxNode());
-        syntaxNodeMap.put(SyntaxNodeType.LAMBDA_EXP, new LambdaSyntaxNode()); // Lambda表达式优先级高于ASSIGN，避免被当作普通赋值处理
-        syntaxNodeMap.put(SyntaxNodeType.ASSIGN_EXP, new AssignSyntaxNode());
-        syntaxNodeMap.put(SyntaxNodeType.FUN_REF_EXP, new FunRefSyntaxNode()); // 函数引用（特殊的赋值语句）
-        syntaxNodeMap.put(SyntaxNodeType.DECLARE_EXP, new DeclareSyntaxNode());
-        syntaxNodeMap.put(SyntaxNodeType.RUN_EXP, new RunSyntaxNode());
-        syntaxNodeMap.put(SyntaxNodeType.EXPORT_EXP, new ExportSyntaxNode());
-        syntaxNodeMap.put(SyntaxNodeType.ECHO_EXP, new EchoSyntaxNode());
-        syntaxNodeMap.put(SyntaxNodeType.FUN_CALL_EXP, new FunCallSyntaxNode()); // 函数调用
-        syntaxNodeMap.put(SyntaxNodeType.FUN_EXE_EXP, new FunExeSyntaxNode());
-        syntaxNodeMap.put(SyntaxNodeType.IF_EXP, new IFSyntaxNode());
-        syntaxNodeMap.put(SyntaxNodeType.WHILE_EXP, new WhileSyntaxNode());
-        syntaxNodeMap.put(SyntaxNodeType.DO_WHILE_EXP, new DoWhileSyntaxNode());
-        syntaxNodeMap.put(SyntaxNodeType.SWITCH_EXP, new SwitchSyntaxNode());
-        syntaxNodeMap.put(SyntaxNodeType.FOR_EXP, new ForSyntaxNode());
-        syntaxNodeMap.put(SyntaxNodeType.BREAK_EXP, new BreakSyntaxNode());
-        syntaxNodeMap.put(SyntaxNodeType.BREAK_ALL_EXP, new BreakALLSyntaxNode());
-        syntaxNodeMap.put(SyntaxNodeType.CONTINUE_EXP, new ContinueSyntaxNode());
+        registerRecognizer(SyntaxNodeType.IMPORT_EXP, new ImportSyntaxNode(), TokenType.IMPORT);
+        registerRecognizer(SyntaxNodeType.FUN_DEF_EXP, new FunDefSyntaxNode(), TokenType.FUN); // 函数定义优先级高于函数调用
+        registerRecognizer(SyntaxNodeType.RETURN_EXP, new ReturnSyntaxNode(), TokenType.RETURN); // return语句优先级高于函数调用
+        registerRecognizer(SyntaxNodeType.VAR_EXP, new VarSyntaxNode(), TokenType.VAR);
+        registerRecognizer(SyntaxNodeType.LAMBDA_EXP, new LambdaSyntaxNode(), TokenType.FUN_TYPE); // Lambda表达式优先级高于ASSIGN，避免被当作普通赋值处理
+        registerRecognizer(SyntaxNodeType.ASSIGN_EXP, new AssignSyntaxNode(), TokenType.IDENTIFIER, TokenType.FUN_TYPE);
+        registerRecognizer(SyntaxNodeType.FUN_REF_EXP, new FunRefSyntaxNode(), TokenType.FUN_TYPE); // 函数引用（特殊的赋值语句）
+        registerRecognizer(SyntaxNodeType.DECLARE_EXP, new DeclareSyntaxNode(), TokenType.IDENTIFIER);
+        registerRecognizer(SyntaxNodeType.RUN_EXP, new RunSyntaxNode(), TokenType.RUN);
+        registerRecognizer(SyntaxNodeType.EXPORT_EXP, new ExportSyntaxNode(), TokenType.EXPORT);
+        registerRecognizer(SyntaxNodeType.ECHO_EXP, new EchoSyntaxNode(), TokenType.ECHO);
+        registerRecognizer(SyntaxNodeType.FUN_CALL_EXP, new FunCallSyntaxNode(), TokenType.IDENTIFIER); // 函数调用
+        registerRecognizer(SyntaxNodeType.FUN_EXE_EXP, new FunExeSyntaxNode(), TokenType.IDENTIFIER);
+        registerRecognizer(SyntaxNodeType.IF_EXP, new IFSyntaxNode(), TokenType.IF);
+        registerRecognizer(SyntaxNodeType.WHILE_EXP, new WhileSyntaxNode(), TokenType.WHILE);
+        registerRecognizer(SyntaxNodeType.DO_WHILE_EXP, new DoWhileSyntaxNode(), TokenType.DO);
+        registerRecognizer(SyntaxNodeType.SWITCH_EXP, new SwitchSyntaxNode(), TokenType.SWITCH);
+        registerRecognizer(SyntaxNodeType.FOR_EXP, new ForSyntaxNode(), TokenType.FOR);
+        registerRecognizer(SyntaxNodeType.BREAK_EXP, new BreakSyntaxNode(), TokenType.BREAK);
+        registerRecognizer(SyntaxNodeType.BREAK_ALL_EXP, new BreakALLSyntaxNode(), TokenType.BREAK_ALL);
+        registerRecognizer(SyntaxNodeType.CONTINUE_EXP, new ContinueSyntaxNode(), TokenType.CONTINUE);
+    }
+
+    private static void registerRecognizer(SyntaxNodeType type, SyntaxNode recognizer, TokenType... firstTokenTypes) {
+        syntaxNodeMap.put(type, recognizer);
+        for (TokenType firstTokenType : firstTokenTypes) {
+            syntaxNodeCandidatesByFirstToken
+                .computeIfAbsent(firstTokenType, key -> new ArrayList<>())
+                .add(recognizer);
+        }
     }
 
     /**
@@ -88,11 +103,34 @@ public class SyntaxNodeFactory {
      * @return 如果成功识别并构建了节点返回true，否则返回false
      */
     public static boolean forEachNode(List<Token> tokens, List<SyntaxNode> syntaxNodeList) {
-        //使用LinkedHashMap保证遍历顺序的稳定性，确保识别优先级一致
+        if (tokens == null || tokens.isEmpty()) {
+            return false;
+        }
+
+        List<SyntaxNode> candidateRecognizers = syntaxNodeCandidatesByFirstToken.get(tokens.get(0).type);
+        if (tryBuild(candidateRecognizers, tokens, syntaxNodeList)) {
+            return true;
+        }
+
+        Set<SyntaxNode> triedRecognizers = candidateRecognizers == null ? null : new HashSet<>(candidateRecognizers);
         for (Map.Entry<SyntaxNodeType, SyntaxNode> entry : syntaxNodeMap.entrySet()) {
-            SyntaxNode recognizer = entry.getValue(); // 识别器实例
+            SyntaxNode recognizer = entry.getValue();
+            if (triedRecognizers != null && triedRecognizers.contains(recognizer)) {
+                continue;
+            }
             if (recognizer.analystToken(tokens)) {
-                // buildStatement会创建新的节点实例
+                return recognizer.buildStatement(tokens, syntaxNodeList);
+            }
+        }
+        return false;
+    }
+
+    private static boolean tryBuild(List<SyntaxNode> recognizers, List<Token> tokens, List<SyntaxNode> syntaxNodeList) {
+        if (recognizers == null || recognizers.isEmpty()) {
+            return false;
+        }
+        for (SyntaxNode recognizer : recognizers) {
+            if (recognizer.analystToken(tokens)) {
                 return recognizer.buildStatement(tokens, syntaxNodeList);
             }
         }
@@ -122,6 +160,7 @@ public class SyntaxNodeFactory {
      * @param monitor 性能监控器（可选，如果为null则不监控）
      */
     public static void executeAll(List<SyntaxNode> syntaxNodeList, NfContext context, NfPerformanceMonitor monitor) {
+        NfPerformanceMonitor actualMonitor = monitor != null ? monitor : context.getPerformanceMonitor();
         for (SyntaxNode syntaxNode : syntaxNodeList) {
             //检查超时（在执行节点前检查）
             context.checkTimeout();
@@ -130,14 +169,14 @@ public class SyntaxNodeFactory {
             String currentScopeId = context.getCurrentScopeId();
             
             //记录执行开始时间
-            long startTime = monitor != null ? System.nanoTime() : 0;
+            long startTime = actualMonitor != null ? System.nanoTime() : 0;
             
             syntaxNode.run(context, syntaxNode);
             
             //记录执行时间
-            if (monitor != null) {
+            if (actualMonitor != null) {
                 long duration = System.nanoTime() - startTime;
-                monitor.recordNodeExecution(syntaxNode.getType().name(), duration);
+                actualMonitor.recordNodeExecution(syntaxNode.getType().name(), duration);
             }
             
             //恢复当前的作用域id

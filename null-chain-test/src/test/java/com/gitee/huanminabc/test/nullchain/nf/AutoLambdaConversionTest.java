@@ -47,6 +47,24 @@ public class AutoLambdaConversionTest {
     }
 
     /**
+     * 测试直接在 Java 方法参数中传递 inline Lambda
+     */
+    @Test
+    @DisplayName("✓ Inline Lambda 直接传递给 Java 方法")
+    public void testInlineLambdaArgumentForJavaMethod() {
+        String script =
+            "import type com.gitee.huanminabc.test.nullchain.nf.LambdaTestUtils\n" +
+            "\n" +
+            "Integer result = LambdaTestUtils.applyFunction((x) -> { return x * 4 }, 5)\n" +
+            "\n" +
+            "export result";
+
+        Object result = NfMain.run(script, log, null);
+
+        assertEquals(20, result);
+    }
+
+    /**
      * 测试 NF Lambda 在 Stream 中使用（自动转换）
      */
     @Test

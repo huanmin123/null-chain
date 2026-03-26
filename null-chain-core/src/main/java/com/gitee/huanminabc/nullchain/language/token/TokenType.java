@@ -61,6 +61,7 @@ public enum TokenType {
     LE, // <= 小于等于
     EQ, // == 等于
     NE, // != 不等于
+    NOT, // ! 逻辑非
 
     LINE_END_SYMBOL, //\n 换行符号
     TAB_SYMBOL, ////\t 制表符号

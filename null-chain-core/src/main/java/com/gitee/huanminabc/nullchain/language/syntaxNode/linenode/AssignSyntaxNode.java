@@ -14,6 +14,7 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
+import com.gitee.huanminabc.nullchain.language.utils.ConstructorCallUtil;
 import com.gitee.huanminabc.nullchain.language.utils.DataType;
 import com.gitee.huanminabc.nullchain.language.utils.KeywordUtil;
 import com.gitee.huanminabc.nullchain.language.utils.SyntaxNodeUtil;
@@ -21,8 +22,6 @@ import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -351,6 +350,7 @@ public class AssignSyntaxNode extends LineSyntaxNode {
         boolean hasTypeDeclaration = isFunTypeDeclaration || isNormalTypeDeclaration;
 
         String importType;
+        String declaredTypeAlias;
         String varName;
         List<Token> expTokens;
 
@@ -361,6 +361,7 @@ public class AssignSyntaxNode extends LineSyntaxNode {
                 String type = "Fun";
                 // 转化为 java 类型
                 importType = context.getImportType(type);
+                declaredTypeAlias = type;
                 if (importType == null) {
                     throw new NfException("Line:{} ,未找到类型 {} , syntax: {}",
                         valueTokens.get(0).line, type, syntaxNode);
@@ -382,9 +383,11 @@ public class AssignSyntaxNode extends LineSyntaxNode {
 
                 // 转化为 java 类型
                 importType = context.getImportType(type);
+                declaredTypeAlias = type;
                 if (importType == null) {
                     // 如果找不到完整类型，尝试使用 "Fun" 作为类型名
                     importType = context.getImportType("Fun");
+                    declaredTypeAlias = "Fun";
                     if (importType == null) {
                         throw new NfException("Line:{} ,未找到类型 {} , syntax: {}",
                             valueTokens.get(0).line, type, syntaxNode);
@@ -402,6 +405,7 @@ public class AssignSyntaxNode extends LineSyntaxNode {
                 String type = token.value;
                 // 转化为 java 类型
                 importType = context.getImportType(type);
+                declaredTypeAlias = type;
                 if (importType == null) {
                     throw new NfException("Line:{} ,未找到类型 {} , syntax: {}", token.line, type, syntaxNode);
                 }
@@ -423,6 +427,7 @@ public class AssignSyntaxNode extends LineSyntaxNode {
                     valueTokens.get(0).line, varName, syntaxNode);
             }
             importType = variableInfo.getType().getName();
+            declaredTypeAlias = null;
         }
         //如果是空的那么就报错
         if (expTokens.isEmpty()) {
@@ -433,84 +438,13 @@ public class AssignSyntaxNode extends LineSyntaxNode {
         NfContextScope currentScope = context.getCurrentScope();
         //获取第一个token类型如果是New那么就是创建对象（仅支持带类型声明的赋值）
         if (hasTypeDeclaration && expTokens.get(0).type == TokenType.NEW) {
-            // 检查是否有参数列表：new(参数1, 参数2, ...)
-            boolean hasArgs = expTokens.size() >= 3 && expTokens.get(1).type == TokenType.LPAREN;
+            Class<?> declaredType = resolveImportedType(context, declaredTypeAlias, importType,
+                valueTokens.get(0).line, syntaxNode);
+            Object instance = ConstructorCallUtil.createInstanceFromNewExpression(expTokens, declaredType,
+                importType, context, syntaxNode);
 
-            try {
-                //创建对象
-                Class<?> declaredType = Class.forName(importType);
-                Class<?> actualType = declaredType;
-
-                //如果声明的类型是接口，从上下文获取默认实现类
-                if (declaredType.isInterface()) {
-                    actualType = context.getInterfaceDefaultImpl(declaredType);
-                    if (actualType == null) {
-                        int line = valueTokens.get(0).line;
-                        throw new NfException("Line:{} ,接口 {} 没有默认实现类，无法创建实例 , syntax: {}",
-                            line, importType, syntaxNode);
-                    }
-                }
-
-                Object instance;
-                if (hasArgs) {
-                    // 解析参数列表：new(参数1, 参数2, ...)
-                    // 找到匹配的右括号
-                    int parenEnd = -1;
-                    int depth = 0;
-                    for (int i = 1; i < expTokens.size(); i++) {
-                        if (expTokens.get(i).type == TokenType.LPAREN) {
-                            depth++;
-                        } else if (expTokens.get(i).type == TokenType.RPAREN) {
-                            depth--;
-                            if (depth == 0) {
-                                parenEnd = i;
-                                break;
-                            }
-                        }
-                    }
-                    if (parenEnd == -1) {
-                        throw new NfException("Line:{} ,new() 参数列表括号不匹配 , syntax: {}",
-                            valueTokens.get(0).line, syntaxNode);
-                    }
-
-                    // 提取括号内的参数 tokens
-                    List<Token> paramTokens = expTokens.subList(2, parenEnd);
-
-                    // 解析参数表达式（按逗号分隔）
-                    List<Object> args = new ArrayList<>();
-                    List<Class<?>> argTypes = new ArrayList<>();
-
-                    if (!paramTokens.isEmpty()) {
-                        List<List<Token>> paramExprs = splitByComma(paramTokens);
-                        for (List<Token> paramExpr : paramExprs) {
-                            Object argValue = NfCalculator.arithmetic(TokenUtil.mergeToken(paramExpr).toString(), context);
-                            args.add(argValue);
-                            argTypes.add(argValue != null ? argValue.getClass() : null);
-                        }
-                    }
-
-                    // 根据参数类型找到匹配的构造函数
-                    Constructor<?> matchedConstructor = findMatchingConstructor(actualType, argTypes);
-                    instance = matchedConstructor.newInstance(args.toArray());
-                } else {
-                    // 注意：重复变量检查已在解析阶段完成，此处不再检查
-                    // 获取无参构造函数
-                    Constructor<?> constructor = actualType.getConstructor();
-                    instance = constructor.newInstance();
-                }
-
-                //将对象放入上下文，类型保持为声明的接口类型，这样类型检查时可以支持所有实现类
-                currentScope.addVariable(new NfVariableInfo(varName, instance, declaredType));
-            } catch (ClassNotFoundException e) {
-                int line = valueTokens.get(0).line;
-                throw new NfException(e, "Line:{} ,未找到类型 {} , syntax: {}", line, importType, syntaxNode);
-            } catch (NoSuchMethodException e) {
-                int line = valueTokens.get(0).line;
-                throw new NfException(e, "Line:{} ,类型 {} 没有匹配的构造函数 , syntax: {}", line, importType, syntaxNode);
-            } catch (Exception e) {
-                int line = valueTokens.get(0).line;
-                throw new NfException(e, "Line:{} ,创建{}对象失败 , syntax: {}", line, importType, syntaxNode);
-            }
+            //将对象放入上下文，类型保持为声明的接口类型，这样类型检查时可以支持所有实现类
+            currentScope.addVariable(new NfVariableInfo(varName, instance, declaredType));
             return;
         }
         // 检查表达式中是否包含模板字符串，如果有则先处理模板字符串
@@ -545,53 +479,48 @@ public class AssignSyntaxNode extends LineSyntaxNode {
             throw new NfException(e, "Line:{} , syntax: {}", line, syntaxNode);
         }
         //判断类型值和类型是否一致（支持接口类型兼容性）
-        try {
-            Class<?> declaredType = Class.forName(importType);
-            Class<?> actualType = arithmetic.getClass();
-            if (!declaredType.isAssignableFrom(actualType)) {
-                int line = valueTokens.get(0).line;
-                throw new NfException("Line:{} ,变量 {} 值类型和声明的型不匹配 {} vs {} ,syntax: {}", 
-                    line, varName, importType, arithmetic.getClass(), syntaxNode);
-            }
-            //将计算的值放入上下文，类型保持为声明的类型（如果是接口，保持接口类型）
-            if (hasTypeDeclaration) {
-                // 注意：重复变量检查已在解析阶段完成，此处不再检查
-                // 新变量声明：添加到当前作用域
-                currentScope.addVariable(new NfVariableInfo(varName, arithmetic, declaredType));
+        Class<?> declaredType = resolveImportedType(context, declaredTypeAlias, importType, valueTokens.get(0).line, syntaxNode);
+        Class<?> actualType = arithmetic.getClass();
+        if (!declaredType.isAssignableFrom(actualType)) {
+            int line = valueTokens.get(0).line;
+            throw new NfException("Line:{} ,变量 {} 值类型和声明的型不匹配 {} vs {} ,syntax: {}", 
+                line, varName, importType, arithmetic.getClass(), syntaxNode);
+        }
+        //将计算的值放入上下文，类型保持为声明的类型（如果是接口，保持接口类型）
+        if (hasTypeDeclaration) {
+            // 注意：重复变量检查已在解析阶段完成，此处不再检查
+            // 新变量声明：添加到当前作用域
+            currentScope.addVariable(new NfVariableInfo(varName, arithmetic, declaredType));
 
-                // 特殊处理：如果是 FunRefInfo 类型，还需要注册到 context 的 funRefMap 中
-                // 这样 preProcessFunctionCalls 才能识别函数引用变量的调用
+            // 特殊处理：如果是 FunRefInfo 类型，还需要注册到 context 的 funRefMap 中
+            // 这样 preProcessFunctionCalls 才能识别函数引用变量的调用
+            if (arithmetic instanceof com.gitee.huanminabc.nullchain.language.internal.FunRefInfo) {
+                com.gitee.huanminabc.nullchain.language.internal.FunRefInfo funRef =
+                    (com.gitee.huanminabc.nullchain.language.internal.FunRefInfo) arithmetic;
+                context.addFunRef(varName, funRef);
+            }
+        } else {
+            // 已存在变量的重新赋值：更新变量所在的作用域，而不是当前作用域
+            // 这样可以确保在循环中对父作用域变量的修改能够持久化
+            NfContextScope variableScope = context.findVariableScope(varName);
+            if (variableScope != null) {
+                variableScope.addVariable(new NfVariableInfo(varName, arithmetic, declaredType));
+                // 特殊处理：如果是 FunRefInfo 类型，还需要更新 context 的 funRefMap
                 if (arithmetic instanceof com.gitee.huanminabc.nullchain.language.internal.FunRefInfo) {
                     com.gitee.huanminabc.nullchain.language.internal.FunRefInfo funRef =
                         (com.gitee.huanminabc.nullchain.language.internal.FunRefInfo) arithmetic;
                     context.addFunRef(varName, funRef);
                 }
             } else {
-                // 已存在变量的重新赋值：更新变量所在的作用域，而不是当前作用域
-                // 这样可以确保在循环中对父作用域变量的修改能够持久化
-                NfContextScope variableScope = context.findVariableScope(varName);
-                if (variableScope != null) {
-                    variableScope.addVariable(new NfVariableInfo(varName, arithmetic, declaredType));
-                    // 特殊处理：如果是 FunRefInfo 类型，还需要更新 context 的 funRefMap
-                    if (arithmetic instanceof com.gitee.huanminabc.nullchain.language.internal.FunRefInfo) {
-                        com.gitee.huanminabc.nullchain.language.internal.FunRefInfo funRef =
-                            (com.gitee.huanminabc.nullchain.language.internal.FunRefInfo) arithmetic;
-                        context.addFunRef(varName, funRef);
-                    }
-                } else {
-                    // 如果找不到变量所在的作用域（理论上不应该发生），则添加到当前作用域
-                    currentScope.addVariable(new NfVariableInfo(varName, arithmetic, declaredType));
-                    // 特殊处理：如果是 FunRefInfo 类型，还需要注册到 context 的 funRefMap
-                    if (arithmetic instanceof com.gitee.huanminabc.nullchain.language.internal.FunRefInfo) {
-                        com.gitee.huanminabc.nullchain.language.internal.FunRefInfo funRef =
-                            (com.gitee.huanminabc.nullchain.language.internal.FunRefInfo) arithmetic;
-                        context.addFunRef(varName, funRef);
-                    }
+                // 如果找不到变量所在的作用域（理论上不应该发生），则添加到当前作用域
+                currentScope.addVariable(new NfVariableInfo(varName, arithmetic, declaredType));
+                // 特殊处理：如果是 FunRefInfo 类型，还需要注册到 context 的 funRefMap
+                if (arithmetic instanceof com.gitee.huanminabc.nullchain.language.internal.FunRefInfo) {
+                    com.gitee.huanminabc.nullchain.language.internal.FunRefInfo funRef =
+                        (com.gitee.huanminabc.nullchain.language.internal.FunRefInfo) arithmetic;
+                    context.addFunRef(varName, funRef);
                 }
             }
-        } catch (ClassNotFoundException e) {
-            int line = valueTokens.get(0).line;
-            throw new NfException("Line:{} ,未找到类型 {} , syntax: {}", line, importType, syntaxNode);
         }
     }
 
@@ -679,161 +608,17 @@ public class AssignSyntaxNode extends LineSyntaxNode {
         return printExp(getValue());
     }
 
-    /**
-     * 按逗号分割参数表达式，支持嵌套括号
-     * 例如：a, b, c 会分割成 [a], [b], [c]
-     *
-     * @param tokens Token列表
-     * @return 分割后的参数表达式列表
-     */
-    private List<List<Token>> splitByComma(List<Token> tokens) {
-        List<List<Token>> result = new ArrayList<>();
-        if (tokens.isEmpty()) {
-            return result;
-        }
-
-        List<Token> current = new ArrayList<>();
-        int depth = 0; // 括号嵌套深度
-
-        for (Token token : tokens) {
-            if (token.type == TokenType.LPAREN) {
-                depth++;
-                current.add(token);
-            } else if (token.type == TokenType.RPAREN) {
-                depth--;
-                current.add(token);
-            } else if (token.type == TokenType.COMMA && depth == 0) {
-                // 逗号且不在括号内，分割
-                if (!current.isEmpty()) {
-                    result.add(current);
-                    current = new ArrayList<>();
-                }
-            } else {
-                current.add(token);
-            }
-        }
-
-        // 添加最后一个参数
-        if (!current.isEmpty()) {
-            result.add(current);
-        }
-
-        return result;
-    }
-
-    /**
-     * 根据参数类型查找匹配的构造函数
-     * 支持类型兼容性检查（如 int 可以匹配 Integer，null 可以匹配任何引用类型）
-     *
-     * @param clazz 目标类
-     * @param argTypes 参数类型列表（可能包含 null 表示 null 值）
-     * @return 匹配的构造函数
-     * @throws NoSuchMethodException 如果找不到匹配的构造函数
-     */
-    private Constructor<?> findMatchingConstructor(Class<?> clazz, List<Class<?>> argTypes)
-            throws NoSuchMethodException {
-        Constructor<?>[] constructors = clazz.getConstructors();
-
-        for (Constructor<?> constructor : constructors) {
-            Class<?>[] paramTypes = constructor.getParameterTypes();
-
-            // 参数数量必须匹配
-            if (paramTypes.length != argTypes.size()) {
-                continue;
-            }
-
-            // 检查每个参数类型是否兼容
-            boolean match = true;
-            for (int i = 0; i < paramTypes.length; i++) {
-                Class<?> expectedType = paramTypes[i];
-                Class<?> actualType = argTypes.get(i);
-
-                if (actualType == null) {
-                    // null 值只能匹配引用类型，不能匹配基本类型
-                    if (expectedType.isPrimitive()) {
-                        match = false;
-                        break;
-                    }
-                } else {
-                    // 检查类型兼容性
-                    if (!isTypeCompatible(actualType, expectedType)) {
-                        match = false;
-                        break;
-                    }
+    private Class<?> resolveImportedType(NfContext context, String typeAlias, String importType, int line, SyntaxNode syntaxNode) {
+        try {
+            if (typeAlias != null) {
+                Class<?> cachedType = context.getResolvedImportClass(typeAlias, NfCalculator::resolveClass);
+                if (cachedType != null) {
+                    return cachedType;
                 }
             }
-
-            if (match) {
-                return constructor;
-            }
+            return NfCalculator.resolveClass(importType);
+        } catch (NfException e) {
+            throw new NfException(e, "Line:{} ,未找到类型 {} , syntax: {}", line, importType, syntaxNode);
         }
-
-        throw new NoSuchMethodException("找不到匹配的构造函数，参数类型: " + argTypes);
     }
-
-    /**
-     * 检查类型是否兼容
-     * 支持基本类型和包装类型的自动转换
-     *
-     * @param actualType 实际类型
-     * @param expectedType 期望类型
-     * @return 是否兼容
-     */
-    private boolean isTypeCompatible(Class<?> actualType, Class<?> expectedType) {
-        // 如果类型完全相同
-        if (expectedType.equals(actualType)) {
-            return true;
-        }
-
-        // 处理基本类型和包装类型的兼容性
-        if (expectedType.isPrimitive()) {
-            // 基本类型需要匹配对应的包装类型
-            return isWrapperType(actualType, expectedType);
-        }
-
-        if (actualType.isPrimitive()) {
-            // 实际是基本类型，期望是包装类型
-            return isWrapperType(expectedType, actualType);
-        }
-
-        // 检查是否是子类
-        return expectedType.isAssignableFrom(actualType);
-    }
-
-    /**
-     * 检查包装类型是否对应指定的基本类型
-     *
-     * @param wrapperType 包装类型
-     * @param primitiveType 基本类型
-     * @return 是否对应
-     */
-    private boolean isWrapperType(Class<?> wrapperType, Class<?> primitiveType) {
-        if (primitiveType == int.class) {
-            return wrapperType == Integer.class;
-        }
-        if (primitiveType == long.class) {
-            return wrapperType == Long.class;
-        }
-        if (primitiveType == double.class) {
-            return wrapperType == Double.class;
-        }
-        if (primitiveType == float.class) {
-            return wrapperType == Float.class;
-        }
-        if (primitiveType == boolean.class) {
-            return wrapperType == Boolean.class;
-        }
-        if (primitiveType == byte.class) {
-            return wrapperType == Byte.class;
-        }
-        if (primitiveType == short.class) {
-            return wrapperType == Short.class;
-        }
-        if (primitiveType == char.class) {
-            return wrapperType == Character.class;
-        }
-        return false;
-    }
-
-
 }

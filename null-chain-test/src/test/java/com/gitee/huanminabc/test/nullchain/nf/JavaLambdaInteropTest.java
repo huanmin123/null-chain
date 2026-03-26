@@ -6,8 +6,11 @@ import com.gitee.huanminabc.nullchain.language.NfSynta;
 import com.gitee.huanminabc.nullchain.language.NfToken;
 import com.gitee.huanminabc.nullchain.language.internal.FunRefInfo;
 import com.gitee.huanminabc.nullchain.language.internal.NfContext;
+import com.gitee.huanminabc.nullchain.language.internal.NfContextScope;
 import com.gitee.huanminabc.nullchain.language.lambda.LambdaProxyFactory;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
+import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeFactory;
+import com.gitee.huanminabc.nullchain.language.syntaxNode.linenode.ExportSyntaxNode;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -175,5 +178,47 @@ public class JavaLambdaInteropTest {
 
         log.info("Function.apply(5) = {}", result);
         log.info("✓ 测试5通过: Java Function 使用正常");
+    }
+
+    /**
+     * 测试上下文 clear 后，Lambda 代理仍可通过 detached context 执行。
+     */
+    @Test
+    @DisplayName("✓ Lambda 代理在 context.clear() 后仍可调用")
+    public void test6_LambdaProxyAfterContextClear() {
+        String script =
+            "import type java.lang.Math\n" +
+            "Fun<Integer : Integer> clamp = (x) -> {\n" +
+            "    return Math.max(x, 10)\n" +
+            "}\n" +
+            "export clamp";
+
+        NfContext context = new NfContext();
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(NfToken.tokens(script));
+        NfContextScope mainScope = NfRun.prepareContext(context, log, null);
+        boolean cleared = false;
+
+        try {
+            SyntaxNodeFactory.executeAll(syntaxNodes, context);
+
+            Object result = mainScope.getVariable(ExportSyntaxNode.EXPORT).getValue();
+            assertTrue(result instanceof FunRefInfo);
+
+            Function<Integer, Integer> function = LambdaProxyFactory.createProxy(
+                (FunRefInfo) result, Function.class, context, 0
+            );
+
+            context.endExecution();
+            context.clear();
+            cleared = true;
+
+            assertEquals(Integer.valueOf(10), function.apply(5));
+            assertEquals(Integer.valueOf(12), function.apply(12));
+        } finally {
+            if (!cleared) {
+                context.endExecution();
+                context.clear();
+            }
+        }
     }
 }

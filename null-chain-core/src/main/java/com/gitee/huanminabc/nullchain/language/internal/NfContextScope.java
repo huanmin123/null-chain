@@ -16,6 +16,8 @@ import java.util.Map;
  */
 @Data
 public class NfContextScope {
+    private static final long INITIAL_VERSION = 0L;
+
     private boolean isBreak = false;
     private boolean isContinue = false;
     private boolean isBreakAll = false;
@@ -25,6 +27,8 @@ public class NfContextScope {
     private String scopeId;//作用域id
     //key:变量名, value:变量信息
     private Map<String, NfVariableInfo> value = new HashMap<>();
+    // 作用域版本号，用于缓存当前作用域链的可见变量快照
+    private long version = INITIAL_VERSION;
     
     //作用域是否已被清除的标志
     //clear() 后设置为 true，防止误用导致 NPE
@@ -50,6 +54,7 @@ public class NfContextScope {
     //清除作用域中全部变量
     public void clear(){
         cleared = true;
+        version++;
         if (value != null) {
             value.clear();
         }
@@ -60,6 +65,7 @@ public class NfContextScope {
     public void addVariable(NfVariableInfo nfVariableInfo){
         checkCleared();
         value.put(nfVariableInfo.getName(), nfVariableInfo);
+        version++;
     }
     
     //获取一个变量

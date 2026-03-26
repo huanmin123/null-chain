@@ -18,10 +18,13 @@ import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlExpression;
 import org.apache.commons.jexl3.MapContext;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -64,6 +67,18 @@ public class NfCalculator {
         .maximumSize(10000)
         .expireAfterAccess(1, TimeUnit.HOURS)
         .build();
+    private static final Cache<String, List<Token>> functionCallTokenCache = Caffeine.newBuilder()
+        .maximumSize(5000)
+        .expireAfterAccess(1, TimeUnit.HOURS)
+        .build();
+
+    private static final Map<String, Class<?>> globalClassCache = new ConcurrentHashMap<>();
+    private static final java.util.regex.Pattern INSTANCEOF_PATTERN =
+        java.util.regex.Pattern.compile("(\\w+)\\s+instanceof\\s+(\\S+)");
+    private static final java.util.regex.Pattern IMPORTED_SCRIPT_ACCESS_PATTERN =
+        java.util.regex.Pattern.compile("\\b([a-zA-Z_$][a-zA-Z0-9_$]*)\\.([a-zA-Z_$][a-zA-Z0-9_$]*)(?!\\s*\\()");
+    private static final java.util.regex.Pattern GLOBAL_ACCESS_PATTERN =
+        java.util.regex.Pattern.compile("\\bglobal\\.([a-zA-Z_$][a-zA-Z0-9_$]*)");
 
     /**
      * instanceof 处理结果，包含转换后的表达式和需要的类型类
@@ -75,6 +90,41 @@ public class NfCalculator {
         InstanceofProcessResult(String expr, Set<String> types) {
             this.processedExpression = expr;
             this.requiredTypeNames = types;
+        }
+    }
+
+    /**
+     * JEXL 分层上下文：基础变量视图只读复用，表达式执行过程中的临时变量、导入类型放到 overlay。
+     */
+    private static class LayeredJexlContext implements JexlContext {
+        private final Map<String, Object> baseValues;
+        private final Map<String, Object> importedValues;
+        private final Map<String, Object> overlayValues = new HashMap<>();
+
+        LayeredJexlContext(Map<String, Object> baseValues, Map<String, Object> importedValues) {
+            this.baseValues = baseValues == null ? Collections.emptyMap() : baseValues;
+            this.importedValues = importedValues == null ? Collections.emptyMap() : importedValues;
+        }
+
+        @Override
+        public boolean has(String name) {
+            return overlayValues.containsKey(name) || importedValues.containsKey(name) || baseValues.containsKey(name);
+        }
+
+        @Override
+        public Object get(String name) {
+            if (overlayValues.containsKey(name)) {
+                return overlayValues.get(name);
+            }
+            if (importedValues.containsKey(name)) {
+                return importedValues.get(name);
+            }
+            return baseValues.get(name);
+        }
+
+        @Override
+        public void set(String name, Object value) {
+            overlayValues.put(name, value);
         }
     }
 
@@ -95,8 +145,7 @@ public class NfCalculator {
         }
 
         // 匹配 instanceof 表达式：(\w+)\s+instanceof\s+(\S+)
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("(\\w+)\\s+instanceof\\s+(\\S+)");
-        java.util.regex.Matcher matcher = pattern.matcher(expression);
+        java.util.regex.Matcher matcher = INSTANCEOF_PATTERN.matcher(expression);
         StringBuffer sb = new StringBuffer();
         Set<String> requiredTypes = new java.util.HashSet<>();
 
@@ -161,15 +210,16 @@ public class NfCalculator {
         //检查超时（表达式计算前检查，防止复杂表达式长时间执行）
         nfContext.checkTimeout();
         
-        JexlContext context = new MapContext();
         //获取当前作用域
         NfContextScope currentScope = nfContext.getCurrentScope();
         //检查当前作用域是否为null
         if (currentScope == null) {
             throw new NfException("当前作用域为null，无法计算表达式: " + expression + "，currentScopeId: " + nfContext.getCurrentScopeId());
         }
-        //合并作用域
-        mergeScope(nfContext, currentScope, context);
+        JexlContext context = new LayeredJexlContext(
+            nfContext.getVisibleVariables(),
+            nfContext.getResolvedImportValues(NfCalculator::resolveClass)
+        );
 
         // 特殊处理：如果表达式只是单个标识符，检查是否是函数引用变量
         // 函数引用变量不能参与表达式计算，只能作为参数传递
@@ -194,18 +244,6 @@ public class NfCalculator {
 
         //获取类型导入
         Map<String, String> importMap = nfContext.getImportMap();
-        if (importMap != null) {
-            Set<Map.Entry<String, String>> entries = importMap.entrySet();
-            for (Map.Entry<String, String> entry : entries) {
-                //将value转化为实际的类
-                try {
-                    Class<?> aClass = Class.forName(entry.getValue());
-                    context.set(entry.getKey(), aClass);
-                } catch (ClassNotFoundException e) {
-                    throw new NfException(e, "找不到类: " + entry.getValue());
-                }
-            }
-        }
 
         // 增加递归深度
         int depth = nfContext.getRecursionDepth();
@@ -225,7 +263,7 @@ public class NfCalculator {
             processedExpr = preProcessGlobalAccess(processedExpr, nfContext);
 
             // 预处理表达式中的函数调用
-            processedExpr = preProcessFunctionCalls(processedExpr, nfContext, context);
+            processedExpr = preProcessFunctionCalls(processedExpr, nfContext);
 
             // 将临时变量添加到 JexlContext 中
             for (Map.Entry<String, Object> entry : nfContext.getTempVarStorage().entrySet()) {
@@ -241,12 +279,7 @@ public class NfCalculator {
                 String[] parts = typeDef.split("=", 2);
                 String varName = parts[0];
                 String className = parts[1];
-                try {
-                    Class<?> typeClass = Class.forName(className);
-                    context.set(varName, typeClass);
-                } catch (ClassNotFoundException e) {
-                    throw new NfException(e, "找不到类: " + className);
-                }
+                context.set(varName, resolveClass(className));
             }
 
             // 使用全局缓存的表达式对象，避免重复编译
@@ -277,67 +310,6 @@ public class NfCalculator {
     }
 
     /**
-     * 合并作用域到JEXL上下文（迭代实现，避免递归导致的栈溢出）
-     * 优化：直接遍历作用域的变量Map，避免调用toMap()创建新Map
-     *
-     * @param nfContext NF上下文
-     * @param currentScope 当前作用域
-     * @param context Jexl上下文
-     */
-    private static void mergeScope(NfContext nfContext, NfContextScope currentScope, JexlContext context) {
-        if (currentScope == null) {
-            return;
-        }
-
-        // 使用迭代方式合并作用域链，避免递归导致的栈溢出
-        // 首先收集所有需要合并的作用域（从当前作用域向上遍历）
-        java.util.List<NfContextScope> scopesToMerge = new java.util.ArrayList<>();
-        java.util.Set<String> visitedScopes = new java.util.HashSet<>();
-
-        NfContextScope scope = currentScope;
-        while (scope != null) {
-            String scopeId = scope.getScopeId();
-
-            // 检测循环引用
-            if (visitedScopes.contains(scopeId)) {
-                break;
-            }
-
-            visitedScopes.add(scopeId);
-            scopesToMerge.add(scope);
-
-            // 防止作用域链过长（超过1000个作用域时停止）
-            if (visitedScopes.size() > 1000) {
-                break;
-            }
-
-            // 获取父作用域
-            String parentScopeId = scope.getParentScopeId();
-            if (parentScopeId != null) {
-                scope = nfContext.getScope(parentScopeId);
-            } else {
-                scope = null;
-            }
-        }
-
-        // 按照从父作用域到当前作用域的顺序合并变量（这样当前作用域的变量会覆盖父作用域的同名变量）
-        // 所以需要反向遍历
-        // 优化：直接访问作用域的value Map，避免调用toMap()创建新Map
-        for (int i = scopesToMerge.size() - 1; i >= 0; i--) {
-            NfContextScope s = scopesToMerge.get(i);
-            // 直接访问作用域的变量Map，避免创建新Map
-            Map<String, NfVariableInfo> variables = s.getValue();
-            if (variables != null) {
-                for (Map.Entry<String, NfVariableInfo> entry : variables.entrySet()) {
-                    // 函数引用变量也可以作为值访问（用于 return funName 等场景）
-                    // JEXL3 无法直接调用 FunRefInfo 对象，但可以访问其值
-                    context.set(entry.getKey(), entry.getValue().getValue());
-                }
-            }
-        }
-    }
-
-    /**
      * 预处理表达式中的导入脚本变量访问
      * 识别 `脚本名称.变量名` 模式，从导入脚本的作用域中获取变量值，替换为临时变量
      * 
@@ -355,10 +327,7 @@ public class NfCalculator {
         // 匹配模式：脚本名称.变量名（但不匹配函数调用，即后面不能跟左括号）
         // 使用正则表达式：\b([a-zA-Z_$][a-zA-Z0-9_$]*)\.([a-zA-Z_$][a-zA-Z0-9_$]*)(?!\s*\()
         // (?!\s*\() 是负向前瞻，确保后面不是左括号（即不是函数调用）
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
-            "\\b([a-zA-Z_$][a-zA-Z0-9_$]*)\\.([a-zA-Z_$][a-zA-Z0-9_$]*)(?!\\s*\\()"
-        );
-        java.util.regex.Matcher matcher = pattern.matcher(expression);
+        java.util.regex.Matcher matcher = IMPORTED_SCRIPT_ACCESS_PATTERN.matcher(expression);
         
         StringBuffer sb = new StringBuffer();
         boolean found = false;
@@ -376,7 +345,7 @@ public class NfCalculator {
                     NfVariableInfo varInfo = scriptScope.getVariable(varName);
                     if (varInfo != null) {
                         // 找到变量，生成临时变量名并存储值
-                        String tempVarName = "__script_" + scriptName + "_" + varName + "_" + System.nanoTime();
+                        String tempVarName = nextTempVariableName("__script_" + scriptName + "_" + varName + "_");
                         nfContext.getTempVarStorage().put(tempVarName, varInfo.getValue());
                         
                         // 替换为临时变量
@@ -417,10 +386,7 @@ public class NfCalculator {
         // 匹配模式：global.变量名
         // 使用正则表达式：\bglobal\.([a-zA-Z_$][a-zA-Z0-9_$]*)
         // \b 确保是完整的单词边界，避免匹配类似 myglobal.xxx 的情况
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
-            "\\bglobal\\.([a-zA-Z_$][a-zA-Z0-9_$]*)"
-        );
-        java.util.regex.Matcher matcher = pattern.matcher(expression);
+        java.util.regex.Matcher matcher = GLOBAL_ACCESS_PATTERN.matcher(expression);
 
         StringBuffer sb = new StringBuffer();
         boolean found = false;
@@ -435,7 +401,7 @@ public class NfCalculator {
                 NfVariableInfo varInfo = globalScope.getVariable(varName);
                 if (varInfo != null) {
                     // 找到变量，生成临时变量名并存储值
-                    String tempVarName = "__global_" + varName + "_" + System.nanoTime();
+                    String tempVarName = nextTempVariableName("__global_" + varName + "_");
                     nfContext.getTempVarStorage().put(tempVarName, varInfo.getValue());
 
                     // 替换为临时变量
@@ -480,40 +446,30 @@ public class NfCalculator {
     /**
      * 预处理表达式中的函数调用
      * 如果表达式中包含函数调用，先执行函数调用，将结果替换为临时变量
-     * 使用递归方式处理，确保嵌套函数调用被正确处理
-     *
      * @param expression 原始表达式
      * @param nfContext NF上下文
-     * @param jexlContext JEXL上下文（用于合并作用域变量）
      * @return 处理后的表达式
      */
-    private static String preProcessFunctionCalls(String expression, NfContext nfContext, JexlContext jexlContext) {
+    private static String preProcessFunctionCalls(String expression, NfContext nfContext) {
         if (expression == null || expression.isEmpty()) {
             return expression;
         }
 
-        // 检查是否有函数调用
-        FunctionCallInfo callInfo = findLastFunctionCall(expression, nfContext);
-        if (callInfo == null) {
-            return expression;
+        String currentExpression = expression;
+        while (true) {
+            PreparedFunctionCall preparedCall = prepareLastFunctionCall(currentExpression, nfContext);
+            if (preparedCall == null) {
+                return currentExpression;
+            }
+
+            Object returnValue = executeFunctionCall(preparedCall, nfContext);
+            String tempVarName = nextTempVariableName(preparedCall.callInfo.isScriptCall() ? "__script_fun_call_" : "__fun_call_");
+            nfContext.getTempVarStorage().put(tempVarName, returnValue);
+
+            currentExpression = currentExpression.substring(0, preparedCall.callInfo.getStartPos()) +
+                tempVarName +
+                currentExpression.substring(preparedCall.callInfo.getEndPos());
         }
-
-        // 提取函数调用表达式
-        String functionCallExpr = extractFunctionCallExpression(expression, callInfo);
-        if (functionCallExpr == null) {
-            return expression;
-        }
-
-        // 执行函数调用
-        Object returnValue = executeFunctionCall(functionCallExpr, nfContext, callInfo.isScriptCall());
-
-        // 替换函数调用为临时变量
-        String tempVarName = callInfo.isScriptCall() ? "__script_fun_call_" + System.nanoTime() : "__fun_call_" + System.nanoTime();
-        nfContext.getTempVarStorage().put(tempVarName, returnValue);
-        String processedExpr = expression.substring(0, callInfo.getStartPos()) + tempVarName + expression.substring(callInfo.getEndPos());
-
-        // 递归处理剩余的函数调用
-        return preProcessFunctionCalls(processedExpr, nfContext, jexlContext);
     }
 
     /**
@@ -541,40 +497,16 @@ public class NfCalculator {
         String getScriptName() { return scriptName; }
     }
 
-    /**
-     * 检测字符串是否包含 Lambda 表达式
-     * Lambda 格式：(params) -> { body }
-     *
-     * @param str 待检测的字符串
-     * @return 如果包含 Lambda 表达式返回 true
-     */
-    private static boolean containsLambdaExpression(String str) {
-        // 简单检测：是否包含 " -> {" 模式
-        int arrowIndex = str.indexOf("->");
-        if (arrowIndex == -1) {
-            return false;
-        }
+    private static class PreparedFunctionCall {
+        private final FunctionCallInfo callInfo;
+        private final String functionCallExpr;
+        private final List<Token> tokens;
 
-        // 检查箭头后面是否有 {
-        int lbraceIndex = str.indexOf('{', arrowIndex);
-        if (lbraceIndex == -1) {
-            return false;
+        private PreparedFunctionCall(FunctionCallInfo callInfo, String functionCallExpr, List<Token> tokens) {
+            this.callInfo = callInfo;
+            this.functionCallExpr = functionCallExpr;
+            this.tokens = tokens;
         }
-
-        // 检查箭头前面是否有 )
-        int rparenIndex = str.lastIndexOf(')', arrowIndex);
-        if (rparenIndex == -1) {
-            return false;
-        }
-
-        // 检查 ) 前面是否有 (
-        int lparenIndex = str.lastIndexOf('(', rparenIndex);
-        if (lparenIndex == -1) {
-            return false;
-        }
-
-        // 确认顺序：( ... ) -> { ... }
-        return lparenIndex < rparenIndex && rparenIndex < arrowIndex && arrowIndex < lbraceIndex;
     }
 
     /**
@@ -585,152 +517,277 @@ public class NfCalculator {
      * @return 函数调用信息，如果没有找到返回null
      */
     private static FunctionCallInfo findLastFunctionCall(String expression, NfContext nfContext) {
-        // 使用正则表达式匹配函数调用：函数名(参数列表) 或 脚本名称.函数名(参数列表)
-        java.util.regex.Pattern pattern1 = java.util.regex.Pattern.compile("\\b([a-zA-Z_$][a-zA-Z0-9_$]*)\\s*\\(");
-        java.util.regex.Pattern pattern2 = java.util.regex.Pattern.compile("\\b([a-zA-Z_$][a-zA-Z0-9_$]*)\\.([a-zA-Z_$][a-zA-Z0-9_$]*)\\s*\\(");
-
-        // 先查找导入脚本的函数调用
-        java.util.regex.Matcher matcher2 = pattern2.matcher(expression);
-        int lastScriptMatchStart = -1;
-        String lastScriptName = null;
-        String lastScriptFunctionName = null;
-        int lastJavaMethodStart = -1;
-        String lastJavaTargetName = null;
-        String lastJavaMethodName = null;
-
-        while (matcher2.find()) {
-            String targetName = matcher2.group(1);
-            String functionName = matcher2.group(2);
-            if (nfContext.hasImportedScript(targetName)) {
-                NfContext scriptContext = nfContext.getImportedScriptContext(targetName);
-                if (scriptContext != null && scriptContext.hasFunction(functionName)) {
-                    lastScriptMatchStart = matcher2.start();
-                    lastScriptName = targetName;
-                    lastScriptFunctionName = functionName;
-                }
-            } else if (isJavaMethodCallCandidate(expression, matcher2.start(), targetName, functionName, nfContext)) {
-                lastJavaMethodStart = matcher2.start();
-                lastJavaTargetName = targetName;
-                lastJavaMethodName = functionName;
-            }
+        if (expression == null || expression.isEmpty() ||
+            expression.indexOf('(') < 0 || expression.indexOf(')') < 0) {
+            return null;
         }
 
-        // 查找当前上下文的函数调用
-        java.util.regex.Matcher matcher1 = pattern1.matcher(expression);
-        int lastMatchStart = -1;
-        String lastFunctionName = null;
+        java.util.ArrayDeque<Integer> parenStack = new java.util.ArrayDeque<>();
+        FunctionCallInfo lastCall = null;
+        boolean inSingleQuote = false;
+        boolean inDoubleQuote = false;
 
-        while (matcher1.find()) {
-            String functionName = matcher1.group(1);
-            // 跳过导入脚本的函数调用（已经处理过了）
-            if (lastScriptMatchStart >= 0 && matcher1.start() == lastScriptMatchStart) {
+        for (int i = 0; i < expression.length(); i++) {
+            char current = expression.charAt(i);
+            boolean escaped = isEscaped(expression, i);
+
+            if (inSingleQuote) {
+                if (current == '\'' && !escaped) {
+                    inSingleQuote = false;
+                }
                 continue;
             }
-            // 检查是否是普通函数或函数引用变量
-            boolean hasFunction = nfContext.hasFunction(functionName);
-            boolean hasFunRef = nfContext.hasFunRef(functionName);
-            if (hasFunction || hasFunRef) {
-                lastMatchStart = matcher1.start();
-                lastFunctionName = functionName;
+            if (inDoubleQuote) {
+                if (current == '"' && !escaped) {
+                    inDoubleQuote = false;
+                }
+                continue;
+            }
+            if (current == '\'' && !escaped) {
+                inSingleQuote = true;
+                continue;
+            }
+            if (current == '"' && !escaped) {
+                inDoubleQuote = true;
+                continue;
+            }
+
+            if (current == '(') {
+                parenStack.push(i);
+                continue;
+            }
+            if (current != ')' || parenStack.isEmpty()) {
+                continue;
+            }
+
+            int lparenIndex = parenStack.pop();
+            FunctionCallInfo callInfo = resolveFunctionCall(expression, lparenIndex, i + 1, nfContext);
+            if (callInfo != null &&
+                (lastCall == null || callInfo.getStartPos() > lastCall.getStartPos())) {
+                lastCall = callInfo;
             }
         }
 
-        // 优先处理最内层的函数调用
-        if (lastScriptMatchStart >= 0 &&
-            lastScriptMatchStart >= lastMatchStart &&
-            lastScriptMatchStart >= lastJavaMethodStart) {
-            int endPos = findFunctionCallEndPos(expression, lastScriptMatchStart,
-                lastScriptName.length() + 1 + lastScriptFunctionName.length() + 1);
-            return new FunctionCallInfo(lastScriptMatchStart, endPos, true, lastScriptFunctionName, lastScriptName);
+        return lastCall;
+    }
+
+    private static FunctionCallInfo resolveFunctionCall(String expression, int lparenIndex, int endPos, NfContext nfContext) {
+        int cursor = skipWhitespaceBackward(expression, lparenIndex - 1);
+        if (cursor < 0) {
+            return null;
         }
 
-        if (lastJavaMethodStart >= 0 && lastJavaMethodStart >= lastMatchStart) {
-            int endPos = findFunctionCallEndPos(expression, lastJavaMethodStart,
-                lastJavaTargetName.length() + 1 + lastJavaMethodName.length() + 1);
-            return new FunctionCallInfo(lastJavaMethodStart, endPos, false,
-                lastJavaTargetName + "." + lastJavaMethodName, null);
+        int methodEnd = cursor + 1;
+        while (cursor >= 0 && Character.isJavaIdentifierPart(expression.charAt(cursor))) {
+            cursor--;
+        }
+        int methodStart = cursor + 1;
+        if (methodStart >= methodEnd || !Character.isJavaIdentifierStart(expression.charAt(methodStart))) {
+            return null;
         }
 
-        if (lastMatchStart >= 0) {
-            int endPos = findFunctionCallEndPos(expression, lastMatchStart, lastFunctionName.length() + 1);
-            return new FunctionCallInfo(lastMatchStart, endPos, false, lastFunctionName, null);
+        String methodName = expression.substring(methodStart, methodEnd);
+        cursor = skipWhitespaceBackward(expression, cursor);
+
+        if (cursor >= 0 && expression.charAt(cursor) == '.') {
+            int targetEnd = cursor;
+            cursor = skipWhitespaceBackward(expression, cursor - 1);
+            if (cursor < 0) {
+                return null;
+            }
+
+            int targetIdentifierEnd = cursor + 1;
+            while (cursor >= 0 && Character.isJavaIdentifierPart(expression.charAt(cursor))) {
+                cursor--;
+            }
+            int targetStart = cursor + 1;
+            if (targetStart >= targetIdentifierEnd || !Character.isJavaIdentifierStart(expression.charAt(targetStart))) {
+                return null;
+            }
+            if (targetIdentifierEnd != targetEnd) {
+                return null;
+            }
+
+            String targetName = expression.substring(targetStart, targetIdentifierEnd);
+            if (nfContext.hasImportedScript(targetName)) {
+                NfContext scriptContext = nfContext.getImportedScriptContext(targetName);
+                if (scriptContext != null && scriptContext.hasFunction(methodName)) {
+                    return new FunctionCallInfo(targetStart, endPos, true, methodName, targetName);
+                }
+            }
+
+            String functionCallExpr = expression.substring(targetStart, endPos);
+            if (isJavaMethodCallCandidate(functionCallExpr, targetName, nfContext)) {
+                return new FunctionCallInfo(targetStart, endPos, false, targetName + "." + methodName, null);
+            }
+            return null;
+        }
+
+        if (nfContext.hasFunction(methodName) || nfContext.hasFunRef(methodName)) {
+            return new FunctionCallInfo(methodStart, endPos, false, methodName, null);
         }
 
         return null;
     }
 
-    private static boolean isJavaMethodCallCandidate(String expression, int startPos,
-                                                     String targetName, String methodName, NfContext nfContext) {
+    private static int skipWhitespaceBackward(String expression, int index) {
+        int cursor = index;
+        while (cursor >= 0 && Character.isWhitespace(expression.charAt(cursor))) {
+            cursor--;
+        }
+        return cursor;
+    }
+
+    private static boolean isEscaped(String expression, int index) {
+        int backslashCount = 0;
+        int cursor = index - 1;
+        while (cursor >= 0 && expression.charAt(cursor) == '\\') {
+            backslashCount++;
+            cursor--;
+        }
+        return (backslashCount & 1) == 1;
+    }
+
+    private static boolean isJavaMethodCallCandidate(String functionCallExpr,
+                                                     String targetName, NfContext nfContext) {
         if (nfContext.getImportType(targetName) == null && nfContext.getVariable(targetName) == null) {
             return false;
         }
 
-        int endPos = findFunctionCallEndPos(expression, startPos, targetName.length() + 1 + methodName.length() + 1);
-        if (endPos <= startPos) {
-            return false;
-        }
-
-        String functionCallExpr = expression.substring(startPos, endPos);
         return containsLambdaLikeArgument(functionCallExpr, nfContext);
     }
 
     private static boolean containsLambdaLikeArgument(String functionCallExpr, NfContext nfContext) {
-        List<Token> tokens;
-        try {
-            tokens = NfToken.tokens(functionCallExpr);
-        } catch (Exception e) {
+        List<String> arguments = extractTopLevelArguments(functionCallExpr);
+        if (arguments.isEmpty()) {
             return false;
         }
 
-        int lparenIndex = -1;
-        int rparenIndex = -1;
-        int depth = 0;
-        for (int i = 0; i < tokens.size(); i++) {
-            Token token = tokens.get(i);
-            if (token.type == TokenType.LPAREN) {
-                if (lparenIndex == -1) {
-                    lparenIndex = i;
-                }
-                depth++;
-            } else if (token.type == TokenType.RPAREN) {
-                depth--;
-                if (depth == 0) {
-                    rparenIndex = i;
-                    break;
-                }
+        for (String argument : arguments) {
+            String trimmedArgument = argument.trim();
+            if (trimmedArgument.isEmpty()) {
+                continue;
+            }
+            if (containsLambdaArrow(trimmedArgument)) {
+                return true;
+            }
+            if (isValidIdentifier(trimmedArgument) &&
+                (nfContext.hasFunRef(trimmedArgument) || nfContext.hasFunction(trimmedArgument))) {
+                return true;
             }
         }
 
-        if (lparenIndex == -1 || rparenIndex == -1 || rparenIndex <= lparenIndex + 1) {
-            return false;
+        return false;
+    }
+
+    private static List<String> extractTopLevelArguments(String functionCallExpr) {
+        List<String> arguments = new java.util.ArrayList<>();
+        int argsStart = findArgumentsStart(functionCallExpr);
+        if (argsStart < 0 || argsStart + 1 >= functionCallExpr.length()) {
+            return arguments;
         }
 
-        List<Token> currentParam = new java.util.ArrayList<>();
+        boolean inSingleQuote = false;
+        boolean inDoubleQuote = false;
         int parenDepth = 0;
         int braceDepth = 0;
-        for (int i = lparenIndex + 1; i < rparenIndex; i++) {
-            Token token = tokens.get(i);
-            if (token.type == TokenType.LPAREN) {
-                parenDepth++;
-            } else if (token.type == TokenType.RPAREN) {
-                parenDepth--;
-            } else if (token.type == TokenType.LBRACE) {
-                braceDepth++;
-            } else if (token.type == TokenType.RBRACE) {
-                braceDepth--;
+        int bracketDepth = 0;
+        int argumentStart = argsStart + 1;
+
+        for (int i = argsStart + 1; i < functionCallExpr.length(); i++) {
+            char currentChar = functionCallExpr.charAt(i);
+            if (currentChar == '\'' && !inDoubleQuote && !isEscaped(functionCallExpr, i)) {
+                inSingleQuote = !inSingleQuote;
+                continue;
+            }
+            if (currentChar == '"' && !inSingleQuote && !isEscaped(functionCallExpr, i)) {
+                inDoubleQuote = !inDoubleQuote;
+                continue;
+            }
+            if (inSingleQuote || inDoubleQuote) {
+                continue;
             }
 
-            if (token.type == TokenType.COMMA && parenDepth == 0 && braceDepth == 0) {
-                if (isLambdaLikeParam(currentParam, nfContext)) {
-                    return true;
+            if (currentChar == '(') {
+                parenDepth++;
+                continue;
+            }
+            if (currentChar == ')') {
+                if (parenDepth == 0) {
+                    arguments.add(functionCallExpr.substring(argumentStart, i));
+                    return arguments;
                 }
-                currentParam.clear();
-            } else {
-                currentParam.add(token);
+                parenDepth--;
+                continue;
+            }
+            if (currentChar == '{') {
+                braceDepth++;
+                continue;
+            }
+            if (currentChar == '}') {
+                if (braceDepth > 0) {
+                    braceDepth--;
+                }
+                continue;
+            }
+            if (currentChar == '[') {
+                bracketDepth++;
+                continue;
+            }
+            if (currentChar == ']') {
+                if (bracketDepth > 0) {
+                    bracketDepth--;
+                }
+                continue;
+            }
+            if (currentChar == ',' && parenDepth == 0 && braceDepth == 0 && bracketDepth == 0) {
+                arguments.add(functionCallExpr.substring(argumentStart, i));
+                argumentStart = i + 1;
             }
         }
 
-        return isLambdaLikeParam(currentParam, nfContext);
+        return arguments;
+    }
+
+    private static int findArgumentsStart(String functionCallExpr) {
+        boolean inSingleQuote = false;
+        boolean inDoubleQuote = false;
+        for (int i = 0; i < functionCallExpr.length(); i++) {
+            char currentChar = functionCallExpr.charAt(i);
+            if (currentChar == '\'' && !inDoubleQuote && !isEscaped(functionCallExpr, i)) {
+                inSingleQuote = !inSingleQuote;
+                continue;
+            }
+            if (currentChar == '"' && !inSingleQuote && !isEscaped(functionCallExpr, i)) {
+                inDoubleQuote = !inDoubleQuote;
+                continue;
+            }
+            if (!inSingleQuote && !inDoubleQuote && currentChar == '(') {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private static boolean containsLambdaArrow(String expression) {
+        boolean inSingleQuote = false;
+        boolean inDoubleQuote = false;
+        for (int i = 0; i < expression.length(); i++) {
+            char currentChar = expression.charAt(i);
+            if (currentChar == '\'' && !inDoubleQuote && !isEscaped(expression, i)) {
+                inSingleQuote = !inSingleQuote;
+                continue;
+            }
+            if (currentChar == '"' && !inSingleQuote && !isEscaped(expression, i)) {
+                inDoubleQuote = !inDoubleQuote;
+                continue;
+            }
+            if (!inSingleQuote && !inDoubleQuote &&
+                currentChar == '-' && i + 1 < expression.length() && expression.charAt(i + 1) == '>') {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean isLambdaLikeParam(List<Token> paramTokens, NfContext nfContext) {
@@ -752,96 +809,57 @@ public class NfCalculator {
         return false;
     }
 
-    /**
-     * 查找函数调用的结束位置（右括号位置）
-     *
-     * @param expression 表达式
-     * @param startPos 开始位置
-     * @param skipLength 需要跳过的长度（函数名和左括号的长度）
-     * @return 结束位置（右括号后）
-     */
-    private static int findFunctionCallEndPos(String expression, int startPos, int skipLength) {
-        int parenDepth = 1;
-        int endPos = startPos + skipLength;
-
-        // 找到匹配的右括号
-        while (endPos < expression.length() && parenDepth > 0) {
-            char c = expression.charAt(endPos);
-            if (c == '(') {
-                parenDepth++;
-            } else if (c == ')') {
-                parenDepth--;
-            } else if (c == '-' && endPos + 1 < expression.length() && expression.charAt(endPos + 1) == '>') {
-                // 检查是否是 Lambda 表达式的箭头 ->
-                // 如果是，需要跳过整个 Lambda 体 { ... }
-                // 找到箭头后的 {
-                int lbracePos = expression.indexOf('{', endPos + 2);
-                if (lbracePos != -1) {
-                    // 跳过 {，并查找匹配的 }
-                    int braceDepth = 1;
-                    endPos = lbracePos + 1;
-                    while (endPos < expression.length() && braceDepth > 0) {
-                        char bc = expression.charAt(endPos);
-                        if (bc == '{') {
-                            braceDepth++;
-                        } else if (bc == '}') {
-                            braceDepth--;
-                        }
-                        endPos++;
-                    }
-                    // 继续外层循环，不要跳过 endPos 的增量
-                    continue;
+    public static Class<?> resolveClass(String className) {
+        try {
+            return globalClassCache.computeIfAbsent(className, key -> {
+                try {
+                    return Class.forName(key);
+                } catch (ClassNotFoundException e) {
+                    throw new IllegalStateException(e);
                 }
+            });
+        } catch (IllegalStateException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof ClassNotFoundException) {
+                throw new NfException(cause, "找不到类: " + className);
             }
-            endPos++;
+            throw e;
         }
-
-        return endPos;
     }
 
-    /**
-     * 提取函数调用表达式
-     * 
-     * @param expression 原始表达式
-     * @param callInfo 函数调用信息
-     * @return 函数调用表达式，如果解析失败返回null
-     */
-    private static String extractFunctionCallExpression(String expression, FunctionCallInfo callInfo) {
-        String functionCallExpr = expression.substring(callInfo.getStartPos(), callInfo.getEndPos());
-        
-        // 验证表达式是否可以解析为tokens
-        try {
-            NfToken.tokens(functionCallExpr);
-        } catch (Exception e) {
-            // 如果解析失败，保留原表达式
+    private static PreparedFunctionCall prepareLastFunctionCall(String expression, NfContext nfContext) {
+        FunctionCallInfo callInfo = findLastFunctionCall(expression, nfContext);
+        if (callInfo == null) {
             return null;
         }
-        
-        return functionCallExpr;
+
+        String functionCallExpr = expression.substring(callInfo.getStartPos(), callInfo.getEndPos());
+        try {
+            return new PreparedFunctionCall(callInfo, functionCallExpr, tokenizeFunctionCallExpression(functionCallExpr));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static List<Token> tokenizeFunctionCallExpression(String functionCallExpr) {
+        return functionCallTokenCache.get(functionCallExpr, key ->
+            Collections.unmodifiableList(new java.util.ArrayList<>(NfToken.tokens(key)))
+        );
     }
 
     /**
      * 执行函数调用
      * 
-     * @param functionCallExpr 函数调用表达式
+     * @param preparedCall 已准备好的函数调用
      * @param nfContext NF上下文
-     * @param isScriptCall 是否是脚本函数调用
      * @return 函数返回值
      */
-    private static Object executeFunctionCall(String functionCallExpr, NfContext nfContext, boolean isScriptCall) {
-        // 将函数调用表达式解析为tokens
-        List<Token> tokens;
-        try {
-            tokens = NfToken.tokens(functionCallExpr);
-        } catch (Exception e) {
-            throw new NfException(e, "表达式中的函数调用解析失败: " + functionCallExpr);
-        }
-        
+    private static Object executeFunctionCall(PreparedFunctionCall preparedCall, NfContext nfContext) {
         // 创建函数调用语法节点
         FunCallSyntaxNode funCallNode = new FunCallSyntaxNode();
-        funCallNode.setValue(tokens);
-        if (!tokens.isEmpty()) {
-            funCallNode.setLine(tokens.get(0).getLine());
+        funCallNode.setValue(preparedCall.tokens);
+        if (!preparedCall.tokens.isEmpty()) {
+            funCallNode.setLine(preparedCall.tokens.get(0).getLine());
         }
         
         // 保存当前作用域ID
@@ -853,8 +871,8 @@ public class NfCalculator {
         } catch (NfTimeoutException e) {
             throw e;
         } catch (Exception e) {
-            String errorMsg = isScriptCall ? "表达式中的导入脚本函数调用执行失败: " : "表达式中的函数调用执行失败: ";
-            throw new NfException(e, errorMsg + functionCallExpr);
+            String errorMsg = preparedCall.callInfo.isScriptCall() ? "表达式中的导入脚本函数调用执行失败: " : "表达式中的函数调用执行失败: ";
+            throw new NfException(e, errorMsg + preparedCall.functionCallExpr);
         } finally {
             if (savedScopeIdForPreprocess != null) {
                 nfContext.switchScope(savedScopeIdForPreprocess);
@@ -862,8 +880,11 @@ public class NfCalculator {
         }
     }
 
-    // 临时变量计数器（用于生成唯一变量名）
-    private static int tempVarCounter = 0;
+    private static final AtomicLong TEMP_VAR_COUNTER = new AtomicLong();
+
+    private static String nextTempVariableName(String prefix) {
+        return prefix + TEMP_VAR_COUNTER.incrementAndGet();
+    }
 
     /**
      * 检查字符串是否是有效的标识符

@@ -29,8 +29,7 @@ import java.util.*;
  */
 public class NfPerformanceMonitor {
     
-    private final Map<String, List<Long>> nodeExecutionTimes = new LinkedHashMap<>();
-    private final Map<String, Integer> nodeExecutionCounts = new HashMap<>();
+    private final Map<String, MutableNodeStatistics> nodeExecutionStats = new LinkedHashMap<>();
     private long totalExecutionTime = 0;
     private long startTime;
     private boolean started = false;
@@ -54,8 +53,7 @@ public class NfPerformanceMonitor {
             return;
         }
         
-        nodeExecutionTimes.computeIfAbsent(nodeType, k -> new ArrayList<>()).add(durationNanos);
-        nodeExecutionCounts.merge(nodeType, 1, Integer::sum);
+        nodeExecutionStats.computeIfAbsent(nodeType, MutableNodeStatistics::new).record(durationNanos);
         totalExecutionTime += durationNanos;
     }
     
@@ -73,23 +71,8 @@ public class NfPerformanceMonitor {
         
         // 计算各类型节点的统计信息
         Map<String, NodeStatistics> nodeStats = new LinkedHashMap<>();
-        for (Map.Entry<String, List<Long>> entry : nodeExecutionTimes.entrySet()) {
-            String nodeType = entry.getKey();
-            List<Long> times = entry.getValue();
-            
-            long total = times.stream().mapToLong(Long::longValue).sum();
-            long avg = total / times.size();
-            long max = times.stream().mapToLong(Long::longValue).max().orElse(0);
-            long min = times.stream().mapToLong(Long::longValue).min().orElse(0);
-            
-            nodeStats.put(nodeType, new NodeStatistics(
-                nodeType,
-                entry.getValue().size(),
-                total,
-                avg,
-                max,
-                min
-            ));
+        for (Map.Entry<String, MutableNodeStatistics> entry : nodeExecutionStats.entrySet()) {
+            nodeStats.put(entry.getKey(), entry.getValue().toImmutable());
         }
         
         return new NfPerformanceReport(nodeStats, totalExecutionTime, totalDuration);
@@ -99,10 +82,38 @@ public class NfPerformanceMonitor {
      * 重置监控器
      */
     public void reset() {
-        nodeExecutionTimes.clear();
-        nodeExecutionCounts.clear();
+        nodeExecutionStats.clear();
         totalExecutionTime = 0;
         started = false;
+    }
+
+    private static final class MutableNodeStatistics {
+        private final String nodeType;
+        private int executionCount;
+        private long totalTime;
+        private long maxTime;
+        private long minTime = Long.MAX_VALUE;
+
+        private MutableNodeStatistics(String nodeType) {
+            this.nodeType = nodeType;
+        }
+
+        private void record(long durationNanos) {
+            executionCount++;
+            totalTime += durationNanos;
+            if (durationNanos > maxTime) {
+                maxTime = durationNanos;
+            }
+            if (durationNanos < minTime) {
+                minTime = durationNanos;
+            }
+        }
+
+        private NodeStatistics toImmutable() {
+            long avgTime = executionCount == 0 ? 0 : totalTime / executionCount;
+            long safeMinTime = executionCount == 0 ? 0 : minTime;
+            return new NodeStatistics(nodeType, executionCount, totalTime, avgTime, maxTime, safeMinTime);
+        }
     }
     
     /**
@@ -151,4 +162,3 @@ public class NfPerformanceMonitor {
         }
     }
 }
-

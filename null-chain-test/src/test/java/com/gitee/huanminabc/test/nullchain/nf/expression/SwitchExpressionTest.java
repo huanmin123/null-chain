@@ -64,5 +64,24 @@ public class SwitchExpressionTest {
         assertTrue(result.toString().contains("中级") || result.toString().equals("中级"));
         log.info("高级SWITCH语句测试通过，结果: {}", result);
     }
-}
 
+    @Test
+    public void testSwitchConditionExpression() {
+        String script = "Integer a = 10\n" +
+            "Integer b = 6\n" +
+            "switch (a + b) {\n" +
+            "    case 16\n" +
+            "        export 160\n" +
+            "    default\n" +
+            "        export 0\n" +
+            "}\n";
+
+        List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(script);
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
+
+        NfContext context = new NfContext();
+        Object result = NfRun.run(syntaxNodes, context, log, null);
+
+        assertEquals(160, result);
+    }
+}

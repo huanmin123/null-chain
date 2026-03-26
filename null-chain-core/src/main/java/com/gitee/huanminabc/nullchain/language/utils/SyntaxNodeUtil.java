@@ -14,6 +14,19 @@ import java.util.List;
  * @since 1.1.4
  */
 public class SyntaxNodeUtil {
+
+    /**
+     * 批量删除列表前缀中的token，避免多次 remove(0) 导致重复搬移。
+     *
+     * @param tokens Token列表
+     * @param count 要删除的前缀数量
+     */
+    public static void clearLeadingTokens(List<Token> tokens, int count) {
+        if (tokens == null || tokens.isEmpty() || count <= 0) {
+            return;
+        }
+        tokens.subList(0, Math.min(count, tokens.size())).clear();
+    }
     
     /**
      * 查找LINE_END的位置
@@ -79,7 +92,6 @@ public class SyntaxNodeUtil {
         tokens.removeIf(t -> t.type == TokenType.COMMENT);
     }
 }
-
 
 
 

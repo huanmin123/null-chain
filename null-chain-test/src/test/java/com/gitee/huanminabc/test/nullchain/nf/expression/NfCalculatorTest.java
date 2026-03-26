@@ -17,6 +17,15 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class NfCalculatorTest {
 
+    private static NfContext createContext() {
+        NfContext context = new NfContext();
+        String mainScopeId = NfContext.generateScopeId();
+        context.setMainScopeId(mainScopeId);
+        context.setCurrentScopeId(mainScopeId);
+        context.createScope(mainScopeId, null, NfContextScopeType.ALL);
+        return context;
+    }
+
     @Test
     public void testSimpleArithmetic() {
         Map<String, Object> params = new HashMap<>();
@@ -29,13 +38,8 @@ public class NfCalculatorTest {
 
     @Test
     public void testArithmeticWithContext() {
-        NfContext context = new NfContext();
-        
-        // Create main scope
-        String mainScopeId = NfContext.generateScopeId();
-        context.setMainScopeId(mainScopeId);
-        context.setCurrentScopeId(mainScopeId);
-        NfContextScope scope = context.createScope(mainScopeId, null, NfContextScopeType.ALL);
+        NfContext context = createContext();
+        NfContextScope scope = context.getCurrentScope();
         
         // Add variables
         scope.addVariable(new NfVariableInfo("i", 1, Integer.class));
@@ -47,5 +51,48 @@ public class NfCalculatorTest {
         assertTrue((Boolean) result);
         
         System.out.println("Test passed! result=" + result);
+    }
+
+    @Test
+    public void testArithmeticUsesLatestParentScopeValueAfterMutation() {
+        NfContext context = createContext();
+        NfContextScope mainScope = context.getCurrentScope();
+        mainScope.addVariable(new NfVariableInfo("a", 1, Integer.class));
+
+        NfContextScope childScope = context.createChildScope(context.getMainScopeId(), NfContextScopeType.ALL);
+        childScope.addVariable(new NfVariableInfo("b", 2, Integer.class));
+
+        assertEquals(3, NfCalculator.arithmetic("a + b", context));
+
+        mainScope.addVariable(new NfVariableInfo("a", 5, Integer.class));
+
+        assertEquals(7, NfCalculator.arithmetic("a + b", context));
+    }
+
+    @Test
+    public void testCurrentScopeStillOverridesParentAfterParentMutation() {
+        NfContext context = createContext();
+        NfContextScope mainScope = context.getCurrentScope();
+        mainScope.addVariable(new NfVariableInfo("value", 1, Integer.class));
+
+        NfContextScope childScope = context.createChildScope(context.getMainScopeId(), NfContextScopeType.ALL);
+        childScope.addVariable(new NfVariableInfo("value", 2, Integer.class));
+
+        assertEquals(2, NfCalculator.arithmetic("value", context));
+
+        mainScope.addVariable(new NfVariableInfo("value", 5, Integer.class));
+
+        assertEquals(2, NfCalculator.arithmetic("value", context));
+    }
+
+    @Test
+    public void testImportCacheRefreshesAfterNewImport() {
+        NfContext context = createContext();
+
+        assertEquals(true, NfCalculator.arithmetic("UUID.randomUUID() != null", context));
+
+        context.addImport("LocalDateAlias", "java.time.LocalDate");
+
+        assertEquals(true, NfCalculator.arithmetic("LocalDateAlias.now() != null", context));
     }
 }

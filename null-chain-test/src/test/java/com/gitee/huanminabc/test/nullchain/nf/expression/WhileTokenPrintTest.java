@@ -2,9 +2,12 @@ package com.gitee.huanminabc.test.nullchain.nf.expression;
 
 import com.gitee.huanminabc.nullchain.language.NfToken;
 import com.gitee.huanminabc.nullchain.language.token.Token;
+import com.gitee.huanminabc.nullchain.language.token.TokenType;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class WhileTokenPrintTest {
 
@@ -12,10 +15,11 @@ public class WhileTokenPrintTest {
     public void testPrintTokens() {
         String script = "Integer i = 1\nwhile i <= 3 {\n    i = i + 1\n}";
         List<Token> tokens = NfToken.tokens(script);
-        System.out.println("Total tokens: " + tokens.size());
-        for (int i = 0; i < tokens.size(); i++) {
-            Token t = tokens.get(i);
-            System.out.println(i + ": " + t.type + " = '" + t.value + "'");
-        }
+
+        assertTrue(tokens.stream().anyMatch(token -> token.type == TokenType.WHILE));
+        assertTrue(tokens.stream().anyMatch(token -> token.type == TokenType.LE));
+        assertTrue(tokens.stream().anyMatch(token -> token.type == TokenType.LBRACE));
+        assertTrue(tokens.stream().anyMatch(token -> token.type == TokenType.RBRACE));
+        assertTrue(tokens.stream().anyMatch(token -> token.type == TokenType.LINE_END));
     }
 }

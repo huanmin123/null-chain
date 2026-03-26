@@ -396,54 +396,14 @@ public class FunCallSyntaxNode extends LineSyntaxNode {
                 syntaxNode.getLine(), syntaxNode);
         }
 
-        // 使用捕获时的作用域作为父作用域
-        String parentScopeId = funRef.getCaptureScopeId();
-        if (parentScopeId == null) {
-            parentScopeId = context.getMainScopeId();
-        }
-
         // 解析参数值
         List<Object> paramValues = parseParameterValues(paramTokens, context, syntaxNode.getLine());
-
-        // 验证参数数量和类型
-        validateParameters(funDef, paramValues, syntaxNode.getLine());
-
-        // 创建 Lambda 作用域
-        String lambdaScopeId = NfContext.generateScopeId();
-        NfContextScope lambdaScope = context.createScope(lambdaScopeId, parentScopeId, NfContextScopeType.ALL);
-
-        String savedScopeId = context.getCurrentScopeId();
-        try {
-            // 切换到 Lambda 作用域
-            context.switchScope(lambdaScopeId);
-
-            // 注入闭包变量（关键步骤）
-            if (funRef.getCapturedVariables() != null) {
-                for (java.util.Map.Entry<String, Object> entry : funRef.getCapturedVariables().entrySet()) {
-                    String varName = entry.getKey();
-                    Object varValue = entry.getValue();
-                    // 将捕获的变量添加到 Lambda 作用域
-                    Class<?> varType = varValue != null ? varValue.getClass() : Object.class;
-                    lambdaScope.addVariable(new NfVariableInfo(varName, varValue, varType));
-                }
-            }
-
-            // 设置参数
-            setupFunctionParameters(lambdaScope, funDef, paramValues, context,
-                "lambda", syntaxNode.getLine(), syntaxNode);
-
-            // 执行 Lambda 函数体
-            executeFunctionBody(funDef, context, "lambda", syntaxNode);
-
-            // 获取返回值
-            return getReturnValue(lambdaScope);
-
-        } finally {
-            // 恢复作用域
-            context.switchScope(savedScopeId);
-            // 清理 Lambda 作用域
-            context.removeScope(lambdaScopeId);
-        }
+        return LambdaProxyFactory.executeLambda(
+            funRef,
+            paramValues.toArray(new Object[0]),
+            context,
+            syntaxNode.getLine()
+        );
     }
 
     /**
@@ -533,7 +493,7 @@ public class FunCallSyntaxNode extends LineSyntaxNode {
     }
 
     private Object invokeJavaMethod(String methodName, List<Object> paramValues, NfContext context, int line)
-        throws InvocationTargetException, IllegalAccessException, ClassNotFoundException, NoSuchMethodException {
+        throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         ResolvedMethodTarget target = resolveMethodTarget(methodName, context, line);
         MethodMatch bestMatch = findBestMethodMatch(target, paramValues, context, line);
         if (bestMatch == null) {
@@ -542,8 +502,7 @@ public class FunCallSyntaxNode extends LineSyntaxNode {
         return bestMatch.method.invoke(target.targetObject, bestMatch.arguments);
     }
 
-    private ResolvedMethodTarget resolveMethodTarget(String methodName, NfContext context, int line)
-        throws ClassNotFoundException {
+    private ResolvedMethodTarget resolveMethodTarget(String methodName, NfContext context, int line) {
         int dotIndex = methodName.indexOf('.');
         if (dotIndex <= 0 || dotIndex == methodName.length() - 1) {
             throw new NfException("Line:{} ,Java方法调用格式错误: {}", line, methodName);
@@ -554,7 +513,10 @@ public class FunCallSyntaxNode extends LineSyntaxNode {
 
         String importedType = context.getImportType(targetName);
         if (importedType != null) {
-            Class<?> targetClass = Class.forName(importedType);
+            Class<?> targetClass = context.getResolvedImportClass(targetName, NfCalculator::resolveClass);
+            if (targetClass == null) {
+                targetClass = NfCalculator.resolveClass(importedType);
+            }
             return new ResolvedMethodTarget(targetClass, null, actualMethodName, true);
         }
 
@@ -1029,7 +991,10 @@ public class FunCallSyntaxNode extends LineSyntaxNode {
 
                 // 尝试转换为 Java 类
                 try {
-                    Class<?> paramClass = Class.forName(importedTypeName);
+                    Class<?> paramClass = context.getResolvedImportClass(param.getType(), NfCalculator::resolveClass);
+                    if (paramClass == null) {
+                        paramClass = NfCalculator.resolveClass(importedTypeName);
+                    }
 
                     // 自动转换：如果参数类型是函数式接口，且参数值是 FunRefInfo，则自动创建代理
                     if (paramValue instanceof FunRefInfo && LambdaProxyFactory.isFunctionalInterface(paramClass)) {
@@ -1039,12 +1004,12 @@ public class FunCallSyntaxNode extends LineSyntaxNode {
                     }
 
                     functionScope.addVariable(new NfVariableInfo(param.getName(), paramValue, paramClass));
-                } catch (ClassNotFoundException e) {
+                } catch (NfException e) {
                     if (scriptName != null) {
-                        throw new NfException("Line:{} ,脚本 '{}' 的函数 {} 参数 {} 类型 {} 类未找到 , syntax: {}",
+                        throw new NfException(e, "Line:{} ,脚本 '{}' 的函数 {} 参数 {} 类型 {} 类未找到 , syntax: {}",
                             line, scriptName, funDef.getFunctionName(), param.getName(), importedTypeName, syntaxNode);
                     } else {
-                        throw new NfException("Line:{} ,函数 {} 参数 {} 类型 {} 类未找到 , syntax: {}",
+                        throw new NfException(e, "Line:{} ,函数 {} 参数 {} 类型 {} 类未找到 , syntax: {}",
                             line, functionName, param.getName(), importedTypeName, syntaxNode);
                     }
                 }
@@ -1225,7 +1190,7 @@ public class FunCallSyntaxNode extends LineSyntaxNode {
         List<SyntaxNode> lambdaBodyNodes = NfSynta.buildMainStatement(new ArrayList<>(lambdaBodyTokens));
 
         // 4. 生成唯一的 Lambda 函数名
-        String lambdaFuncName = generateLambdaFunctionName(context);
+        String lambdaFuncName = generateLambdaFunctionName();
 
         // 5. 构建 FunParameter 列表（没有类型信息，因为 Lambda 参数类型是从函数签名推断的）
         List<FunDefInfo.FunParameter> parameters = new ArrayList<>();
@@ -1264,10 +1229,8 @@ public class FunCallSyntaxNode extends LineSyntaxNode {
     /**
      * 生成唯一的 Lambda 函数名
      */
-    private String generateLambdaFunctionName(NfContext context) {
-        int counter = context.getLambdaCounter();
-        context.setLambdaCounter(counter + 1);
-        return "__lambda_param_" + counter + "_" + System.currentTimeMillis();
+    private String generateLambdaFunctionName() {
+        return NfContext.generateLambdaFunctionName("__lambda_param_");
     }
 
     @Override

@@ -9,6 +9,7 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNode;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
+import com.gitee.huanminabc.nullchain.language.utils.SyntaxNodeUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -37,10 +38,11 @@ public class BreakSyntaxNode extends LineSyntaxNode {
     public boolean buildStatement(List<Token> tokens, List<SyntaxNode> syntaxNodeList) {
         Token token = tokens.get(0);
         List<Token> newToken = new ArrayList<>(Collections.singletonList(token));
-        //为了防止在break后面还有注释,那么一直删除到不是注释为止
-        do {
-            tokens.remove(0);
-        } while (!tokens.isEmpty() && tokens.get(0).type == TokenType.COMMENT);
+        int removeCount = 1;
+        while (removeCount < tokens.size() && tokens.get(removeCount).type == TokenType.COMMENT) {
+            removeCount++;
+        }
+        SyntaxNodeUtil.clearLeadingTokens(tokens, removeCount);
         BreakSyntaxNode breakSyntaxNode = new BreakSyntaxNode(SyntaxNodeType.BREAK_EXP);
         breakSyntaxNode.setValue(newToken);
         syntaxNodeList.add(breakSyntaxNode);

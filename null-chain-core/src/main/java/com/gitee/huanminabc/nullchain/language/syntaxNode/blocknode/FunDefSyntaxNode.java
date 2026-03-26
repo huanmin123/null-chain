@@ -137,7 +137,7 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
         List<Token> tokenList = new ArrayList<>(originalTokenList);
 
         // 去掉FUN关键字
-        tokenList.remove(0);
+        SyntaxNodeUtil.clearLeadingTokens(tokenList, 1);
 
         // 解析函数名（应该是IDENTIFIER）
         if (tokenList.isEmpty() || tokenList.get(0).type != TokenType.IDENTIFIER) {
@@ -205,7 +205,7 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
             tracker.addFunction(functionName, functionNameToken.line);
         }
         
-        tokenList.remove(0); // 移除函数名
+        SyntaxNodeUtil.clearLeadingTokens(tokenList, 1); // 移除函数名
 
         // 解析参数列表：找到左括号和右括号
         if (tokenList.isEmpty() || tokenList.get(0).type != TokenType.LPAREN) {
@@ -217,7 +217,7 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
                 "请检查函数定义的语法格式：fun 函数名(参数列表)返回值类型列表{函数体}"
             );
         }
-        tokenList.remove(0); // 移除左括号
+        SyntaxNodeUtil.clearLeadingTokens(tokenList, 1); // 移除左括号
 
         // 解析参数列表，直到找到右括号
         List<FunDefInfo.FunParameter> parameters = new ArrayList<>();
@@ -679,14 +679,14 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
             throw new NfException("Line:{} ,函数定义语法错误，缺少fun关键字",
                 syntaxNode.getLine());
         }
-        tokens.remove(0); // 移除FUN关键字
+        SyntaxNodeUtil.clearLeadingTokens(tokens, 1); // 移除FUN关键字
 
         if (tokens.isEmpty() || tokens.get(0).type != TokenType.IDENTIFIER) {
             throw new NfException("Line:{} ,函数定义语法错误，函数名必须是标识符",
                 syntaxNode.getLine());
         }
         String functionName = tokens.get(0).value;
-        tokens.remove(0); // 移除函数名
+        SyntaxNodeUtil.clearLeadingTokens(tokens, 1); // 移除函数名
 
         // 检查函数是否已经定义，如果已定义则跳过
         if (context.hasFunction(functionName)) {
@@ -695,15 +695,14 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
 
         // 重置tokens用于完整解析
         tokens = new ArrayList<>(tokenList);
-        tokens.remove(0); // 移除FUN关键字
-        tokens.remove(0); // 移除函数名
+        SyntaxNodeUtil.clearLeadingTokens(tokens, 2); // 移除FUN关键字和函数名
 
         // 解析参数列表
         if (tokens.isEmpty() || tokens.get(0).type != TokenType.LPAREN) {
             throw new NfException("Line:{} ,函数定义语法错误，函数名后必须是左括号'(",
                 syntaxNode.getLine());
         }
-        tokens.remove(0); // 移除左括号
+        SyntaxNodeUtil.clearLeadingTokens(tokens, 1); // 移除左括号
 
         List<FunDefInfo.FunParameter> parameters = new ArrayList<>();
         List<Token> paramTokens = new ArrayList<>();
@@ -862,4 +861,3 @@ public class FunDefSyntaxNode extends BlockSyntaxNode {
         context.addFunRef(functionName, funRef);
     }
 }
-

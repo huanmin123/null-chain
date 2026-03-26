@@ -740,39 +740,67 @@ x -> { return x * 2 }
 
 ### Java 函数式接口
 
-如果需要使用 Java 的函数式接口（如 `Consumer<T>`、`Function<T,R>`、`Predicate<T>` 等），仍需要先实现具体的类。
+NF 脚本的 `Fun` 和 Lambda 在很多场景下可以**自动转换**为 Java 函数式接口参数，不需要再先写具体实现类。
 
-**使用 Java 函数式接口的正确做法**：
+当前已验证的常见目标类型包括 `Function<T,R>`、`Predicate<T>` 等单一抽象方法接口。
 
-```nf
-// 1. 先在 Java 代码中实现接口
-public class PrintConsumer implements Consumer<String> {
-    @Override
-    public void accept(String item) {
-        System.out.println(item);
-    }
-}
-
-// 2. 在 NF 脚本中导入并使用对象
-import type com.example.PrintConsumer
-
-PrintConsumer printer = new
-list.forEach(printer)  // 传入对象而非 Lambda
-```
-
-**使用 NF 脚本 Lambda 的替代方案**：
+**示例 1：Fun 自动转换为 Java `Function`**：
 
 ```nf
-// 使用 NF 脚本的 Fun 类型替代 Java 函数式接口
-fun processList(Fun<String : > action, ArrayList list) {
-    for item in list {
-        action(item)
-    }
+import type com.gitee.huanminabc.test.nullchain.nf.LambdaTestUtils
+
+Fun<Integer : Integer> doubler = (x) -> {
+    return x * 2
 }
 
-// 调用并传递 Lambda
-processList((item) -> { echo item }, list)
+Integer result = LambdaTestUtils.applyFunction(doubler, 5)
+// result = 10
 ```
+
+**示例 2：inline Lambda 直接传给 Java 方法**：
+
+```nf
+import type com.gitee.huanminabc.test.nullchain.nf.LambdaTestUtils
+
+Integer result = LambdaTestUtils.applyFunction((x) -> {
+    return x * 4
+}, 5)
+// result = 20
+```
+
+**示例 3：自动转换为 Java `Predicate` / `Function`**：
+
+```nf
+import type com.gitee.huanminabc.test.nullchain.nf.LambdaTestUtils
+import type java.util.Arrays
+import type java.util.List
+
+Fun<Integer : Integer> mapper = (x) -> {
+    return x * 3
+}
+Fun<Integer : Boolean> predicate = (x) -> {
+    return x > 5
+}
+
+List numbers = Arrays.asList(1, 2, 3, 4)
+List result = LambdaTestUtils.streamMap(numbers, mapper)
+Boolean ok = LambdaTestUtils.testPredicate(predicate, 6)
+```
+
+**仍然不支持的写法**：
+
+```nf
+// ❌ 这是 Java 8 简化 Lambda 语法，不是 NF 语法
+LambdaTestUtils.applyFunction(x -> x * 2, 5)
+```
+
+**什么时候还需要 Java 实现类**：
+
+- 目标方法重载很多，自动推断到的函数式接口不明确
+- 目标参数不是标准函数式接口，或者存在额外框架限制
+- 你需要在 Java 侧复用一个长期存在、可单独测试的实现类
+
+遇到这些场景时，先写 Java 实现类仍然是有效兜底方案，但它不再是默认必须路径。
 
 ### Fun 类型变量
 

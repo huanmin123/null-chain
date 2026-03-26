@@ -108,6 +108,24 @@ public class FunctionTest {
         assertEquals(36, result); // 30 + 6 = 36
         log.info("表达式中的函数调用测试通过，结果: {}", result);
     }
+
+    /**
+     * 测试字符串字面量中的括号不会干扰函数调用识别
+     */
+    @Test
+    public void testFunctionCallWithParenthesesInsideStringLiteral() {
+        String script = "fun wrap(String msg)String {\n" +
+            "    return msg\n" +
+            "}\n" +
+            "String result = wrap(\"a(b)c\") + wrap(\")ok(\")\n" +
+            "export result\n";
+
+        Map<String, Object> context = new HashMap<>();
+        Object result = NfMain.run(script, log, context);
+
+        assertNotNull(result);
+        assertEquals("a(b)c)ok(", result);
+    }
     
     /**
      * 测试函数在表达式中的使用 - 使用脚本文件
@@ -584,4 +602,3 @@ public class FunctionTest {
         log.info("var混合类型声明文件测试通过，结果: {}", result);
     }
 }
-

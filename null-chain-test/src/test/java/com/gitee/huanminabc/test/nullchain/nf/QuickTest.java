@@ -1,9 +1,11 @@
 package com.gitee.huanminabc.test.nullchain.nf;
 
 import com.gitee.huanminabc.nullchain.language.NfMain;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * 快速测试
@@ -11,11 +13,10 @@ import org.junit.jupiter.api.Test;
  * @author huanmin
  * @date 2025/01/06
  */
-@Slf4j
 public class QuickTest {
 
     @Test
-    @DisplayName("调试：测试 add 函数名是否被识别")
+    @DisplayName("函数引用调用应返回正确结果")
     public void test1() {
         String script =
             "fun add(int a, int b) Integer {\n" +
@@ -25,7 +26,8 @@ public class QuickTest {
             "Integer result = adder(5, 10)\n" +
             "export result";
 
-        Object result = NfMain.run(script, log, null);
-        log.info("Result: {}", result);
+        Object result = NfMain.run(script, null, null);
+        assertNotNull(result);
+        assertEquals(15, result);
     }
 }

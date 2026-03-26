@@ -16,6 +16,7 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeFactory;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
+import com.gitee.huanminabc.nullchain.language.utils.SyntaxNodeUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -107,7 +108,7 @@ public class ForSyntaxNode extends BlockSyntaxNode {
         List<Token> tokenList = syntaxNode.getValue();
         // 将条件提取出来
         // 去掉开头的FOR
-        tokenList.remove(0);
+        SyntaxNodeUtil.clearLeadingTokens(tokenList, 1);
         // 一直找到第一个{+LINE_END
         int endIndex = 0;
         // 优化：缓存size，避免在循环中重复调用
@@ -314,10 +315,7 @@ public class ForSyntaxNode extends BlockSyntaxNode {
             }
         }
         // 删除
-        tokenList.subList(0, endIndex).clear();
-        // 删除{+LINE_END
-        tokenList.remove(0);
-        tokenList.remove(0);
+        SyntaxNodeUtil.clearLeadingTokens(tokenList, endIndex + 2);
         // 删除最后的}
         tokenList.remove(tokenList.size() - 1);
         // 设置for条件

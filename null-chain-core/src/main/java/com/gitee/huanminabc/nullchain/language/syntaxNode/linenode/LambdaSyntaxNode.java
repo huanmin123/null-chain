@@ -259,7 +259,7 @@ public class LambdaSyntaxNode extends LineSyntaxNode {
         }
 
         // 3. 生成唯一的 Lambda 函数名
-        String lambdaFuncName = generateLambdaFunctionName(context);
+        String lambdaFuncName = generateLambdaFunctionName();
 
         // 4. 构建 FunParameter 列表
         List<FunDefInfo.FunParameter> parameters = new ArrayList<>();
@@ -378,10 +378,8 @@ public class LambdaSyntaxNode extends LineSyntaxNode {
     /**
      * 生成唯一的 Lambda 函数名
      */
-    private String generateLambdaFunctionName(NfContext context) {
-        int counter = context.getLambdaCounter();
-        context.setLambdaCounter(counter + 1);
-        return "__lambda_" + counter + "_" + System.currentTimeMillis();
+    private String generateLambdaFunctionName() {
+        return NfContext.generateLambdaFunctionName("__lambda_");
     }
 
     // Lambda 表达式的各个组成部分

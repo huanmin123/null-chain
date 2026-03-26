@@ -362,6 +362,38 @@ public class AdditionalSyntaxTest {
         log.info("Switch 空条件错误测试通过");
     }
 
+    @Test
+    public void testNotOperator() {
+        String script = "Boolean flag = false\n" +
+            "if !flag {\n" +
+            "    export 1\n" +
+            "} else {\n" +
+            "    export 0\n" +
+            "}\n";
+
+        List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(script);
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
+
+        NfContext context = new NfContext();
+        Object result = NfRun.run(syntaxNodes, context, log, null);
+
+        assertEquals(1, result);
+    }
+
+    @Test
+    public void testBracketPreCheckIgnoresComments() {
+        String script = "String value = \"ok\"\n" +
+            "// 注释里的括号不应该影响预检 })]\n" +
+            "export value\n";
+
+        assertDoesNotThrow(() -> {
+            List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(script);
+            List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
+            Object result = NfRun.run(syntaxNodes, new NfContext(), log, null);
+            assertEquals("ok", result);
+        });
+    }
+
     // ==================== 混合语句测试 ====================
 
     /**
@@ -510,5 +542,24 @@ public class AdditionalSyntaxTest {
         assertEquals("测试用户", user.getName());
         log.info("new 关键字全面测试通过，结果: {}", result);
     }
-}
 
+    /**
+     * 测试重复带参构造和嵌套逗号表达式。
+     * 同时覆盖 AssignSyntaxNode 和 VarSyntaxNode 的 new(...) 路径。
+     */
+    @Test
+    public void testNewObjectWithRepeatedConstructorCalls() {
+        String script = "import type com.gitee.huanminabc.test.nullchain.entity.UserEntity\n"
+            + "UserEntity user = new(100, \"A\".replace(\"A\", \"B\"), 20 + 5)\n"
+            + "var other:UserEntity=new(200, \"C\".replace(\"C\", \"D\"), 30 + 5)\n"
+            + "export user.getAge() + other.getAge()";
+        List<com.gitee.huanminabc.nullchain.language.token.Token> tokens = NfToken.tokens(script);
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(tokens);
+
+        NfContext context = new NfContext();
+        Object result = NfRun.run(syntaxNodes, context, log, null);
+
+        assertEquals(60, result);
+        log.info("重复带参构造测试通过，结果: {}", result);
+    }
+}

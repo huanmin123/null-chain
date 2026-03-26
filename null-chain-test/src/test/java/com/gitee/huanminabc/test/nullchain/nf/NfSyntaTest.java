@@ -14,6 +14,8 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 public class NfSyntaTest {
     static List<Token> tokens;
     static List<SyntaxNode> syntaxNodeList= new ArrayList<>();
@@ -82,5 +84,14 @@ public class NfSyntaTest {
             System.out.println(syntaxNode);
         }
 
+    }
+
+    @Test
+    public void BuildMainStatementShouldConsumeTokenList() {
+        List<Token> parseTokens = NfToken.tokens("Integer a = 1\nexport a\n");
+        List<SyntaxNode> syntaxNodes = NfSynta.buildMainStatement(parseTokens);
+
+        assertTrue(!syntaxNodes.isEmpty());
+        assertTrue(parseTokens.isEmpty(), "buildMainStatement 解析完成后应清空剩余 token");
     }
 }

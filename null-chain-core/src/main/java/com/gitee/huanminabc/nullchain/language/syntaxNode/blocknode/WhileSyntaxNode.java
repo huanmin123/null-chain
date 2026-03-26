@@ -14,6 +14,7 @@ import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeFactory;
 import com.gitee.huanminabc.nullchain.language.syntaxNode.SyntaxNodeType;
 import com.gitee.huanminabc.nullchain.language.token.Token;
 import com.gitee.huanminabc.nullchain.language.token.TokenType;
+import com.gitee.huanminabc.nullchain.language.utils.SyntaxNodeUtil;
 import com.gitee.huanminabc.nullchain.language.utils.TokenUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -95,7 +96,7 @@ public class WhileSyntaxNode extends BlockSyntaxNode {
             );
         }
 
-        tokenList.remove(0);
+        SyntaxNodeUtil.clearLeadingTokens(tokenList, 1);
 
         int endIndex = 0;
         int tokenListSize = tokenList.size();
@@ -119,11 +120,11 @@ public class WhileSyntaxNode extends BlockSyntaxNode {
             );
         }
 
-        tokenList.subList(0, endIndex).clear();
-        tokenList.remove(0);
-        if (!tokenList.isEmpty() && tokenList.get(0).type == TokenType.LINE_END) {
-            tokenList.remove(0);
+        int removeCount = endIndex + 1;
+        if (tokenList.size() > removeCount && tokenList.get(removeCount).type == TokenType.LINE_END) {
+            removeCount++;
         }
+        SyntaxNodeUtil.clearLeadingTokens(tokenList, removeCount);
         if (!tokenList.isEmpty() && tokenList.get(tokenList.size() - 1).type == TokenType.RBRACE) {
             tokenList.remove(tokenList.size() - 1);
         }
