@@ -1,7 +1,7 @@
 package com.gitee.huanminabc.test.nullchain.core;
 
 import com.gitee.huanminabc.jcommon.base.SerializeUtil;
-import com.gitee.huanminabc.jcommon.exception.CommonException;
+import com.gitee.huanminabc.jcommon.exception.JCommonException;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.core.NullChain;
 import com.gitee.huanminabc.test.nullchain.entity.RoleEntity;
@@ -88,7 +88,7 @@ public class NullChainSerializeTest {
     @Test
     public void testSerializeWithNull() {
         //异常包裹起来
-        assertThrows(CommonException.class, () -> {
+        assertThrows(JCommonException.class, () -> {
             NullChain<RoleEntity> chain = Null.of((UserEntity) null)
                     .map(UserEntity::getRoleData);
             SerializeUtil.serialize(chain);
@@ -238,19 +238,19 @@ public class NullChainSerializeTest {
     @Test
     public void testSerializeNullValueException() {
         // 测试空链序列化
-        assertThrows(CommonException.class, () -> {
+        assertThrows(JCommonException.class, () -> {
             NullChain<UserEntity> emptyChain = Null.empty();
             SerializeUtil.serialize(emptyChain);
         });
         
         // 测试null值链序列化
-        assertThrows(CommonException.class, () -> {
+        assertThrows(JCommonException.class, () -> {
             NullChain<UserEntity> nullChain = Null.of((UserEntity) null);
             SerializeUtil.serialize(nullChain);
         });
         
         // 测试链式操作后结果为null的序列化
-        assertThrows(CommonException.class, () -> {
+        assertThrows(JCommonException.class, () -> {
             NullChain<RoleEntity> chain = Null.of((UserEntity) null)
                     .map(UserEntity::getRoleData);
             SerializeUtil.serialize(chain);
