@@ -106,6 +106,20 @@ public class NullChainTest {
     }
 
     @Test
+    public void testOfWithNullChainValue() {
+        UserEntity result = Null.of(Null.of("{\"name\":\"huanmin\"}"))
+                .fromJson(UserEntity.class)
+                .get();
+        assertEquals("huanmin", result.getName());
+    }
+
+    @Test
+    public void testOfWithEmptyNullChain() {
+        assertTrue(Null.of(Null.of((String) null)).is());
+        assertNull(Null.of(Null.of((String) null)).orElseNull());
+    }
+
+    @Test
     public void testOfWithNullOptionalRef() {
         Optional<String> optional = null;
         NullChain<String> chain = Null.of(optional);

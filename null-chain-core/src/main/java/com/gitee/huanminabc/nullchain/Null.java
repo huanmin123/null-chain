@@ -817,8 +817,11 @@ public class Null extends NullUtil {
      * @return 包含指定值的Null链
      */
     static <X> NullChain<X> ofInternal(X value) {
+        // 兼容直接传入 NullChain 的场景，先解包出实际值再走统一判空逻辑
+        final X resolvedValue = unwrapNullChainValue(value);
+
         // 快速路径：对于明显的null值，直接返回空链，避免创建对象
-        if (value == null) {
+        if (resolvedValue == null) {
             NullTaskList nullTaskList = newTaskList();
             StringBuilder linkLog = newLinkLog();
             linkLog.append(OF_Q);
@@ -828,11 +831,11 @@ public class Null extends NullUtil {
 
         // 优化：对于非null的基本类型，直接返回非空链，避免在任务中再次检查
         // 因为基本类型只有null和有值两种情况，不需要检查空字符串、空集合等
-        if (ClassIdentifyUtil.isPrimitiveOrWrapper(value.getClass())) {
+        if (ClassIdentifyUtil.isPrimitiveOrWrapper(resolvedValue.getClass())) {
             NullTaskList nullTaskList = newTaskList();
             StringBuilder linkLog = newLinkLog();
             linkLog.append(OF_ARROW);
-            nullTaskList.add((__) -> NullBuild.noEmpty(value));
+            nullTaskList.add((__) -> NullBuild.noEmpty(resolvedValue));
             return NullBuild.busy(linkLog, nullTaskList);
         }
 
@@ -840,13 +843,26 @@ public class Null extends NullUtil {
         NullTaskList nullTaskList = newTaskList();
         StringBuilder linkLog = newLinkLog();
         nullTaskList.add((__) -> {
-            if (Null.is(value)) {
+            if (Null.is(resolvedValue)) {
                 linkLog.append(OF_Q);
                 return NullBuild.empty();
             }
             linkLog.append(OF_ARROW);
-            return NullBuild.noEmpty(value);
+            return NullBuild.noEmpty(resolvedValue);
         });
         return NullBuild.busy(linkLog, nullTaskList);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <X> X unwrapNullChainValue(X value) {
+        Object current = value;
+        while (current instanceof NullChain) {
+            Object next = ((NullChain<?>) current).orElseNull();
+            if (next == current) {
+                break;
+            }
+            current = next;
+        }
+        return (X) current;
     }
 }
