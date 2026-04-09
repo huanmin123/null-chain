@@ -1,6 +1,7 @@
 package com.gitee.huanminabc.nullchain.common;
 
 import com.gitee.huanminabc.jcommon.exception.StackTraceUtil;
+import com.gitee.huanminabc.jcommon.multithreading.context.AsyncTaskContext;
 import com.gitee.huanminabc.jcommon.multithreading.executor.ThreadFactoryUtil;
 import com.gitee.huanminabc.nullchain.core.NullChainBase;
 import com.gitee.huanminabc.nullchain.common.function.NullTaskFun;
@@ -12,7 +13,7 @@ import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 
@@ -26,6 +27,8 @@ import java.util.function.Consumer;
 @Slf4j
 public class NullTaskList implements Serializable {
     private static final long serialVersionUID = 1L;
+    private static final Executor CONTEXT_AWARE_COMMON_POOL =
+            command -> ForkJoinPool.commonPool().execute(AsyncTaskContext.wrap(command));
 
     /**
      * Null任务节点 - 表示任务执行的结果
@@ -128,10 +131,10 @@ public class NullTaskList implements Serializable {
      * @param forkJoinPool 是否允许使用ForkJoinPool
      * @return 线程池实例
      */
-    protected ExecutorService getCT(boolean forkJoinPool) {
+    protected Executor getCT(boolean forkJoinPool) {
         //如果是默认线程那么使用工作窃取线程 , 因为这种线程池是共享任务的基本不会有切换线程带来的性能损失,只适合快速且短小的任务
         if (forkJoinPool && ThreadFactoryUtil.DEFAULT_THREAD_FACTORY_NAME.equals(currentThreadFactoryName)) {
-            return ForkJoinPool.commonPool();
+            return CONTEXT_AWARE_COMMON_POOL;
         }
         return ThreadFactoryUtil.getExecutor(currentThreadFactoryName);
     }

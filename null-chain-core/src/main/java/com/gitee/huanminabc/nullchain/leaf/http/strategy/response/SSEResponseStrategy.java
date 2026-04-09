@@ -1,5 +1,7 @@
 package com.gitee.huanminabc.nullchain.leaf.http.strategy.response;
 
+import com.gitee.huanminabc.jcommon.multithreading.context.AsyncTaskContext;
+import com.gitee.huanminabc.jcommon.multithreading.context.AsyncTaskSnapshot;
 import com.gitee.huanminabc.nullchain.enums.OkHttpResponseEnum;
 import com.gitee.huanminabc.nullchain.leaf.http.sse.DataDecoder;
 import com.gitee.huanminabc.nullchain.leaf.http.sse.EventMessage;
@@ -134,13 +136,15 @@ public class SSEResponseStrategy implements ResponseStrategy {
 
         // 创建SSE控制器
         SSEController controller = new SSEController();
+        AsyncTaskSnapshot contextSnapshot = AsyncTaskContext.capture();
+        controller.bindAsyncContextSnapshot(contextSnapshot);
         controller.setMaxReconnectCount(retryCount);
         controller.setReconnectInterval(retryInterval);
         
         // 异步执行 SSE 请求，避免阻塞调用线程
-        SHARED_EXECUTOR.execute(() -> {
+        SHARED_EXECUTOR.execute(controller.wrapContext(() -> {
             toSSE(url, okHttpClient, request, retryCount, retryInterval, listener, decoder, controller);
-        });
+        }));
         
         // 立即返回控制器，用户可以用于管理连接
         return controller;
@@ -1069,4 +1073,3 @@ public class SSEResponseStrategy implements ResponseStrategy {
         }
     }
 }
-

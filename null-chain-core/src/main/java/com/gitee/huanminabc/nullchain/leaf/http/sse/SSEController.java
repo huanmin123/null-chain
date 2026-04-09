@@ -1,5 +1,7 @@
 package com.gitee.huanminabc.nullchain.leaf.http.sse;
 
+import com.gitee.huanminabc.jcommon.multithreading.context.AsyncTaskContext;
+import com.gitee.huanminabc.jcommon.multithreading.context.AsyncTaskSnapshot;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -44,8 +46,10 @@ public class SSEController {
     private final AtomicReference<String> lastEventId = new AtomicReference<>();
     
     /** 重连触发器（由策略类设置） */
-    @Setter
     private volatile Runnable reconnectTrigger;
+
+    /** 长连接生命周期内复用的异步上下文快照 */
+    private volatile AsyncTaskSnapshot asyncContextSnapshot;
     
     /** 重连锁（确保重连操作的原子性） */
     private final Object reconnectLock = new Object();
@@ -160,6 +164,31 @@ public class SSEController {
      */
     public static ScheduledExecutorService getSharedScheduledExecutor() {
         return SHARED_SCHEDULED_EXECUTOR;
+    }
+
+    public void bindAsyncContextSnapshot(AsyncTaskSnapshot snapshot) {
+        this.asyncContextSnapshot = snapshot;
+    }
+
+    public void setReconnectTrigger(Runnable reconnectTrigger) {
+        if (reconnectTrigger == null) {
+            this.reconnectTrigger = null;
+            this.asyncContextSnapshot = null;
+            return;
+        }
+        if (this.asyncContextSnapshot == null) {
+            this.asyncContextSnapshot = AsyncTaskContext.capture();
+        }
+        this.reconnectTrigger = wrapContext(reconnectTrigger);
+    }
+
+    public Runnable wrapContext(Runnable task) {
+        AsyncTaskSnapshot snapshot = asyncContextSnapshot;
+        return snapshot == null ? AsyncTaskContext.wrap(task) : snapshot.wrap(task);
+    }
+
+    public void runWithContext(Runnable task) {
+        wrapContext(task).run();
     }
     
     /**
@@ -323,7 +352,7 @@ public class SSEController {
             long delay = SSEReconnectManager.calculateDelay(currentAttempt, reconnectInterval);
             log.debug("[SSE重连] 计算重连延迟: {}ms，第{}次重连", delay, currentAttempt);
             
-            ScheduledFuture<?> future = SHARED_SCHEDULED_EXECUTOR.schedule(() -> {
+            ScheduledFuture<?> future = SHARED_SCHEDULED_EXECUTOR.schedule(wrapContext(() -> {
                 // 检查控制器是否已销毁（可能在延迟期间被关闭）
                 if (isDestroyed()) {
                     log.debug("[SSE重连] 控制器已销毁，取消重连任务");
@@ -338,7 +367,7 @@ public class SSEController {
                 }
                 
                 // 在共享线程池中执行实际的重连逻辑
-                SHARED_EXECUTOR.execute(() -> {
+                SHARED_EXECUTOR.execute(wrapContext(() -> {
                     try {
                         // 触发重连
                         log.info("[SSE重连] 开始执行重连，原因: {}", reason);
@@ -347,8 +376,8 @@ public class SSEController {
                         log.error("[SSE重连] 执行重连时发生异常", e);
                         setReconnecting(false);
                     }
-                });
-            }, delay, TimeUnit.MILLISECONDS);
+                }));
+            }), delay, TimeUnit.MILLISECONDS);
             
             // 保存future以便后续取消
             reconnectFuture.set(future);
@@ -434,6 +463,7 @@ public class SSEController {
 
         // 步骤3：阻止重连触发器继续工作（必须在其他操作之前）
         reconnectTrigger = null;  // 清空引用，使得后续无法触发重连
+        asyncContextSnapshot = null;
 
         // 步骤4：停止所有正在进行的重连（设置重连状态为 false，防止新的重连）
         setReconnecting(false);
@@ -618,4 +648,3 @@ public class SSEController {
         return state == SSEConnectionState.CLOSED || state == SSEConnectionState.FAILED;
     }
 }
-

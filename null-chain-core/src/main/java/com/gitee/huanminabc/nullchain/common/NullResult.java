@@ -5,6 +5,7 @@ import com.alibaba.fastjson.annotation.JSONType;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.gitee.huanminabc.jcommon.multithreading.context.AsyncTaskContext;
 import com.gitee.huanminabc.nullchain.Null;
 import com.gitee.huanminabc.nullchain.NullExt;
 import com.gitee.huanminabc.nullchain.core.NullChain;
@@ -59,7 +60,10 @@ public class NullResult<T> implements Serializable {
      * 
      * <p>默认返回空字符串，可以通过设置此函数来自定义链路ID的生成逻辑。</p>
      */
-    public static Supplier<String> TRACE_ID_FUN = () -> "";
+    public static Supplier<String> TRACE_ID_FUN = () -> {
+        String traceId = AsyncTaskContext.captureTraceId();
+        return traceId == null ? "" : traceId;
+    };
 
     /**
      * 链路追踪ID，用于追踪请求链路

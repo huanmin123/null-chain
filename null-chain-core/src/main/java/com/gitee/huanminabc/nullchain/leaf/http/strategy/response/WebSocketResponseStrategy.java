@@ -1,5 +1,7 @@
 package com.gitee.huanminabc.nullchain.leaf.http.strategy.response;
 
+import com.gitee.huanminabc.jcommon.multithreading.context.AsyncTaskContext;
+import com.gitee.huanminabc.jcommon.multithreading.context.AsyncTaskSnapshot;
 import com.gitee.huanminabc.nullchain.enums.OkHttpResponseEnum;
 import com.gitee.huanminabc.nullchain.leaf.http.strategy.ResponseStrategy;
 import com.gitee.huanminabc.nullchain.leaf.http.websocket.WebSocketController;
@@ -45,6 +47,8 @@ public class WebSocketResponseStrategy implements ResponseStrategy {
         
         // 创建 WebSocketController
         WebSocketController controller = new WebSocketController();
+        AsyncTaskSnapshot contextSnapshot = AsyncTaskContext.capture();
+        controller.bindAsyncContextSnapshot(contextSnapshot);
         
         // URL 转换：http -> ws, https -> wss
         String wsUrl = convertToWebSocketUrl(url);
@@ -146,13 +150,13 @@ public class WebSocketResponseStrategy implements ResponseStrategy {
         controller.setReconnectTrigger(() -> {
             if (retryCount > 0 && controller.getPendingMessageCount() > 0) {
                 // 使用共享线程池执行重连任务
-                WebSocketController.getSharedExecutor().execute(() -> {
+                WebSocketController.getSharedExecutor().execute(controller.wrapContext(() -> {
                     controller.incrementReconnectAttempt();
                     reconnectWebSocket(url, okHttpClient, request, retryCount, retryInterval,
                             listener, controller, new IOException("连接已关闭，有待发送消息"),
                             heartbeatHandler, heartbeatInterval, heartbeatTimeout, subprotocols);
                     // 注意：不在 finally 中重置状态，状态会在 onOpen 成功时或重连失败且不再重试时重置
-                });
+                }));
             }
         });
         
@@ -219,7 +223,7 @@ public class WebSocketResponseStrategy implements ResponseStrategy {
         
         // 使用 ScheduledExecutorService 延迟执行重连，避免阻塞线程
         // 注意：所有重连都应该有延迟，包括首次重连
-        WebSocketController.getSharedHeartbeatExecutor().schedule(() -> {
+        WebSocketController.getSharedHeartbeatExecutor().schedule(controller.wrapContext(() -> {
             // 检查控制器是否已销毁（可能在延迟期间被关闭）
             if (controller.isDestroyed()) {
                 log.debug("控制器已销毁，取消重连");
@@ -241,7 +245,7 @@ public class WebSocketResponseStrategy implements ResponseStrategy {
             // 执行实际的重连逻辑
             performReconnect(url, okHttpClient, request, retryCount, retryInterval,
                     listener, controller, heartbeatHandler, heartbeatInterval, heartbeatTimeout, subprotocols);
-        }, delay, TimeUnit.MILLISECONDS);
+        }), delay, TimeUnit.MILLISECONDS);
     }
     
     /**
@@ -335,33 +339,33 @@ public class WebSocketResponseStrategy implements ResponseStrategy {
         return new WebSocketListener() {
             @Override
             public void onOpen(WebSocket webSocket, Response response) {
-                handleOnOpen(webSocket, response, listener, controller, subprotocols, 
-                        heartbeatHandler, heartbeatInterval, heartbeatTimeout);
+                controller.runWithContext(() -> handleOnOpen(webSocket, response, listener, controller, subprotocols,
+                        heartbeatHandler, heartbeatInterval, heartbeatTimeout));
             }
             
             @Override
             public void onMessage(WebSocket webSocket, String text) {
-                handleOnMessageText(listener, controller, text, heartbeatHandler);
+                controller.runWithContext(() -> handleOnMessageText(listener, controller, text, heartbeatHandler));
             }
             
             @Override
             public void onMessage(WebSocket webSocket, ByteString bytes) {
-                handleOnMessageBytes(listener, controller, bytes, heartbeatHandler);
+                controller.runWithContext(() -> handleOnMessageBytes(listener, controller, bytes, heartbeatHandler));
             }
             
             @Override
             public void onClosing(WebSocket webSocket, int code, String reason) {
-                handleOnClosing(webSocket, code, reason, listener, controller, url);
+                controller.runWithContext(() -> handleOnClosing(webSocket, code, reason, listener, controller, url));
             }
             
             @Override
             public void onClosed(WebSocket webSocket, int code, String reason) {
-                handleOnClosed(webSocket, code, reason, listener, controller, url, retryCount);
+                controller.runWithContext(() -> handleOnClosed(webSocket, code, reason, listener, controller, url, retryCount));
             }
             
             @Override
             public void onFailure(WebSocket webSocket, Throwable t, Response response) {
-                handleOnFailure(webSocket, t, response, listener, controller, url, retryCount);
+                controller.runWithContext(() -> handleOnFailure(webSocket, t, response, listener, controller, url, retryCount));
             }
         };
     }
@@ -763,4 +767,3 @@ public class WebSocketResponseStrategy implements ResponseStrategy {
         }
     }
 }
-

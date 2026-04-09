@@ -1,5 +1,7 @@
 package com.gitee.huanminabc.nullchain.leaf.http.websocket;
 
+import com.gitee.huanminabc.jcommon.multithreading.context.AsyncTaskContext;
+import com.gitee.huanminabc.jcommon.multithreading.context.AsyncTaskSnapshot;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -165,8 +167,10 @@ public class WebSocketController implements AutoCloseable {
      *
      * trigger 重连触发器，当连接关闭后发送消息时会被调用
      */
-    @Setter
     private volatile Runnable reconnectTrigger;
+
+    /** WebSocket 生命周期内复用的异步上下文快照 */
+    private volatile AsyncTaskSnapshot asyncContextSnapshot;
     
     /** 重连锁（确保重连操作的原子性） */
     private final Object reconnectLock = new Object();
@@ -331,6 +335,31 @@ public class WebSocketController implements AutoCloseable {
      */
     public boolean isReconnectExhausted() {
         return maxReconnectCount > 0 && reconnectAttempt.get() > maxReconnectCount;
+    }
+
+    public void bindAsyncContextSnapshot(AsyncTaskSnapshot snapshot) {
+        this.asyncContextSnapshot = snapshot;
+    }
+
+    public void setReconnectTrigger(Runnable reconnectTrigger) {
+        if (reconnectTrigger == null) {
+            this.reconnectTrigger = null;
+            this.asyncContextSnapshot = null;
+            return;
+        }
+        if (this.asyncContextSnapshot == null) {
+            this.asyncContextSnapshot = AsyncTaskContext.capture();
+        }
+        this.reconnectTrigger = wrapContext(reconnectTrigger);
+    }
+
+    public Runnable wrapContext(Runnable task) {
+        AsyncTaskSnapshot snapshot = asyncContextSnapshot;
+        return snapshot == null ? AsyncTaskContext.wrap(task) : snapshot.wrap(task);
+    }
+
+    public void runWithContext(Runnable task) {
+        wrapContext(task).run();
     }
 
     /**
@@ -694,26 +723,26 @@ public class WebSocketController implements AutoCloseable {
         lastHeartbeatResponseTime.set(System.currentTimeMillis());
         
         // 启动心跳发送任务
-        heartbeatSendTask = SHARED_HEARTBEAT_EXECUTOR.scheduleAtFixedRate(() -> {
+        heartbeatSendTask = SHARED_HEARTBEAT_EXECUTOR.scheduleAtFixedRate(wrapContext(() -> {
             try {
                 sendHeartbeat();
             } catch (Exception e) {
                 log.error("发送心跳异常", e);
             }
-        }, heartbeatInterval, heartbeatInterval, TimeUnit.MILLISECONDS);
+        }), heartbeatInterval, heartbeatInterval, TimeUnit.MILLISECONDS);
         
         // 启动超时检测任务（根据心跳间隔和超时时间动态调整检测频率）
         // 检测频率 = min(心跳间隔/2, 心跳超时/4, 1000ms)，但至少每秒一次
         long checkInterval = Math.min(Math.min(heartbeatInterval / 2, heartbeatTimeout / 4), 1000);
         checkInterval = Math.max(checkInterval, 1000); // 至少每秒检查一次
         
-        heartbeatTimeoutTask = SHARED_HEARTBEAT_EXECUTOR.scheduleAtFixedRate(() -> {
+        heartbeatTimeoutTask = SHARED_HEARTBEAT_EXECUTOR.scheduleAtFixedRate(wrapContext(() -> {
             try {
                 checkHeartbeatTimeout();
             } catch (Exception e) {
                 log.error("心跳超时检测异常", e);
             }
-        }, checkInterval, checkInterval, TimeUnit.MILLISECONDS);
+        }), checkInterval, checkInterval, TimeUnit.MILLISECONDS);
         
         log.debug("心跳超时检测频率: {}ms", checkInterval);
         
@@ -962,6 +991,7 @@ public class WebSocketController implements AutoCloseable {
         
         // 阻止重连触发器继续工作（必须在关闭连接前设置）
         reconnectTrigger = null;
+        asyncContextSnapshot = null;
         
         // 停止所有正在进行的重连（设置重连状态为 false，防止新的重连）
         setReconnecting(false);
@@ -1131,4 +1161,3 @@ public class WebSocketController implements AutoCloseable {
     }
 
 }
-
