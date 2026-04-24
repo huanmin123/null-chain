@@ -12,7 +12,6 @@
     </parent>
 
     <artifactId>null-chain-work</artifactId>
-    <version>${null-chain-version}</version>
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
