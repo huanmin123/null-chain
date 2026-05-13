@@ -15,6 +15,15 @@ import java.io.InputStream;
  * 
  * <p>该接口定义了HTTP请求结果的处理方法，包括字符串、字节数组、输入流、文件下载等。
  * 支持多种结果格式的获取，提供灵活的结果处理方式。</p>
+ *
+ * <p><strong>默认重试：</strong>普通 HTTP 终结方法会默认走统一重试机制，
+ * 默认重试 3 次、基础间隔 100 毫秒，可通过
+ * {@link OkHttpConfigChain#retryCount(int)} 和 {@link OkHttpConfigChain#retryInterval(long)}
+ * 调整；{@code retryCount(0)} 表示关闭重试，只执行一次。</p>
+ *
+ * <p><strong>异常范围：</strong>普通 HTTP 重试捕获 OkHttp 请求执行、响应体读取和相关文件读写过程中
+ * 抛出的所有 {@link java.io.IOException}。参数校验、JSON 解析、监听器回调等非 IO 异常不会进入普通
+ * HTTP 重试流程。SSE 与 WebSocket 使用同一组重试配置，但分别表示 SSE 连接重试和 WebSocket 自动重连。</p>
  * 
  * <h3>主要功能：</h3>
  * <ul>
@@ -36,6 +45,9 @@ public interface OkHttpResultChain {
      * 
      * <p>该方法用于将HTTP响应内容下载到指定的文件路径。
      * 适用于下载文件、图片、文档等二进制内容。</p>
+     *
+     * <p>默认启用普通 HTTP 重试。请求执行、响应体读取和文件写入过程中抛出的
+     * {@link java.io.IOException} 都会触发重试。</p>
      * 
      * @param filePath 文件保存路径
      * @return true表示下载成功，false表示下载失败
@@ -54,6 +66,9 @@ public interface OkHttpResultChain {
      * 
      * <p>该方法用于获取HTTP响应的字节数组内容。
      * 适用于处理二进制数据、图片、文件等。</p>
+     *
+     * <p>默认启用普通 HTTP 重试。请求执行或响应体读取过程中抛出的
+     * {@link java.io.IOException} 会触发重试。</p>
      * 
      * @return 包含字节数组的Null链，如果响应为空则返回空链
      * 
@@ -72,6 +87,9 @@ public interface OkHttpResultChain {
      * 
      * <p>该方法用于获取HTTP响应的输入流，适用于处理大文件或流式数据。
      * 调用者需要负责关闭输入流。</p>
+     *
+     * <p>默认启用普通 HTTP 重试。重试只覆盖获取响应输入流之前的请求执行阶段；
+     * 方法返回后的流读取异常由调用者处理，不会再回到本方法重试。</p>
      * 
      * @return 包含输入流的Null链，如果响应为空则返回空链
      * 
@@ -95,6 +113,9 @@ public interface OkHttpResultChain {
      * 
      * <p>该方法用于获取HTTP响应的字符串内容，适用于处理文本数据、JSON、XML等。
      * 这是最常用的结果获取方法。</p>
+     *
+     * <p>默认启用普通 HTTP 重试。请求执行或响应体读取过程中抛出的
+     * {@link java.io.IOException} 会触发重试。</p>
      * 
      * @return 包含字符串的Null链
      * 
@@ -102,7 +123,7 @@ public interface OkHttpResultChain {
      * <pre>{@code
      * String response = Null.ofHttp("https://api.example.com/users")
      *     .get()
-     *     .toStr()  // 获取API响应的字符串
+     *     .toSTR()  // 获取API响应的字符串
      *     .orElse("请求失败");
      * }</pre>
      */
@@ -113,6 +134,9 @@ public interface OkHttpResultChain {
      * 
      * <p>该方法用于获取HTTP响应的字符串内容，并通过JSON反序列化转换为指定类型的对象。
      * 适用于处理JSON格式的API响应。</p>
+     *
+     * <p>默认启用普通 HTTP 重试。重试只覆盖请求执行和响应体读取阶段；
+     * JSON 反序列化异常属于非 IO 异常，不会触发重试。</p>
      * 
      * @param <R> 目标对象类型
      * @param clazz 目标类型的Class对象
@@ -122,7 +146,7 @@ public interface OkHttpResultChain {
      * <pre>{@code
      * User user = Null.ofHttp("https://api.example.com/user/1")
      *     .get()
-     *     .toStr(User.class)  // 将JSON响应转换为User对象
+     *     .toFromJson(User.class)  // 将JSON响应转换为User对象
      *     .orElseNull();
      * }</pre>
      */
@@ -134,6 +158,10 @@ public interface OkHttpResultChain {
      * 
      * <p>该方法用于处理 HTTP 响应为 SSE 流的情况。如果响应 Content-Type 为 text/event-stream，
      * 则按照 SSE 协议解析并触发相应的事件回调；如果响应不是 SSE 格式，则触发非 SSE 响应回调。</p>
+     *
+     * <p>默认使用 {@link OkHttpConfigChain#retryCount(int)} 和
+     * {@link OkHttpConfigChain#retryInterval(long)} 作为 SSE 连接重试配置。
+     * SSE 的重试由异步连接流程处理，错误通过监听器回调返回。</p>
      * 
      * <h3>使用说明：</h3>
      * <ul>
@@ -192,6 +220,10 @@ public interface OkHttpResultChain {
      * 
      * <p>该方法用于建立 WebSocket 连接，提供自定义事件监听器接口。
      * 支持智能重连机制：区分消息重发（有消息队列时）和连接重连（无消息队列时）。</p>
+     *
+     * <p>默认使用 {@link OkHttpConfigChain#retryCount(int)} 和
+     * {@link OkHttpConfigChain#retryInterval(long)} 作为 WebSocket 自动重连配置。
+     * WebSocket 连接是异步的，连接失败或断开后的错误通过监听器回调返回。</p>
      * 
      * <h3>使用说明：</h3>
      * <ul>

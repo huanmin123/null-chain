@@ -114,7 +114,11 @@ public interface OkHttpConfigChain extends  OkHttpProtocolChain {
      * 设置请求失败时的重试次数
      *
      * <p>该方法用于设置HTTP请求失败时的重试次数，默认值为3次。
-     * 当网络波动或服务器暂时不可用时，自动重试可以提高请求成功率。</p>
+     * 当网络波动、响应体读取异常或文件读写等 IO 异常出现时，自动重试可以提高请求成功率。</p>
+     *
+     * <p>该配置会作用于普通 HTTP 终结方法（toSTR、toBytes、toInputStream、toFromJson、downloadFile），
+     * 同时也作为 SSE 连接重试和 WebSocket 自动重连的默认次数。普通 HTTP 重试捕获所有
+     * {@link java.io.IOException}，不捕获参数校验、JSON 解析、监听器回调等非 IO 异常。</p>
      *
      * @param retryCount 重试次数，必须大于等于0。如果设置为0，则不进行重试
      * @return OkHttp对象，以便链式调用其他配置方法
@@ -130,8 +134,9 @@ public interface OkHttpConfigChain extends  OkHttpProtocolChain {
      * 设置请求失败时的重试间隔时间
      *
      * <p>该方法用于设置HTTP请求失败后每次重试之间的间隔时间，默认值为100毫秒。
-     * 重试间隔会随着重试次数递增（间隔时间 = 基础间隔 * 当前重试次数），
-     * 这种策略可以避免在短时间内对服务器造成过大压力。</p>
+     * 普通 HTTP 终结方法的重试间隔会随着重试次数递增（间隔时间 = 基础间隔 * 当前重试次数），
+     * 这种策略可以避免在短时间内对服务器造成过大压力。SSE 连接重试使用固定间隔，
+     * WebSocket 自动重连由重连管理器基于该基础间隔计算延迟。</p>
      *
      * @param retryInterval 重试间隔时间（毫秒），必须大于等于0
      * @return OkHttp对象，以便链式调用其他配置方法

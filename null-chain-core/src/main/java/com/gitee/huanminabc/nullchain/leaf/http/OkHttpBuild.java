@@ -176,7 +176,9 @@ public class OkHttpBuild {
     /**
      * HTTP请求重试机制
      * 
-     * <p>提供统一的HTTP请求重试逻辑，支持所有响应处理策略共享使用。</p>
+     * <p>提供统一的HTTP请求重试逻辑，支持普通 HTTP 响应处理策略共享使用。
+     * 该方法捕获执行块中抛出的所有 {@link IOException}，包括 OkHttp 请求执行、
+     * 响应体读取以及调用方放在执行块内的文件 IO 异常。非 IO 异常不会在这里重试。</p>
      * 
      * @param url 请求的URL
      * @param retryCount 重试次数
